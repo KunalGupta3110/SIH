@@ -137,28 +137,45 @@ tab1, tab2, tab3, tab4 = st.tabs([
 
 # Tab 1: Video Surveillance Feeds
 with tab1:
-    st.subheader("Surveillance Feed Feeds (Simulated Non-Overlapping Angles)")
+    st.subheader("Surveillance Video Feeds & Analytics Playback")
+    
+    # Auto-detect available processed and raw video files
+    video_files = [f for f in os.listdir("data") if f.endswith((".mp4", ".avi", ".mkv"))] if os.path.exists("data") else []
+    
     vcol1, vcol2 = st.columns(2)
     
     with vcol1:
-        st.markdown("#### 📍 Camera 1: Check Post Alpha (Outer Approach)")
-        cam1_vid = "data/detected_output.mp4"
-        if os.path.exists(cam1_vid):
-            st.video(cam1_vid)
-        elif os.path.exists("data/sample_border.mp4"):
-            st.video("data/sample_border.mp4")
+        st.markdown("#### 📍 Camera 1: Check Post Alpha (Perimeter & Tripwires)")
+        # Default options for Cam 1
+        cam1_candidates = ["data/vtest_surveillance_output.mp4", "data/detected_output.mp4", "data/sample_border.mp4"]
+        cam1_default = next((f for f in cam1_candidates if os.path.exists(f)), None)
+        
+        selected_vid1 = st.selectbox(
+            "Select Camera 1 Video Clip",
+            options=[f"data/{f}" for f in video_files] if video_files else ["None"],
+            index=[f"data/{f}" for f in video_files].index(cam1_default) if (video_files and cam1_default in [f"data/{f}" for f in video_files]) else 0,
+            key="cam1_select"
+        )
+        if selected_vid1 and selected_vid1 != "None" and os.path.exists(selected_vid1):
+            st.video(selected_vid1)
         else:
-            st.info("No video recorded yet. Run `python alerts/run_surveillance.py` to generate demo feed.")
+            st.info("Run `python alerts/run_surveillance.py` to generate Camera 1 annotated video.")
 
     with vcol2:
-        st.markdown("#### 📍 Camera 2: BOP Bravo (Perimeter Restricted Area)")
-        cam2_vid = "data/cross_cam_reid_demo.mp4"
-        if os.path.exists(cam2_vid):
-            st.video(cam2_vid)
-        elif os.path.exists("data/sample_border.mp4"):
-            st.video("data/sample_border.mp4")
+        st.markdown("#### 📍 Camera 2 / Cross-Camera Re-ID Feed")
+        cam2_candidates = ["data/cross_cam_real_demo.mp4", "data/cross_cam_reid_demo.mp4", "data/people_surveillance.mp4"]
+        cam2_default = next((f for f in cam2_candidates if os.path.exists(f)), None)
+        
+        selected_vid2 = st.selectbox(
+            "Select Camera 2 / Re-ID Video Clip",
+            options=[f"data/{f}" for f in video_files] if video_files else ["None"],
+            index=[f"data/{f}" for f in video_files].index(cam2_default) if (video_files and cam2_default in [f"data/{f}" for f in video_files]) else 0,
+            key="cam2_select"
+        )
+        if selected_vid2 and selected_vid2 != "None" and os.path.exists(selected_vid2):
+            st.video(selected_vid2)
         else:
-            st.info("Run `python reid/cross_cam_demo.py` to generate side-by-side Re-ID playback.")
+            st.info("Run `python reid/cross_cam_demo.py` to generate Cross-Camera Re-ID video.")
 
 # Tab 2: Alert Feed & Audit Log
 with tab2:
