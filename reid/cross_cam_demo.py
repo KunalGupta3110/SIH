@@ -175,6 +175,13 @@ def run_dual_camera_reid_demo(
             if writer:
                 writer.write(side_by_side)
 
+            if show:
+                cv2.imshow("IBVAP - Dual-Camera Cross-ReID Live Feed", side_by_side)
+                key = cv2.waitKey(1) & 0xFF
+                if key == 27 or key == ord("q"):
+                    print("[IBVAP Re-ID] User closed preview window.")
+                    break
+
             if frame_idx % 30 == 0:
                 print(f"[Dual-Cam Demo] Frame {frame_idx} | Total Global Targets: {len(reid_engine.global_tracks)}")
 
@@ -184,6 +191,8 @@ def run_dual_camera_reid_demo(
         if writer:
             writer.release()
             print(f"[IBVAP] Dual camera Re-ID output saved to: {output_path}")
+        if show:
+            cv2.destroyAllWindows()
 
         reid_engine.export_summary("data/cross_camera_ledger.json")
 
@@ -192,8 +201,9 @@ def main():
     parser = argparse.ArgumentParser(description="IBVAP - Dual-Camera Cross-ReID Demo")
     parser.add_argument("--cam1", type=str, default="data/sample_border.mp4", help="Camera 1 video source")
     parser.add_argument("--cam2", type=str, default="data/sample_border.mp4", help="Camera 2 video source")
-    parser.add_argument("--output", type=str, default="data/cross_cam_reid_demo.mp4", help="Output side-by-side video")
+    parser.add_argument("--output", type=str, default="data/cross_cam_real_demo.mp4", help="Output side-by-side video")
     parser.add_argument("--device", type=str, default=None, help="'cpu', 'cuda', etc.")
+    parser.add_argument("--no-show", action="store_true", help="Disable live GUI window")
     args = parser.parse_args()
 
     run_dual_camera_reid_demo(
@@ -201,6 +211,7 @@ def main():
         cam2_source=args.cam2,
         output_path=args.output,
         device=args.device,
+        show=not args.no_show,
     )
 
 
