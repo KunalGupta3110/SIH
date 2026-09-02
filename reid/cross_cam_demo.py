@@ -22,6 +22,7 @@ import cv2
 import numpy as np
 
 from alerts.events import AlertEngine, AlertSeverity, AlertType, EventDatabase, SecurityEvent
+from alerts.sound_alerts import play_alert
 from alerts.zones import Zone, ZoneManager, ZoneType
 from datetime import datetime, timezone
 from detection_tracking.track import BorderTracker
@@ -131,6 +132,7 @@ def run_dual_camera_reid_demo(
 
                     if is_match:
                         print(f"🎯 [CROSS-CAMERA RE-ID] MATCH DETECTED! Global ID '{gid}' matched on CAM_BRAVO (Score: {score:.2f})")
+                        play_alert("CRITICAL")
                         ev = SecurityEvent(
                             event_id=f"evt_reid_{gid}_{int(timestamp_ms)}",
                             timestamp_iso=datetime.now(timezone.utc).isoformat(),

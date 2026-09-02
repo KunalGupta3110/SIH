@@ -25,6 +25,7 @@ if str(ROOT_DIR) not in sys.path:
 import cv2
 import numpy as np
 
+from alerts.sound_alerts import play_alert
 from alerts.zones import Zone, ZoneManager, ZoneType
 from detection_tracking.track import TrackedObject
 
@@ -405,6 +406,15 @@ class AlertEngine:
         if events:
             self.recent_alerts.extend(events)
             self.recent_alerts = self.recent_alerts[-5:]  # Keep latest 5 for HUD
+            
+            # Sound alert trigger based on highest event severity
+            severities = [ev.severity.value for ev in events]
+            if "CRITICAL" in severities:
+                play_alert("CRITICAL")
+            elif "WARNING" in severities:
+                play_alert("WARNING")
+            else:
+                play_alert("INFO")
 
         return events
 
