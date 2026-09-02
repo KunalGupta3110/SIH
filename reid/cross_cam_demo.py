@@ -37,6 +37,7 @@ def run_dual_camera_reid_demo(
     model_path: str = "yolov8n.pt",
     device: Optional[str] = None,
     similarity_thresh: float = 0.68,
+    show: bool = True,
 ):
     """
     Executes cross-camera Re-ID tracking across two simulated or real video feeds.
