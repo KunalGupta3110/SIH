@@ -385,8 +385,7 @@ class AlertEngine:
 
     def draw_alerts_hud(self, frame: np.ndarray) -> np.ndarray:
         """
-        Renders an animated alert banner at the bottom of the video frame
-        if any critical or warning events occurred recently.
+        Renders an animated alert banner, blinking warning border, and threat highlights.
         """
         if not self.recent_alerts:
             return frame
@@ -395,17 +394,27 @@ class AlertEngine:
         h, w = annotated.shape[:2]
 
         latest = self.recent_alerts[-1]
-        banner_color = (0, 0, 180) if latest.severity == AlertSeverity.CRITICAL else (0, 140, 255)
+        is_critical = latest.severity == AlertSeverity.CRITICAL
+        banner_color = (0, 0, 220) if is_critical else (0, 140, 255)
 
-        # Translucent bottom alert banner
-        banner_h = 50
+        # 1. Highlight the threat target's bounding box in thick glowing red/orange
+        x1, y1, x2, y2 = [int(c) for c in latest.bbox]
+        cv2.rectangle(annotated, (x1, y1), (x2, y2), banner_color, 3)
+        badge_text = f"THREAT: {latest.alert_type.value}"
+        cv2.putText(annotated, badge_text, (x1, max(18, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.55, banner_color, 2, cv2.LINE_AA)
+
+        # 2. Outer screen flashing alert frame (red perimeter border)
+        cv2.rectangle(annotated, (0, 0), (w - 1, h - 1), banner_color, 6)
+
+        # 3. Translucent bottom alert banner
+        banner_h = 52
         overlay = annotated.copy()
         cv2.rectangle(overlay, (0, h - banner_h), (w, h), banner_color, -1)
-        cv2.addWeighted(overlay, 0.75, annotated, 0.25, 0, annotated)
+        cv2.addWeighted(overlay, 0.85, annotated, 0.15, 0, annotated)
 
         # Alert icon/text
-        alert_title = f"[{latest.severity.value}] {latest.alert_type.value}: {latest.zone_name or 'PERIMETER'}"
-        cv2.putText(annotated, alert_title, (15, h - 26), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.putText(annotated, latest.details, (15, h - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (230, 230, 230), 1, cv2.LINE_AA)
+        alert_title = f"🚨 [{latest.severity.value}] {latest.alert_type.value} | {latest.zone_name or 'BORDER PERIMETER'}"
+        cv2.putText(annotated, alert_title, (15, h - 28), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(annotated, latest.details, (15, h - 9), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (240, 240, 240), 1, cv2.LINE_AA)
 
         return annotated

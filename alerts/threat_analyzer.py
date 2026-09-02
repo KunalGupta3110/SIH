@@ -49,21 +49,13 @@ class BorderThreatAnalyzer:
 
     def __init__(
         self,
-        group_distance_px: float = 120.0,
-        group_min_people: int = 3,
-        crawling_aspect_ratio_thresh: float = 1.35,
-        speed_rush_px_sec: float = 250.0,
-        abandoned_time_sec: float = 6.0,
-        cooldown_sec: float = 4.0,
+        group_distance_px: float = 160.0,
+        group_min_people: int = 2,
+        crawling_aspect_ratio_thresh: float = 1.10,
+        speed_rush_px_sec: float = 90.0,
+        abandoned_time_sec: float = 4.0,
+        cooldown_sec: float = 1.5,
     ):
-        """
-        Args:
-            group_distance_px: Max distance between people to consider a group cluster.
-            group_min_people: Minimum people clustered to trigger Group Infiltration Alert.
-            crawling_aspect_ratio_thresh: Bbox (width / height) threshold to detect crawling/prone posture.
-            speed_rush_px_sec: Velocity threshold for high-speed vehicle ramming.
-            abandoned_time_sec: Seconds a stationary bag/object remains without an owner nearby.
-        """
         self.group_dist_thresh = group_distance_px
         self.group_min_count = group_min_people
         self.crawling_aspect_thresh = crawling_aspect_ratio_thresh
@@ -83,19 +75,14 @@ class BorderThreatAnalyzer:
     ) -> List[SecurityEvent]:
         """
         Runs tactical multi-threat analysis on the current frame's tracks.
-
-        Returns:
-            List of triggered SecurityEvent objects.
         """
         triggered_events: List[SecurityEvent] = []
 
-        person_tracks = [t for t in tracks if t.class_name.lower() == "person"]
-        vehicle_tracks = [t for t in tracks if t.class_name.lower() in ("car", "truck", "bus", "motorcycle")]
+        person_tracks = [t for t in tracks if t.class_name.lower() in ("person", "pedestrian")]
+        vehicle_tracks = [t for t in tracks if t.class_name.lower() in ("car", "truck", "bus", "motorcycle", "vehicle")]
 
         # =========================================================================
         # 1. CRAWLING / PRONE STEALTH INFILTRATOR DETECTION
-        # Standard standing human: height > width (aspect ratio w/h ~ 0.3 - 0.6)
-        # Crawling / stealth infiltrator: width > height (aspect ratio w/h > 1.35)
         # =========================================================================
         for p in person_tracks:
             x1, y1, x2, y2 = p.bbox
@@ -103,16 +90,16 @@ class BorderThreatAnalyzer:
             bh = max(1.0, y2 - y1)
             aspect_ratio = bw / bh
 
-            # If aspect ratio indicates horizontal/prone posture while moving along terrain
-            if aspect_ratio >= self.crawling_aspect_thresh and bh > 15:
+            # Horizontal crawling posture or low creeping height
+            if aspect_ratio >= self.crawling_aspect_thresh or (bh < 48 and bw > 40):
                 threat_key = f"crawl_{camera_id}_{p.track_id}"
                 if (timestamp_ms - self.threat_cooldowns.get(threat_key, 0.0)) > self.cooldown_ms:
                     self.threat_cooldowns[threat_key] = timestamp_ms
 
                     event_id = f"evt_crawl_{camera_id}_{p.track_id}_{int(timestamp_ms)}"
                     details = (
-                        f"🚨 TACTICAL THREAT: Crawling/Prone stealth movement posture detected! "
-                        f"Target [ID #{p.track_id}] aspect ratio: {aspect_ratio:.2f} (horizontal crawl)."
+                        f"🚨 TACTICAL THREAT: Crawling/Prone stealth infiltration detected! "
+                        f"Target [ID #{p.track_id}] aspect ratio: {aspect_ratio:.2f}."
                     )
                     ev = SecurityEvent(
                         event_id=event_id,
@@ -121,9 +108,9 @@ class BorderThreatAnalyzer:
                         camera_id=camera_id,
                         track_id=p.track_id,
                         class_name=p.class_name,
-                        alert_type=AlertType.ZONE_INTRUSION,
+                        alert_type=AlertType.TACTICAL_CRAWL,
                         severity=AlertSeverity.CRITICAL,
-                        zone_id="tactical_posture",
+                        zone_id="tactical_crawl",
                         zone_name="Stealth Infiltration Watch",
                         details=details,
                         bbox=p.bbox,
@@ -133,10 +120,8 @@ class BorderThreatAnalyzer:
 
         # =========================================================================
         # 2. GROUP GATHERING / INFILTRATION CLUSTER FORMATION
-        # Detects sudden mob or coordinated infiltration group assembling
         # =========================================================================
         if len(person_tracks) >= self.group_min_count:
-            # Cluster check using pairwise Euclidean distances
             clusters: List[List[TrackedObject]] = []
             visited = set()
 
@@ -160,12 +145,11 @@ class BorderThreatAnalyzer:
             for cluster in clusters:
                 group_ids = [m.track_id for m in cluster]
                 threat_key = f"group_{camera_id}_{min(group_ids)}"
-                if (timestamp_ms - self.threat_cooldowns.get(threat_key, 0.0)) > (self.cooldown_ms * 1.5):
+                if (timestamp_ms - self.threat_cooldowns.get(threat_key, 0.0)) > self.cooldown_ms:
                     self.threat_cooldowns[threat_key] = timestamp_ms
 
                     avg_cx = sum(m.centroid[0] for m in cluster) / len(cluster)
                     avg_cy = sum(m.centroid[1] for m in cluster) / len(cluster)
-                    # Union bounding box
                     min_x = min(m.bbox[0] for m in cluster)
                     min_y = min(m.bbox[1] for m in cluster)
                     max_x = max(m.bbox[2] for m in cluster)
@@ -173,8 +157,8 @@ class BorderThreatAnalyzer:
 
                     event_id = f"evt_group_{camera_id}_{int(timestamp_ms)}"
                     details = (
-                        f"⚠️ CROWD/GROUP ANOMALY: Suspicious group formation detected! "
-                        f"{len(cluster)} persons clustered in close proximity (IDs: {group_ids})."
+                        f"⚠️ CROWD/GROUP ANOMALY: Coordinated group assembly detected! "
+                        f"{len(cluster)} suspects clustered (IDs: {group_ids})."
                     )
                     ev = SecurityEvent(
                         event_id=event_id,
@@ -183,7 +167,7 @@ class BorderThreatAnalyzer:
                         camera_id=camera_id,
                         track_id=group_ids[0],
                         class_name="group",
-                        alert_type=AlertType.LOITERING,
+                        alert_type=AlertType.GROUP_CLUSTER,
                         severity=AlertSeverity.WARNING,
                         zone_id="group_cluster",
                         zone_name="Perimeter Assembly Check",
@@ -195,16 +179,15 @@ class BorderThreatAnalyzer:
 
         # =========================================================================
         # 3. HIGH-SPEED VEHICLE RUSH / BARRIER RAMMING THREAT
-        # Calculates velocity vector from trajectory history
         # =========================================================================
         for v in vehicle_tracks:
-            if len(v.trajectory) >= 5:
-                # Estimate velocity over last 5 points
-                p_old = v.trajectory[-5]
+            if len(v.trajectory) >= 2:
+                p_old = v.trajectory[0]
                 p_new = v.trajectory[-1]
+                steps = max(1, len(v.trajectory) - 1)
+                dt = steps * (1.0 / 30.0)
                 displacement_px = math.hypot(p_new[0] - p_old[0], p_new[1] - p_old[1])
-                # Approx time for 5 frames at 30 FPS ~ 0.166 sec
-                speed_est = displacement_px / 0.166
+                speed_est = displacement_px / max(0.01, dt)
 
                 if speed_est >= self.speed_rush_thresh:
                     threat_key = f"rush_{camera_id}_{v.track_id}"
@@ -213,8 +196,8 @@ class BorderThreatAnalyzer:
 
                         event_id = f"evt_rush_{camera_id}_{v.track_id}_{int(timestamp_ms)}"
                         details = (
-                            f"🚨 CRITICAL VEHICLE THREAT: High-speed approach/rush detected! "
-                            f"{v.class_name.upper()} [ID #{v.track_id}] approaching at high velocity ({speed_est:.1f} px/s)."
+                            f"🚨 CRITICAL VEHICLE THREAT: High-speed rush towards barrier! "
+                            f"{v.class_name.upper()} [ID #{v.track_id}] velocity: {speed_est:.1f} px/s."
                         )
                         ev = SecurityEvent(
                             event_id=event_id,
@@ -223,7 +206,7 @@ class BorderThreatAnalyzer:
                             camera_id=camera_id,
                             track_id=v.track_id,
                             class_name=v.class_name,
-                            alert_type=AlertType.DIRECTION_VIOLATION,
+                            alert_type=AlertType.SPEED_RUSH,
                             severity=AlertSeverity.CRITICAL,
                             zone_id="speed_rush",
                             zone_name="Checkpoint Approach Vector",

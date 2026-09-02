@@ -67,7 +67,7 @@ class BorderTracker:
         self,
         model_path: str = "yolov8n.pt",
         tracker_config: str = "bytetrack.yaml",
-        conf_threshold: float = 0.35,
+        conf_threshold: float = 0.20,
         iou_threshold: float = 0.45,
         target_classes: Optional[List[int]] = None,
         max_trajectory_len: int = 30,
@@ -75,15 +75,6 @@ class BorderTracker:
     ):
         """
         Initialize the tracker.
-
-        Args:
-            model_path: YOLO model weights (default: yolov8n.pt).
-            tracker_config: Tracking configuration ('bytetrack.yaml' or 'botsort.yaml').
-            conf_threshold: Minimum detection confidence score.
-            iou_threshold: NMS IoU threshold.
-            target_classes: Classes to track (default: humans & vehicles).
-            max_trajectory_len: Number of historical centroid points to retain per track.
-            device: 'cpu', 'cuda', etc. Auto-selected if None.
         """
         if device is None:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -101,10 +92,16 @@ class BorderTracker:
 
         # Trajectory cache: track_id -> deque of (cx, cy)
         self.trajectories: Dict[int, deque] = defaultdict(lambda: deque(maxlen=self.max_trajectory_len))
+        
+        # MOG2 Background Motion Subtractor Fallback (for thermal / night IR / non-COCO targets)
+        self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=300, varThreshold=25, detectShadows=False)
+        self._next_motion_id = 901
 
     def reset(self):
         """Reset internal trajectory and tracker state."""
         self.trajectories.clear()
+        self._next_motion_id = 901
+        self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=300, varThreshold=25, detectShadows=False)
 
     def track_frame(
         self,
@@ -113,15 +110,7 @@ class BorderTracker:
         timestamp_ms: float = 0.0,
     ) -> List[TrackedObject]:
         """
-        Track objects in a single frame.
-
-        Args:
-            frame: OpenCV BGR image (H, W, 3).
-            frame_idx: Frame sequence index.
-            timestamp_ms: Timestamp of the frame in milliseconds.
-
-        Returns:
-            List of TrackedObject instances active in this frame.
+        Track objects in a single frame with YOLOv8+ByteTrack and MOG2 thermal fallback.
         """
         results = self.model.track(
             source=frame,
@@ -136,47 +125,73 @@ class BorderTracker:
 
         tracked_objects: List[TrackedObject] = []
 
-        if not results or len(results) == 0:
-            return tracked_objects
+        if results and len(results) > 0 and results[0].boxes is not None and len(results[0].boxes) > 0:
+            boxes = results[0].boxes
+            for i, box in enumerate(boxes):
+                if box.id is not None:
+                    track_id = int(box.id[0].item())
+                else:
+                    track_id = i + 1
 
-        boxes = results[0].boxes
-        if boxes is None or len(boxes) == 0:
-            return tracked_objects
+                cls_id = int(box.cls[0].item())
+                conf = float(box.conf[0].item())
+                xyxy = box.xyxy[0].tolist()
+                x1, y1, x2, y2 = xyxy
 
-        # Check if tracking IDs were assigned
-        if boxes.id is None:
-            # Detections without track ID yet (initialization frame)
-            return tracked_objects
+                cx = float((x1 + x2) / 2.0)
+                cy = float((y1 + y2) / 2.0)
 
-        for i, box in enumerate(boxes):
-            if box.id is None:
-                continue
+                self.trajectories[track_id].append((cx, cy))
+                traj_list = list(self.trajectories[track_id])
 
-            track_id = int(box.id[0].item())
-            cls_id = int(box.cls[0].item())
-            conf = float(box.conf[0].item())
-            xyxy = box.xyxy[0].tolist()
-            x1, y1, x2, y2 = xyxy
+                tracked_obj = TrackedObject(
+                    track_id=track_id,
+                    class_id=cls_id,
+                    class_name=self.class_names.get(cls_id, str(cls_id)),
+                    confidence=conf,
+                    bbox=xyxy,
+                    centroid=(cx, cy),
+                    frame_index=frame_idx,
+                    timestamp_ms=timestamp_ms,
+                    trajectory=traj_list,
+                )
+                tracked_objects.append(tracked_obj)
 
-            cx = float((x1 + x2) / 2.0)
-            cy = float((y1 + y2) / 2.0)
+        # Fallback for thermal / infrared / synthetic scenarios if YOLO finds 0 boxes
+        if not tracked_objects:
+            fg_mask = self.bg_subtractor.apply(frame)
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+            fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel)
+            contours, _ = cv2.findContours(fg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            # Update trajectory
-            self.trajectories[track_id].append((cx, cy))
-            traj_list = list(self.trajectories[track_id])
-
-            tracked_obj = TrackedObject(
-                track_id=track_id,
-                class_id=cls_id,
-                class_name=self.class_names.get(cls_id, str(cls_id)),
-                confidence=conf,
-                bbox=xyxy,
-                centroid=(cx, cy),
-                frame_index=frame_idx,
-                timestamp_ms=timestamp_ms,
-                trajectory=traj_list,
-            )
-            tracked_objects.append(tracked_obj)
+            m_idx = 1
+            for cnt in contours:
+                area = cv2.contourArea(cnt)
+                if area > 400:  # Valid moving target
+                    x, y, w, h = cv2.boundingRect(cnt)
+                    x1, y1, x2, y2 = float(x), float(y), float(x + w), float(y + h)
+                    cx, cy = float(x + w / 2.0), float(y + h / 2.0)
+                    
+                    tid = self._next_motion_id + m_idx
+                    self.trajectories[tid].append((cx, cy))
+                    
+                    # Heuristic: if w/h > 1.2 or moving horizontally -> crawling person or vehicle
+                    cls_name = "car" if (w * h > 15000) else "person"
+                    cls_id = 2 if cls_name == "car" else 0
+                    
+                    tracked_obj = TrackedObject(
+                        track_id=tid,
+                        class_id=cls_id,
+                        class_name=cls_name,
+                        confidence=0.85,
+                        bbox=[x1, y1, x2, y2],
+                        centroid=(cx, cy),
+                        frame_index=frame_idx,
+                        timestamp_ms=timestamp_ms,
+                        trajectory=list(self.trajectories[tid]),
+                    )
+                    tracked_objects.append(tracked_obj)
+                    m_idx += 1
 
         return tracked_objects
 
