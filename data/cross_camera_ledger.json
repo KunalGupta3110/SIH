@@ -1,0 +1,826 @@
+{
+  "total_global_targets": 1,
+  "generated_at": "2026-09-02T17:43:50.335180+00:00",
+  "targets": [
+    {
+      "global_id": "TRG-0001",
+      "class_name": "person",
+      "first_seen_cam": "CAM_ALPHA",
+      "first_seen_ms": 366.67,
+      "last_seen_cam": "CAM_BRAVO",
+      "last_seen_ms": 10000.0,
+      "cameras_visited": [
+        "CAM_ALPHA",
+        "CAM_BRAVO"
+      ],
+      "camera_associations": {
+        "CAM_ALPHA": 1,
+        "CAM_BRAVO": 2
+      },
+      "total_detections": 370,
+      "movement_trail": [
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 276,
+          "timestamp_ms": 9200.0,
+          "centroid": [
+            552.65,
+            199.16
+          ],
+          "bbox": [
+            534.1,
+            144.49,
+            571.2,
+            253.84
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 276,
+          "timestamp_ms": 9200.0,
+          "centroid": [
+            552.65,
+            199.16
+          ],
+          "bbox": [
+            534.1,
+            144.49,
+            571.2,
+            253.84
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 277,
+          "timestamp_ms": 9233.33,
+          "centroid": [
+            552.69,
+            198.7
+          ],
+          "bbox": [
+            533.95,
+            143.51,
+            571.43,
+            253.9
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 277,
+          "timestamp_ms": 9233.33,
+          "centroid": [
+            552.69,
+            198.7
+          ],
+          "bbox": [
+            533.95,
+            143.51,
+            571.43,
+            253.9
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 278,
+          "timestamp_ms": 9266.67,
+          "centroid": [
+            552.69,
+            198.52
+          ],
+          "bbox": [
+            533.87,
+            143.13,
+            571.51,
+            253.91
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 278,
+          "timestamp_ms": 9266.67,
+          "centroid": [
+            552.69,
+            198.52
+          ],
+          "bbox": [
+            533.87,
+            143.13,
+            571.51,
+            253.91
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 279,
+          "timestamp_ms": 9300.0,
+          "centroid": [
+            552.73,
+            197.85
+          ],
+          "bbox": [
+            533.76,
+            141.85,
+            571.69,
+            253.85
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 279,
+          "timestamp_ms": 9300.0,
+          "centroid": [
+            552.73,
+            197.85
+          ],
+          "bbox": [
+            533.76,
+            141.85,
+            571.69,
+            253.85
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 280,
+          "timestamp_ms": 9333.33,
+          "centroid": [
+            552.73,
+            197.59
+          ],
+          "bbox": [
+            533.75,
+            141.36,
+            571.72,
+            253.81
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 280,
+          "timestamp_ms": 9333.33,
+          "centroid": [
+            552.73,
+            197.59
+          ],
+          "bbox": [
+            533.75,
+            141.36,
+            571.72,
+            253.81
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 281,
+          "timestamp_ms": 9366.67,
+          "centroid": [
+            552.76,
+            196.75
+          ],
+          "bbox": [
+            533.82,
+            140.46,
+            571.71,
+            253.04
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 281,
+          "timestamp_ms": 9366.67,
+          "centroid": [
+            552.76,
+            196.75
+          ],
+          "bbox": [
+            533.82,
+            140.46,
+            571.71,
+            253.04
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 282,
+          "timestamp_ms": 9400.0,
+          "centroid": [
+            552.49,
+            196.37
+          ],
+          "bbox": [
+            533.84,
+            140.88,
+            571.15,
+            251.85
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 282,
+          "timestamp_ms": 9400.0,
+          "centroid": [
+            552.49,
+            196.37
+          ],
+          "bbox": [
+            533.84,
+            140.88,
+            571.15,
+            251.85
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 283,
+          "timestamp_ms": 9433.33,
+          "centroid": [
+            551.71,
+            195.54
+          ],
+          "bbox": [
+            533.38,
+            141.01,
+            570.04,
+            250.07
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 283,
+          "timestamp_ms": 9433.33,
+          "centroid": [
+            551.71,
+            195.54
+          ],
+          "bbox": [
+            533.38,
+            141.01,
+            570.04,
+            250.07
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 284,
+          "timestamp_ms": 9466.67,
+          "centroid": [
+            550.73,
+            195.16
+          ],
+          "bbox": [
+            532.59,
+            141.15,
+            568.86,
+            249.18
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 284,
+          "timestamp_ms": 9466.67,
+          "centroid": [
+            550.73,
+            195.16
+          ],
+          "bbox": [
+            532.59,
+            141.15,
+            568.86,
+            249.18
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 285,
+          "timestamp_ms": 9500.0,
+          "centroid": [
+            549.86,
+            195.03
+          ],
+          "bbox": [
+            531.83,
+            141.27,
+            567.89,
+            248.8
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 285,
+          "timestamp_ms": 9500.0,
+          "centroid": [
+            549.86,
+            195.03
+          ],
+          "bbox": [
+            531.83,
+            141.27,
+            567.89,
+            248.8
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 286,
+          "timestamp_ms": 9533.33,
+          "centroid": [
+            549.54,
+            194.99
+          ],
+          "bbox": [
+            531.55,
+            141.31,
+            567.53,
+            248.67
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 286,
+          "timestamp_ms": 9533.33,
+          "centroid": [
+            549.54,
+            194.99
+          ],
+          "bbox": [
+            531.55,
+            141.31,
+            567.53,
+            248.67
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 287,
+          "timestamp_ms": 9566.67,
+          "centroid": [
+            548.8,
+            195.29
+          ],
+          "bbox": [
+            530.66,
+            141.19,
+            566.95,
+            249.4
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 287,
+          "timestamp_ms": 9566.67,
+          "centroid": [
+            548.8,
+            195.29
+          ],
+          "bbox": [
+            530.66,
+            141.19,
+            566.95,
+            249.4
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 288,
+          "timestamp_ms": 9600.0,
+          "centroid": [
+            548.33,
+            196.09
+          ],
+          "bbox": [
+            529.97,
+            141.35,
+            566.7,
+            250.82
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 288,
+          "timestamp_ms": 9600.0,
+          "centroid": [
+            548.33,
+            196.09
+          ],
+          "bbox": [
+            529.97,
+            141.35,
+            566.7,
+            250.82
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 289,
+          "timestamp_ms": 9633.33,
+          "centroid": [
+            547.92,
+            197.03
+          ],
+          "bbox": [
+            529.55,
+            142.43,
+            566.29,
+            251.63
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 289,
+          "timestamp_ms": 9633.33,
+          "centroid": [
+            547.92,
+            197.03
+          ],
+          "bbox": [
+            529.55,
+            142.43,
+            566.29,
+            251.63
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 290,
+          "timestamp_ms": 9666.67,
+          "centroid": [
+            547.77,
+            197.39
+          ],
+          "bbox": [
+            529.38,
+            142.85,
+            566.17,
+            251.94
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 290,
+          "timestamp_ms": 9666.67,
+          "centroid": [
+            547.77,
+            197.39
+          ],
+          "bbox": [
+            529.38,
+            142.85,
+            566.17,
+            251.94
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 291,
+          "timestamp_ms": 9700.0,
+          "centroid": [
+            547.73,
+            198.17
+          ],
+          "bbox": [
+            529.31,
+            143.67,
+            566.15,
+            252.67
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 291,
+          "timestamp_ms": 9700.0,
+          "centroid": [
+            547.73,
+            198.17
+          ],
+          "bbox": [
+            529.31,
+            143.67,
+            566.15,
+            252.67
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 292,
+          "timestamp_ms": 9733.33,
+          "centroid": [
+            548.34,
+            198.97
+          ],
+          "bbox": [
+            529.91,
+            144.53,
+            566.77,
+            253.41
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 292,
+          "timestamp_ms": 9733.33,
+          "centroid": [
+            548.34,
+            198.97
+          ],
+          "bbox": [
+            529.91,
+            144.53,
+            566.77,
+            253.41
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 293,
+          "timestamp_ms": 9766.67,
+          "centroid": [
+            548.57,
+            199.26
+          ],
+          "bbox": [
+            530.12,
+            144.84,
+            567.02,
+            253.68
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 293,
+          "timestamp_ms": 9766.67,
+          "centroid": [
+            548.57,
+            199.26
+          ],
+          "bbox": [
+            530.12,
+            144.84,
+            567.02,
+            253.68
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 294,
+          "timestamp_ms": 9800.0,
+          "centroid": [
+            549.48,
+            199.25
+          ],
+          "bbox": [
+            530.98,
+            144.74,
+            567.98,
+            253.76
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 294,
+          "timestamp_ms": 9800.0,
+          "centroid": [
+            549.48,
+            199.25
+          ],
+          "bbox": [
+            530.98,
+            144.74,
+            567.98,
+            253.76
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 295,
+          "timestamp_ms": 9833.33,
+          "centroid": [
+            550.4,
+            199.27
+          ],
+          "bbox": [
+            531.81,
+            144.59,
+            568.99,
+            253.94
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 295,
+          "timestamp_ms": 9833.33,
+          "centroid": [
+            550.4,
+            199.27
+          ],
+          "bbox": [
+            531.81,
+            144.59,
+            568.99,
+            253.94
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 296,
+          "timestamp_ms": 9866.67,
+          "centroid": [
+            551.6,
+            199.18
+          ],
+          "bbox": [
+            532.97,
+            144.32,
+            570.23,
+            254.05
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 296,
+          "timestamp_ms": 9866.67,
+          "centroid": [
+            551.6,
+            199.18
+          ],
+          "bbox": [
+            532.97,
+            144.32,
+            570.23,
+            254.05
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 297,
+          "timestamp_ms": 9900.0,
+          "centroid": [
+            552.57,
+            199.22
+          ],
+          "bbox": [
+            533.94,
+            144.31,
+            571.2,
+            254.12
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 297,
+          "timestamp_ms": 9900.0,
+          "centroid": [
+            552.57,
+            199.22
+          ],
+          "bbox": [
+            533.94,
+            144.31,
+            571.2,
+            254.12
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 298,
+          "timestamp_ms": 9933.33,
+          "centroid": [
+            552.8,
+            198.58
+          ],
+          "bbox": [
+            534.08,
+            143.35,
+            571.52,
+            253.8
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 298,
+          "timestamp_ms": 9933.33,
+          "centroid": [
+            552.8,
+            198.58
+          ],
+          "bbox": [
+            534.08,
+            143.35,
+            571.52,
+            253.8
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 299,
+          "timestamp_ms": 9966.67,
+          "centroid": [
+            552.88,
+            198.35
+          ],
+          "bbox": [
+            534.15,
+            143.02,
+            571.62,
+            253.68
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 299,
+          "timestamp_ms": 9966.67,
+          "centroid": [
+            552.88,
+            198.35
+          ],
+          "bbox": [
+            534.15,
+            143.02,
+            571.62,
+            253.68
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "local_track_id": 1,
+          "frame_index": 300,
+          "timestamp_ms": 10000.0,
+          "centroid": [
+            552.96,
+            197.62
+          ],
+          "bbox": [
+            534.11,
+            141.71,
+            571.82,
+            253.53
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "local_track_id": 2,
+          "frame_index": 300,
+          "timestamp_ms": 10000.0,
+          "centroid": [
+            552.96,
+            197.62
+          ],
+          "bbox": [
+            534.11,
+            141.71,
+            571.82,
+            253.53
+          ]
+        }
+      ],
+      "thumbnail_path": null
+    }
+  ]
+}

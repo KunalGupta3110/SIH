@@ -1,0 +1,77 @@
+{
+  "cam_01": [
+    {
+      "zone_id": "tw_fence_line",
+      "name": "Border Outer Perimeter Fence Line",
+      "zone_type": "tripwire",
+      "points": [
+        [
+          128,
+          396
+        ],
+        [
+          1152,
+          396
+        ]
+      ],
+      "restricted_classes": [],
+      "severity": "CRITICAL",
+      "loitering_time_sec": 5.0,
+      "allowed_direction": null
+    },
+    {
+      "zone_id": "zone_no_go_red",
+      "name": "Red Zone (Strictly Prohibited)",
+      "zone_type": "restricted_polygon",
+      "points": [
+        [
+          256,
+          72
+        ],
+        [
+          1024,
+          72
+        ],
+        [
+          960,
+          324
+        ],
+        [
+          320,
+          324
+        ]
+      ],
+      "restricted_classes": [],
+      "severity": "CRITICAL",
+      "loitering_time_sec": 3.0,
+      "allowed_direction": null
+    },
+    {
+      "zone_id": "zone_buffer_caution",
+      "name": "Buffer Approach Zone",
+      "zone_type": "caution_zone",
+      "points": [
+        [
+          64,
+          432
+        ],
+        [
+          1216,
+          432
+        ],
+        [
+          1152,
+          648
+        ],
+        [
+          128,
+          648
+        ]
+      ],
+      "restricted_classes": [],
+      "severity": "WARNING",
+      "loitering_time_sec": 4.0,
+      "allowed_direction": null
+    }
+  ]
+}
