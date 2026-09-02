@@ -187,7 +187,10 @@ with tab2:
         st.markdown("### 📊 Event Log Table")
         df = pd.DataFrame(filtered_events)
         if not df.empty:
-            st.dataframe(df[["event_id", "timestamp_iso", "camera_id", "track_id", "class_name", "alert_type", "severity", "details"]], use_container_width=True)
+            try:
+                st.dataframe(df[["event_id", "timestamp_iso", "camera_id", "track_id", "class_name", "alert_type", "severity", "details"]], width="stretch")
+            except TypeError:
+                st.dataframe(df[["event_id", "timestamp_iso", "camera_id", "track_id", "class_name", "alert_type", "severity", "details"]], use_container_width=True)
 
 # Tab 3: Cross-Camera Re-ID (The Differentiator)
 with tab3:
