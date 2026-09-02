@@ -27,7 +27,7 @@ if str(ROOT_DIR) not in sys.path:
 
 import numpy as np
 
-from alerts.events import AlertSeverity, AlertType, SecurityEvent
+from alerts.schema import AlertSeverity, AlertType, SecurityEvent
 from detection_tracking.track import TrackedObject
 
 
