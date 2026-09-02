@@ -26,6 +26,7 @@ import cv2
 import numpy as np
 
 from alerts.sound_alerts import play_alert
+from alerts.threat_analyzer import BorderThreatAnalyzer
 from alerts.zones import Zone, ZoneManager, ZoneType
 from detection_tracking.track import TrackedObject
 
@@ -206,6 +207,7 @@ class AlertEngine:
         self.db = db if db is not None else EventDatabase()
         self.thumbnail_dir = thumbnail_dir
         self.alert_cooldown_ms = alert_cooldown_sec * 1000.0
+        self.threat_analyzer = BorderThreatAnalyzer()
         os.makedirs(self.thumbnail_dir, exist_ok=True)
 
         # camera_id -> Dict[track_id, TrackState]
@@ -402,6 +404,19 @@ class AlertEngine:
                             del state.zone_entry_times[zone.zone_id]
                         state.intrusion_alerted_zones.discard(zone.zone_id)
                         state.loitering_alerted_zones.discard(zone.zone_id)
+
+        # 3. Evaluate Advanced Tactical Multi-Threats (Crawling, Group Gathering, Speed Rush)
+        tactical_threats = self.threat_analyzer.analyze_frame_threats(
+            camera_id=camera_id,
+            frame_idx=frame_idx,
+            timestamp_ms=timestamp_ms,
+            tracks=tracks,
+        )
+        for t_ev in tactical_threats:
+            if raw_frame is not None:
+                t_ev.thumbnail_path = self._save_thumbnail(raw_frame, t_ev.bbox, t_ev.event_id)
+            events.append(t_ev)
+            self.db.insert_event(t_ev)
 
         if events:
             self.recent_alerts.extend(events)
