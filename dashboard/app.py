@@ -139,21 +139,23 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("Surveillance Video Feeds & Analytics Playback")
     
-    # Auto-detect available processed and raw video files
-    video_files = [f for f in os.listdir("data") if f.endswith((".mp4", ".avi", ".mkv"))] if os.path.exists("data") else []
+    # Auto-detect available web-playable video files
+    all_videos = [f for f in os.listdir("data") if f.endswith(".mp4")] if os.path.exists("data") else []
+    # Prioritize web-encoded videos
+    web_videos = [f for f in all_videos if f.endswith("_web.mp4")]
+    display_videos = web_videos if web_videos else all_videos
     
     vcol1, vcol2 = st.columns(2)
     
     with vcol1:
         st.markdown("#### 📍 Camera 1: Check Post Alpha (Perimeter & Tripwires)")
-        # Default options for Cam 1
-        cam1_candidates = ["data/vtest_surveillance_output.mp4", "data/detected_output.mp4", "data/sample_border.mp4"]
+        cam1_candidates = ["data/vtest_surveillance_output_web.mp4", "data/vtest_surveillance_output.mp4", "data/sample_border_web.mp4"]
         cam1_default = next((f for f in cam1_candidates if os.path.exists(f)), None)
         
         selected_vid1 = st.selectbox(
             "Select Camera 1 Video Clip",
-            options=[f"data/{f}" for f in video_files] if video_files else ["None"],
-            index=[f"data/{f}" for f in video_files].index(cam1_default) if (video_files and cam1_default in [f"data/{f}" for f in video_files]) else 0,
+            options=[f"data/{f}" for f in display_videos] if display_videos else ["None"],
+            index=[f"data/{f}" for f in display_videos].index(cam1_default) if (display_videos and cam1_default in [f"data/{f}" for f in display_videos]) else 0,
             key="cam1_select"
         )
         if selected_vid1 and selected_vid1 != "None" and os.path.exists(selected_vid1):
@@ -163,13 +165,13 @@ with tab1:
 
     with vcol2:
         st.markdown("#### 📍 Camera 2 / Cross-Camera Re-ID Feed")
-        cam2_candidates = ["data/cross_cam_real_demo.mp4", "data/cross_cam_reid_demo.mp4", "data/people_surveillance.mp4"]
+        cam2_candidates = ["data/cross_cam_real_demo_web.mp4", "data/cross_cam_real_demo.mp4", "data/people_surveillance_web.mp4"]
         cam2_default = next((f for f in cam2_candidates if os.path.exists(f)), None)
         
         selected_vid2 = st.selectbox(
             "Select Camera 2 / Re-ID Video Clip",
-            options=[f"data/{f}" for f in video_files] if video_files else ["None"],
-            index=[f"data/{f}" for f in video_files].index(cam2_default) if (video_files and cam2_default in [f"data/{f}" for f in video_files]) else 0,
+            options=[f"data/{f}" for f in display_videos] if display_videos else ["None"],
+            index=[f"data/{f}" for f in display_videos].index(cam2_default) if (display_videos and cam2_default in [f"data/{f}" for f in display_videos]) else 0,
             key="cam2_select"
         )
         if selected_vid2 and selected_vid2 != "None" and os.path.exists(selected_vid2):
