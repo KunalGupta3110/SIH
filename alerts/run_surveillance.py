@@ -8,8 +8,15 @@ Description: End-to-end surveillance pipeline combining YOLOv8 + ByteTrack + Ale
 
 import argparse
 import os
+from pathlib import Path
+import sys
 import time
 from typing import Optional, Union
+
+# Ensure project root is in sys.path when script is executed directly
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 import cv2
 

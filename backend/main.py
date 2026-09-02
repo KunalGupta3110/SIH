@@ -9,7 +9,14 @@ Description: FastAPI central API server for aggregating camera events,
 from datetime import datetime, timezone
 import json
 import os
+from pathlib import Path
+import sys
 from typing import Any, Dict, List, Optional
+
+# Ensure project root is in sys.path
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
