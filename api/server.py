@@ -26,8 +26,8 @@ from alerts.events import EventDatabase
 from alerts.schema import AlertSeverity, AlertType, OperatorStatus
 
 app = FastAPI(
-    title="IBVAP Sentinel Edge Gateway API",
-    description="High-Performance REST Backend bridging Edge AI Vision models to the Sentinel Admin Flutter App",
+    title="Cyber Camera Surveillance Gateway API",
+    description="High-Performance REST Backend bridging Edge AI Vision models to the Cyber Camera Mobile & Desktop Admin App",
     version="1.0.0",
 )
 

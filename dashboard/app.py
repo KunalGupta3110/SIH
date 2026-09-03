@@ -27,7 +27,7 @@ from alerts.schema import AlertSeverity, AlertType, OperatorStatus
 
 # Page Configuration
 st.set_page_config(
-    page_title="IBVAP - Border Analytics Platform",
+    page_title="Cyber Camera Surveillance",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -95,7 +95,7 @@ def load_reid_ledger(path="data/cross_camera_ledger.json"):
 # Sidebar
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/shield.png", width=64)
-    st.title("IBVAP Command")
+    st.title("Cyber Camera Command")
     st.caption("SIH 2026 | PS ID: 26187 | SSB & MHA")
     st.markdown("---")
     
@@ -135,8 +135,8 @@ with st.sidebar:
     st.caption("Human-in-the-loop decision support active.")
 
 # Main Header
-st.title("🛡️ IBVAP — Intelligent Border Video Analytics Platform")
-st.markdown("**Ministry of Home Affairs | Sashastra Seema Bal (SSB)** — *Intelligent Surveillance on Existing IP CCTV Infrastructure*")
+st.title("🛡️ Cyber Camera Surveillance Platform")
+st.markdown("**Ministry of Home Affairs | Sashastra Seema Bal (SSB)** — *Intelligent Multi-Node Video Analytics & Mobile Defense Ecosystem*")
 
 # Top KPI Metrics Row with Operator Audit
 events = db.get_recent_events(limit=200)

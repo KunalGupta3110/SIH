@@ -20,11 +20,11 @@ def main():
     args = parser.parse_args()
 
     print("\n=======================================================")
-    print(" 🛡️ [IBVAP SENTINEL ECOSYSTEM] MASTER LAUNCHER")
+    print(" 🛡️ [CYBER CAMERA SURVEILLANCE ECOSYSTEM] MASTER LAUNCHER")
     print(" 1. Edge AI Vision Engine (YOLOv8 + Re-ID + ANPR)")
     print(" 2. FastAPI REST Gateway (Port 8000)")
     print(" 3. Streamlit Command Center (Port 8501)")
-    print(" 4. Sentinel Flutter Mobile/Desktop Admin App")
+    print(" 4. Cyber Camera Mobile & Desktop Admin App")
     print("=======================================================\n")
 
     if args.api_only:
