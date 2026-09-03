@@ -199,12 +199,20 @@ def run_surveillance_pipeline(
             if show:
                 cv2.imshow(f"IBVAP Master Border Surveillance - [{camera_id}]", annotated)
                 key = cv2.waitKey(1) & 0xFF
-                if key == 27 or key == ord("q"):
-                    print("[IBVAP] User closed surveillance preview.")
-                    break
-
             if frame_idx % 60 == 0:
                 print(f"[{camera_id}] Frame {frame_idx}/{total_frames} | Active: {len(tracked_objects)} | Total Events: {total_events_triggered}")
+
+        # Keep window open on completion until user presses key
+        if show and annotated is not None:
+            print("\n[IBVAP] Video feed finished. Window will stay open for inspection. Press 'q' or 'ESC' to exit...")
+            cv2.rectangle(annotated, (0, height - 35), (width, height), (30, 30, 30), -1)
+            cv2.putText(annotated, "FEED FINISHED — INSPECTION MODE | Press 'q' or 'ESC' to Close",
+                        (15, height - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (0, 255, 200), 2, cv2.LINE_AA)
+            cv2.imshow(f"IBVAP Master Border Surveillance - [{camera_id}]", annotated)
+            while True:
+                key = cv2.waitKey(50) & 0xFF
+                if key == 27 or key == ord("q"):
+                    break
 
     finally:
         cap.release()

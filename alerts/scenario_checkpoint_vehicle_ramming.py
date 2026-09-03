@@ -467,12 +467,27 @@ def run_tactical_vehicle_surveillance_demo(
                 cv2.imshow("IBVAP - Live Forensic Evidence Inspector (Pop-Up)", inspector)
 
                 key = cv2.waitKey(1) & 0xFF
-                if key == 27 or key == ord("q"):
-                    print("[IBVAP] User stopped vehicle threat demo.")
-                    break
-
             if frame_idx % 45 == 0:
                 print(f"[Threat Demo] Frame {frame_idx} | {threat_stage_label}")
+
+        # Video Finished: Keep Both Windows Open for Forensic Review
+        if show and annotated is not None and inspector is not None:
+            print("\n[IBVAP] Video playback completed. Forensic Evidence Inspection Mode is ACTIVE.")
+            print("[IBVAP] Windows will stay open until you press 'q' or 'ESC'...")
+
+            # Overlay a persistent review banner on the main feed
+            cv2.rectangle(annotated, (0, h - 35), (w, h), (30, 30, 30), -1)
+            cv2.putText(annotated, "FEED FINISHED — FORENSIC EVIDENCE REVIEW ACTIVE | Press 'q' or 'ESC' to Close",
+                        (15, h - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (0, 255, 200), 2, cv2.LINE_AA)
+
+            cv2.imshow("IBVAP - Tactical Checkpoint Surveillance Feed", annotated)
+            cv2.imshow("IBVAP - Live Forensic Evidence Inspector (Pop-Up)", inspector)
+
+            while True:
+                key = cv2.waitKey(50) & 0xFF
+                if key == 27 or key == ord("q"):
+                    print("[IBVAP] Inspection closed by user.")
+                    break
 
     finally:
         cap.release()
