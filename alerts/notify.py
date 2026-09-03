@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import sys
 import threading
+import time
 from typing import Dict, List, Optional
 import requests
 
@@ -20,7 +21,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from alerts.schema import AlertSeverity, SecurityEvent
+from alerts.schema import AlertSeverity, AlertType, SecurityEvent
 
 
 CONFIG_PATH = os.path.join(ROOT_DIR, "data", "notification_config.json")
@@ -109,27 +110,27 @@ class MobileAlertDispatcher:
                         data = {"chat_id": chat_id, "caption": caption_text, "parse_mode": "Markdown"}
                         res = requests.post(url, data=data, files=files, timeout=4)
                         if res.status_code == 200:
-                            print(f"[Mobile Notify] ✅ Telegram photo alert sent to {chat_id} for {event.event_id}")
+                            print(f"[Mobile Notify] [OK] Telegram photo alert sent to {chat_id} for {event.event_id}")
                             return
                         else:
-                            print(f"[Mobile Notify] ⚠️ Telegram API returned {res.status_code}: {res.text}")
+                            print(f"[Mobile Notify] [API WARN] Telegram API returned {res.status_code}: {res.text}")
 
                 # Text fallback
                 url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
                 data = {"chat_id": chat_id, "text": caption_text, "parse_mode": "Markdown"}
                 requests.post(url, json=data, timeout=4)
-                print(f"[Mobile Notify] ✅ Telegram text alert sent to {chat_id}")
+                print(f"[Mobile Notify] [OK] Telegram text alert sent to {chat_id}")
 
             except Exception as e:
-                print(f"[Mobile Notify] ⚠️ Telegram dispatch error: {e}")
+                print(f"[Mobile Notify] [ERROR] Telegram dispatch error: {e}")
 
         # 2. Mock Mobile Logging (for live demo when token not yet inserted)
         else:
-            print(f"\n📱 [MOBILE PUSH NOTIFICATION SIMULATOR]")
+            print(f"\n[MOBILE PUSH NOTIFICATION SIMULATOR]")
             print(caption_text)
             if event.thumbnail_path:
-                print(f"📸 Attached Snapshot: {event.thumbnail_path}")
-            print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+                print(f"[Attached Snapshot] {event.thumbnail_path}")
+            print(f"====================================\n")
 
 
 # Global Singleton Dispatcher
