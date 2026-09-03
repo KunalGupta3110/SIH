@@ -192,24 +192,51 @@ with tab1:
                 st.markdown(f"🔒 **Cryptographic Block Hash:** `{inc.get('cryptographic_block_hash')}`")
                 st.markdown("---")
 
-# TAB 2: VIDEO FEEDS
+# TAB 2: LIVE MULTI-CAMERA STREAMING & PLAYBACK
 with tab2:
-    st.subheader("📹 Surveillance Video Feeds & Analytics Playback")
-    vcol1, vcol2 = st.columns(2)
-    with vcol1:
-        st.markdown("#### 📍 Node 1: Checkpost Alpha (North Entry Gate)")
-        v1 = "data/scenario_checkpoint_breach_web.mp4"
-        if os.path.exists(os.path.join(ROOT_DIR, v1)):
-            st.video(os.path.join(ROOT_DIR, v1))
-        else:
-            st.info("Run `python run.py --demo 3` to view Checkpoint Ramming clip.")
-    with vcol2:
-        st.markdown("#### 📍 Node 2: BOP Bravo (Eastern Perimeter)")
-        v2 = "data/cross_cam_real_demo_web.mp4"
-        if os.path.exists(os.path.join(ROOT_DIR, v2)):
-            st.video(os.path.join(ROOT_DIR, v2))
-        else:
-            st.info("Run `python run.py --demo 2` to view Cross-Camera Re-ID clip.")
+    st.subheader("📹 Real-Time Live Multi-Camera CCTV Stream & Analytics HUD")
+    st.markdown("*Real-time synchronized streams processed by YOLOv8n + ByteTrack + Spatio-Temporal Handoff.*")
+
+    stream_mode = st.radio("Stream Source Mode", ["🔴 Live Multi-Threaded CCTV Streams (Port 8000)", "🎬 Pre-Recorded Incident Playback", "📱 Connect Live Phone Camera / Custom RTSP"], horizontal=True)
+
+    if "Live" in stream_mode:
+        vcol1, vcol2 = st.columns(2)
+        with vcol1:
+            st.markdown("#### 🔴 Node 1: Checkpost Alpha (LIVE)")
+            st.markdown('<img src="http://localhost:8000/stream/cam1/live" style="width:100%; border-radius:8px; border:2px solid #22c55e;" />', unsafe_allow_html=True)
+            st.caption("🟢 Live Feed @ 30 FPS | Node ID: CAM_ALPHA | Rules: Red Geofence + Incursion Tripwire")
+        with vcol2:
+            st.markdown("#### 🔴 Node 2: BOP Bravo Perimeter (LIVE)")
+            st.markdown('<img src="http://localhost:8000/stream/cam2/live" style="width:100%; border-radius:8px; border:2px solid #38bdf8;" />', unsafe_allow_html=True)
+            st.caption("🟢 Live Feed @ 30 FPS | Node ID: CAM_BRAVO | Rules: Predictive Re-ID + Loitering")
+
+    elif "Phone" in stream_mode:
+        st.markdown("#### 📱 Connect Live Mobile Phone Camera (IP Webcam / DroidCam)")
+        pcol1, pcol2 = st.columns([3, 1])
+        with pcol1:
+            phone_url = st.text_input("Enter Phone Stream URL (e.g., http://192.168.1.15:8080/video)", value="http://192.168.1.15:8080/video")
+            cam_alias = st.selectbox("Assign to Node", ["CAM_ALPHA (Checkpost)", "CAM_BRAVO (Perimeter)"])
+        with pcol2:
+            st.write("")
+            st.write("")
+            if st.button("🔗 Connect Phone Stream"):
+                target_id = "CAM_ALPHA" if "ALPHA" in cam_alias else "CAM_BRAVO"
+                stream_manager.add_camera(target_id, phone_url, f"Live Mobile {cam_alias}")
+                st.success(f"✅ Connected phone stream to {target_id}!")
+                st.rerun()
+
+    else:
+        vcol1, vcol2 = st.columns(2)
+        with vcol1:
+            st.markdown("#### 📍 Node 1: Checkpost Breach Clip")
+            v1 = "data/scenario_checkpoint_breach_web.mp4"
+            if os.path.exists(os.path.join(ROOT_DIR, v1)):
+                st.video(os.path.join(ROOT_DIR, v1))
+        with vcol2:
+            st.markdown("#### 📍 Node 2: Cross-Camera Re-ID Demo Clip")
+            v2 = "data/cross_cam_real_demo_web.mp4"
+            if os.path.exists(os.path.join(ROOT_DIR, v2)):
+                st.video(os.path.join(ROOT_DIR, v2))
 
 # TAB 3: ALERTS & OPERATOR TRIAGE
 with tab3:

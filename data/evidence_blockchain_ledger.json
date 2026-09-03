@@ -72,5 +72,35 @@
     "data_payload_hash": "7025bc5e47229501274ef48d9625b4cf3f7b34d357f285a051df0c4b6af9c346",
     "previous_hash": "f7351f3e6cab09d79387c75cd5557b6755785580946a1eeebbd38e2af34e709a",
     "current_hash": "af485ed2f29124dfdafe24c986eefb44e76a7b34a2f54162ebe224e8b82bb068"
+  },
+  {
+    "block_index": 5,
+    "timestamp_iso": "2026-09-03T16:51:47.609362+00:00",
+    "incident_id": "INC-1041",
+    "threat_score": 92,
+    "camera_ids": [
+      "CAM_ALPHA",
+      "CAM_BRAVO"
+    ],
+    "rule_evidence": "Multi-node progression: Target TRG-0017 traversed 2 camera nodes (CAM_ALPHA -> CAM_BRAVO) with sustained threat level CRITICAL.",
+    "thumbnail_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "data_payload_hash": "7025bc5e47229501274ef48d9625b4cf3f7b34d357f285a051df0c4b6af9c346",
+    "previous_hash": "af485ed2f29124dfdafe24c986eefb44e76a7b34a2f54162ebe224e8b82bb068",
+    "current_hash": "5924915ddcc4f66aabd36e5757bc32596cce25a5754a2005119b0ee8d781dae2"
+  },
+  {
+    "block_index": 6,
+    "timestamp_iso": "2026-09-03T16:51:50.314481+00:00",
+    "incident_id": "INC-1041",
+    "threat_score": 92,
+    "camera_ids": [
+      "CAM_ALPHA",
+      "CAM_BRAVO"
+    ],
+    "rule_evidence": "Multi-node progression: Target TRG-0017 traversed 2 camera nodes (CAM_ALPHA -> CAM_BRAVO) with sustained threat level CRITICAL.",
+    "thumbnail_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "data_payload_hash": "7025bc5e47229501274ef48d9625b4cf3f7b34d357f285a051df0c4b6af9c346",
+    "previous_hash": "5924915ddcc4f66aabd36e5757bc32596cce25a5754a2005119b0ee8d781dae2",
+    "current_hash": "e952b6cb5e0455453feda1ddac8d350e76d83d4f310a8a2bbe77d4ca7789111e"
   }
 ]

@@ -2,6 +2,7 @@
 Cyber Camera Surveillance Platform
 Module: services/api_gateway/server.py
 Description: High-Performance FastAPI REST Gateway for Mobile & Desktop Admin App.
+             Includes live multipart MJPEG video streaming endpoints for real-time surveillance.
 """
 
 from datetime import datetime, timezone
@@ -9,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
 from typing import Any, Dict, List, Optional
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
@@ -17,11 +19,15 @@ if str(ROOT_DIR) not in sys.path:
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from core.database.event_db import EventDatabase
+from core.database.evidence_chain import verify_evidence_ledger
+from core.database.incident_graph import get_all_correlated_incidents
 from core.database.schema import AlertSeverity, AlertType, OperatorStatus
+from core.vision.multi_stream_engine import get_stream_manager
 
 app = FastAPI(
     title="Cyber Camera Surveillance Gateway API",
@@ -42,11 +48,18 @@ os.makedirs(THUMBNAIL_DIR, exist_ok=True)
 app.mount("/thumbnails", StaticFiles(directory=THUMBNAIL_DIR), name="thumbnails")
 
 db = EventDatabase("data/events.db")
+stream_manager = get_stream_manager()
 CURRENT_ARM_STATE = {"is_armed": True}
 
 
 class ArmStateRequest(BaseModel):
     arm_state: str
+
+
+class AddCameraRequest(BaseModel):
+    camera_id: str
+    source: str
+    name: str
 
 
 def map_db_event_to_incident(ev: Dict[str, Any], base_url: str = "http://localhost:8000") -> Dict[str, Any]:
@@ -93,6 +106,54 @@ def map_db_event_to_incident(ev: Dict[str, Any], base_url: str = "http://localho
     }
 
 
+# ============================================================================
+# LIVE MJPEG VIDEO STREAMING ENDPOINTS (FOR FLUTTER & WEB HUD)
+# ============================================================================
+
+def frame_generator(camera_id: str):
+    """Generates continuous multipart MJPEG frame bytes."""
+    cam_proc = stream_manager.get_camera(camera_id)
+    if not cam_proc:
+        return
+
+    while True:
+        jpg_bytes = cam_proc.get_jpeg_frame()
+        if jpg_bytes:
+            yield (b"--frame\r\n"
+                   b"Content-Type: image/jpeg\r\n\r\n" + jpg_bytes + b"\r\n")
+        time.sleep(0.033)  # ~30 FPS
+
+
+@app.get("/stream/{camera_id}")
+def stream_camera(camera_id: str):
+    """Live multipart/x-mixed-replace MJPEG video stream for a given camera."""
+    return StreamingResponse(
+        frame_generator(camera_id),
+        media_type="multipart/x-mixed-replace; boundary=frame"
+    )
+
+
+@app.get("/stream/cam1/live")
+def stream_cam1():
+    return stream_camera("CAM_ALPHA")
+
+
+@app.get("/stream/cam2/live")
+def stream_cam2():
+    return stream_camera("CAM_BRAVO")
+
+
+@app.post("/camera/add")
+def add_custom_camera(req: AddCameraRequest):
+    """Dynamically registers a live phone RTSP/HTTP camera or webcam."""
+    stream_manager.add_camera(req.camera_id, req.source, req.name)
+    return {"status": "added", "camera_id": req.camera_id, "source": req.source}
+
+
+# ============================================================================
+# REST TELEMETRY & INCIDENTS
+# ============================================================================
+
 @app.get("/edge/status")
 @app.get("/v1/edge/status")
 def get_edge_status():
@@ -101,7 +162,7 @@ def get_edge_status():
         "connection": "online",
         "arm_state": "armed" if CURRENT_ARM_STATE["is_armed"] else "disarmed",
         "last_heartbeat": datetime.now(timezone.utc).isoformat(),
-        "active_camera_count": 3,
+        "active_camera_count": len(stream_manager.cameras),
         "events_last_24h": audit.get("total", 3),
         "unverified_faces_last_24h": audit.get("unreviewed", 1),
     }
@@ -122,6 +183,11 @@ def get_incidents(request: Request):
     return [map_db_event_to_incident(e, base_url) for e in events]
 
 
+@app.get("/incidents/correlated")
+def get_correlated_incidents():
+    return get_all_correlated_incidents(limit=20)
+
+
 @app.get("/incidents/{incident_id}")
 @app.get("/v1/incidents/{incident_id}")
 def get_incident_by_id(incident_id: str, request: Request):
@@ -140,6 +206,12 @@ def acknowledge_incident(incident_id: str, request: Request):
     return get_incident_by_id(incident_id, request)
 
 
+@app.get("/audit/blockchain")
+def audit_blockchain():
+    valid, logs = verify_evidence_ledger()
+    return {"is_valid": valid, "blocks_audited": len(logs) + 1, "audit_trail": logs}
+
+
 @app.post("/notifications/register-token")
 @app.post("/v1/notifications/register-token")
 def register_device_token(payload: Dict[str, Any]):
@@ -151,7 +223,8 @@ def root():
     return {
         "platform": "Cyber Camera Surveillance Platform",
         "status": "OPERATIONAL",
-        "endpoints": ["/edge/status", "/incidents", "/docs", "/thumbnails"]
+        "live_streams": ["/stream/cam1/live", "/stream/cam2/live", "/stream/{camera_id}"],
+        "endpoints": ["/edge/status", "/incidents", "/incidents/correlated", "/docs", "/thumbnails"]
     }
 
 
