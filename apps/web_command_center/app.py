@@ -85,6 +85,21 @@ with st.sidebar:
     severity_filter = st.multiselect("Severity Filter", ["CRITICAL", "WARNING", "INFO"], default=["CRITICAL", "WARNING", "INFO"])
     
     st.markdown("---")
+    st.markdown("### 🚨 Emergency Siren Control")
+    from core.rules.sound_alerts import is_siren_active, start_persistent_critical_siren, stop_persistent_siren
+    if is_siren_active():
+        st.error("🚨 EMERGENCY SIREN ACTIVE (RINGING)")
+        if st.button("🛑 SILENCE & ACKNOWLEDGE SIREN", type="primary"):
+            stop_persistent_siren()
+            st.success("✅ Siren Silenced.")
+            st.rerun()
+    else:
+        st.success("🟢 Acoustic Siren: Standby")
+        if st.button("📢 Test Emergency Siren"):
+            start_persistent_critical_siren("MANUAL DRILL TEST")
+            st.rerun()
+
+    st.markdown("---")
     st.markdown("### 🔐 Cryptographic Integrity")
     is_valid, audit_log = verify_evidence_ledger()
     if is_valid:

@@ -27,7 +27,7 @@ import numpy as np
 
 from alerts.events import EventDatabase
 from alerts.schema import AlertSeverity, AlertType, SecurityEvent
-from alerts.sound_alerts import play_alert
+from alerts.sound_alerts import play_alert, start_persistent_critical_siren, stop_persistent_siren
 from alerts.zones import Zone, ZoneManager, ZoneType
 from data.convert_videos_to_h264 import convert_to_browser_mp4
 
@@ -410,9 +410,9 @@ def run_tactical_vehicle_surveillance_demo(
                     threat_status_text = "🚨 BARRIER INTRUSION / RAMMING"
                     box_color = (0, 0, 255)
                     if not is_paused:
-                        play_alert("CRITICAL")
-                    active_alert_banner = "🚨 [CRITICAL BREACH] CHECKPOINT BOOM BARRIER BREACHED BY HOSTILE VEHICLE!"
-                    banner_countdown = 90
+                        start_persistent_critical_siren("HOSTILE VEHICLE RAMMING CHECKPOINT")
+                    active_alert_banner = "🚨 [CRITICAL BREACH] CHECKPOINT BOOM BARRIER BREACHED! [PRESS 'M' OR SPACE TO SILENCE ALARM]"
+                    banner_countdown = 180
 
                 if watchlist_flagged or barrier_breached:
                     threat_stage_label = "STAGE 5: HOSTILE THREAT LOCK — DL-01-AB-1234 (MASKED HOSTILES)"
@@ -535,10 +535,16 @@ def run_tactical_vehicle_surveillance_demo(
                     print("[IBVAP] User closed demo.")
                     break
 
-                # 2. Play/Pause Toggle: [SPACE]
-                elif key == 32:  # Spacebar
+                # 2. Pause / Play / Acknowledge Siren: [SPACE]
+                elif key == 32:
                     is_paused = not is_paused
-                    print(f"[IBVAP] Playback {'PAUSED' if is_paused else 'RESUMED'}")
+                    stop_persistent_siren()
+                    print(f"[IBVAP] Playback {'PAUSED' if is_paused else 'RESUMED'} | Siren Acknowledged/Muted.")
+
+                # 2.1 Mute / Acknowledge Siren: [M]
+                elif key == ord("m") or key == ord("M"):
+                    stop_persistent_siren()
+                    print("[SIREN MUTED] Operator explicitly acknowledged emergency alarm.")
 
                 # 3. Step Forward: [D] or [Right Bracket] or [6]
                 elif key == ord("d") or key == ord("]") or key == ord("6"):

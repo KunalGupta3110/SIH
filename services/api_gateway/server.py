@@ -202,8 +202,23 @@ def get_incident_by_id(incident_id: str, request: Request):
 @app.post("/incidents/{incident_id}/acknowledge")
 @app.post("/v1/incidents/{incident_id}/acknowledge")
 def acknowledge_incident(incident_id: str, request: Request):
+    from core.rules.sound_alerts import stop_persistent_siren
+    stop_persistent_siren()
     db.update_operator_status(incident_id, OperatorStatus.CONFIRMED, "Acknowledged via Mobile App")
     return get_incident_by_id(incident_id, request)
+
+
+@app.post("/siren/silence")
+def silence_siren():
+    from core.rules.sound_alerts import stop_persistent_siren
+    stop_persistent_siren()
+    return {"status": "silenced", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+
+@app.get("/siren/status")
+def get_siren_status():
+    from core.rules.sound_alerts import is_siren_active
+    return {"is_siren_active": is_siren_active()}
 
 
 @app.get("/audit/blockchain")

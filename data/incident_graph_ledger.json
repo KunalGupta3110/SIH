@@ -1,60 +1,24 @@
 [
   {
     "incident_id": "INC-1041",
-    "title": "Multi-Stage Border Incursion: PERSON #TRG-0017",
-    "global_target_id": "TRG-0017",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0033",
+    "global_target_id": "TRG-0033",
     "target_class": "person",
-    "threat_score": 92,
-    "severity": "CRITICAL",
-    "confidence_pct": 95.2,
-    "start_time_iso": "2026-09-03T16:48:47.026581+00:00",
-    "last_update_iso": "2026-09-03T16:51:50.314481+00:00",
+    "threat_score": 52,
+    "severity": "WARNING",
+    "confidence_pct": 86.4,
+    "start_time_iso": "2026-09-03T17:52:20.621340+00:00",
+    "last_update_iso": "2026-09-03T17:52:20.621340+00:00",
     "cameras_involved": [
-      "CAM_ALPHA",
       "CAM_BRAVO"
     ],
     "nodes": [
       {
         "step": 1,
-        "camera_id": "CAM_ALPHA",
-        "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-03T16:48:47.026581+00:00",
-        "rule_detail": "Target crossed North Gate Red Zone moving East towards perimeter fence."
-      },
-      {
-        "step": 2,
         "camera_id": "CAM_BRAVO",
         "event_type": "CROSS_CAMERA_MATCH",
-        "timestamp_iso": "2026-09-03T16:48:49.730122+00:00",
-        "rule_detail": "Target arrival verified via Predictive Handoff in 9.4s with 96.4% appearance similarity."
-      },
-      {
-        "step": 3,
-        "camera_id": "CAM_ALPHA",
-        "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-03T16:49:12.282763+00:00",
-        "rule_detail": "Target crossed North Gate Red Zone moving East towards perimeter fence."
-      },
-      {
-        "step": 4,
-        "camera_id": "CAM_BRAVO",
-        "event_type": "CROSS_CAMERA_MATCH",
-        "timestamp_iso": "2026-09-03T16:49:14.986438+00:00",
-        "rule_detail": "Target arrival verified via Predictive Handoff in 9.4s with 96.4% appearance similarity."
-      },
-      {
-        "step": 5,
-        "camera_id": "CAM_ALPHA",
-        "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-03T16:51:47.609362+00:00",
-        "rule_detail": "Target crossed North Gate Red Zone moving East towards perimeter fence."
-      },
-      {
-        "step": 6,
-        "camera_id": "CAM_BRAVO",
-        "event_type": "CROSS_CAMERA_MATCH",
-        "timestamp_iso": "2026-09-03T16:51:50.314481+00:00",
-        "rule_detail": "Target arrival verified via Predictive Handoff in 9.4s with 96.4% appearance similarity."
+        "timestamp_iso": "2026-09-03T17:52:20.621340+00:00",
+        "rule_detail": "Target arrived at Cam 2 via Predictive Handoff in 10.1s."
       }
     ],
     "score_breakdown": [
@@ -64,19 +28,9 @@
         "evidence": "Target centroid within polygon geofence barrier."
       },
       {
-        "factor": "Perimeter Tripwire Incursion",
-        "points": 25,
-        "evidence": "Target crossed 2D perimeter vector from outer buffer."
-      },
-      {
         "factor": "Moderate Approach Vector",
         "points": 10,
-        "evidence": "Kinematic velocity 85.0 px/s."
-      },
-      {
-        "factor": "Static Loitering Dwell Time",
-        "points": 15,
-        "evidence": "Target stationary in caution corridor for 4.2s (threshold 3.0s)."
+        "evidence": "Kinematic velocity 60.0 px/s."
       },
       {
         "factor": "Predictive Multi-Camera Continuity",
@@ -84,8 +38,51 @@
         "evidence": "Target successfully linked across nodes via spatio-temporal transit prediction."
       }
     ],
-    "cryptographic_block_hash": "e952b6cb5e0455453feda1ddac8d350e76d83d4f310a8a2bbe77d4ca7789111e",
+    "cryptographic_block_hash": "fa033fe00a6db0f92ae4d69b33703be7e106ccfe56c25d0a9c77d7643f50547f",
     "operator_triage": "UNREVIEWED",
-    "story_summary": "Multi-node progression: Target TRG-0017 traversed 2 camera nodes (CAM_ALPHA -> CAM_BRAVO) with sustained threat level CRITICAL."
+    "story_summary": "Target TRG-0033 detected at CAM_BRAVO triggering CROSS_CAMERA_MATCH."
+  },
+  {
+    "incident_id": "INC-1042",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0040",
+    "global_target_id": "TRG-0040",
+    "target_class": "person",
+    "threat_score": 52,
+    "severity": "WARNING",
+    "confidence_pct": 86.4,
+    "start_time_iso": "2026-09-03T17:52:27.271262+00:00",
+    "last_update_iso": "2026-09-03T17:52:27.271262+00:00",
+    "cameras_involved": [
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "CROSS_CAMERA_MATCH",
+        "timestamp_iso": "2026-09-03T17:52:27.271262+00:00",
+        "rule_detail": "Target arrived at Cam 2 via Predictive Handoff in 10.0s."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 60.0 px/s."
+      },
+      {
+        "factor": "Predictive Multi-Camera Continuity",
+        "points": 12,
+        "evidence": "Target successfully linked across nodes via spatio-temporal transit prediction."
+      }
+    ],
+    "cryptographic_block_hash": "15fea1291e6c1a06b4d3bce34d22d4727ff6b8dc2787332305d8d99c85c75170",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Target TRG-0040 detected at CAM_BRAVO triggering CROSS_CAMERA_MATCH."
   }
 ]

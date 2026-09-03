@@ -102,5 +102,33 @@
     "data_payload_hash": "7025bc5e47229501274ef48d9625b4cf3f7b34d357f285a051df0c4b6af9c346",
     "previous_hash": "5924915ddcc4f66aabd36e5757bc32596cce25a5754a2005119b0ee8d781dae2",
     "current_hash": "e952b6cb5e0455453feda1ddac8d350e76d83d4f310a8a2bbe77d4ca7789111e"
+  },
+  {
+    "block_index": 7,
+    "timestamp_iso": "2026-09-03T17:52:20.621340+00:00",
+    "incident_id": "INC-1041",
+    "threat_score": 52,
+    "camera_ids": [
+      "CAM_BRAVO"
+    ],
+    "rule_evidence": "Target TRG-0033 detected at CAM_BRAVO triggering CROSS_CAMERA_MATCH.",
+    "thumbnail_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "data_payload_hash": "e5b5dbd5490b92f5bc68e36f075b2dc57c95661e800fe518eb13740cc6d9ef57",
+    "previous_hash": "e952b6cb5e0455453feda1ddac8d350e76d83d4f310a8a2bbe77d4ca7789111e",
+    "current_hash": "fa033fe00a6db0f92ae4d69b33703be7e106ccfe56c25d0a9c77d7643f50547f"
+  },
+  {
+    "block_index": 8,
+    "timestamp_iso": "2026-09-03T17:52:27.271262+00:00",
+    "incident_id": "INC-1042",
+    "threat_score": 52,
+    "camera_ids": [
+      "CAM_BRAVO"
+    ],
+    "rule_evidence": "Target TRG-0040 detected at CAM_BRAVO triggering CROSS_CAMERA_MATCH.",
+    "thumbnail_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "data_payload_hash": "be9ad57e758c917ffc79e314979526623ecb915dff3d235a04f60a4b36173f12",
+    "previous_hash": "fa033fe00a6db0f92ae4d69b33703be7e106ccfe56c25d0a9c77d7643f50547f",
+    "current_hash": "15fea1291e6c1a06b4d3bce34d22d4727ff6b8dc2787332305d8d99c85c75170"
   }
 ]
