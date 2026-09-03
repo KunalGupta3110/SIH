@@ -1,13 +1,10 @@
 """
 IBVAP - Intelligent Border Video Analytics Platform
 Module: alerts/threat_analyzer.py
-Description: Advanced Multi-Threat Behavior Analysis Engine for Border Security.
-             Detects threats beyond simple zones:
-             1. Crawling / Prone Stealth Infiltrator (Aspect-Ratio Anomaly)
-             2. Group Gathering / Infiltration Mob Formation (Density Clustering)
-             3. Abandoned / Left-Behind Suspicious Object
-             4. High-Speed Vehicle Rush / Barrier Ramming Attempt
-             5. Erratic Movement / Evasive U-Turn Maneuver
+Description: Tactical Behavioral Rule Engine for Border Security.
+             Evaluates relative motion anomalies and group density patterns:
+             1. Rapid Approach Flag: Accelerating velocity vector towards checkpost/barrier.
+             2. Group Clustering: Multi-target assembly/density anomaly near perimeter.
 """
 
 from collections import defaultdict
@@ -31,39 +28,31 @@ from alerts.schema import AlertSeverity, AlertType, SecurityEvent
 from detection_tracking.track import TrackedObject
 
 
-@dataclass
-class ThreatIncident:
-    """Detected tactical threat pattern."""
-    threat_type: str
-    severity: AlertSeverity
-    description: str
-    track_ids: List[int]
-    centroid: Tuple[float, float]
-    bbox: List[float]
-
-
 class BorderThreatAnalyzer:
     """
-    Evaluates real-time tracking streams for tactical security anomalies and border threats.
+    Evaluates tracking data for defensible behavioral indicators and group anomalies.
     """
 
     def __init__(
         self,
         group_distance_px: float = 160.0,
-        group_min_people: int = 2,
-        crawling_aspect_ratio_thresh: float = 1.10,
-        speed_rush_px_sec: float = 90.0,
-        abandoned_time_sec: float = 4.0,
-        cooldown_sec: float = 1.5,
+        group_min_people: int = 3,
+        rapid_approach_displacement_thresh: float = 110.0,
+        cooldown_sec: float = 2.5,
     ):
+        """
+        Args:
+            group_distance_px: Maximum pixel distance to declare targets clustered.
+            group_min_people: Minimum targets in cluster to flag group assembly.
+            rapid_approach_displacement_thresh: Pixel displacement per second threshold towards barrier.
+            cooldown_sec: Debounce period between alerts.
+        """
         self.group_dist_thresh = group_distance_px
         self.group_min_count = group_min_people
-        self.crawling_aspect_thresh = crawling_aspect_ratio_thresh
-        self.speed_rush_thresh = speed_rush_px_sec
-        self.abandoned_time_thresh = abandoned_time_sec
+        self.rapid_approach_thresh = rapid_approach_displacement_thresh
         self.cooldown_ms = cooldown_sec * 1000.0
 
-        # Cooldown trackers: threat_key -> last_alert_time_ms
+        # threat_key -> last_alert_time_ms
         self.threat_cooldowns: Dict[str, float] = {}
 
     def analyze_frame_threats(
@@ -74,7 +63,7 @@ class BorderThreatAnalyzer:
         tracks: List[TrackedObject],
     ) -> List[SecurityEvent]:
         """
-        Runs tactical multi-threat analysis on the current frame's tracks.
+        Evaluates active tracks for relative approach velocity and group clustering.
         """
         triggered_events: List[SecurityEvent] = []
 
@@ -82,44 +71,7 @@ class BorderThreatAnalyzer:
         vehicle_tracks = [t for t in tracks if t.class_name.lower() in ("car", "truck", "bus", "motorcycle", "vehicle")]
 
         # =========================================================================
-        # 1. CRAWLING / PRONE STEALTH INFILTRATOR DETECTION
-        # =========================================================================
-        for p in person_tracks:
-            x1, y1, x2, y2 = p.bbox
-            bw = max(1.0, x2 - x1)
-            bh = max(1.0, y2 - y1)
-            aspect_ratio = bw / bh
-
-            # Horizontal crawling posture or low creeping height
-            if aspect_ratio >= self.crawling_aspect_thresh or (bh < 48 and bw > 40):
-                threat_key = f"crawl_{camera_id}_{p.track_id}"
-                if (timestamp_ms - self.threat_cooldowns.get(threat_key, 0.0)) > self.cooldown_ms:
-                    self.threat_cooldowns[threat_key] = timestamp_ms
-
-                    event_id = f"evt_crawl_{camera_id}_{p.track_id}_{int(timestamp_ms)}"
-                    details = (
-                        f"🚨 TACTICAL THREAT: Crawling/Prone stealth infiltration detected! "
-                        f"Target [ID #{p.track_id}] aspect ratio: {aspect_ratio:.2f}."
-                    )
-                    ev = SecurityEvent(
-                        event_id=event_id,
-                        timestamp_iso=datetime.now(timezone.utc).isoformat(),
-                        timestamp_ms=timestamp_ms,
-                        camera_id=camera_id,
-                        track_id=p.track_id,
-                        class_name=p.class_name,
-                        alert_type=AlertType.TACTICAL_CRAWL,
-                        severity=AlertSeverity.CRITICAL,
-                        zone_id="tactical_crawl",
-                        zone_name="Stealth Infiltration Watch",
-                        details=details,
-                        bbox=p.bbox,
-                        centroid=p.centroid,
-                    )
-                    triggered_events.append(ev)
-
-        # =========================================================================
-        # 2. GROUP GATHERING / INFILTRATION CLUSTER FORMATION
+        # 1. GROUP CLUSTERING / ASSEMBLY PATTERN
         # =========================================================================
         if len(person_tracks) >= self.group_min_count:
             clusters: List[List[TrackedObject]] = []
@@ -157,8 +109,7 @@ class BorderThreatAnalyzer:
 
                     event_id = f"evt_group_{camera_id}_{int(timestamp_ms)}"
                     details = (
-                        f"⚠️ CROWD/GROUP ANOMALY: Coordinated group assembly detected! "
-                        f"{len(cluster)} suspects clustered (IDs: {group_ids})."
+                        f"Group Assembly Anomaly: {len(cluster)} persons clustered in close proximity (IDs: {group_ids})."
                     )
                     ev = SecurityEvent(
                         event_id=event_id,
@@ -174,30 +125,38 @@ class BorderThreatAnalyzer:
                         details=details,
                         bbox=[min_x, min_y, max_x, max_y],
                         centroid=(avg_cx, avg_cy),
+                        rule_name="Euclidean Spatial Density Clustering",
+                        rule_metrics={
+                            "cluster_size": len(cluster),
+                            "inter_target_distance_px": round(self.group_dist_thresh, 1),
+                            "member_track_ids": group_ids,
+                        },
+                        confidence=0.88,
                     )
                     triggered_events.append(ev)
 
         # =========================================================================
-        # 3. HIGH-SPEED VEHICLE RUSH / BARRIER RAMMING THREAT
+        # 2. RAPID APPROACH VECTOR (RELATIVE VELOCITY ESTIMATION)
+        # Note: Relative pixel displacement rate towards barrier (not absolute calibrated km/h)
         # =========================================================================
         for v in vehicle_tracks:
-            if len(v.trajectory) >= 2:
+            if len(v.trajectory) >= 3:
                 p_old = v.trajectory[0]
                 p_new = v.trajectory[-1]
                 steps = max(1, len(v.trajectory) - 1)
                 dt = steps * (1.0 / 30.0)
                 displacement_px = math.hypot(p_new[0] - p_old[0], p_new[1] - p_old[1])
-                speed_est = displacement_px / max(0.01, dt)
+                relative_rate = displacement_px / max(0.01, dt)
 
-                if speed_est >= self.speed_rush_thresh:
+                if relative_rate >= self.rapid_approach_thresh:
                     threat_key = f"rush_{camera_id}_{v.track_id}"
                     if (timestamp_ms - self.threat_cooldowns.get(threat_key, 0.0)) > self.cooldown_ms:
                         self.threat_cooldowns[threat_key] = timestamp_ms
 
                         event_id = f"evt_rush_{camera_id}_{v.track_id}_{int(timestamp_ms)}"
                         details = (
-                            f"🚨 CRITICAL VEHICLE THREAT: High-speed rush towards barrier! "
-                            f"{v.class_name.upper()} [ID #{v.track_id}] velocity: {speed_est:.1f} px/s."
+                            f"Rapid Approach Flag: {v.class_name.upper()} (Track #{v.track_id}) approaching barrier "
+                            f"at high relative displacement rate ({relative_rate:.1f} px/s)."
                         )
                         ev = SecurityEvent(
                             event_id=event_id,
@@ -206,13 +165,20 @@ class BorderThreatAnalyzer:
                             camera_id=camera_id,
                             track_id=v.track_id,
                             class_name=v.class_name,
-                            alert_type=AlertType.SPEED_RUSH,
-                            severity=AlertSeverity.CRITICAL,
-                            zone_id="speed_rush",
+                            alert_type=AlertType.RAPID_APPROACH,
+                            severity=AlertSeverity.WARNING,
+                            zone_id="checkpoint_approach",
                             zone_name="Checkpoint Approach Vector",
                             details=details,
                             bbox=v.bbox,
                             centroid=v.centroid,
+                            rule_name="Relative Trajectory Velocity Vector",
+                            rule_metrics={
+                                "relative_rate_px_s": round(relative_rate, 1),
+                                "threshold_px_s": self.rapid_approach_thresh,
+                                "trajectory_points": len(v.trajectory),
+                            },
+                            confidence=0.90,
                         )
                         triggered_events.append(ev)
 

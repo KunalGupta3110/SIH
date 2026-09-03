@@ -1,19 +1,21 @@
 """
 IBVAP - Intelligent Border Video Analytics Platform
 Module: reid/cross_cam_demo.py
-Description: Dual-Camera Re-ID Demonstration Pipeline.
+Description: Explainable Dual-Camera Cross-ReID Demonstration Pipeline.
              Simulates Camera 1 (Check Post Alpha) and Camera 2 (Border Out Post Bravo),
-             tracks subjects on Camera 1, and matches them when they enter Camera 2.
+             extracts appearance embeddings, scores candidate similarities transparently,
+             and stitches target trajectories across border nodes.
 """
 
 import argparse
+from datetime import datetime, timezone
 import os
 from pathlib import Path
 import sys
 import time
 from typing import Optional
 
-# Ensure project root is in sys.path
+# Ensure project root in sys.path
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -21,10 +23,10 @@ if str(ROOT_DIR) not in sys.path:
 import cv2
 import numpy as np
 
-from alerts.events import AlertEngine, AlertSeverity, AlertType, EventDatabase, SecurityEvent
+from alerts.events import AlertEngine, EventDatabase
+from alerts.schema import AlertSeverity, AlertType, SecurityEvent
 from alerts.sound_alerts import play_alert
 from alerts.zones import Zone, ZoneManager, ZoneType
-from datetime import datetime, timezone
 from detection_tracking.track import BorderTracker
 from reid.embed import FeatureExtractor
 from reid.match import CrossCameraReID
@@ -33,15 +35,15 @@ from reid.match import CrossCameraReID
 def run_dual_camera_reid_demo(
     cam1_source: str,
     cam2_source: str,
-    output_path: Optional[str] = "data/cross_cam_reid_demo.mp4",
+    output_path: Optional[str] = "data/cross_cam_real_demo.mp4",
     model_path: str = "yolov8n.pt",
     device: Optional[str] = None,
-    similarity_thresh: float = 0.68,
+    similarity_thresh: float = 0.70,
     show: bool = True,
 ):
     """
-    Executes cross-camera Re-ID tracking across two simulated or real video feeds.
-    Outputs a side-by-side synchronized view showing global target stitching.
+    Executes explainable cross-camera Re-ID tracking across two camera feeds.
+    Outputs a side-by-side synchronized view with candidate similarity scores.
     """
     cap1 = cv2.VideoCapture(cam1_source)
     cap2 = cv2.VideoCapture(cam2_source)
@@ -56,9 +58,10 @@ def run_dual_camera_reid_demo(
     h = int(cap1.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 360
 
     print(f"\n=======================================================")
-    print(f" [IBVAP] DUAL-CAMERA CROSS-REID PIPELINE ACTIVATED")
+    print(f" [IBVAP] EXPLAINABLE DUAL-CAMERA CROSS-REID PIPELINE")
     print(f" Camera 1: {cam1_source} (Check Post Alpha)")
     print(f" Camera 2: {cam2_source} (BOP Bravo Perimeter)")
+    print(f" Similarity Threshold (tau): {similarity_thresh:.2f}")
     print(f"=======================================================\n")
 
     # Initialize Modules
@@ -70,12 +73,14 @@ def run_dual_camera_reid_demo(
     writer = None
     if output_path:
         os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
-        # Side-by-side video: (w * 2, h)
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         writer = cv2.VideoWriter(output_path, fourcc, fps, (w * 2, h))
 
     frame_idx = 0
     t_start = time.time()
+
+    # Track match scores per local ID for HUD rendering
+    match_score_display = {}
 
     try:
         while True:
@@ -85,7 +90,6 @@ def run_dual_camera_reid_demo(
             if not ret1 and not ret2:
                 break
 
-            # Fallback black frames if one video finishes before the other
             if not ret1:
                 frame1 = np.zeros((h, w, 3), dtype=np.uint8)
             else:
@@ -104,7 +108,7 @@ def run_dual_camera_reid_demo(
             for t1 in tracks_cam1:
                 crop = FeatureExtractor.crop_from_bbox(frame1, t1.bbox)
                 if crop is not None:
-                    gid, is_match, score = reid_engine.process_observation(
+                    gid, is_match, score, _ = reid_engine.process_observation(
                         camera_id="CAM_ALPHA",
                         local_track_id=t1.track_id,
                         class_name=t1.class_name,
@@ -114,13 +118,14 @@ def run_dual_camera_reid_demo(
                         timestamp_ms=timestamp_ms,
                         frame_idx=frame_idx,
                     )
+                    match_score_display[("CAM_ALPHA", t1.track_id)] = (gid, 1.0)
 
             # 2. Track Camera 2 & Check Re-ID Matches
             tracks_cam2 = tracker2.track_frame(frame2, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
             for t2 in tracks_cam2:
                 crop = FeatureExtractor.crop_from_bbox(frame2, t2.bbox)
                 if crop is not None:
-                    gid, is_match, score = reid_engine.process_observation(
+                    gid, is_match, score, candidates = reid_engine.process_observation(
                         camera_id="CAM_BRAVO",
                         local_track_id=t2.track_id,
                         class_name=t2.class_name,
@@ -130,9 +135,13 @@ def run_dual_camera_reid_demo(
                         timestamp_ms=timestamp_ms,
                         frame_idx=frame_idx,
                     )
+                    match_score_display[("CAM_BRAVO", t2.track_id)] = (gid, score)
 
                     if is_match:
-                        print(f"🎯 [CROSS-CAMERA RE-ID] MATCH DETECTED! Global ID '{gid}' matched on CAM_BRAVO (Score: {score:.2f})")
+                        print(
+                            f"🎯 [RE-ID EXPLAINABLE MATCH] Global ID: {gid} | Score: {score:.3f} >= {similarity_thresh:.2f} | "
+                            f"Matched between CAM_ALPHA and CAM_BRAVO"
+                        )
                         play_alert("CRITICAL")
                         ev = SecurityEvent(
                             event_id=f"evt_reid_{gid}_{int(timestamp_ms)}",
@@ -143,25 +152,40 @@ def run_dual_camera_reid_demo(
                             class_name=t2.class_name,
                             alert_type=AlertType.CROSS_CAMERA_MATCH,
                             severity=AlertSeverity.CRITICAL,
-                            zone_id="cross_cam_reid",
-                            zone_name="Cross-Camera Re-ID Link",
-                            details=f"Target {gid} ({t2.class_name}) re-identified on CAM_BRAVO after previous sighting on CAM_ALPHA (Similarity: {score*100:.1f}%).",
+                            zone_id="cross_cam_link",
+                            zone_name="Cross-Node Movement Trail",
+                            details=(
+                                f"Target {gid} ({t2.class_name}) re-identified on CAM_BRAVO. "
+                                f"Appearance match score: {score*100:.1f}% (Threshold: {similarity_thresh*100:.0f}%)."
+                            ),
                             bbox=t2.bbox,
                             centroid=t2.centroid,
+                            rule_name="Appearance Embedding Cosine Similarity",
+                            rule_metrics={
+                                "cosine_similarity": round(score, 4),
+                                "threshold": round(similarity_thresh, 4),
+                                "origin_camera": "CAM_ALPHA",
+                                "destination_camera": "CAM_BRAVO",
+                            },
+                            confidence=score,
                         )
                         db.insert_event(ev)
 
-            # 3. Annotate frames with Global IDs
+            # 3. Annotate frames with Global IDs and Similarity Scores
             def draw_global_labels(frame, tracks, cam_name):
                 ann = frame.copy()
                 for t in tracks:
-                    local_key = (cam_name, t.track_id)
-                    gid = reid_engine.local_to_global.get(local_key, f"LOC-{t.track_id}")
+                    key = (cam_name, t.track_id)
+                    gid, score = match_score_display.get(key, (f"LOC-{t.track_id}", 0.0))
                     x1, y1, x2, y2 = [int(c) for c in t.bbox]
                     cv2.rectangle(ann, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                    badge = f"GLOBAL: {gid}"
-                    cv2.putText(ann, badge, (x1, max(18, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
-                cv2.putText(ann, f"NODE: {cam_name}", (15, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                    
+                    if cam_name == "CAM_BRAVO" and score > 0.0:
+                        badge = f"{gid} (Sim: {score:.2f})"
+                    else:
+                        badge = f"{gid}"
+                    cv2.putText(ann, badge, (x1, max(18, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
+                cv2.putText(ann, f"NODE: {cam_name}", (15, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
                 return ann
 
             ann1 = draw_global_labels(frame1, tracks_cam1, "CAM_ALPHA")
@@ -170,8 +194,11 @@ def run_dual_camera_reid_demo(
             # Stitch Side-by-Side
             side_by_side = np.hstack((ann1, ann2))
 
-            # Header divider
-            cv2.line(side_by_side, (w, 0), (w, h), (0, 0, 255), 3)
+            # Header divider and stats bar
+            cv2.line(side_by_side, (w, 0), (w, h), (0, 0, 255), 2)
+            cv2.rectangle(side_by_side, (0, h - 30), (w * 2, h), (15, 15, 15), -1)
+            hud = f"IBVAP RE-ID PIPELINE | Global Targets: {len(reid_engine.global_tracks)} | Threshold: {similarity_thresh:.2f} | Frame: {frame_idx}"
+            cv2.putText(side_by_side, hud, (15, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 200), 1)
 
             if writer:
                 writer.write(side_by_side)
@@ -199,11 +226,12 @@ def run_dual_camera_reid_demo(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="IBVAP - Dual-Camera Cross-ReID Demo")
+    parser = argparse.ArgumentParser(description="IBVAP - Explainable Dual-Camera Cross-ReID Demo")
     parser.add_argument("--cam1", type=str, default="data/sample_border.mp4", help="Camera 1 video source")
     parser.add_argument("--cam2", type=str, default="data/sample_border.mp4", help="Camera 2 video source")
     parser.add_argument("--output", type=str, default="data/cross_cam_real_demo.mp4", help="Output side-by-side video")
     parser.add_argument("--device", type=str, default=None, help="'cpu', 'cuda', etc.")
+    parser.add_argument("--thresh", type=float, default=0.70, help="Re-ID Cosine Similarity threshold (default: 0.70)")
     parser.add_argument("--no-show", action="store_true", help="Disable live GUI window")
     args = parser.parse_args()
 
@@ -212,6 +240,7 @@ def main():
         cam2_source=args.cam2,
         output_path=args.output,
         device=args.device,
+        similarity_thresh=args.thresh,
         show=not args.no_show,
     )
 

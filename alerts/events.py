@@ -1,13 +1,13 @@
 """
 IBVAP - Intelligent Border Video Analytics Platform
 Module: alerts/events.py
-Description: Rule-based explainable alert generation engine, severity tiering,
-             SQLite event database, and visual alert annotation.
+Description: Explainable rule-based alert generation engine, severity tiering,
+             SQLite event database with operator false-positive triage,
+             and real-time HUD rendering.
 """
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from datetime import datetime, timezone
-from enum import Enum
 import json
 import os
 from pathlib import Path
@@ -25,7 +25,7 @@ if str(ROOT_DIR) not in sys.path:
 import cv2
 import numpy as np
 
-from alerts.schema import AlertSeverity, AlertType, SecurityEvent
+from alerts.schema import AlertSeverity, AlertType, OperatorStatus, SecurityEvent
 from alerts.sound_alerts import play_alert
 from alerts.threat_analyzer import BorderThreatAnalyzer
 from alerts.zones import Zone, ZoneManager, ZoneType
@@ -33,7 +33,10 @@ from detection_tracking.track import TrackedObject
 
 
 class EventDatabase:
-    """Lightweight SQLite database for storing, querying, and exporting security events."""
+    """
+    Lightweight SQLite database for security alerts, supporting explainable audit trails
+    and operator false-positive triage.
+    """
 
     def __init__(self, db_path: str = "data/events.db"):
         self.db_path = db_path
@@ -61,12 +64,32 @@ class EventDatabase:
                     details TEXT,
                     bbox_json TEXT,
                     centroid_json TEXT,
+                    rule_name TEXT DEFAULT 'Spatial Geometry Rule',
+                    rule_metrics_json TEXT DEFAULT '{}',
+                    confidence REAL DEFAULT 0.85,
+                    operator_status TEXT DEFAULT 'UNREVIEWED',
+                    operator_notes TEXT,
                     thumbnail_path TEXT
                 )
             """)
+            # Migration check for existing databases
+            cursor.execute("PRAGMA table_info(security_events)")
+            existing_cols = {row[1] for row in cursor.fetchall()}
+            if "rule_name" not in existing_cols:
+                cursor.execute("ALTER TABLE security_events ADD COLUMN rule_name TEXT DEFAULT 'Spatial Geometry Rule'")
+            if "rule_metrics_json" not in existing_cols:
+                cursor.execute("ALTER TABLE security_events ADD COLUMN rule_metrics_json TEXT DEFAULT '{}'")
+            if "confidence" not in existing_cols:
+                cursor.execute("ALTER TABLE security_events ADD COLUMN confidence REAL DEFAULT 0.85")
+            if "operator_status" not in existing_cols:
+                cursor.execute("ALTER TABLE security_events ADD COLUMN operator_status TEXT DEFAULT 'UNREVIEWED'")
+            if "operator_notes" not in existing_cols:
+                cursor.execute("ALTER TABLE security_events ADD COLUMN operator_notes TEXT")
+
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_cam_time ON security_events(camera_id, timestamp_ms)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_severity ON security_events(severity)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_alert_type ON security_events(alert_type)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_op_status ON security_events(operator_status)")
             conn.commit()
 
     def insert_event(self, event: SecurityEvent):
@@ -74,7 +97,7 @@ class EventDatabase:
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT OR REPLACE INTO security_events VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 )
             """, (
                 event.event_id,
@@ -90,8 +113,24 @@ class EventDatabase:
                 event.details,
                 json.dumps(event.bbox),
                 json.dumps(event.centroid),
+                event.rule_name,
+                json.dumps(event.rule_metrics),
+                event.confidence,
+                event.operator_status.value,
+                event.operator_notes,
                 event.thumbnail_path,
             ))
+            conn.commit()
+
+    def update_operator_status(self, event_id: str, status: OperatorStatus, notes: Optional[str] = None):
+        """Update operator review state (Confirm or Dismiss as False Positive)."""
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE security_events 
+                SET operator_status = ?, operator_notes = ? 
+                WHERE event_id = ?
+            """, (status.value, notes, event_id))
             conn.commit()
 
     def get_recent_events(
@@ -99,6 +138,7 @@ class EventDatabase:
         limit: int = 50,
         camera_id: Optional[str] = None,
         severity: Optional[str] = None,
+        operator_status: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         with self._get_conn() as conn:
             conn.row_factory = sqlite3.Row
@@ -111,12 +151,28 @@ class EventDatabase:
             if severity:
                 query += " AND severity = ?"
                 params.append(severity)
+            if operator_status:
+                query += " AND operator_status = ?"
+                params.append(operator_status)
             query += " ORDER BY timestamp_ms DESC LIMIT ?"
             params.append(limit)
 
             cursor.execute(query, params)
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
+
+    def get_operator_audit_stats(self) -> Dict[str, int]:
+        """Returns live counts of reviewed, confirmed, and dismissed false positives."""
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT operator_status, COUNT(*) FROM security_events GROUP BY operator_status")
+            counts = {row[0]: row[1] for row in cursor.fetchall()}
+            return {
+                "total": sum(counts.values()),
+                "unreviewed": counts.get(OperatorStatus.UNREVIEWED.value, 0),
+                "confirmed": counts.get(OperatorStatus.CONFIRMED.value, 0),
+                "dismissed_fp": counts.get(OperatorStatus.DISMISSED_FP.value, 0),
+            }
 
 
 class TrackState:
@@ -130,13 +186,9 @@ class TrackState:
 
         # zone_id -> entry_timestamp_ms
         self.zone_entry_times: Dict[str, float] = {}
-        # Set of zone_ids where loitering alert has already fired
         self.loitering_alerted_zones: Set[str] = set()
-        # Set of zone_ids where intrusion alert has fired
         self.intrusion_alerted_zones: Set[str] = set()
-        # Set of tripwire zone_ids already crossed
         self.crossed_tripwires: Set[str] = set()
-        # Cooldown timer to prevent alert flooding (alert_key -> last_alert_time_ms)
         self.alert_cooldowns: Dict[str, float] = {}
 
 
@@ -174,7 +226,6 @@ class AlertEngine:
         try:
             h, w = frame.shape[:2]
             x1, y1, x2, y2 = [int(c) for c in bbox]
-            # Add 20% margin
             pad_w = int((x2 - x1) * 0.2)
             pad_h = int((y2 - y1) * 0.2)
             x1 = max(0, x1 - pad_w)
@@ -201,10 +252,7 @@ class AlertEngine:
         raw_frame: Optional[np.ndarray] = None,
     ) -> List[SecurityEvent]:
         """
-        Processes active tracked objects against configured camera zones.
-
-        Returns:
-            List of newly triggered SecurityEvents for this frame.
+        Processes active tracked objects against spatial zones with full explainability.
         """
         if camera_id not in self.track_states:
             self.track_states[camera_id] = {}
@@ -227,7 +275,6 @@ class AlertEngine:
 
             state = current_states[tid]
             state.last_seen_ms = timestamp_ms
-            prev_centroid = state.last_centroid
             curr_centroid = track.centroid
             state.last_centroid = curr_centroid
 
@@ -243,13 +290,12 @@ class AlertEngine:
                             state.crossed_tripwires.add(zone.zone_id)
                             event_id = f"evt_tw_{camera_id}_{tid}_{int(timestamp_ms)}"
                             
-                            # Check direction violation
                             is_dir_violation = zone.allowed_direction and (direction != zone.allowed_direction)
                             severity = AlertSeverity.CRITICAL if is_dir_violation else AlertSeverity(zone.severity)
                             alert_type = AlertType.DIRECTION_VIOLATION if is_dir_violation else AlertType.TRIPWIRE_CROSS
 
                             details = (
-                                f"{track.class_name.upper()} (Track ID #{tid}) breached Tripwire '{zone.name}' "
+                                f"{track.class_name.upper()} (Track #{tid}) breached Tripwire '{zone.name}' "
                                 f"heading {direction} at coord ({int(curr_centroid[0])}, {int(curr_centroid[1])})."
                             )
 
@@ -269,6 +315,13 @@ class AlertEngine:
                                 details=details,
                                 bbox=track.bbox,
                                 centroid=curr_centroid,
+                                rule_name="2D Tripwire Vector Intersection",
+                                rule_metrics={
+                                    "tripwire_endpoints": zone.points[:2],
+                                    "crossing_direction": direction,
+                                    "frame_index": frame_idx,
+                                },
+                                confidence=track.confidence,
                                 thumbnail_path=thumb_path,
                             )
                             events.append(event)
@@ -292,7 +345,7 @@ class AlertEngine:
                             
                             severity = AlertSeverity(zone.severity)
                             details = (
-                                f"Restricted zone intrusion: {track.class_name.upper()} (Track ID #{tid}) "
+                                f"Restricted zone incursion: {track.class_name.upper()} (Track #{tid}) "
                                 f"entered '{zone.name}' at coord ({int(curr_centroid[0])}, {int(curr_centroid[1])})."
                             )
 
@@ -310,6 +363,12 @@ class AlertEngine:
                                 details=details,
                                 bbox=track.bbox,
                                 centroid=curr_centroid,
+                                rule_name="Point-in-Polygon Boundary Containment",
+                                rule_metrics={
+                                    "polygon_vertex_count": len(zone.points),
+                                    "entry_timestamp_ms": round(state.zone_entry_times[zone.zone_id], 2),
+                                },
+                                confidence=track.confidence,
                                 thumbnail_path=thumb_path,
                             )
                             events.append(event)
@@ -325,8 +384,8 @@ class AlertEngine:
                             thumb_path = self._save_thumbnail(raw_frame, track.bbox, event_id) if raw_frame is not None else None
 
                             details = (
-                                f"Suspicious loitering detected: {track.class_name.upper()} (Track ID #{tid}) "
-                                f"has remained in '{zone.name}' for {time_in_zone_sec:.1f}s (threshold: {zone.loitering_time_sec}s)."
+                                f"Suspicious loitering: {track.class_name.upper()} (Track #{tid}) "
+                                f"remained in '{zone.name}' for {time_in_zone_sec:.1f}s (threshold: {zone.loitering_time_sec}s)."
                             )
 
                             event = SecurityEvent(
@@ -343,19 +402,24 @@ class AlertEngine:
                                 details=details,
                                 bbox=track.bbox,
                                 centroid=curr_centroid,
+                                rule_name="Temporal Dwell-Time Threshold",
+                                rule_metrics={
+                                    "dwell_time_s": round(time_in_zone_sec, 2),
+                                    "loitering_threshold_s": zone.loitering_time_sec,
+                                },
+                                confidence=track.confidence,
                                 thumbnail_path=thumb_path,
                             )
                             events.append(event)
                             self.db.insert_event(event)
 
                     else:
-                        # Exited zone - reset entry timer & state for re-entry
                         if zone.zone_id in state.zone_entry_times:
                             del state.zone_entry_times[zone.zone_id]
                         state.intrusion_alerted_zones.discard(zone.zone_id)
                         state.loitering_alerted_zones.discard(zone.zone_id)
 
-        # 3. Evaluate Advanced Tactical Multi-Threats (Crawling, Group Gathering, Speed Rush)
+        # 3. Behavioral Tactical Threat Analysis (Rapid approach vector, group cluster)
         tactical_threats = self.threat_analyzer.analyze_frame_threats(
             camera_id=camera_id,
             frame_idx=frame_idx,
@@ -370,9 +434,8 @@ class AlertEngine:
 
         if events:
             self.recent_alerts.extend(events)
-            self.recent_alerts = self.recent_alerts[-5:]  # Keep latest 5 for HUD
+            self.recent_alerts = self.recent_alerts[-5:]
             
-            # Sound alert trigger based on highest event severity
             severities = [ev.severity.value for ev in events]
             if "CRITICAL" in severities:
                 play_alert("CRITICAL")
@@ -397,14 +460,14 @@ class AlertEngine:
         is_critical = latest.severity == AlertSeverity.CRITICAL
         banner_color = (0, 0, 220) if is_critical else (0, 140, 255)
 
-        # 1. Highlight the threat target's bounding box in thick glowing red/orange
+        # 1. Highlight the threat target's bounding box
         x1, y1, x2, y2 = [int(c) for c in latest.bbox]
         cv2.rectangle(annotated, (x1, y1), (x2, y2), banner_color, 3)
-        badge_text = f"THREAT: {latest.alert_type.value}"
+        badge_text = f"ALERT: {latest.alert_type.value}"
         cv2.putText(annotated, badge_text, (x1, max(18, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.55, banner_color, 2, cv2.LINE_AA)
 
-        # 2. Outer screen flashing alert frame (red perimeter border)
-        cv2.rectangle(annotated, (0, 0), (w - 1, h - 1), banner_color, 6)
+        # 2. Outer screen alert perimeter
+        cv2.rectangle(annotated, (0, 0), (w - 1, h - 1), banner_color, 4)
 
         # 3. Translucent bottom alert banner
         banner_h = 52
@@ -412,9 +475,9 @@ class AlertEngine:
         cv2.rectangle(overlay, (0, h - banner_h), (w, h), banner_color, -1)
         cv2.addWeighted(overlay, 0.85, annotated, 0.15, 0, annotated)
 
-        # Alert icon/text
+        # Alert icon/text with rule explanation
         alert_title = f"🚨 [{latest.severity.value}] {latest.alert_type.value} | {latest.zone_name or 'BORDER PERIMETER'}"
-        cv2.putText(annotated, alert_title, (15, h - 28), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.putText(annotated, latest.details, (15, h - 9), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (240, 240, 240), 1, cv2.LINE_AA)
+        cv2.putText(annotated, alert_title, (15, h - 28), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(annotated, f"Rule: {latest.rule_name} | {latest.details}", (15, h - 9), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (240, 240, 240), 1, cv2.LINE_AA)
 
         return annotated

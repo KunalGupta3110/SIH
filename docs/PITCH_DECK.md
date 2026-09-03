@@ -1,67 +1,63 @@
-# SIH 2026 Pitch Deck Guide: IBVAP
-**Problem Statement ID:** 26187  
-**Department:** Ministry of Home Affairs / Sashastra Seema Bal (SSB)  
-**Project Name:** IBVAP — Intelligent Border Video Analytics Platform
+# 🏆 IBVAP — Winning Pitch Deck Script & Judge Presentation Outline
+**Problem Statement ID:** 26187 | **Ministry of Home Affairs / Sashastra Seema Bal (SSB)**  
+**Theme:** Blockchain & Cybersecurity | **Category:** Software  
+**Platform Name:** IBVAP — Intelligent Border Video Analytics Platform  
 
 ---
 
-## Slide 1: Title & Team
-- **Title:** IBVAP — Intelligent Border Video Analytics Platform
-- **Tagline:** Upgrading existing border CCTV infrastructure into an autonomous intelligence network.
-- **Team Name & Member Roles:**
-  - Lead / CV Pipeline
-  - Re-ID & Feature Matching Specialist
-  - Alert & Geofencing Engineer
-  - Full-Stack Dashboard Developer
+## 🎯 7-Slide Winning Presentation Narrative
+
+### Slide 1: The Problem (The Border Surveillance Reality)
+- **Challenge:** India’s vast borders have thousands of standard IP CCTV cameras installed at Border Out Posts (BOPs), check posts, and perimeter roads.
+- **The Gap:** Border guards cannot monitor dozens of screens 24/7 without severe alert fatigue.
+- **The Bottleneck:** Commercial border analytics solutions demand proprietary high-cost GPU servers and dedicated hardware sensors that cannot scale cost-effectively across remote BOPs.
 
 ---
 
-## Slide 2: The Problem (MHA / SSB Real Challenge)
-- Border Out Posts (BOPs) and check posts have hundreds of standard IP cameras.
-- **Current Limitation:** They only record passive video. Continuous human observation leads to fatigue and missed incursions.
-- **Cost Barrier:** Specialized military AI hardware costs lakhs per camera — impossible to scale across thousands of kilometers of borders.
+### Slide 2: The Solution (IBVAP on Existing Infrastructure)
+- **What is IBVAP:** A lightweight, edge-optimized software platform that converts **standard existing IP CCTV cameras** into an intelligent autonomous surveillance network.
+- **Zero Proprietary Hardware:** Runs on commodity x86/ARM CPU and low-power edge compute at 30+ FPS.
+- **Core Capabilities:** Person/vehicle tracking (ByteTrack), N-sided polygon restricted zones, directional tripwires, and loitering timers.
 
 ---
 
-## Slide 3: Our Solution — IBVAP
-- **100% Software-Based:** Works directly with existing RTSP/IP CCTV camera feeds without purchasing new camera hardware.
-- **Lightweight Edge Inference:** Runs smoothly on CPU or low-cost edge nodes (Jetson/Intel).
-- **Explainable AI Rules:** Polygon forbidden zones, directional tripwires, and loitering timers with zero black-box confusion.
+### Slide 3: The Core Differentiator (Cross-Camera Re-ID) 🌟
+- **Why Competitors Fail:** Most hackathon teams present isolated single-camera object detection.
+- **Our Innovation:** **Cross-Camera Re-Identification (Re-ID)** across non-overlapping camera feeds.
+- **How It Works:**
+  - Extracts 512-dimensional normalized visual feature embeddings (ResNet18 / OSNet).
+  - Maintains a temporal multi-shot appearance gallery with cosine similarity scoring.
+  - Transparent Decision: Shows exact similarity score (e.g. $78.4\% \ge 70.0\%$ threshold) on screen.
+  - Stitches target journey from Check Post Alpha $\rightarrow$ BOP Bravo into a continuous movement trail.
 
 ---
 
-## Slide 4: Our Unfair Advantage / Key Differentiator 🌟
-### **Cross-Camera Re-Identification (Re-ID)**
-- Most surveillance platforms treat cameras in isolation (single-camera detection).
-- **IBVAP connects the network:** When a suspect or vehicle appears on Check Post Alpha and 10 minutes later reaches BOP Bravo, IBVAP extracts appearance embeddings and automatically stitches their complete movement trajectory.
+### Slide 4: Explainability & Human-in-the-Loop Triage 🔍
+- **No Black Boxes:** Every alert provides the exact mathematical rule that triggered:
+  - *Example:* `Point-in-Polygon: centroid (420, 310) in 'Red Zone Alpha', dwell time: 4.2s >= 3.0s threshold`.
+- **Operator Review & False-Positive Triage:**
+  - Operator has 1-click **Confirm** and **Dismiss as False-Positive** buttons in the dashboard.
+  - Live audit ledger tracks operator review rates, building institutional trust.
 
 ---
 
-## Slide 5: System Pipeline Architecture
-- **Stage 1 (Detection):** YOLOv8n (Human, Vehicle detection at 30+ FPS).
-- **Stage 2 (Tracking):** ByteTrack (Persistent Track IDs and motion breadcrumbs).
-- **Stage 3 (Spatial Rules):** 2D vector tripwires & polygon containment.
-- **Stage 4 (Re-ID Engine):** 512-dim Normalized ResNet18/OSNet feature matching.
-- **Stage 5 (Command Center):** Streamlit Command Dashboard with instantaneous alert triage.
+### Slide 5: Responsible AI & Privacy-by-Design 🔒
+- **Data Retention Policy:** 10-second pre/post-event buffer retention only; continuous 24/7 raw video is **not** stored permanently at edge nodes, preserving edge storage and bandwidth.
+- **Non-Biometric Appearance Re-ID:** Matches clothing colors and torso proportions, **not facial biometrics**, ensuring civil-liberties compliance in public border transit corridors.
+- **Advisory Support:** Functions as a decision-support tool for armed personnel; never takes autonomous physical actions.
 
 ---
 
-## Slide 6: Live Demonstration Workflow (Script for Stage)
-1. **Show Streamlit Dashboard:** Point out the live multi-camera feeds and real-time status banner.
-2. **Trigger Intrusion on Cam 1:** Target walks across the perimeter tripwire $\rightarrow$ Instantly flashes `[CRITICAL] TRIPWIRE_CROSS` with a snapshot.
-3. **Show Loitering Alert:** Target stays inside the forbidden Red Zone $>3$s $\rightarrow$ Generates `[WARNING] LOITERING` alert.
-4. **Demonstrate Cross-Camera Re-ID (The Wow Factor):** Switch to Tab 3 to show how the suspect on Cam 1 is re-identified when appearing on Cam 2, plotting their chronological journey.
+### Slide 6: Cost Delta & Phased Scalability Roadmap 📈
+- **Immediate Cost Savings:** Up to **$85\%$ reduction in CAPEX** by eliminating specialized hardware sensors.
+- **Phased Enterprise Roadmap:**
+  - **Phase 1 (Current MVP):** Edge Re-ID, geofenced alerts, Streamlit command dashboard.
+  - **Phase 2 (Funded Scale):** Thermal IR camera integration, drone aerial feed ingestion.
+  - **Phase 3 (Enterprise):** ANPR integration with VAHAN vehicle registry & secure inter-agency data sharing.
 
 ---
 
-## Slide 7: Future Roadmap (Post-Hackathon)
-- ANPR integration for border vehicle checkpoints.
-- Thermal / Night-vision fusion for extreme low-light terrain.
-- Blockchain-backed tamper-proof forensic audit logging.
-
----
-
-## Slide 8: Q&A / Evaluation Summary
-- **Cost:** \$0 additional hardware cost.
-- **Bandwidth:** Only alerts and metadata are transmitted to HQ, not continuous heavy 24/7 video streams.
-- **Accuracy:** Tested with multi-shot appearance galleries for high robustness.
+### Slide 7: Live Scripted Demonstration (Rehearsed) 🎬
+- **Demo 1 (Single Camera):** Pedestrian boundary crossing into polygon Red Zone $\rightarrow$ Loitering timer fires $\rightarrow$ Snapshot captured $\rightarrow$ Audio siren sounds.
+- **Demo 2 (Cross-Camera Re-ID):** Target walks across Cam 1 $\rightarrow$ Enters Cam 2 $\rightarrow$ Global identity `TRG-0001` stitched on-screen with honest $78\%$ cosine similarity score.
+- **Demo 3 (Operator Dashboard):** Live alert feed triage $\rightarrow$ Operator reviews snapshot and marks incident confirmed.
