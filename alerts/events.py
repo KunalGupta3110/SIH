@@ -25,6 +25,7 @@ if str(ROOT_DIR) not in sys.path:
 import cv2
 import numpy as np
 
+from alerts.notify import send_mobile_alert
 from alerts.schema import AlertSeverity, AlertType, OperatorStatus, SecurityEvent
 from alerts.sound_alerts import play_alert
 from alerts.threat_analyzer import BorderThreatAnalyzer
@@ -443,6 +444,11 @@ class AlertEngine:
                 play_alert("WARNING")
             else:
                 play_alert("INFO")
+
+            # Dispatch Instant Mobile & Telegram Notification (Non-blocking async)
+            for ev in events:
+                if ev.severity in (AlertSeverity.CRITICAL, AlertSeverity.WARNING):
+                    send_mobile_alert(ev)
 
         return events
 
