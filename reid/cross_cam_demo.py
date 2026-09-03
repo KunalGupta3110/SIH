@@ -1,10 +1,10 @@
 """
 IBVAP - Intelligent Border Video Analytics Platform
 Module: reid/cross_cam_demo.py
-Description: Explainable Dual-Camera Cross-ReID Demonstration Pipeline.
-             Simulates Camera 1 (Check Post Alpha) and Camera 2 (Border Out Post Bravo),
-             extracts appearance embeddings, scores candidate similarities transparently,
-             and stitches target trajectories across border nodes.
+Description: Full-Stack Dual-Camera Surveillance & Cross-ReID Pipeline.
+             Simulates Camera 1 (Check Post Alpha) and Camera 2 (BOP Bravo)
+             with active Red Polygon Restricted Zones, Directional Tripwires,
+             Loitering Dwell Timers, and Cross-Camera Re-ID Identity Stitching.
 """
 
 import argparse
@@ -32,6 +32,59 @@ from reid.embed import FeatureExtractor
 from reid.match import CrossCameraReID
 
 
+def setup_default_demo_zones(w: int, h: int) -> ZoneManager:
+    """Creates realistic restricted polygon zones and tripwires for both cameras."""
+    zm = ZoneManager()
+    
+    # Camera 1 (Check Post Alpha) Zones
+    z1_pts = [(0, int(h * 0.35)), (int(w * 0.55), int(h * 0.35)), (int(w * 0.55), h), (0, h)]
+    zm.add_zone(Zone(
+        zone_id="alpha_restricted_gate",
+        camera_id="CAM_ALPHA",
+        name="Checkpost Alpha Red Zone",
+        zone_type=ZoneType.RESTRICTED_POLYGON,
+        severity="CRITICAL",
+        points=z1_pts,
+        color=(0, 0, 220),
+        loitering_time_sec=2.5,
+    ))
+    tw1_pts = [(int(w * 0.45), int(h * 0.2)), (int(w * 0.45), h)]
+    zm.add_zone(Zone(
+        zone_id="alpha_tripwire",
+        camera_id="CAM_ALPHA",
+        name="Alpha Perimeter Tripwire",
+        zone_type=ZoneType.TRIPWIRE,
+        severity="CRITICAL",
+        points=tw1_pts,
+        color=(0, 215, 255),
+    ))
+
+    # Camera 2 (BOP Bravo) Zones
+    z2_pts = [(int(w * 0.45), int(h * 0.35)), (w, int(h * 0.35)), (w, h), (int(w * 0.45), h)]
+    zm.add_zone(Zone(
+        zone_id="bravo_restricted_sector",
+        camera_id="CAM_BRAVO",
+        name="BOP Bravo Border Zone",
+        zone_type=ZoneType.RESTRICTED_POLYGON,
+        severity="CRITICAL",
+        points=z2_pts,
+        color=(0, 0, 220),
+        loitering_time_sec=2.5,
+    ))
+    tw2_pts = [(int(w * 0.55), int(h * 0.2)), (int(w * 0.55), h)]
+    zm.add_zone(Zone(
+        zone_id="bravo_tripwire",
+        camera_id="CAM_BRAVO",
+        name="Bravo Incursion Tripwire",
+        zone_type=ZoneType.TRIPWIRE,
+        severity="CRITICAL",
+        points=tw2_pts,
+        color=(0, 215, 255),
+    ))
+
+    return zm
+
+
 def run_dual_camera_reid_demo(
     cam1_source: str,
     cam2_source: str,
@@ -42,8 +95,7 @@ def run_dual_camera_reid_demo(
     show: bool = True,
 ):
     """
-    Executes explainable cross-camera Re-ID tracking across two camera feeds.
-    Outputs a side-by-side synchronized view with candidate similarity scores.
+    Executes explainable cross-camera Re-ID tracking + spatial zone alerts.
     """
     cap1 = cv2.VideoCapture(cam1_source)
     cap2 = cv2.VideoCapture(cam2_source)
@@ -58,17 +110,21 @@ def run_dual_camera_reid_demo(
     h = int(cap1.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 360
 
     print(f"\n=======================================================")
-    print(f" [IBVAP] EXPLAINABLE DUAL-CAMERA CROSS-REID PIPELINE")
+    print(f" [IBVAP] DUAL-CAMERA SURVEILLANCE & RE-ID PIPELINE")
     print(f" Camera 1: {cam1_source} (Check Post Alpha)")
     print(f" Camera 2: {cam2_source} (BOP Bravo Perimeter)")
     print(f" Similarity Threshold (tau): {similarity_thresh:.2f}")
     print(f"=======================================================\n")
 
     # Initialize Modules
+    zone_mgr = setup_default_demo_zones(w, h)
+    db = EventDatabase()
+    alert_engine1 = AlertEngine(zone_manager=zone_mgr, db=db, alert_cooldown_sec=2.0)
+    alert_engine2 = AlertEngine(zone_manager=zone_mgr, db=db, alert_cooldown_sec=2.0)
+
     tracker1 = BorderTracker(model_path=model_path, device=device)
     tracker2 = BorderTracker(model_path=model_path, device=device)
     reid_engine = CrossCameraReID(similarity_threshold=similarity_thresh, device=device)
-    db = EventDatabase()
 
     writer = None
     if output_path:
@@ -77,9 +133,6 @@ def run_dual_camera_reid_demo(
         writer = cv2.VideoWriter(output_path, fourcc, fps, (w * 2, h))
 
     frame_idx = 0
-    t_start = time.time()
-
-    # Track match scores per local ID for HUD rendering
     match_score_display = {}
     active_alert_text = None
     alert_banner_timer = 0
@@ -105,8 +158,15 @@ def run_dual_camera_reid_demo(
             frame_idx += 1
             timestamp_ms = (frame_idx / fps) * 1000.0
 
-            # 1. Track Camera 1 (Check Post Alpha)
+            # 1. Track & Evaluate Camera 1 (Check Post Alpha)
             tracks_cam1 = tracker1.track_frame(frame1, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
+            events_cam1 = alert_engine1.evaluate_frame("CAM_ALPHA", frame_idx, timestamp_ms, tracks_cam1, frame1)
+
+            if events_cam1:
+                latest_ev = events_cam1[-1]
+                active_alert_text = f"🚨 [{latest_ev.severity.value}] {latest_ev.alert_type.value}: {latest_ev.details}"
+                alert_banner_timer = 45
+
             for t1 in tracks_cam1:
                 crop = FeatureExtractor.crop_from_bbox(frame1, t1.bbox)
                 if crop is not None:
@@ -120,10 +180,18 @@ def run_dual_camera_reid_demo(
                         timestamp_ms=timestamp_ms,
                         frame_idx=frame_idx,
                     )
-                    match_score_display[("CAM_ALPHA", t1.track_id)] = (gid, 1.0, False)
+                    has_alert = any(e.track_id == t1.track_id for e in events_cam1)
+                    match_score_display[("CAM_ALPHA", t1.track_id)] = (gid, 1.0, has_alert)
 
-            # 2. Track Camera 2 (BOP Bravo) & Check Re-ID Matches
+            # 2. Track & Evaluate Camera 2 (BOP Bravo)
             tracks_cam2 = tracker2.track_frame(frame2, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
+            events_cam2 = alert_engine2.evaluate_frame("CAM_BRAVO", frame_idx, timestamp_ms, tracks_cam2, frame2)
+
+            if events_cam2:
+                latest_ev = events_cam2[-1]
+                active_alert_text = f"🚨 [{latest_ev.severity.value}] {latest_ev.alert_type.value}: {latest_ev.details}"
+                alert_banner_timer = 45
+
             for t2 in tracks_cam2:
                 crop = FeatureExtractor.crop_from_bbox(frame2, t2.bbox)
                 if crop is not None:
@@ -137,16 +205,17 @@ def run_dual_camera_reid_demo(
                         timestamp_ms=timestamp_ms,
                         frame_idx=frame_idx,
                     )
-                    match_score_display[("CAM_BRAVO", t2.track_id)] = (gid, score, is_match)
+                    has_alert = is_match or any(e.track_id == t2.track_id for e in events_cam2)
+                    match_score_display[("CAM_BRAVO", t2.track_id)] = (gid, score, has_alert)
 
                     if is_match:
                         print(
-                            f"🎯 [RE-ID EXPLAINABLE MATCH] Global ID: {gid} | Score: {score:.3f} >= {similarity_thresh:.2f} | "
+                            f"🎯 [RE-ID MATCH] Global ID: {gid} | Score: {score:.3f} >= {similarity_thresh:.2f} | "
                             f"Matched between CAM_ALPHA and CAM_BRAVO"
                         )
                         play_alert("CRITICAL")
-                        active_alert_text = f"🎯 [RE-ID MATCH] TARGET {gid} MATCHED ON CAM_BRAVO! (Sim: {score*100:.1f}% >= {similarity_thresh*100:.0f}%)"
-                        alert_banner_timer = 50  # Display banner for ~50 frames
+                        active_alert_text = f"🎯 [CROSS-CAMERA RE-ID] TARGET {gid} MATCHED ON CAM_BRAVO! (Sim: {score*100:.1f}% >= {similarity_thresh*100:.0f}%)"
+                        alert_banner_timer = 50
 
                         ev = SecurityEvent(
                             event_id=f"evt_reid_{gid}_{int(timestamp_ms)}",
@@ -176,26 +245,26 @@ def run_dual_camera_reid_demo(
                         )
                         db.insert_event(ev)
 
-            # 3. Annotate frames with Global IDs and Similarity Scores
-            def draw_global_labels(frame, tracks, cam_name):
+            # 3. Draw Spatial Zones & Annotated Labels
+            def draw_feed(frame, tracks, cam_name, alert_engine):
                 ann = frame.copy()
+                # Draw Zones
+                ann = zone_mgr.draw_zones(ann, camera_id=cam_name)
+
+                # Draw Target Tracks
                 for t in tracks:
                     key = (cam_name, t.track_id)
-                    gid, score, is_m = match_score_display.get(key, (f"LOC-{t.track_id}", 0.0, False))
+                    gid, score, has_threat = match_score_display.get(key, (f"LOC-{t.track_id}", 0.0, False))
                     x1, y1, x2, y2 = [int(c) for c in t.bbox]
                     
-                    # Highlight color: Gold/Red if matched across cameras, Green if normal
-                    box_color = (0, 165, 255) if (cam_name == "CAM_BRAVO" and score >= similarity_thresh) else (0, 255, 0)
-                    thickness = 3 if (cam_name == "CAM_BRAVO" and score >= similarity_thresh) else 2
+                    box_color = (0, 0, 230) if has_threat else (0, 255, 0)
+                    thickness = 3 if has_threat else 2
                     cv2.rectangle(ann, (x1, y1), (x2, y2), box_color, thickness)
                     
-                    if cam_name == "CAM_BRAVO" and score >= similarity_thresh:
-                        badge = f"MATCH: {gid} ({score*100:.0f}%)"
-                        cv2.rectangle(ann, (x1, max(0, y1 - 22)), (x1 + 175, y1), (0, 0, 200), -1)
+                    if has_threat:
+                        badge = f"ALERT: {gid}"
+                        cv2.rectangle(ann, (x1, max(0, y1 - 22)), (x1 + 160, y1), (0, 0, 200), -1)
                         cv2.putText(ann, badge, (x1 + 4, max(16, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (255, 255, 255), 2)
-                    elif cam_name == "CAM_BRAVO" and score > 0.0:
-                        badge = f"{gid} (Sim: {score:.2f})"
-                        cv2.putText(ann, badge, (x1, max(18, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
                     else:
                         badge = f"{gid}"
                         cv2.putText(ann, badge, (x1, max(18, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
@@ -203,8 +272,8 @@ def run_dual_camera_reid_demo(
                 cv2.putText(ann, f"NODE: {cam_name}", (15, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
                 return ann
 
-            ann1 = draw_global_labels(frame1, tracks_cam1, "CAM_ALPHA")
-            ann2 = draw_global_labels(frame2, tracks_cam2, "CAM_BRAVO")
+            ann1 = draw_feed(frame1, tracks_cam1, "CAM_ALPHA", alert_engine1)
+            ann2 = draw_feed(frame2, tracks_cam2, "CAM_BRAVO", alert_engine2)
 
             # Stitch Side-by-Side
             side_by_side = np.hstack((ann1, ann2))
@@ -212,24 +281,23 @@ def run_dual_camera_reid_demo(
             # Header divider and stats bar
             cv2.line(side_by_side, (w, 0), (w, h), (0, 0, 255), 2)
             cv2.rectangle(side_by_side, (0, h - 30), (w * 2, h), (15, 15, 15), -1)
-            hud = f"IBVAP RE-ID PIPELINE | Global Targets: {len(reid_engine.global_tracks)} | Threshold: {similarity_thresh:.2f} | Frame: {frame_idx}"
+            hud = f"IBVAP RE-ID & GEOFENCE | Targets: {len(reid_engine.global_tracks)} | Threshold: {similarity_thresh:.2f} | Frame: {frame_idx}"
             cv2.putText(side_by_side, hud, (15, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 200), 1)
 
-            # Prominent Top Alert Banner if match active
+            # Prominent Top Alert Banner
             if alert_banner_timer > 0 and active_alert_text:
                 alert_banner_timer -= 1
                 overlay = side_by_side.copy()
                 cv2.rectangle(overlay, (0, 0), (w * 2, 45), (0, 0, 220), -1)
                 cv2.addWeighted(overlay, 0.85, side_by_side, 0.15, 0, side_by_side)
-                cv2.putText(side_by_side, active_alert_text, (25, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2, cv2.LINE_AA)
-                # Outer flashing border
+                cv2.putText(side_by_side, active_alert_text, (25, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.58, (255, 255, 255), 2, cv2.LINE_AA)
                 cv2.rectangle(side_by_side, (0, 0), (w * 2 - 1, h - 1), (0, 0, 255), 4)
 
             if writer:
                 writer.write(side_by_side)
 
             if show:
-                cv2.imshow("IBVAP - Dual-Camera Cross-ReID Live Feed", side_by_side)
+                cv2.imshow("IBVAP - Dual-Camera Cross-ReID & Border Geofence", side_by_side)
                 key = cv2.waitKey(1) & 0xFF
                 if key == 27 or key == ord("q"):
                     print("[IBVAP Re-ID] User closed preview window.")
@@ -243,7 +311,7 @@ def run_dual_camera_reid_demo(
         cap2.release()
         if writer:
             writer.release()
-            print(f"[IBVAP] Dual camera Re-ID output saved to: {output_path}")
+            print(f"[IBVAP] Dual camera output saved to: {output_path}")
         if show:
             cv2.destroyAllWindows()
 
@@ -251,10 +319,10 @@ def run_dual_camera_reid_demo(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="IBVAP - Explainable Dual-Camera Cross-ReID Demo")
+    parser = argparse.ArgumentParser(description="IBVAP - Dual-Camera Cross-ReID & Border Geofence Demo")
     parser.add_argument("--cam1", type=str, default="data/sample_border.mp4", help="Camera 1 video source")
     parser.add_argument("--cam2", type=str, default="data/sample_border.mp4", help="Camera 2 video source")
-    parser.add_argument("--output", type=str, default="data/cross_cam_real_demo.mp4", help="Output side-by-side video")
+    parser.add_argument("--output", type=str, default="data/cross_cam_real_demo.mp4", help="Output video")
     parser.add_argument("--device", type=str, default=None, help="'cpu', 'cuda', etc.")
     parser.add_argument("--thresh", type=float, default=0.70, help="Re-ID Cosine Similarity threshold (default: 0.70)")
     parser.add_argument("--no-show", action="store_true", help="Disable live GUI window")

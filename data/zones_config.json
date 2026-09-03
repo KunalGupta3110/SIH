@@ -134,6 +134,43 @@
       ],
       "severity": "CRITICAL",
       "loitering_time_sec": 4.0
+    },
+    {
+      "zone_id": "zone_cam_01_1",
+      "name": "Zone 1 (RESTRICTED_POLYGON)",
+      "zone_type": "restricted_polygon",
+      "points": [
+        [
+          400,
+          640
+        ],
+        [
+          401,
+          661
+        ],
+        [
+          397,
+          604
+        ],
+        [
+          427,
+          597
+        ],
+        [
+          436,
+          642
+        ],
+        [
+          432,
+          656
+        ],
+        [
+          406,
+          659
+        ]
+      ],
+      "severity": "CRITICAL",
+      "loitering_time_sec": 4.0
     }
   ]
 }
