@@ -183,10 +183,23 @@ class ZoneManager:
         if config_path and os.path.exists(config_path):
             self.load_from_json(config_path)
 
-    def add_zone(self, camera_id: str, zone: Zone):
-        if camera_id not in self.camera_zones:
-            self.camera_zones[camera_id] = {}
-        self.camera_zones[camera_id][zone.zone_id] = zone
+    def add_zone(self, arg1: Any, arg2: Optional[Any] = None, camera_id: Optional[str] = None):
+        """
+        Adds a zone to the manager. Supports both add_zone(camera_id, zone) and add_zone(zone, camera_id=...).
+        """
+        if isinstance(arg1, Zone):
+            zone = arg1
+            cid = camera_id or arg2 or "default"
+        elif isinstance(arg2, Zone):
+            zone = arg2
+            cid = arg1
+        else:
+            cid = camera_id or "default"
+            zone = arg1
+
+        if cid not in self.camera_zones:
+            self.camera_zones[cid] = {}
+        self.camera_zones[cid][zone.zone_id] = zone
 
     def get_zones(self, camera_id: str) -> List[Zone]:
         return list(self.camera_zones.get(camera_id, {}).values())
