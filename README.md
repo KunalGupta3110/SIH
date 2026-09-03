@@ -1,4 +1,4 @@
-# IBVAP — Intelligent Border Video Analytics Platform
+# IBVAP Sentinel — Intelligent Border Video Analytics & Admin Ecosystem
 **SIH 2026 Problem Statement ID:** 26187  
 **Organization:** Ministry of Home Affairs | Sashastra Seema Bal (SSB)  
 **Category:** Software | **Theme:** Blockchain & Cybersecurity  
@@ -7,94 +7,115 @@
 ---
 
 ## 🎯 Overview
-IBVAP transforms existing standard IP CCTV infrastructure at Border Out Posts (BOPs), check posts, and border roads into an intelligent, autonomous surveillance network with **no proprietary hardware required**. 
+**IBVAP Sentinel** is a unified edge-to-cloud security ecosystem that transforms standard IP CCTV infrastructure at Border Out Posts (BOPs), check posts, and border roads into an intelligent, autonomous surveillance network.
 
-### 🌟 Core Differentiator: Cross-Camera Re-ID
-Unlike conventional single-camera detection setups, IBVAP incorporates **Cross-Camera Re-Identification (Re-ID)**, extracting 512-d normalized visual appearance embeddings to stitch target trajectories across non-overlapping camera feeds with **transparent, on-screen Cosine Similarity scoring**.
+The ecosystem unites:
+1. **Edge AI Computer Vision Engine:** YOLOv8 + ByteTrack + PyTorch ResNet18 Re-ID + Ultra-HD ANPR License Plate Scanner.
+2. **FastAPI REST Gateway:** High-performance REST endpoints bridging Edge AI events to client apps.
+3. **Web Command & Control Dashboard:** Streamlit command station with 2D GIS Tactical Border Map & Operator 1-click False-Positive triage.
+4. **Sentinel Admin Mobile App:** Cross-platform Flutter client (Android, iOS, Windows, Web) for mobile command and real-time push alert handling.
 
 ---
 
-## 🏗️ Architecture & Modules
+## 🏗️ Unified Ecosystem Architecture
 ```
-CCTV Feeds (RTSP/ONVIF or pre-recorded clips)
-      │
-      ▼
-Detection (YOLOv8n) ──▶ Tracking (ByteTrack + Persistent IDs)
-      │
-      ▼
-Cross-Camera Re-ID (ResNet18 512-d L2 Embeddings + Temporal Gallery)
-      │
-      ▼
-Alert & Anomaly Logic (Explainable Rules)
-   ├─ Virtual Tripwire (2D Vector Crossing)
-   ├─ Restricted Polygon Zone (Point-in-Polygon Containment)
-   ├─ Loitering Detection (Temporal Dwell-Time Threshold)
-   ├─ Rapid Approach Vector (Relative Pixel Rate towards Barrier)
-   ├─ Group Density Clustering (Euclidean Spatial Proximity)
-   └─ Severity Tiering (INFO / WARNING / CRITICAL)
-      │
-      ▼
-Event Store (SQLite) ──▶ Command Dashboard (Streamlit)
-                              ├─ Multi-feed Video Playback
-                              ├─ Explainable Alert Feed & Snapshot Review
-                              ├─ Human-in-the-Loop Operator False-Positive Triage
-                              ├─ Re-ID Candidate Score Matrix & Journey Timeline
-                              └─ Responsible AI & Privacy Retention Framework
+                         ┌─────────────────────────────────────────────────────────┐
+                         │              EDGE AI VIDEO ANALYTICS ENGINE             │
+                         │  - YOLOv8 Multi-Object Detection + ByteTrack IDs        │
+                         │  - Cross-Camera Re-ID (512-D L2 Appearance Embeddings)  │
+                         │  - Geofenced Red Zones, Tripwires & Loitering Dwell     │
+                         │  - Rapid Approach Vectors & Optical ANPR Plate Scan     │
+                         └────────────────────────────┬────────────────────────────┘
+                                                      │
+                                                      ▼
+                         ┌─────────────────────────────────────────────────────────┐
+                         │               FASTAPI REST GATEWAY (Port 8000)          │
+                         │  - /edge/status (Node Heartbeat, FPS, Arm/Disarm)       │
+                         │  - /incidents (Timeline, High-Res Snapshots, Review)    │
+                         │  - /notifications/register-token (FCM / Push Dispatch)  │
+                         └──────────────┬───────────────────────────┬──────────────┘
+                                        │                           │
+                   ┌────────────────────┴─────┐       ┌─────────────┴────────────────────┐
+                   ▼                          ▼       ▼                                  ▼
+┌──────────────────────────────────────┐             ┌──────────────────────────────────────┐
+│     WEB COMMAND CENTER (Streamlit)   │             │   SENTINEL ADMIN FLUTTER MOBILE APP  │
+│  - 2D Interactive GIS Border Map     │             │  - Cross-platform Android / iOS / Win│
+│  - Multi-Feed Video Playback HUD     │             │  - Full-Screen Emergency Alarm Screen│
+│  - Operator False-Positive Triage    │             │  - Arm / Disarm Toggle & Incident Log│
+│  - Re-ID Candidate Matching Matrix   │             │  - Riverpod State + Dio REST Client  │
+└──────────────────────────────────────┘             └──────────────────────────────────────┘
+```
+
+---
+
+## 📁 Unified Project Structure
+```
+SIH/
+├── alerts/                         # Spatial geofencing, threat rules, sound alerts
+│   ├── run_surveillance.py         # Master unified multi-threat surveillance pipeline
+│   ├── scenario_checkpoint_vehicle_ramming.py # Tactical ANPR & pop-up evidence inspector
+│   ├── notify.py                   # Async Telegram mobile alert dispatcher
+│   ├── zones.py                    # Polygon zones & directional tripwires
+│   └── events.py                   # SQLite event logger & operator triage
+├── detection_tracking/             # YOLOv8 + ByteTrack multi-object tracking
+├── reid/                           # Cross-camera Re-ID (ResNet18 512-d embeddings)
+│   ├── cross_cam_demo.py           # Dual-camera Re-ID live demo
+│   └── match.py                    # Transparent candidate matching & cosine scoring
+├── api/                            # FastAPI REST Gateway for mobile & external clients
+│   └── server.py                   # REST endpoints (/incidents, /edge/status)
+├── dashboard/                      # Web Command & Control Center
+│   └── app.py                      # Streamlit dashboard with 2D GIS Border Map
+├── sentinel_admin_app/             # Cross-platform Flutter Admin Client
+│   ├── lib/                        # Riverpod features (Dashboard, Incidents, Alerts)
+│   └── pubspec.yaml                # Flutter project dependencies
+├── data/                           # Video samples, thumbnails, SQLite database
+├── run_ecosystem.py                # Master 1-click launcher for all services
+└── requirements.txt                # Consolidated Python dependencies
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Installation
+### 1. Python Environment Setup
 ```bash
+# Clone & install dependencies
 git clone https://github.com/KunalGupta3110/SIH.git
 cd SIH
-
-# Create virtual environment
 python -m venv venv
-# Windows:
-.\venv\Scripts\activate
-# Linux/macOS:
-source venv/bin/activate
-
-# Install consolidated dependencies
+venv\Scripts\activate       # Windows
 pip install -r requirements.txt
 ```
 
-### 2. Run Single-Camera Surveillance (Detection + Tracking + Zones)
+### 2. Launch Unified Platform (1-Click)
 ```bash
-# On sample test video:
-python alerts/run_surveillance.py --source data/sample_border.mp4 --show
+python run_ecosystem.py
+```
+* **FastAPI Backend:** http://localhost:8000/docs
+* **Web Command Center:** http://localhost:8501
 
-# On live webcam:
-python alerts/run_surveillance.py --source 0 --show
+### 3. Launch Flutter Admin Mobile App
+```bash
+cd sentinel_admin_app
+flutter pub get
+flutter run
 ```
 
-### 3. Run Explainable Cross-Camera Re-ID Demo (Key Differentiator 🎯)
-```bash
-python reid/cross_cam_demo.py --cam1 data/sample_border.mp4 --cam2 data/sample_border.mp4
-```
-
-### 4. Interactive Visual Zone Calibration Tool
-```bash
-python alerts/draw_zones_gui.py --source data/sample_border.mp4
-```
-- `Left Click`: Add polygon / tripwire points
-- `t`: Tripwire Mode (2 points)
-- `r`: Restricted Polygon Zone Mode (3+ points)
-- `Enter`: Finalize zone
-- `s`: Save to `data/zones_config.json`
-
-### 5. Launch Command & Control Dashboard
-```bash
-streamlit run dashboard/app.py
-```
-*(Open http://localhost:8501 in your browser).*
+### 4. Run Tactical Threat Demonstrations
+* **Multi-Stage Checkpoint Incursion & Ultra-HD ANPR:**
+  ```bash
+  python alerts/scenario_checkpoint_vehicle_ramming.py
+  ```
+* **Cross-Camera Re-ID Multi-Post Tracking:**
+  ```bash
+  python reid/cross_cam_demo.py --cam1 data/sample_border.mp4 --cam2 data/sample_border.mp4
+  ```
 
 ---
 
-## 🔒 Responsible AI & Privacy Safeguards
-1. **Privacy-by-Design Retention:** 10s pre/post-event clip buffer only; continuous 24/7 raw video is **not** permanently retained at edge nodes.
-2. **Non-Biometric Appearance Re-ID:** Matches clothing and build embeddings—**not** facial biometrics.
-3. **Human-in-the-Loop Decision Support:** System flags advisory events for operator review; it never executes autonomous kinetic actions. Operator dismissals of false positives are audited in real time.
+## 🛡️ Key SIH Winning Advantages
+1. **Zero Proprietary Hardware Lock-In:** Runs on existing IP CCTV + standard CPU / Edge Jetson nodes.
+2. **Transparent Cross-Camera Re-ID:** Honest, explainable Cosine Similarity scoring ($\tau = 0.70$) with candidate ranking matrices.
+3. **Human-in-the-Loop Operator Triage:** 1-click Confirm / Dismiss False-Positive workflow with forensic SQLite audit trail.
+4. **Dual-Platform Monitoring:** Web Command Center for station operators + Flutter Mobile App for patrolling officers.
+5. **Responsible AI & Privacy-by-Design:** 10s pre/post-event clip buffering; non-biometric visual appearance embeddings.
