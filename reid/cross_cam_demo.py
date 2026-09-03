@@ -81,6 +81,8 @@ def run_dual_camera_reid_demo(
 
     # Track match scores per local ID for HUD rendering
     match_score_display = {}
+    active_alert_text = None
+    alert_banner_timer = 0
 
     try:
         while True:
@@ -103,7 +105,7 @@ def run_dual_camera_reid_demo(
             frame_idx += 1
             timestamp_ms = (frame_idx / fps) * 1000.0
 
-            # 1. Track Camera 1
+            # 1. Track Camera 1 (Check Post Alpha)
             tracks_cam1 = tracker1.track_frame(frame1, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
             for t1 in tracks_cam1:
                 crop = FeatureExtractor.crop_from_bbox(frame1, t1.bbox)
@@ -118,9 +120,9 @@ def run_dual_camera_reid_demo(
                         timestamp_ms=timestamp_ms,
                         frame_idx=frame_idx,
                     )
-                    match_score_display[("CAM_ALPHA", t1.track_id)] = (gid, 1.0)
+                    match_score_display[("CAM_ALPHA", t1.track_id)] = (gid, 1.0, False)
 
-            # 2. Track Camera 2 & Check Re-ID Matches
+            # 2. Track Camera 2 (BOP Bravo) & Check Re-ID Matches
             tracks_cam2 = tracker2.track_frame(frame2, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
             for t2 in tracks_cam2:
                 crop = FeatureExtractor.crop_from_bbox(frame2, t2.bbox)
@@ -135,7 +137,7 @@ def run_dual_camera_reid_demo(
                         timestamp_ms=timestamp_ms,
                         frame_idx=frame_idx,
                     )
-                    match_score_display[("CAM_BRAVO", t2.track_id)] = (gid, score)
+                    match_score_display[("CAM_BRAVO", t2.track_id)] = (gid, score, is_match)
 
                     if is_match:
                         print(
@@ -143,6 +145,9 @@ def run_dual_camera_reid_demo(
                             f"Matched between CAM_ALPHA and CAM_BRAVO"
                         )
                         play_alert("CRITICAL")
+                        active_alert_text = f"🎯 [RE-ID MATCH] TARGET {gid} MATCHED ON CAM_BRAVO! (Sim: {score*100:.1f}% >= {similarity_thresh*100:.0f}%)"
+                        alert_banner_timer = 50  # Display banner for ~50 frames
+
                         ev = SecurityEvent(
                             event_id=f"evt_reid_{gid}_{int(timestamp_ms)}",
                             timestamp_iso=datetime.now(timezone.utc).isoformat(),
@@ -176,15 +181,25 @@ def run_dual_camera_reid_demo(
                 ann = frame.copy()
                 for t in tracks:
                     key = (cam_name, t.track_id)
-                    gid, score = match_score_display.get(key, (f"LOC-{t.track_id}", 0.0))
+                    gid, score, is_m = match_score_display.get(key, (f"LOC-{t.track_id}", 0.0, False))
                     x1, y1, x2, y2 = [int(c) for c in t.bbox]
-                    cv2.rectangle(ann, (x1, y1), (x2, y2), (0, 255, 0), 2)
                     
-                    if cam_name == "CAM_BRAVO" and score > 0.0:
+                    # Highlight color: Gold/Red if matched across cameras, Green if normal
+                    box_color = (0, 165, 255) if (cam_name == "CAM_BRAVO" and score >= similarity_thresh) else (0, 255, 0)
+                    thickness = 3 if (cam_name == "CAM_BRAVO" and score >= similarity_thresh) else 2
+                    cv2.rectangle(ann, (x1, y1), (x2, y2), box_color, thickness)
+                    
+                    if cam_name == "CAM_BRAVO" and score >= similarity_thresh:
+                        badge = f"MATCH: {gid} ({score*100:.0f}%)"
+                        cv2.rectangle(ann, (x1, max(0, y1 - 22)), (x1 + 175, y1), (0, 0, 200), -1)
+                        cv2.putText(ann, badge, (x1 + 4, max(16, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (255, 255, 255), 2)
+                    elif cam_name == "CAM_BRAVO" and score > 0.0:
                         badge = f"{gid} (Sim: {score:.2f})"
+                        cv2.putText(ann, badge, (x1, max(18, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
                     else:
                         badge = f"{gid}"
-                    cv2.putText(ann, badge, (x1, max(18, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
+                        cv2.putText(ann, badge, (x1, max(18, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
+
                 cv2.putText(ann, f"NODE: {cam_name}", (15, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
                 return ann
 
@@ -199,6 +214,16 @@ def run_dual_camera_reid_demo(
             cv2.rectangle(side_by_side, (0, h - 30), (w * 2, h), (15, 15, 15), -1)
             hud = f"IBVAP RE-ID PIPELINE | Global Targets: {len(reid_engine.global_tracks)} | Threshold: {similarity_thresh:.2f} | Frame: {frame_idx}"
             cv2.putText(side_by_side, hud, (15, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 200), 1)
+
+            # Prominent Top Alert Banner if match active
+            if alert_banner_timer > 0 and active_alert_text:
+                alert_banner_timer -= 1
+                overlay = side_by_side.copy()
+                cv2.rectangle(overlay, (0, 0), (w * 2, 45), (0, 0, 220), -1)
+                cv2.addWeighted(overlay, 0.85, side_by_side, 0.15, 0, side_by_side)
+                cv2.putText(side_by_side, active_alert_text, (25, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2, cv2.LINE_AA)
+                # Outer flashing border
+                cv2.rectangle(side_by_side, (0, 0), (w * 2 - 1, h - 1), (0, 0, 255), 4)
 
             if writer:
                 writer.write(side_by_side)
