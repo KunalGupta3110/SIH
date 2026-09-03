@@ -115,6 +115,19 @@ with st.sidebar:
         st.success("✅ Test alert sent to mobile dispatcher!")
 
     st.markdown("---")
+    st.markdown("### 🧹 Database & Snapshot Tools")
+    if st.button("🗑️ Clear Test Snapshots & Reset DB"):
+        import glob
+        for f in glob.glob("data/thumbnails/*"):
+            if os.path.exists(f):
+                try: os.remove(f)
+                except Exception: pass
+        from data.seed_clean_demo_events import seed
+        seed()
+        st.success("✅ Clean demo events restored!")
+        st.rerun()
+
+    st.markdown("---")
     st.markdown("### ⚙️ System Status")
     st.success("🟢 Edge Inference: ACTIVE (30+ FPS)")
     st.info("🧠 Model: YOLOv8n + ByteTrack")
