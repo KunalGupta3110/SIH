@@ -75,6 +75,5 @@ class RestDashboardRepository implements DashboardRepository {
 
 /// Swap this single provider to flip the whole app from mock to live data.
 final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
-  return MockDashboardRepository();
-  // return RestDashboardRepository(ref.watch(apiClientProvider));
+  return RestDashboardRepository(ref.watch(apiClientProvider));
 });

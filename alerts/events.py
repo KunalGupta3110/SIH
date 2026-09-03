@@ -31,6 +31,7 @@ from alerts.sound_alerts import play_alert
 from alerts.threat_analyzer import BorderThreatAnalyzer
 from alerts.zones import Zone, ZoneManager, ZoneType
 from detection_tracking.track import TrackedObject
+from hardware.serial_trigger import trigger_physical_breach
 
 
 class EventDatabase:
@@ -445,6 +446,7 @@ class AlertEngine:
             severities = [ev.severity.value for ev in events]
             if "CRITICAL" in severities:
                 play_alert("CRITICAL")
+                trigger_physical_breach()
             elif "WARNING" in severities:
                 play_alert("WARNING")
             else:

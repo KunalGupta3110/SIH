@@ -133,6 +133,5 @@ class RestIncidentRepository implements IncidentRepository {
 }
 
 final incidentRepositoryProvider = Provider<IncidentRepository>((ref) {
-  return MockIncidentRepository();
-  // return RestIncidentRepository(ref.watch(apiClientProvider));
+  return RestIncidentRepository(ref.watch(apiClientProvider));
 });
