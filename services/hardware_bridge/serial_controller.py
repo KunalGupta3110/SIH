@@ -52,22 +52,22 @@ class PhysicalBarrierController:
             try:
                 self.serial_conn.write(b"B")
                 self.serial_conn.flush()
-                print("🚧 [HARDWARE INTERLOCK] Sent BREACH signal -> Barrier Dropped & Buzzer Sounded!")
+                print("[HARDWARE INTERLOCK] Sent BREACH signal -> Barrier Dropped & Buzzer Sounded!")
             except Exception:
                 pass
         else:
-            print("🚧 [HARDWARE SIMULATION] BREACH -> Barrier [LOCKED 90°] | Buzzer [ON]")
+            print("[HARDWARE SIMULATION] BREACH -> Barrier [LOCKED 90 deg] | Buzzer [ON]")
 
     def reset_barrier(self):
         if self.is_connected and self.serial_conn and self.serial_conn.is_open:
             try:
                 self.serial_conn.write(b"R")
                 self.serial_conn.flush()
-                print("🚧 [HARDWARE INTERLOCK] Sent RESET signal -> Barrier Raised [OPEN].")
+                print("[HARDWARE INTERLOCK] Sent RESET signal -> Barrier Raised [OPEN].")
             except Exception:
                 pass
         else:
-            print("🚧 [HARDWARE SIMULATION] RESET -> Barrier [OPEN 0°] | Buzzer [OFF]")
+            print("[HARDWARE SIMULATION] RESET -> Barrier [OPEN 0 deg] | Buzzer [OFF]")
 
 
 _controller = PhysicalBarrierController()

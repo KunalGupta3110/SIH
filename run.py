@@ -35,7 +35,7 @@ def main():
     parser.add_argument("--all", action="store_true", help="Launch Backend API Gateway + Web Command Center")
     parser.add_argument("--api", action="store_true", help="Launch FastAPI REST Gateway on port 8000")
     parser.add_argument("--dashboard", action="store_true", help="Launch Web Command Center on port 8501")
-    parser.add_argument("--demo", type=int, choices=[1, 2, 3, 4], help="Run Demo Scenario (1, 2, 3, or 4)")
+    parser.add_argument("--demo", type=int, choices=[1, 2, 3, 4, 5], help="Run Demo Scenario (1: Breach, 2: Re-ID, 3: Vehicle, 4: Webcam, 5: Incident Reconstruction)")
     args = parser.parse_args()
 
     print_banner()
@@ -52,6 +52,9 @@ def main():
         return
     elif args.demo == 4:
         subprocess.run([sys.executable, "demos/scenario_4_tabletop_webcam.py"], cwd=ROOT_DIR)
+        return
+    elif args.demo == 5:
+        subprocess.run([sys.executable, "demos/scenario_reconstruct_incident.py"], cwd=ROOT_DIR)
         return
 
     # Subsystem specific
