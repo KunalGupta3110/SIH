@@ -40,47 +40,41 @@ def setup_default_demo_zones(w: int, h: int) -> ZoneManager:
     z1_pts = [(0, int(h * 0.35)), (int(w * 0.55), int(h * 0.35)), (int(w * 0.55), h), (0, h)]
     zm.add_zone(Zone(
         zone_id="alpha_restricted_gate",
-        camera_id="CAM_ALPHA",
         name="Checkpost Alpha Red Zone",
         zone_type=ZoneType.RESTRICTED_POLYGON,
-        severity="CRITICAL",
         points=z1_pts,
-        color=(0, 0, 220),
+        severity="CRITICAL",
         loitering_time_sec=2.5,
-    ))
+    ), camera_id="CAM_ALPHA")
+
     tw1_pts = [(int(w * 0.45), int(h * 0.2)), (int(w * 0.45), h)]
     zm.add_zone(Zone(
         zone_id="alpha_tripwire",
-        camera_id="CAM_ALPHA",
         name="Alpha Perimeter Tripwire",
         zone_type=ZoneType.TRIPWIRE,
-        severity="CRITICAL",
         points=tw1_pts,
-        color=(0, 215, 255),
-    ))
+        severity="CRITICAL",
+    ), camera_id="CAM_ALPHA")
 
     # Camera 2 (BOP Bravo) Zones
     z2_pts = [(int(w * 0.45), int(h * 0.35)), (w, int(h * 0.35)), (w, h), (int(w * 0.45), h)]
     zm.add_zone(Zone(
         zone_id="bravo_restricted_sector",
-        camera_id="CAM_BRAVO",
         name="BOP Bravo Border Zone",
         zone_type=ZoneType.RESTRICTED_POLYGON,
-        severity="CRITICAL",
         points=z2_pts,
-        color=(0, 0, 220),
+        severity="CRITICAL",
         loitering_time_sec=2.5,
-    ))
+    ), camera_id="CAM_BRAVO")
+
     tw2_pts = [(int(w * 0.55), int(h * 0.2)), (int(w * 0.55), h)]
     zm.add_zone(Zone(
         zone_id="bravo_tripwire",
-        camera_id="CAM_BRAVO",
         name="Bravo Incursion Tripwire",
         zone_type=ZoneType.TRIPWIRE,
-        severity="CRITICAL",
         points=tw2_pts,
-        color=(0, 215, 255),
-    ))
+        severity="CRITICAL",
+    ), camera_id="CAM_BRAVO")
 
     return zm
 
