@@ -97,7 +97,12 @@ class EventDatabase:
         with self._get_conn() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT OR REPLACE INTO security_events VALUES (
+                INSERT OR REPLACE INTO security_events (
+                    event_id, timestamp_iso, timestamp_ms, camera_id, track_id,
+                    class_name, alert_type, severity, zone_id, zone_name,
+                    details, bbox_json, centroid_json, rule_name, rule_metrics_json,
+                    confidence, operator_status, operator_notes, thumbnail_path
+                ) VALUES (
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 )
             """, (
@@ -116,7 +121,7 @@ class EventDatabase:
                 json.dumps(event.centroid),
                 event.rule_name,
                 json.dumps(event.rule_metrics),
-                event.confidence,
+                float(event.confidence) if event.confidence is not None else 0.85,
                 event.operator_status.value,
                 event.operator_notes,
                 event.thumbnail_path,

@@ -228,6 +228,10 @@ with tab2:
             sev = ev.get("severity", "INFO")
             op_st = ev.get("operator_status", "UNREVIEWED")
             eid = ev.get("event_id")
+            try:
+                conf_val = float(ev.get("confidence", 0.85))
+            except (ValueError, TypeError):
+                conf_val = 0.85
 
             css_class = "critical-alert" if sev == "CRITICAL" else ("warning-alert" if sev == "WARNING" else "info-alert")
             
@@ -240,7 +244,7 @@ with tab2:
                         <strong>[{sev}] {ev.get('alert_type')}</strong> | Camera: <code>{ev.get('camera_id')}</code> | Track: <code>#{ev.get('track_id')}</code> | Status: <code>{op_st}</code><br>
                         <span>{ev.get('details')}</span><br>
                         <span class="rule-pill">Rule: {ev.get('rule_name', 'Spatial Rule')}</span>
-                        <span class="rule-pill">Confidence: {float(ev.get('confidence', 0.85))*100:.1f}%</span>
+                        <span class="rule-pill">Confidence: {conf_val*100:.1f}%</span>
                     </div>
                     """, unsafe_allow_html=True)
                 
