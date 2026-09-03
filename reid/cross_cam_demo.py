@@ -319,8 +319,11 @@ def main():
     parser.add_argument("--output", type=str, default="data/cross_cam_real_demo.mp4", help="Output video")
     parser.add_argument("--device", type=str, default=None, help="'cpu', 'cuda', etc.")
     parser.add_argument("--thresh", type=float, default=0.70, help="Re-ID Cosine Similarity threshold (default: 0.70)")
+    parser.add_argument("--show", action="store_true", default=True, help="Show real-time GUI window (default: True)")
     parser.add_argument("--no-show", action="store_true", help="Disable live GUI window")
     args = parser.parse_args()
+
+    show_gui = not args.no_show if args.no_show else True
 
     run_dual_camera_reid_demo(
         cam1_source=args.cam1,
@@ -328,7 +331,7 @@ def main():
         output_path=args.output,
         device=args.device,
         similarity_thresh=args.thresh,
-        show=not args.no_show,
+        show=show_gui,
     )
 
 

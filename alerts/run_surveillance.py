@@ -228,10 +228,12 @@ def main():
     parser.add_argument("--zones", type=str, default="data/zones_config.json", help="Path to zones configuration JSON")
     parser.add_argument("--db", type=str, default="data/events.db", help="Path to SQLite events database")
     parser.add_argument("--device", type=str, default=None, help="'cpu', 'cuda', etc.")
+    parser.add_argument("--show", action="store_true", default=True, help="Show real-time GUI window (default: True)")
     parser.add_argument("--no-show", action="store_true", help="Disable live GUI window")
     args = parser.parse_args()
 
     source = int(args.source) if args.source.isdigit() else args.source
+    show_gui = not args.no_show if args.no_show else True
 
     run_surveillance_pipeline(
         source=source,
@@ -241,7 +243,7 @@ def main():
         zones_config=args.zones,
         db_path=args.db,
         device=args.device,
-        show=not args.no_show,
+        show=show_gui,
     )
 
 
