@@ -3,8 +3,16 @@
 **SIH 2026 Problem Statement ID:** SIH26187  
 **Organization:** Ministry of Home Affairs | Sashastra Seema Bal (SSB)  
 **Theme:** AI & Cybersecurity / Border Surveillance  
-**Repository:** [https://github.com/KunalGupta3110/SIH](https://github.com/KunalGupta3110/SIH)  
+**GitHub Repository:** [https://github.com/KunalGupta3110/SIH](https://github.com/KunalGupta3110/SIH)  
 **Motto:** *"Don't Just Detect Threats. Reconstruct the Incident."*
+
+---
+
+### 🌐 Live Deployment & Interactive Web Access
+> 🚀 **Live Interactive Web Watchfloor Console:**  
+> 👉 **[https://kunalgupta3110.github.io/SIH/](https://kunalgupta3110.github.io/SIH/)**
+> 
+> *Direct browser access — zero installation required. Includes interactive 3D Digital Twin, Real Threat Video Case Players, Retrospective Forensic Uploader, and 1-Click Court Dossier Export.*
 
 ---
 

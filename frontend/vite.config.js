@@ -6,6 +6,7 @@ import react from "@vitejs/plugin-react";
 // port 8000 — see src/lib/api.js for the base URL.
 export default defineConfig({
   plugins: [react()],
+  base: "./",
   server: {
     port: 5173,
   },
