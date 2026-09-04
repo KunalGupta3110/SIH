@@ -2,21 +2,24 @@
 Cyber Camera Surveillance Platform
 Master CLI Launcher
 Usage:
-  python run.py --all           # Starts FastAPI Gateway (:8000) + Web Command Center (:8501)
-  python run.py --api           # Starts FastAPI REST Gateway only
-  python run.py --dashboard     # Starts Streamlit Web Command Station
+  python run.py                 # Starts the real backend + frontend (same as run_ecosystem.py)
   python run.py --demo 1        # Runs Scenario 1 (Geofence Perimeter Breach)
   python run.py --demo 2        # Runs Scenario 2 (Cross-Camera Re-ID)
   python run.py --demo 3        # Runs Scenario 3 (Vehicle Ramming & Ultra-HD ANPR)
   python run.py --demo 4        # Runs Scenario 4 (Live Webcam & Hardware Barrier)
+
+Note: --all / --api / --dashboard used to launch an older FastAPI gateway
+(services/api_gateway/server.py) and a Streamlit dashboard
+(apps/web_command_center/app.py). Both were dead code — replaced by
+backend/main.py and apps/web_command_center/static/command_center.html,
+which run_ecosystem.py already starts together on one port. Those flags
+were removed rather than left pointing at deleted files.
 """
 
 import argparse
-import os
 from pathlib import Path
 import subprocess
 import sys
-import time
 
 ROOT_DIR = Path(__file__).resolve().parent
 
@@ -32,9 +35,6 @@ def print_banner():
 
 def main():
     parser = argparse.ArgumentParser(description="Cyber Camera Surveillance - Master Launcher")
-    parser.add_argument("--all", action="store_true", help="Launch Backend API Gateway + Web Command Center")
-    parser.add_argument("--api", action="store_true", help="Launch FastAPI REST Gateway on port 8000")
-    parser.add_argument("--dashboard", action="store_true", help="Launch Web Command Center on port 8501")
     parser.add_argument("--demo", type=int, choices=[1, 2, 3, 4, 5, 6], help="Run Demo Scenario (1: Breach, 2: Re-ID, 3: Vehicle, 4: Webcam, 5: Incident Reconstruction, 6: Live Multi-Cam Real Tester)")
     args = parser.parse_args()
 
@@ -60,35 +60,11 @@ def main():
         subprocess.run([sys.executable, "demos/live_real_world_tester.py"], cwd=ROOT_DIR)
         return
 
-    # Subsystem specific
-    if args.api:
-        print("[Starting] FastAPI REST Gateway on http://localhost:8000...")
-        subprocess.run([sys.executable, "-m", "uvicorn", "services.api_gateway.server:app", "--host", "0.0.0.0", "--port", "8000", "--reload"], cwd=ROOT_DIR)
-        return
-
-    if args.dashboard:
-        print("[Starting] Web Command Station on http://localhost:8501...")
-        subprocess.run(["streamlit", "run", "apps/web_command_center/app.py"], cwd=ROOT_DIR)
-        return
-
-    # Default / --all
-    print("[Starting] FastAPI Gateway & Sentinel Watchfloor on http://localhost:8000...")
-    import webbrowser
-    webbrowser.open("http://localhost:8000")
-
-    print("\n" + "="*70)
-    print(" ✅ ALL SERVICES ONLINE & OPERATIONAL!")
-    print(" 🛸 Sentinel Watchfloor UI:   http://localhost:8000  (Auto-Opened in Browser)")
-    print(" 🌐 REST API Swagger Docs:    http://localhost:8000/docs")
-    print(" 📱 Mobile Admin App:         cd apps/mobile_admin && flutter run")
-    print(" 🎮 Run Threat Scenario 5:    python run.py --demo 5")
-    print("="*70)
-    print("\nPress Ctrl+C to safely terminate server.")
-
-    try:
-        subprocess.run([sys.executable, "-m", "uvicorn", "services.api_gateway.server:app", "--host", "0.0.0.0", "--port", "8000"], cwd=ROOT_DIR)
-    except KeyboardInterrupt:
-        print("\nServer terminated.")
+    # Default: this used to fork off into --all / --api / --dashboard, each
+    # starting a different (now-deleted) backend or a Streamlit dashboard.
+    # There's one real backend now — just run it.
+    print("[Starting] Handing off to run_ecosystem.py (backend.main:app on http://localhost:8000) ...")
+    subprocess.run([sys.executable, "run_ecosystem.py"], cwd=ROOT_DIR)
 
 
 if __name__ == "__main__":
