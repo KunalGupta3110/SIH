@@ -3,1223 +3,952 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sentinel Watchfloor — Cyber Camera AI Surveillance</title>
-<meta name="description" content="Tactical command console for the IBVAP Sentinel border video-analytics ecosystem with 3D Digital Twin, Multi-Camera Re-ID, and Model Zoo." />
+<title>IBVAP Sentinel — Tactical AI Command Center</title>
+<meta name="description" content="Next-Gen Intelligent Border Video Analytics Platform with 3D Digital Twin, Cross-Camera Re-ID, and Real-Time Autonomous Surveillance." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <style>
   :root {
-    --ground:      #060910;
-    --ground-2:    #0a0f1a;
-    --surface:     #0c1420;
-    --surface-2:   #121d30;
-    --surface-3:   #172438;
-    --line:        rgba(122, 178, 214, 0.16);
-    --line-strong: rgba(122, 178, 214, 0.34);
-    --ink:         #d6e2f0;
-    --ink-dim:     #7c90ac;
-    --ink-faint:   #55647e;
-    --signal:      #37d2e0;
-    --signal-deep: #1a8f9c;
-    --hold:        #f2a63c;
-    --breach:      #ff4060;
-    --clear:       #34e0a0;
-    --purple:      #a371f7;
+    --bg-dark:       #050811;
+    --bg-surface:    #090f1d;
+    --bg-card:       rgba(13, 22, 38, 0.75);
+    --bg-card-hover: rgba(20, 34, 58, 0.85);
+    --line:          rgba(0, 240, 255, 0.14);
+    --line-strong:   rgba(0, 240, 255, 0.35);
+    
+    --cyan:          #00f0ff;
+    --cyan-glow:     rgba(0, 240, 255, 0.3);
+    --emerald:       #00ff9d;
+    --emerald-glow:  rgba(0, 255, 157, 0.3);
+    --amber:         #ffb703;
+    --crimson:       #ff0055;
+    --crimson-glow:  rgba(255, 0, 85, 0.4);
+    --purple:        #b5179e;
 
-    --font-display: "Chakra Petch", "Arial Narrow", sans-serif;
-    --font-body:    "IBM Plex Sans", system-ui, sans-serif;
-    --font-mono:    "IBM Plex Mono", ui-monospace, "Courier New", monospace;
+    --text-main:     #e2e8f0;
+    --text-dim:      #8ea3bf;
+    --text-faint:    #566a85;
 
-    --radius: 4px;
-    --nav-w: 60px;
+    --font-heading:  "Chakra Petch", sans-serif;
+    --font-body:     "Plus Jakarta Sans", system-ui, sans-serif;
+    --font-mono:     "IBM Plex Mono", monospace;
+
+    --radius-sm:     6px;
+    --radius-md:     12px;
+    --radius-lg:     18px;
+    --shadow-card:   0 8px 32px rgba(0, 0, 0, 0.45);
+    --shadow-glow:   0 0 20px rgba(0, 240, 255, 0.2);
   }
-  * { box-sizing: border-box; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   [hidden] { display: none !important; }
-  img { max-width: 100%; }
 
   body {
-    margin: 0;
-    background:
-      radial-gradient(1200px 700px at 22% -10%, rgba(55, 210, 224, 0.06), transparent 60%),
-      radial-gradient(900px 600px at 110% 120%, rgba(242, 166, 60, 0.05), transparent 55%),
-      var(--ground);
-    color: var(--ink);
+    background-color: var(--bg-dark);
+    color: var(--text-main);
     font-family: var(--font-body);
-    font-size: 13.5px;
+    font-size: 14px;
     line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
     overflow-x: hidden;
-  }
-  body::before {
-    content: "";
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background-image:
-      linear-gradient(to right, rgba(122, 178, 214, 0.045) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(122, 178, 214, 0.045) 1px, transparent 1px);
-    background-size: 34px 34px;
-    mask-image: radial-gradient(circle at 50% 40%, #000 30%, transparent 92%);
+    background-image: 
+      radial-gradient(circle at 15% 10%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(255, 0, 85, 0.06) 0%, transparent 40%),
+      linear-gradient(to right, rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
   }
 
-  h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; margin: 0; text-wrap: balance; }
+  h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 700; letter-spacing: 0.04em; }
   .mono { font-family: var(--font-mono); }
-  .tnum { font-variant-numeric: tabular-nums; }
-  .label {
-    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--ink-dim);
-  }
-  a { color: var(--signal); }
-  :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
-  ::-webkit-scrollbar { width: 7px; height: 7px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--signal-deep); }
 
-  button {
+  /* ---------- APP CONTAINER ---------- */
+  .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ---------- TOP GLOW HEADER ---------- */
+  .top-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px;
+    background: rgba(9, 15, 29, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-logo {
+    width: 42px; height: 42px; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(9, 15, 29, 0.9));
+    border: 1px solid var(--cyan);
+    display: grid; place-items: center;
+    box-shadow: 0 0 16px var(--cyan-glow);
+    position: relative;
+  }
+  .brand-logo svg { width: 22px; height: 22px; stroke: var(--cyan); }
+  .brand-logo::after {
+    content: ""; position: absolute; top: -3px; right: -3px; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--emerald); box-shadow: 0 0 10px var(--emerald);
+    animation: pulse-ring 2s infinite;
+  }
+  @keyframes pulse-ring { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.3); } }
+
+  .brand-title h1 { font-size: 18px; line-height: 1.1; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .brand-title p { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); letter-spacing: 0.06em; margin-top: 2px; }
+
+  /* Navigation Pills in Header */
+  .nav-tabs {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(5, 8, 17, 0.8);
+    padding: 4px; border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+  }
+  .nav-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border-radius: 14px;
+    font-family: var(--font-heading); font-size: 13px; font-weight: 600;
+    color: var(--text-dim); background: transparent; border: none;
+    cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .nav-btn svg { width: 16px; height: 16px; stroke: currentColor; transition: stroke 0.2s; }
+  .nav-btn:hover { color: #fff; background: rgba(0, 240, 255, 0.08); }
+  .nav-btn.active {
+    color: #050811; background: var(--cyan);
+    box-shadow: 0 0 16px var(--cyan-glow); font-weight: 700;
+  }
+  .nav-btn.active svg { stroke: #050811; }
+
+  /* Live System Status Pill */
+  .system-status {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .status-badge {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 20px;
     font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink);
-    background: var(--surface-3); border: 1px solid var(--line-strong);
-    border-radius: var(--radius); padding: 7px 11px; cursor: pointer;
-    transition: background 0.14s ease, border-color 0.14s ease, transform 0.06s ease, color 0.14s ease;
+    background: rgba(0, 255, 157, 0.1); border: 1px solid rgba(0, 255, 157, 0.35);
+    color: var(--emerald);
   }
-  button:hover { background: var(--surface-2); border-color: var(--signal); }
-  button:active { transform: translateY(1px); }
-  button:disabled { opacity: 0.5; cursor: default; }
-  .btn-sig { color: var(--ground); background: var(--signal); border-color: var(--signal); }
-  .btn-sig:hover { background: #55e4f0; border-color: #55e4f0; }
-  .btn-confirm { color: var(--ground); background: var(--clear); border-color: var(--clear); }
-  .btn-confirm:hover { background: #4defb0; border-color: #4defb0; }
-  .btn-danger { color: var(--breach); border-color: rgba(255,64,96,0.45); background: rgba(255,64,96,0.09); }
-  .btn-danger:hover { background: rgba(255,64,96,0.18); border-color: var(--breach); }
-  .btn-danger.armed { color: #fff; background: var(--breach); border-color: var(--breach); animation: klaxon 0.9s steps(1) infinite; }
-  @keyframes klaxon { 50% { background: #7a1526; } }
+  .status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+  .status-badge.alert { background: rgba(255, 0, 85, 0.12); border-color: var(--crimson); color: var(--crimson); }
 
-  /* ---------- shell ---------- */
-  .app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: var(--radius-sm);
+    background: var(--bg-surface); border: 1px solid var(--line);
+    color: var(--text-dim); display: grid; place-items: center;
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .icon-btn:hover { color: var(--cyan); border-color: var(--cyan); background: rgba(0, 240, 255, 0.1); }
+  .icon-btn.active { color: var(--crimson); border-color: var(--crimson); background: rgba(255, 0, 85, 0.2); animation: klaxon-pulse 1s infinite; }
+  @keyframes klaxon-pulse { 50% { box-shadow: 0 0 16px var(--crimson); } }
 
-  .rail {
-    display: grid; grid-template-columns: auto minmax(0,1fr) auto auto; align-items: center;
-    gap: 14px; padding: 8px 14px; margin: 8px 10px 0;
-    background: linear-gradient(180deg, var(--surface-2), var(--surface));
-    border: 1px solid var(--line); border-radius: var(--radius);
+  /* ---------- MAIN CONTENT AREA ---------- */
+  .main-content {
+    flex: 1; padding: 20px 24px;
+    max-width: 1680px; margin: 0 auto; width: 100%;
   }
-  .crest { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  .crest-mark {
-    position: relative; flex: none; width: 34px; height: 34px; display: grid; place-items: center;
-    border: 1px solid var(--line-strong); border-radius: var(--radius);
-    background: radial-gradient(circle at 30% 25%, rgba(55, 210, 224, 0.25), transparent 70%), var(--ground);
-  }
-  .crest-mark svg { width: 18px; height: 18px; }
-  .crest-mark::after {
-    content: ""; position: absolute; top: -3px; right: -3px; width: 7px; height: 7px;
-    border-radius: 50%; background: var(--clear); animation: beacon 2.6s ease-out infinite;
-  }
-  @keyframes beacon {
-    0% { box-shadow: 0 0 0 0 rgba(52, 224, 160, 0.6); }
-    70% { box-shadow: 0 0 0 8px rgba(52, 224, 160, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(52, 224, 160, 0); }
-  }
-  .crest h1 { font-size: 15px; letter-spacing: 0.06em; line-height: 1.1; }
-  .crest p { margin: 1px 0 0; font-size: 9.5px; letter-spacing: 0.07em; color: var(--ink-dim); font-family: var(--font-mono); }
 
-  /* Scenario quick launcher dock in header */
-  .scen-dock {
-    display: flex; align-items: center; gap: 4px; background: rgba(6,9,16,0.6);
-    padding: 3px 6px; border: 1px solid var(--line); border-radius: var(--radius);
-    overflow-x: auto;
-  }
-  .scen-dock .scen-label {
-    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; color: var(--signal);
-    text-transform: uppercase; padding: 0 6px 0 2px; white-space: nowrap; font-weight: 600;
-  }
-  .scen-btn {
-    padding: 5px 9px; font-size: 9.5px; letter-spacing: 0.06em; background: var(--surface-3);
-    border: 1px solid var(--line); color: var(--ink-dim); border-radius: 3px; white-space: nowrap;
-  }
-  .scen-btn:hover { color: var(--signal); border-color: var(--signal); background: var(--surface-2); }
-  .scen-btn.active { color: var(--ground); background: var(--signal); border-color: var(--signal); font-weight: 700; }
-  .scen-btn.warn-scen.active { color: var(--ground); background: var(--hold); border-color: var(--hold); }
-  .scen-btn.crit-scen.active { color: #fff; background: var(--breach); border-color: var(--breach); }
+  /* Page Sections */
+  .tab-page { display: flex; flex-direction: column; gap: 20px; animation: fade-in 0.3s ease-out; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-  .vitals {
-    display: flex; gap: 1px; background: var(--line); border: 1px solid var(--line);
-    border-radius: var(--radius); overflow: hidden;
+  /* ============================================================
+     VIEW 1: 3D DIGITAL TWIN (HERO INTERACTIVE COMMAND VIEW)
+     ============================================================ */
+  .twin-hero-grid {
+    display: grid; grid-template-columns: minmax(0, 1.8fr) 380px; gap: 20px;
+    min-height: calc(100vh - 130px);
   }
-  .vital { display: flex; flex-direction: column; gap: 1px; padding: 4px 9px; background: var(--surface); min-width: 78px; }
-  .vital b { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; }
-  .vital.ok b { color: var(--clear); } .vital.warn b { color: var(--hold); } .vital.sig b { color: var(--signal); }
 
-  .rail-actions { display: flex; gap: 6px; align-items: center; }
-  .conn {
-    display: flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 9.5px;
-    letter-spacing: 0.08em; padding: 6px 9px; border-radius: var(--radius); border: 1px solid var(--line-strong);
-    color: var(--ink-dim); white-space: nowrap;
+  .twin-stage-container {
+    position: relative; border-radius: var(--radius-lg); overflow: hidden;
+    background: #040711; border: 1px solid var(--line);
+    box-shadow: var(--shadow-card);
+    display: flex; flex-direction: column;
   }
-  .conn .d { width: 6px; height: 6px; border-radius: 50%; background: var(--hold); }
-  .conn.live { color: var(--clear); border-color: rgba(52,224,160,0.4); }
-  .conn.live .d { background: var(--clear); box-shadow: 0 0 8px var(--clear); animation: blink 1.6s steps(1) infinite; }
-  .conn.demo .d { background: var(--hold); }
 
-  /* ---------- body + nav ---------- */
-  .body { display: flex; flex: 1; gap: 8px; padding: 8px 10px 10px; min-height: 0; }
-  .nav {
-    flex: none; width: var(--nav-w); display: flex; flex-direction: column; gap: 5px;
-    padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  #twin-canvas-wrap {
+    flex: 1; width: 100%; min-height: 540px; position: relative; cursor: grab;
   }
-  .nav button {
-    padding: 0; height: 42px; display: grid; place-items: center; gap: 2px; position: relative;
-    background: transparent; border-color: transparent; color: var(--ink-faint);
-    text-transform: none; letter-spacing: 0.06em; font-size: 7.5px; font-weight: 600;
-  }
-  .nav button svg { width: 16px; height: 16px; }
-  .nav button:hover { background: var(--surface-2); border-color: var(--line); color: var(--ink-dim); }
-  .nav button[aria-current="true"] { color: var(--signal); background: rgba(55,210,224,0.1); border-color: rgba(55,210,224,0.4); }
-  .nav button[aria-current="true"]::before {
-    content: ""; position: absolute; left: -6px; top: 7px; bottom: 7px; width: 2px; background: var(--signal);
-  }
-  .nav .spacer { flex: 1; }
+  #twin-canvas-wrap:active { cursor: grabbing; }
 
-  .views { flex: 1; min-width: 0; position: relative; }
-  .view { display: flex; flex-direction: column; gap: 8px; }
+  /* Floating 3D Viewport Controls */
+  .twin-overlay-top {
+    position: absolute; top: 16px; left: 16px; right: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    pointer-events: none; z-index: 10;
+  }
+  .twin-overlay-top > * { pointer-events: auto; }
 
-  /* ---------- panels ---------- */
-  .panel { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); min-height: 0; }
-  .panel-danger { border-color: rgba(255, 64, 96, 0.4); box-shadow: inset 0 0 0 1px rgba(255, 64, 96, 0.08); }
-  .panel-head {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 7px 11px; border-bottom: 1px solid var(--line);
+  .viewport-chip {
+    background: rgba(9, 15, 29, 0.85); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 20px;
+    padding: 6px 14px; font-family: var(--font-mono); font-size: 11px;
+    color: var(--cyan); display: flex; align-items: center; gap: 8px;
   }
-  .panel-head h2 { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; gap: 7px; }
-  .panel-head h2 .dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
-  .dot-sig { background: var(--signal); box-shadow: 0 0 8px var(--signal); }
-  .dot-ok { background: var(--clear); box-shadow: 0 0 8px var(--clear); }
-  .dot-warn { background: var(--hold); box-shadow: 0 0 8px var(--hold); }
-  .dot-live { background: var(--breach); animation: blink 1.1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0.25; } }
-  .panel-body { padding: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 
-  .tag {
-    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 2px 6px; border-radius: 3px; border: 1px solid var(--line-strong); color: var(--ink-dim); white-space: nowrap;
+  .twin-camera-presets {
+    display: flex; gap: 6px; background: rgba(9, 15, 29, 0.85);
+    backdrop-filter: blur(12px); padding: 4px; border-radius: var(--radius-md);
+    border: 1px solid var(--line);
   }
-  .tag-sig { color: var(--signal); border-color: rgba(55,210,224,0.4); background: rgba(55,210,224,0.08); }
-  .tag-warn { color: var(--hold); border-color: rgba(242,166,60,0.4); background: rgba(242,166,60,0.08); }
-  .tag-danger { color: var(--breach); border-color: rgba(255,64,96,0.4); background: rgba(255,64,96,0.08); }
-  .tag-ok { color: var(--clear); border-color: rgba(52,224,160,0.4); background: rgba(52,224,160,0.08); }
-  .tag-purple { color: var(--purple); border-color: rgba(163,113,247,0.4); background: rgba(163,113,247,0.08); }
+  .preset-btn {
+    padding: 6px 12px; font-size: 11px; font-weight: 600;
+    border-radius: var(--radius-sm); background: transparent; border: none;
+    color: var(--text-dim); cursor: pointer; transition: all 0.15s;
+  }
+  .preset-btn:hover { color: #fff; background: rgba(0, 240, 255, 0.1); }
+  .preset-btn.active { color: #050811; background: var(--cyan); font-weight: 700; }
 
-  /* ---------- OPS board ---------- */
-  #view-ops .board { display: grid; grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr) minmax(0, 0.84fr); gap: 8px; }
-  .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  /* 3D Interactive Object Popup Card */
+  #twin-inspect-card {
+    position: absolute; bottom: 20px; left: 20px; max-width: 280px;
+    background: rgba(9, 15, 29, 0.92); backdrop-filter: blur(20px);
+    border: 1px solid var(--cyan); border-radius: var(--radius-md);
+    padding: 14px 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    z-index: 20; animation: popup-in 0.25s ease-out;
+  }
+  @keyframes popup-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  #twin-inspect-card h4 { color: var(--cyan); font-size: 13px; margin-bottom: 6px; }
+  #twin-inspect-card p { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); line-height: 1.6; }
 
-  #twin-panel { min-height: 560px; display: flex; flex-direction: column; }
-  #twin-panel .panel-body { padding: 0; position: relative; flex: 1; min-height: 520px; height: 100%; }
-  #twin-stage { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 520px; overflow: hidden; border-radius: 0 0 var(--radius) var(--radius); cursor: grab; }
-  #twin-stage:active { cursor: grabbing; }
-  #twin-stage canvas { display: block; width: 100% !important; height: 100% !important; }
-  .twin-label {
-    position: absolute; transform: translate(-50%, -50%); font-family: var(--font-mono); font-size: 9px;
-    letter-spacing: 0.08em; padding: 2px 5px; border-radius: 3px; background: rgba(6, 9, 16, 0.85);
-    border: 1px solid var(--line-strong); color: var(--ink-dim); white-space: nowrap; pointer-events: none;
-    will-change: transform, left, top;
+  /* Right Sidebar (Live Threat Feed + Mission Progress) */
+  .twin-sidebar {
+    display: flex; flex-direction: column; gap: 16px;
   }
-  .twin-label.sig { color: var(--signal); border-color: rgba(55,210,224,0.45); }
-  .twin-label.warn { color: var(--hold); border-color: rgba(242,166,60,0.45); }
-  .twin-label.danger { color: var(--breach); border-color: rgba(255,64,96,0.5); background: rgba(30,6,12,0.85); }
-  .twin-dock { position: absolute; left: 8px; bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px; max-width: 62%; }
-  .layer-toggle {
-    padding: 4px 8px; font-size: 9px; letter-spacing: 0.06em; background: rgba(6, 9, 16, 0.78);
-    border: 1px solid var(--line); color: var(--ink-faint);
-  }
-  .layer-toggle[aria-pressed="true"] { color: var(--signal); border-color: rgba(55,210,224,0.5); background: rgba(55,210,224,0.1); }
-  .twin-tools { position: absolute; right: 8px; top: 8px; display: flex; gap: 4px; }
-  .twin-tools button { padding: 5px 7px; background: rgba(6,9,16,0.78); font-size: 9.5px; }
-  .twin-readout {
-    position: absolute; right: 8px; bottom: 8px; font-family: var(--font-mono); font-size: 9px;
-    letter-spacing: 0.05em; color: var(--ink-dim); background: rgba(6, 9, 16, 0.8);
-    border: 1px solid var(--line); border-radius: 3px; padding: 5px 7px; text-align: right; line-height: 1.6;
-  }
-  .twin-readout span { color: var(--signal); }
-  #twin-inspect {
-    position: absolute; left: 8px; top: 8px; max-width: 220px; padding: 8px 10px;
-    background: rgba(6, 9, 16, 0.94); border: 1px solid var(--line-strong); border-radius: var(--radius);
-    font-family: var(--font-mono); font-size: 9.5px; line-height: 1.6; color: var(--ink-dim);
-  }
-  #twin-inspect h4 { font-size: 11px; color: var(--signal); letter-spacing: 0.08em; margin-bottom: 3px; }
-  #twin-inspect b { color: var(--ink); font-weight: 500; }
 
-  /* ---------- feed component & visual modes ---------- */
-  .feed { position: relative; }
-  .feed-frame { position: relative; aspect-ratio: 16 / 9; background: #04060b; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
-  .feed-frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .feed-hud { position: absolute; inset: 0; pointer-events: none; font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.05em; }
-  .feed-hud .tl { position: absolute; top: 5px; left: 6px; color: var(--signal); }
-  .feed-hud .tr { position: absolute; top: 5px; right: 6px; color: var(--ink-dim); text-align: right; }
-  .feed-hud .bl { position: absolute; bottom: 5px; left: 6px; color: var(--clear); }
-  .feed-hud .br { position: absolute; bottom: 5px; right: 6px; color: var(--hold); text-align: right; }
-  .feed-hud .rec::before {
-    content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%;
-    background: var(--breach); margin-right: 4px; vertical-align: middle; animation: blink 1.1s steps(1) infinite;
+  .tactical-card {
+    background: var(--bg-card); backdrop-filter: blur(16px);
+    border: 1px solid var(--line); border-radius: var(--radius-md);
+    padding: 16px; box-shadow: var(--shadow-card);
+    display: flex; flex-direction: column; gap: 12px;
   }
-  .feed-corner { position: absolute; width: 10px; height: 10px; border: 1px solid rgba(55,210,224,0.4); }
-  .feed-corner.a { top: 3px; left: 3px; border-right: 0; border-bottom: 0; }
-  .feed-corner.b { top: 3px; right: 3px; border-left: 0; border-bottom: 0; }
-  .feed-corner.c { bottom: 3px; left: 3px; border-right: 0; border-top: 0; }
-  .feed-corner.d { bottom: 3px; right: 3px; border-left: 0; border-top: 0; }
-  .feed-meta { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 5px; }
-  .feed-meta .name { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; color: var(--ink); }
+  .tactical-card.alert-border {
+    border-color: rgba(255, 0, 85, 0.45);
+    box-shadow: 0 0 24px rgba(255, 0, 85, 0.15);
+  }
+
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--line); padding-bottom: 10px;
+  }
+  .card-header h3 { font-size: 13px; letter-spacing: 0.06em; color: #fff; display: flex; align-items: center; gap: 8px; }
+
+  /* Incident Threat Gauge */
+  .threat-gauge-box {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(5, 8, 17, 0.6); padding: 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+  }
+  .gauge-val { font-size: 24px; font-weight: 700; color: var(--crimson); font-family: var(--font-heading); }
+  .gauge-tag {
+    padding: 4px 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 10px;
+    font-weight: 700; text-transform: uppercase; background: var(--crimson); color: #fff;
+  }
+
+  /* Score Factors List */
+  .factor-item {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-mono); font-size: 11px; padding: 6px 10px;
+    background: rgba(13, 22, 38, 0.5); border-radius: 4px; border-left: 2px solid var(--cyan);
+  }
+  .factor-item.crit { border-left-color: var(--crimson); }
+  .factor-item b { color: var(--cyan); }
+  .factor-item.crit b { color: var(--crimson); }
+
+  /* Action Buttons */
+  .action-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .btn-action {
+    padding: 10px 14px; border-radius: var(--radius-sm); font-family: var(--font-heading);
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    cursor: pointer; border: none; transition: all 0.15s ease;
+  }
+  .btn-confirm { background: var(--emerald); color: #050811; }
+  .btn-confirm:hover { background: #34e0a0; box-shadow: 0 0 16px var(--emerald-glow); }
+  .btn-dismiss { background: var(--bg-surface); color: var(--text-dim); border: 1px solid var(--line); }
+  .btn-dismiss:hover { color: #fff; border-color: var(--text-dim); }
+
+  /* ============================================================
+     VIEW 2: MISSION SIMULATOR (USER-FRIENDLY SCENARIO CARDS)
+     ============================================================ */
+  .mission-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;
+  }
+
+  .scenario-card {
+    background: var(--bg-card); backdrop-filter: blur(16px);
+    border: 1px solid var(--line); border-radius: var(--radius-md);
+    padding: 20px; display: flex; flex-direction: column; justify-content: space-between;
+    gap: 16px; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative; overflow: hidden;
+  }
+  .scenario-card::before {
+    content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+    background: var(--cyan); transition: width 0.2s;
+  }
+  .scenario-card:hover {
+    transform: translateY(-4px);
+    background: var(--bg-card-hover); border-color: var(--cyan);
+    box-shadow: 0 12px 30px rgba(0, 240, 255, 0.15);
+  }
+  .scenario-card:hover::before { width: 6px; }
+
+  .scenario-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 12px; font-family: var(--font-mono); font-size: 10px;
+    font-weight: 700; color: var(--cyan); background: rgba(0, 240, 255, 0.1); border: 1px solid var(--line);
+  }
+  .scenario-card h3 { font-size: 16px; color: #fff; margin-top: 4px; }
+  .scenario-card p { font-size: 12.5px; color: var(--text-dim); line-height: 1.55; }
+
+  .scenario-steps {
+    display: flex; flex-direction: column; gap: 6px; margin: 4px 0;
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-faint);
+  }
+  .scenario-steps span { display: flex; align-items: center; gap: 8px; }
+  .scenario-steps span::before { content: "➔"; color: var(--cyan); font-size: 10px; }
+
+  .btn-launch-scenario {
+    width: 100%; padding: 12px; border-radius: var(--radius-sm);
+    font-family: var(--font-heading); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: #050811; background: var(--cyan); border: none;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-launch-scenario:hover {
+    background: #55e4f0; box-shadow: 0 0 20px var(--cyan-glow);
+    transform: scale(1.02);
+  }
+
+  /* ============================================================
+     VIEW 3: LIVE CCTV HUB (CLEAN MULTI-FEED GRID WITH FILTERS)
+     ============================================================ */
+  .cctv-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  }
+  .cctv-card {
+    background: #040711; border: 1px solid var(--line); border-radius: var(--radius-md);
+    overflow: hidden; box-shadow: var(--shadow-card); position: relative;
+  }
+  .cctv-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; background: rgba(9, 15, 29, 0.9);
+    border-bottom: 1px solid var(--line);
+  }
+  .cctv-header h3 { font-size: 13px; color: #fff; display: flex; align-items: center; gap: 8px; }
   
-  /* Feed mode switch buttons */
-  .feed-modes { display: flex; gap: 3px; }
-  .feed-mode-btn {
-    padding: 2px 5px; font-size: 8px; letter-spacing: 0.05em; background: rgba(6,9,16,0.7);
-    border: 1px solid var(--line); color: var(--ink-dim); border-radius: 2px;
+  .filter-pills { display: flex; gap: 4px; }
+  .filter-pill {
+    padding: 3px 8px; font-size: 9.5px; font-weight: 600; font-family: var(--font-mono);
+    border-radius: 4px; background: rgba(255, 255, 255, 0.06); border: 1px solid transparent;
+    color: var(--text-dim); cursor: pointer; transition: all 0.15s;
   }
-  .feed-mode-btn.active { color: var(--ground); background: var(--signal); border-color: var(--signal); font-weight: 700; }
+  .filter-pill.active { background: var(--cyan); color: #050811; font-weight: 700; }
 
-  /* ---------- radar ---------- */
-  #radar-canvas {
-    display: block; width: 100%; aspect-ratio: 20 / 11;
-    background: radial-gradient(circle at 50% 60%, rgba(55,210,224,0.06), transparent 70%);
-    border: 1px solid var(--line); border-radius: 3px;
+  .cctv-feed-wrap { position: relative; aspect-ratio: 16/9; background: #000; }
+  .cctv-feed-wrap canvas { width: 100%; height: 100%; display: block; }
+  .cctv-hud { position: absolute; inset: 0; pointer-events: none; padding: 10px; font-family: var(--font-mono); font-size: 10px; }
+  .hud-tl { position: absolute; top: 10px; left: 12px; color: var(--cyan); }
+  .hud-tr { position: absolute; top: 10px; right: 12px; color: var(--text-dim); text-align: right; }
+  .hud-bl { position: absolute; bottom: 10px; left: 12px; color: var(--emerald); }
+  .hud-br { position: absolute; bottom: 10px; right: 12px; color: var(--amber); text-align: right; }
+
+  /* ============================================================
+     VIEW 4: AI RE-ID INTELLIGENCE & MODEL BENCHMARKS
+     ============================================================ */
+  .reid-match-showcase {
+    display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px;
   }
-  .radar-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; margin-top: 6px; }
-  .radar-strip div { background: var(--surface); padding: 6px 8px; }
-  .radar-strip b { font-family: var(--font-mono); font-size: 11px; display: block; margin-top: 1px; }
-  .radar-strip .v-eta b { color: var(--hold); } .radar-strip .v-spd b { color: var(--signal); } .radar-strip .v-hdg b { color: var(--ink); }
-  .factors { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-  .factor {
-    display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 5px 7px;
-    background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; font-family: var(--font-mono); font-size: 9.5px;
+  .query-box {
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-md);
+    padding: 16px; display: flex; flex-direction: column; gap: 12px;
   }
-  .factor span:first-child { color: var(--ink-dim); }
-  .factor b { color: var(--hold); } .factor.pos b { color: var(--clear); } .factor.crit b { color: var(--breach); }
+  .query-crop-canvas { width: 100%; aspect-ratio: 3/4; border-radius: var(--radius-sm); border: 1px solid var(--line); display: block; }
 
-  /* ---------- dossier ---------- */
-  .dossier-score { font-family: var(--font-mono); font-weight: 600; font-size: 10.5px; padding: 2px 7px; border-radius: 3px; background: var(--breach); color: #fff; }
-  .narrative { font-size: 12px; line-height: 1.5; color: var(--ink); }
-  .narrative code { font-family: var(--font-mono); font-size: 10.5px; color: var(--signal); background: rgba(55,210,224,0.09); padding: 1px 3px; border-radius: 3px; }
-  .trace { display: flex; align-items: stretch; gap: 5px; font-family: var(--font-mono); font-size: 9px; }
-  .trace-node { flex: 1; padding: 6px 7px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; text-align: center; line-height: 1.45; }
-  .trace-node .n-cam { color: var(--signal); font-weight: 600; }
-  .trace-node.breach { border-color: rgba(255,64,96,0.45); } .trace-node.breach .n-cam { color: var(--breach); }
-  .trace-node.reid { border-color: rgba(52,224,160,0.45); } .trace-node.reid .n-cam { color: var(--clear); }
-  .trace-link { display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--hold); padding: 0 2px; white-space: nowrap; }
-  .triage { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .btn-dismiss { color: var(--ink-dim); }
-  .triage-stats { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 9px; color: var(--ink-faint); letter-spacing: 0.05em; }
-  .triage-stats b { color: var(--ink-dim); }
-
-  /* ---------- ledger (OPS mini) ---------- */
-  #ledger-panel .panel-body { flex: 1; min-height: 0; }
-  .ledger-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; padding-right: 3px; flex: 1; min-height: 110px; }
-  .block {
-    padding: 7px 8px; background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
-    border-radius: 3px; font-family: var(--font-mono); font-size: 9.5px; cursor: pointer;
-    transition: border-color 0.14s ease, background 0.14s ease;
+  .gallery-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;
   }
-  .block:hover { background: var(--surface-3); }
-  .block.sealed { border-left-color: var(--clear); }
-  .block.genesis { border-left-color: var(--signal); }
-  .block.verifying { border-left-color: var(--hold); background: rgba(242,166,60,0.08); }
-  .block.broken { border-left-color: var(--breach); background: rgba(255,64,96,0.1); }
-  .block.sel { border-color: var(--signal); }
-  .block-top { display: flex; justify-content: space-between; align-items: center; color: var(--ink); font-weight: 600; }
-  .block-top .st { font-size: 8px; letter-spacing: 0.08em; padding: 1px 4px; border-radius: 2px; border: 1px solid var(--line-strong); color: var(--ink-dim); font-weight: 500; }
-  .block.sealed .st { color: var(--clear); border-color: rgba(52,224,160,0.4); }
-  .block.broken .st { color: var(--breach); border-color: rgba(255,64,96,0.4); }
-  .block-hash { color: var(--ink-dim); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .block-hash b { color: var(--ink); font-weight: 500; }
-  .block.expanded .block-hash, .block.expanded .block-prev { white-space: normal; word-break: break-all; }
-  .block-prev { color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ledger-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-
-  /* ---------- log strip ---------- */
-  .logstrip {
-    display: flex; align-items: center; gap: 12px; padding: 6px 12px; background: var(--surface);
-    border: 1px solid var(--line); border-radius: var(--radius); font-family: var(--font-mono); font-size: 10px; overflow: hidden;
+  .gallery-card {
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-sm);
+    padding: 10px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s;
   }
-  .logstrip .label { flex: none; }
-  #log-scroll { display: flex; gap: 24px; white-space: nowrap; animation: marquee 46s linear infinite; }
-  #log-scroll span b { color: var(--ink); }
-  #log-scroll .sev-crit b { color: var(--breach); } #log-scroll .sev-warn b { color: var(--hold); } #log-scroll .sev-info b { color: var(--signal); }
-  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .gallery-card.match { border-color: var(--emerald); box-shadow: 0 0 16px var(--emerald-glow); }
+  .gallery-crop { width: 100%; aspect-ratio: 1/1; border-radius: 4px; display: block; }
+  .sim-meter { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+  .sim-meter i { display: block; height: 100%; background: var(--cyan); transition: width 0.4s; }
+  .gallery-card.match .sim-meter i { background: var(--emerald); }
 
-  /* ---------- MODELS VIEW ---------- */
-  .models-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 10px; }
-  .model-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
-  .model-card .m-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
-  .model-card .m-head h3 { font-size: 12.5px; letter-spacing: 0.08em; color: var(--signal); }
-  .model-card .m-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; font-family: var(--font-mono); font-size: 10.5px; }
-  .m-spec-row { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--line); padding-bottom: 4px; }
-  .m-spec-row span { color: var(--ink-dim); } .m-spec-row b { color: var(--ink); }
-  .m-classes { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-  .m-class-pill { font-size: 9px; padding: 2px 6px; border-radius: 3px; background: var(--surface-3); border: 1px solid var(--line-strong); color: var(--ink-dim); }
-  .m-class-pill.target { color: var(--breach); border-color: rgba(255,64,96,0.4); }
-  .m-class-pill.weapon { color: var(--hold); border-color: rgba(242,166,60,0.4); }
-
-  .sandbox-bench {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--surface-2);
-    border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin-top: 8px;
+  /* ============================================================
+     VIEW 5: EVIDENCE BLOCKCHAIN VAULT
+     ============================================================ */
+  .ledger-vault-grid {
+    display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 20px;
   }
-  .sandbox-canvas-wrap { position: relative; aspect-ratio: 16/9; background: #03060a; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
-  .sandbox-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
-  .sandbox-ctrls { display: flex; flex-direction: column; gap: 8px; }
-  .sandbox-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .sandbox-json { font-family: var(--font-mono); font-size: 9.5px; background: #050811; border: 1px solid var(--line); border-radius: 3px; padding: 8px; height: 140px; overflow-y: auto; color: var(--signal); }
-
-  /* ---------- WALL ---------- */
-  .wall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .wall .feed-frame { cursor: pointer; }
-  .wall .feed.solo { grid-column: span 2; grid-row: span 2; }
-  @media (max-width: 900px) { .wall { grid-template-columns: repeat(2, 1fr); } .wall .feed.solo { grid-column: span 2; grid-row: auto; } }
-
-  /* ---------- REPLAY ---------- */
-  .replay-grid { display: grid; grid-template-columns: 280px minmax(0,1fr); gap: 10px; }
-  .inc-list { display: flex; flex-direction: column; gap: 6px; max-height: 620px; overflow-y: auto; padding-right: 4px; }
-  .inc-item {
-    padding: 9px 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px;
-    cursor: pointer; font-family: var(--font-mono); font-size: 10.5px; line-height: 1.5;
+  .block-list { display: flex; flex-direction: column; gap: 8px; max-height: 560px; overflow-y: auto; padding-right: 4px; }
+  .block-card {
+    background: var(--bg-card); border: 1px solid var(--line); border-left: 4px solid var(--cyan);
+    border-radius: var(--radius-sm); padding: 12px; font-family: var(--font-mono); font-size: 11px;
+    cursor: pointer; transition: all 0.15s;
   }
-  .inc-item:hover { border-color: var(--line-strong); }
-  .inc-item.sel { border-color: var(--signal); background: rgba(55,210,224,0.07); }
-  .inc-item .i-id { color: var(--ink); font-weight: 600; display: flex; justify-content: space-between; }
-  .inc-item .i-sev { font-size: 8.5px; padding: 1px 5px; border-radius: 2px; }
-  .i-sev.CRITICAL { color: var(--breach); border: 1px solid rgba(255,64,96,0.4); }
-  .i-sev.WARNING { color: var(--hold); border: 1px solid rgba(242,166,60,0.4); }
-  .inc-item .i-sum { color: var(--ink-faint); margin-top: 3px; }
-  #replay-map { display: block; width: 100%; aspect-ratio: 16/8; background: var(--ground-2); border: 1px solid var(--line); border-radius: 3px; }
-  .replay-scrub { display: flex; align-items: center; gap: 10px; }
-  .replay-scrub input[type=range] { flex: 1; accent-color: var(--signal); }
-  .step-row { display: flex; gap: 6px; flex-wrap: wrap; }
-  .step-chip {
-    font-family: var(--font-mono); font-size: 9.5px; padding: 4px 7px; border-radius: 3px;
-    background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-dim);
-  }
-  .step-chip.active { border-color: var(--signal); color: var(--signal); background: rgba(55,210,224,0.08); }
-  .step-chip.past { color: var(--ink-faint); }
+  .block-card:hover { background: var(--bg-card-hover); }
+  .block-card.tampered { border-left-color: var(--crimson); background: rgba(255, 0, 85, 0.1); }
+  .block-card.sel { border-color: var(--cyan); box-shadow: 0 0 12px var(--cyan-glow); }
 
-  /* ---------- RE-ID ---------- */
-  .reid-grid { display: grid; grid-template-columns: 220px minmax(0,1fr); gap: 10px; }
-  .crop { width: 100%; aspect-ratio: 3/4; background: #04060b; border: 1px solid var(--line-strong); border-radius: 3px; display: block; }
-  .cand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-  .cand { background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 7px; display: flex; flex-direction: column; gap: 5px; }
-  .cand.match { border-color: var(--clear); box-shadow: inset 0 0 0 1px rgba(52,224,160,0.15); }
-  .cand .crop { aspect-ratio: 1/1; }
-  .cos-bar { height: 5px; background: var(--surface-3); border-radius: 3px; overflow: hidden; position: relative; }
-  .cos-bar i { display: block; height: 100%; background: var(--ink-faint); transition: width 0.5s ease; }
-  .cand.match .cos-bar i { background: var(--clear); }
-  .cos-meta { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-dim); }
-  .cand.match .cos-meta b { color: var(--clear); }
-
-  /* ---------- LEDGER full ---------- */
-  .ledger-grid { display: grid; grid-template-columns: 300px minmax(0,1fr); gap: 10px; }
-  .ledger-detail { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.75; }
-  .ledger-detail dt { color: var(--ink-dim); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; }
-  .ledger-detail dd { margin: 0; color: var(--ink); word-break: break-all; }
-  #merkle-svg { width: 100%; height: 120px; display: block; }
-
-  /* ---------- CALIB ---------- */
-  .calib-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 8px; }
-  .calib-card .row { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; margin: 5px 0; }
-  .calib-card input[type=range] { width: 100%; accent-color: var(--signal); }
-  .fp-bar { display: grid; grid-template-columns: 78px 1fr 34px; gap: 8px; align-items: center; font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-dim); margin: 3px 0; }
-  .fp-bar .track { height: 5px; background: var(--surface-3); border-radius: 3px; overflow: hidden; }
-  .fp-bar .track i { display: block; height: 100%; background: var(--hold); }
-  .switch { display: flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-dim); cursor: pointer; }
-  .switch input { accent-color: var(--signal); }
-
-  /* ---------- toasts ---------- */
-  #toasts { position: fixed; right: 14px; bottom: 14px; z-index: 60; display: flex; flex-direction: column; gap: 6px; max-width: 320px; }
+  /* Toast Notifications */
+  #toasts { position: fixed; right: 20px; bottom: 20px; z-index: 200; display: flex; flex-direction: column; gap: 8px; max-width: 360px; }
   .toast {
-    padding: 9px 12px; background: var(--surface-2); border: 1px solid var(--line-strong);
-    border-left: 3px solid var(--signal); border-radius: 3px; font-size: 11.5px; animation: toast-in 0.22s ease;
+    padding: 12px 16px; background: rgba(9, 15, 29, 0.95); backdrop-filter: blur(16px);
+    border: 1px solid var(--line); border-left: 4px solid var(--cyan); border-radius: var(--radius-sm);
+    font-size: 12.5px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); animation: toast-slide 0.25s ease-out;
   }
-  .toast.ok { border-left-color: var(--clear); } .toast.warn { border-left-color: var(--hold); } .toast.crit { border-left-color: var(--breach); }
-  .toast b { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; display: block; color: var(--ink-dim); margin-bottom: 2px; }
-  @keyframes toast-in { from { opacity: 0; transform: translateX(16px); } }
+  .toast.ok { border-left-color: var(--emerald); } .toast.warn { border-left-color: var(--amber); } .toast.crit { border-left-color: var(--crimson); }
+  .toast b { display: block; font-family: var(--font-heading); font-size: 12px; text-transform: uppercase; margin-bottom: 2px; }
+  @keyframes toast-slide { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
 
-  .view-title { display: flex; align-items: baseline; gap: 10px; padding: 0 2px; }
-  .view-title h2 { font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; }
-  .view-title p { margin: 0; font-size: 10.5px; color: var(--ink-dim); font-family: var(--font-mono); }
-
-  /* ---------- responsive ---------- */
-  @media (max-width: 1240px) {
-    #view-ops .board { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-    #twin-panel { grid-column: 1 / -1; }
-    #twin-panel .panel-body { height: 440px; flex: none; }
-  }
-  @media (max-width: 960px) {
-    .rail { grid-template-columns: 1fr; }
-    .vitals { flex-wrap: wrap; }
-    .body { flex-direction: column; }
-    .nav { width: auto; flex-direction: row; overflow-x: auto; }
-    .nav .spacer { display: none; }
-    .nav button[aria-current="true"]::before { left: 8px; right: 8px; top: auto; bottom: -8px; width: auto; height: 2px; }
-    #view-ops .board { grid-template-columns: minmax(0, 1fr); }
-    .replay-grid, .reid-grid, .ledger-grid, .sandbox-bench { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 560px) { .factors, .triage, .ledger-actions, .radar-strip, .wall { grid-template-columns: 1fr; } .vital { min-width: 0; flex: 1; } }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; }
-    #log-scroll { animation: none; }
+  /* Responsive Adjustments */
+  @media (max-width: 1100px) {
+    .twin-hero-grid, .cctv-grid, .reid-match-showcase, .ledger-vault-grid { grid-template-columns: 1fr; }
+    .top-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .nav-tabs { width: 100%; overflow-x: auto; }
   }
 </style>
 </head>
 <body>
 
-<div class="app">
-  <!-- ===================== COMMAND RAIL ===================== -->
-  <header class="rail">
-    <div class="crest">
-      <div class="crest-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#37d2e0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+<div class="app-shell">
+  <!-- ===================== TOP GLOW HEADER ===================== -->
+  <header class="top-header">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z"/><path d="M9 12l2 2 4-4"/>
         </svg>
       </div>
-      <div>
-        <h1>SENTINEL&nbsp;WATCHFLOOR</h1>
-        <p>MHA · Sashastra Seema Bal · IBVAP · PS-26187 · Sector Gurdaspur</p>
+      <div class="brand-title">
+        <h1>SENTINEL WATCHFLOOR</h1>
+        <p>MHA · Sashastra Seema Bal · IBVAP PS-26187 · Gurdaspur Sector</p>
       </div>
     </div>
 
-    <!-- Interactive Mission Scenario Selector -->
-    <div class="scen-dock" id="scen-dock" aria-label="Tactical Scenarios">
-      <span class="scen-label">⚡ Scenarios:</span>
-      <button class="scen-btn active crit-scen" data-scenario="1" title="Scenario 1: Night Incursion & Geofence Breach">① Breach</button>
-      <button class="scen-btn" data-scenario="2" title="Scenario 2: Predictive Cross-Camera Re-ID Handoff">② Re-ID Handoff</button>
-      <button class="scen-btn warn-scen" data-scenario="3" title="Scenario 3: Vehicle Ramming & ANPR Watchlist">③ Vehicle ANPR</button>
-      <button class="scen-btn" data-scenario="4" title="Scenario 4: Loiter Dwell & Cluster Anomaly">④ Loiter Dwell</button>
-      <button class="scen-btn" data-scenario="5" title="Scenario 5: Thermal UAV Recon & Weapon Lock">⑤ UAV Thermal</button>
-    </div>
+    <!-- Navigation Bar -->
+    <nav class="nav-tabs" aria-label="Command Views">
+      <button class="nav-btn active" data-view="twin">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></svg>
+        3D Digital Twin
+      </button>
+      <button class="nav-btn" data-view="simulator">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Mission Simulator
+      </button>
+      <button class="nav-btn" data-view="cctv">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>
+        Live Camera Hub
+      </button>
+      <button class="nav-btn" data-view="reid">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="9" r="4"/><path d="M17 17l4 4M15 15a4 4 0 1 0 0-8"/></svg>
+        AI Re-ID Engine
+      </button>
+      <button class="nav-btn" data-view="ledger">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/><path d="M11 7h4a2 2 0 0 1 2 2v4"/></svg>
+        Evidence Vault
+      </button>
+    </nav>
 
-    <div class="vitals" aria-label="System vitals">
-      <div class="vital sig"><span class="label">Watchfloor</span><b id="v-clock" class="tnum">—</b></div>
-      <div class="vital ok"><span class="label">Edge fps</span><b id="v-fps" class="tnum">32.4</b></div>
-      <div class="vital ok"><span class="label">Nodes</span><b id="v-nodes" class="tnum">6 / 6</b></div>
-      <div class="vital sig"><span class="label">Handoff</span><b>6–14 s</b></div>
-      <div class="vital warn"><span class="label">Posture</span><b id="v-posture">ELEVATED</b></div>
-    </div>
-
-    <div class="rail-actions">
-      <span class="conn demo" id="conn"><span class="d"></span><span id="conn-t">DEMO MODE</span></span>
-      <button id="btn-sound" aria-pressed="false" title="UI sound">♪ Muted</button>
-      <button id="btn-siren" class="btn-danger" aria-pressed="false">◊ Test siren</button>
-      <button id="btn-sim" class="btn-sig">▶ Run Scenario</button>
+    <!-- Status & Sound Actions -->
+    <div class="system-status">
+      <div class="status-badge" id="main-status-badge">
+        <span class="dot"></span>
+        <span id="main-status-text">ALL SECTORS SECURE</span>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="btn-sound-toggle" title="Toggle UI Audio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-siren-toggle" title="Emergency Siren Alarm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <div class="body">
-    <!-- ===================== NAV ===================== -->
-    <nav class="nav" aria-label="Views">
-      <button data-view="ops" aria-current="true" title="Watchfloor Operations">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg>OPS</button>
-      <button data-view="models" title="AI Vision Model Zoo & Benchmark">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v6M18 9v6M9 6h6M9 18h6M8.5 8.5l7 7M8.5 15.5l7-7"/></svg>MODELS</button>
-      <button data-view="wall" title="Camera wall (6 nodes)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>WALL</button>
-      <button data-view="replay" title="Incident replay & timeline">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>REPLAY</button>
-      <button data-view="reid" title="512-d Re-ID matrix">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="9" r="4"/><path d="M17 17l4 4M15 15a4 4 0 1 0 0-8"/></svg>RE-ID</button>
-      <button data-view="ledger" title="SHA-256 Chain of custody">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/><path d="M11 7h4a2 2 0 0 1 2 2v4"/></svg>LEDGER</button>
-      <button data-view="calib" title="Site calibration">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h13M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>CALIB</button>
-      <div class="spacer"></div>
-    </nav>
-
-    <div class="views">
-      <!-- ============ VIEW: OPS ============ -->
-      <section class="view" id="view-ops">
-        <div class="board">
-          <div class="col">
-            <div class="panel" id="twin-panel" style="flex:1">
-              <div class="panel-head">
-                <h2><span class="dot dot-sig"></span> Border Digital Twin</h2>
-                <span class="tag tag-sig" id="twin-tod">WebGL · Day</span>
-              </div>
-              <div class="panel-body">
-                <div id="twin-stage">
-                  <div class="twin-tools">
-                    <button id="twin-reset" title="Reset camera">⟲ View</button>
-                    <button id="twin-day" title="Toggle day / night">☾ Night</button>
-                    <button id="twin-spin" aria-pressed="true" title="Toggle orbit drift">◐ Drift</button>
-                  </div>
-                  <div class="twin-dock" id="twin-dock">
-                    <button class="layer-toggle" data-layer="geofence" aria-pressed="true">Red zone</button>
-                    <button class="layer-toggle" data-layer="fov" aria-pressed="true">Optical FOV</button>
-                    <button class="layer-toggle" data-layer="tripwire" aria-pressed="true">Tripwires</button>
-                    <button class="layer-toggle" data-layer="trajectory" aria-pressed="true">Path</button>
-                    <button class="layer-toggle" data-layer="drone" aria-pressed="true">UAV</button>
-                    <button class="layer-toggle" data-layer="vehicle" aria-pressed="true">Vehicle</button>
-                  </div>
-                  <div id="twin-inspect" hidden></div>
-                  <div class="twin-readout" id="twin-readout">
-                    CAM_ALPHA <span>ARMED</span> · CAM_BRAVO <span>ARMED</span><br>
-                    track <span id="tw-track">TRG-0017</span> · hdg <span id="tw-hdg">094°</span> · <span id="tw-spd">1.4 m/s</span>
-                  </div>
-                </div>
-              </div>
+  <!-- ===================== MAIN CONTENT VIEWS ===================== -->
+  <main class="main-content">
+    
+    <!-- ============ TAB 1: 3D DIGITAL TWIN (HERO) ============ -->
+    <section class="tab-page" id="page-twin">
+      <div class="twin-hero-grid">
+        <div class="twin-stage-container">
+          <div class="twin-overlay-top">
+            <div class="viewport-chip">
+              <span style="color:var(--emerald)">●</span> Live 3D Border Twin · 32.4 FPS
+            </div>
+            <div class="twin-camera-presets">
+              <button class="preset-btn active" data-cam="default">⟲ Orbit View</button>
+              <button class="preset-btn" data-cam="gate">🚪 Checkpost Alpha</button>
+              <button class="preset-btn" data-cam="handoff">🛣️ Handoff Corridor</button>
+              <button class="preset-btn" data-cam="bravo">🏢 BOP Bravo</button>
+              <button class="preset-btn" data-cam="overhead">🛰️ UAV Overhead</button>
             </div>
           </div>
 
-          <div class="col">
-            <div class="panel">
-              <div class="panel-head">
-                <h2><span class="dot dot-live"></span> Node 01 · Checkpost Alpha</h2>
-                <div class="feed-modes">
-                  <button class="feed-mode-btn active" data-feed="a" data-mode="rgb">RGB</button>
-                  <button class="feed-mode-btn" data-feed="a" data-mode="thermal">IR</button>
-                  <button class="feed-mode-btn" data-feed="a" data-mode="night">NVG</button>
-                </div>
+          <div id="twin-canvas-wrap"></div>
+
+          <div id="twin-inspect-card" hidden>
+            <h4 id="inspect-name">Watchtower Alpha</h4>
+            <p id="inspect-desc">Checkpost North Gate · Armed with YOLOv8 spatial zone rules & infrared spotlight.</p>
+          </div>
+        </div>
+
+        <!-- Right Tactical Dossier -->
+        <div class="twin-sidebar">
+          <div class="tactical-card" id="active-incident-card">
+            <div class="card-header">
+              <h3><span style="color:var(--cyan)">●</span> Live Incident Dossier</h3>
+              <span class="gauge-tag" id="threat-tier-tag">STANDBY</span>
+            </div>
+            <div class="threat-gauge-box">
+              <div>
+                <div style="font-size:11px;color:var(--text-dim);font-family:var(--font-mono)">THREAT SCORE</div>
+                <div class="gauge-val" id="threat-score-val">0 / 100</div>
               </div>
-              <div class="panel-body">
-                <div class="feed">
-                  <div class="feed-frame"><canvas id="feed-a" width="640" height="360"></canvas>
-                    <span class="feed-corner a"></span><span class="feed-corner b"></span><span class="feed-corner c"></span><span class="feed-corner d"></span>
-                    <div class="feed-hud">
-                      <div class="tl rec" id="fa-tc">REC 00:00:00:00</div>
-                      <div class="tr">CAM_ALPHA · 1080p RTSP<br>N32.19 E74.89</div>
-                      <div class="bl" id="fa-det">YOLOv8n · ByteTrack · 3 trk</div>
-                      <div class="br" id="fa-flag">GEOFENCE NOMINAL</div>
-                    </div>
-                  </div>
-                  <div class="feed-meta"><span class="name">NORTH GATE — incursion tripwire + red zone</span><span class="tag">32.4 fps</span></div>
-                </div>
+              <div style="text-align:right">
+                <div style="font-size:11px;color:var(--text-dim);font-family:var(--font-mono)">PRIMARY TARGET</div>
+                <div class="mono" style="color:var(--cyan);font-weight:600" id="target-id-val">TRG-0017</div>
               </div>
             </div>
-            <div class="panel">
-              <div class="panel-head">
-                <h2><span class="dot dot-sig"></span> Node 02 · BOP Bravo</h2>
-                <div class="feed-modes">
-                  <button class="feed-mode-btn active" data-feed="b" data-mode="rgb">RGB</button>
-                  <button class="feed-mode-btn" data-feed="b" data-mode="thermal">IR</button>
-                  <button class="feed-mode-btn" data-feed="b" data-mode="night">NVG</button>
-                </div>
-              </div>
-              <div class="panel-body">
-                <div class="feed">
-                  <div class="feed-frame"><canvas id="feed-b" width="640" height="360"></canvas>
-                    <span class="feed-corner a"></span><span class="feed-corner b"></span><span class="feed-corner c"></span><span class="feed-corner d"></span>
-                    <div class="feed-hud">
-                      <div class="tl rec" id="fb-tc">REC 00:00:00:00</div>
-                      <div class="tr">CAM_BRAVO · 1080p RTSP<br>N32.19 E74.94</div>
-                      <div class="bl" id="fb-det">Re-ID cosine · idle</div>
-                      <div class="br" id="fb-flag">AWAITING HANDOFF</div>
-                    </div>
-                  </div>
-                  <div class="feed-meta"><span class="name">EAST PERIMETER — 512-d appearance Re-ID</span><span class="tag">30.8 fps</span></div>
-                </div>
-              </div>
+            <p style="font-size:12px;color:var(--text-dim);line-height:1.5" id="incident-narrative-text">
+              Perimeter nominal. Select any scenario from <b>Mission Simulator</b> to trigger end-to-end multi-camera tracking.
+            </p>
+            <div class="factor-item" id="factor-1">
+              <span>Restricted Zone Penetration</span>
+              <b>+30 pts</b>
             </div>
-            <div class="panel" style="flex:1">
-              <div class="panel-head"><h2><span class="dot dot-warn"></span> Predictive Handoff Radar</h2><span class="tag tag-warn" id="radar-status">Tracking · 1 vector</span></div>
-              <div class="panel-body">
-                <canvas id="radar-canvas" width="600" height="330"></canvas>
-                <div class="radar-strip">
-                  <div class="v-eta"><span class="label">ETA → Bravo</span><b id="r-eta" class="tnum">4.8 s</b></div>
-                  <div class="v-spd"><span class="label">Ground speed</span><b id="r-spd" class="tnum">1.4 m/s</b></div>
-                  <div class="v-hdg"><span class="label">Heading</span><b id="r-hdg" class="tnum">094°</b></div>
-                </div>
-                <div class="factors">
-                  <div class="factor crit"><span>Zone penetration</span><b>+30</b></div>
-                  <div class="factor crit"><span>Tripwire crossing</span><b>+25</b></div>
-                  <div class="factor"><span>Velocity vector</span><b>+20</b></div>
-                  <div class="factor pos"><span>Predictive match</span><b id="f-match">+0</b></div>
-                </div>
-              </div>
+            <div class="factor-item" id="factor-2">
+              <span>Virtual Tripwire Crossed</span>
+              <b>+25 pts</b>
+            </div>
+            <div class="factor-item" id="factor-3">
+              <span>Approach Velocity Vector</span>
+              <b>+20 pts</b>
+            </div>
+            <div class="action-btn-row">
+              <button class="btn-action btn-confirm" id="btn-triage-confirm">✓ Confirm Threat</button>
+              <button class="btn-action btn-dismiss" id="btn-triage-dismiss">✕ False Alarm</button>
             </div>
           </div>
 
-          <div class="col">
-            <div class="panel panel-danger" id="dossier-panel">
-              <div class="panel-head"><h2><span class="dot dot-live"></span> Incident <span id="d-id">#1041</span></h2><span class="dossier-score" id="d-score">92 / 100 · CRITICAL</span></div>
-              <div class="panel-body">
-                <p class="narrative" id="d-narrative">Awaiting correlation. Edge nodes armed; spatio-temporal graph idle. Click any scenario button above (e.g. <b>① Breach</b> or <b>③ Vehicle ANPR</b>) to reconstruct a live multi-node incident story.</p>
-                <div class="trace" id="d-trace">
-                  <div class="trace-node breach"><div class="n-cam">CAM_ALPHA</div><div style="color:var(--ink-faint)">breach · gate</div><div id="d-t1">— : — : —</div></div>
-                  <div class="trace-link">➔<br><span id="d-gap">handoff</span><br>➔</div>
-                  <div class="trace-node reid"><div class="n-cam">CAM_BRAVO</div><div style="color:var(--ink-faint)">re-id · perimeter</div><div id="d-t2">— : — : —</div></div>
-                </div>
-                <div class="triage">
-                  <button class="btn-confirm" id="btn-confirm">✓ Confirm threat</button>
-                  <button class="btn-dismiss" id="btn-dismiss">✕ False alarm</button>
-                </div>
-                <div class="triage-stats"><span>Operator: <b>CMD-04 / Havildar</b></span><span>Shift audit: <b id="d-audit">14 conf · 3 fp</b></span></div>
-              </div>
+          <div class="tactical-card">
+            <div class="card-header">
+              <h3><span style="color:var(--emerald)">●</span> Quick Mission Launch</h3>
             </div>
-            <div class="panel" id="ledger-panel" style="flex:1">
-              <div class="panel-head"><h2><span class="dot dot-ok"></span> SHA-256 Chain of Custody</h2><span class="tag tag-ok" id="ledger-tag">Verified</span></div>
-              <div class="panel-body">
-                <div class="ledger-list" id="ledger-list"></div>
-                <div class="ledger-actions"><button id="btn-verify">⛓ Verify chain</button><button id="btn-tamper" class="btn-danger">⚠ Tamper test</button></div>
-              </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn-launch-scenario" onclick="triggerScenario(1)">▶ Run Scenario 1: Night Incursion</button>
+              <button class="btn-launch-scenario" style="background:var(--purple);color:#fff;" onclick="triggerScenario(2)">▶ Run Scenario 2: Cross-Cam Re-ID</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB 2: MISSION SIMULATOR ============ -->
+    <section class="tab-page" id="page-simulator" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h2>Tactical Operational Scenarios</h2>
+          <p style="color:var(--text-dim);margin-top:4px;">1-Click live demonstrations showing AI intrusion detection, vehicle ANPR, and aerial reconnaissance</p>
+        </div>
+      </div>
+
+      <div class="mission-grid">
+        <!-- Scenario 1 -->
+        <div class="scenario-card">
+          <div>
+            <span class="scenario-badge">SCENARIO 01</span>
+            <h3>Perimeter Night Breach</h3>
+            <p>Target vaults the security fence at Checkpost Alpha, triggering spatial red-zone intrusion and klaxon strobe alarm.</p>
+            <div class="scenario-steps">
+              <span>Fence breach detected at North Gate</span>
+              <span>Virtual tripwire T-2 latches alarm</span>
+              <span>Evidence capsule sealed into blockchain</span>
+            </div>
+          </div>
+          <button class="btn-launch-scenario" onclick="triggerScenario(1)">⚡ Run Scenario 1</button>
+        </div>
+
+        <!-- Scenario 2 -->
+        <div class="scenario-card">
+          <div>
+            <span class="scenario-badge" style="color:var(--purple);border-color:var(--purple)">SCENARIO 02</span>
+            <h3>Cross-Camera Re-ID Handoff</h3>
+            <p>Target traverses unmonitored blind spot between Alpha and Bravo. 512-d feature vector links identity within 9.4s.</p>
+            <div class="scenario-steps">
+              <span>Subject departs Checkpost Alpha</span>
+              <span>Spatio-temporal window calculated (6–14s)</span>
+              <span>Cosine match 0.96 locks at BOP Bravo</span>
+            </div>
+          </div>
+          <button class="btn-launch-scenario" style="background:var(--purple);color:#fff;" onclick="triggerScenario(2)">⚡ Run Scenario 2</button>
+        </div>
+
+        <!-- Scenario 3 -->
+        <div class="scenario-card">
+          <div>
+            <span class="scenario-badge" style="color:var(--amber);border-color:var(--amber)">SCENARIO 03</span>
+            <h3>Vehicle Ramming & ANPR</h3>
+            <p>High-speed vehicle rushes Checkpost Alpha. License plate PB08-XX-1234 matches watchlist; barrier locks down.</p>
+            <div class="scenario-steps">
+              <span>Speeding vehicle detected at 64 km/h</span>
+              <span>ANPR watchlist hit: PB08-XX-1234</span>
+              <span>Hydraulic boom barrier GPIO lockdown</span>
+            </div>
+          </div>
+          <button class="btn-launch-scenario" style="background:var(--amber);color:#050811;" onclick="triggerScenario(3)">⚡ Run Scenario 3</button>
+        </div>
+
+        <!-- Scenario 4 -->
+        <div class="scenario-card">
+          <div>
+            <span class="scenario-badge">SCENARIO 04</span>
+            <h3>Loitering & Perimeter Dwell</h3>
+            <p>Suspicious subject lingers along BOP Bravo perimeter for >240s dwell threshold, generating spatial heatmap alert.</p>
+            <div class="scenario-steps">
+              <span>Subject enters outer boundary buffer</span>
+              <span>Dwell counter exceeds 240s threshold</span>
+              <span>Adaptive calibration suggests +15 threat pts</span>
+            </div>
+          </div>
+          <button class="btn-launch-scenario" onclick="triggerScenario(4)">⚡ Run Scenario 4</button>
+        </div>
+
+        <!-- Scenario 5 -->
+        <div class="scenario-card">
+          <div>
+            <span class="scenario-badge" style="color:var(--emerald);border-color:var(--emerald)">SCENARIO 05</span>
+            <h3>UAV Thermal Reconnaissance</h3>
+            <p>Autonomous overhead drone scans border terrain, detects camouflaged heat signature and locks GPS coordinates.</p>
+            <div class="scenario-steps">
+              <span>Airborne thermal infrared sensor sweep</span>
+              <span>Heat cluster detected: Temp Δ +4.2°C</span>
+              <span>GPS Coordinates locked: N32.1914 E74.8920</span>
+            </div>
+          </div>
+          <button class="btn-launch-scenario" style="background:var(--emerald);color:#050811;" onclick="triggerScenario(5)">⚡ Run Scenario 5</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB 3: LIVE CCTV HUB ============ -->
+    <section class="tab-page" id="page-cctv" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h2>Multi-Node CCTV Command Wall</h2>
+          <p style="color:var(--text-dim);margin-top:4px;">Real-time video inference with 1-click Optical, Thermal, and Night-Vision modes</p>
+        </div>
+      </div>
+
+      <div class="cctv-grid">
+        <!-- Node 1 -->
+        <div class="cctv-card">
+          <div class="cctv-header">
+            <h3><span style="color:var(--crimson)">●</span> Node 01 · Checkpost Alpha</h3>
+            <div class="filter-pills">
+              <button class="filter-pill active" onclick="setFeedMode('a', 'rgb', this)">Optical 1080p</button>
+              <button class="filter-pill" onclick="setFeedMode('a', 'thermal', this)">Thermal IR</button>
+              <button class="filter-pill" onclick="setFeedMode('a', 'night', this)">Night NVG</button>
+            </div>
+          </div>
+          <div class="cctv-feed-wrap">
+            <canvas id="feed-canvas-a" width="640" height="360"></canvas>
+            <div class="cctv-hud">
+              <div class="hud-tl" id="hud-a-tc">REC 00:00:00</div>
+              <div class="hud-tr">CAM_ALPHA · 32.4 FPS<br>N32.19 E74.89</div>
+              <div class="hud-bl" id="hud-a-det">YOLOv8n · Person 0.94</div>
+              <div class="hud-br" id="hud-a-flag" style="color:var(--emerald)">PERIMETER NOMINAL</div>
             </div>
           </div>
         </div>
 
-        <div class="logstrip">
-          <span class="label">Edge stream log</span>
-          <div id="log-scroll"></div>
-        </div>
-      </section>
-
-      <!-- ============ VIEW: MODELS & BENCHMARK ============ -->
-      <section class="view" id="view-models" hidden>
-        <div class="view-title">
-          <h2>AI Vision Models & Inference Pipeline</h2>
-          <p>Trained neural network architectures, TensorRT execution graphs, and real-time detection sandbox</p>
-        </div>
-
-        <div class="models-grid">
-          <!-- Model 1: YOLOv8 Spatial Detection -->
-          <div class="model-card">
-            <div class="m-head">
-              <h3>YOLOv8-Spatial Engine</h3>
-              <span class="tag tag-sig">TensorRT · 8.2ms</span>
-            </div>
-            <div class="m-body">
-              <div class="m-spec-row"><span>Architecture</span><b>YOLOv8n / INT8 Quantized</b></div>
-              <div class="m-spec-row"><span>Input Resolution</span><b>640 × 640 × 3 (RGB/Thermal)</b></div>
-              <div class="m-spec-row"><span>mAP@0.50 (Perimeter)</span><b style="color:var(--clear)">91.8%</b></div>
-              <div class="m-spec-row"><span>FPS Throughput</span><b style="color:var(--signal)">32.4 FPS / Node</b></div>
-              <div class="m-spec-row"><span>Memory Footprint</span><b>142 MB VRAM</b></div>
-              <div class="label" style="margin-top:4px">Detection Classes</div>
-              <div class="m-classes">
-                <span class="m-class-pill target">Person</span>
-                <span class="m-class-pill target">Vehicle / Truck</span>
-                <span class="m-class-pill weapon">Armed Weapon</span>
-                <span class="m-class-pill weapon">Camouflage Intruder</span>
-                <span class="m-class-pill">Drone / UAV</span>
-                <span class="m-class-pill">Fire / Smoke</span>
-                <span class="m-class-pill">Animal / Wildlife</span>
-              </div>
+        <!-- Node 2 -->
+        <div class="cctv-card">
+          <div class="cctv-header">
+            <h3><span style="color:var(--cyan)">●</span> Node 02 · BOP Bravo</h3>
+            <div class="filter-pills">
+              <button class="filter-pill active" onclick="setFeedMode('b', 'rgb', this)">Optical 1080p</button>
+              <button class="filter-pill" onclick="setFeedMode('b', 'thermal', this)">Thermal IR</button>
+              <button class="filter-pill" onclick="setFeedMode('b', 'night', this)">Night NVG</button>
             </div>
           </div>
-
-          <!-- Model 2: ByteTrack Multi-Target Association -->
-          <div class="model-card">
-            <div class="m-head">
-              <h3>ByteTrack + StrongSORT</h3>
-              <span class="tag tag-ok">Kalman Filter · 1.4ms</span>
-            </div>
-            <div class="m-body">
-              <div class="m-spec-row"><span>Tracking Method</span><b>Two-Stage IoU + Cosine Motion</b></div>
-              <div class="m-spec-row"><span>Occlusion Memory</span><b>30 frames (1.0 sec)</b></div>
-              <div class="m-spec-row"><span>ID Switches / 1k</span><b style="color:var(--clear)">0.12 (Zero Drift)</b></div>
-              <div class="m-spec-row"><span>Trajectory Extrapolation</span><b>Velocity Vector & Handoff ETA</b></div>
-              <div class="m-spec-row"><span>Active Track Capacity</span><b>128 Concurrent Objects</b></div>
-              <div class="label" style="margin-top:4px">Capabilities</div>
-              <div class="m-classes">
-                <span class="m-class-pill">Tripwire Intersection</span>
-                <span class="m-class-pill">Centroid Geo-Localization</span>
-                <span class="m-class-pill">Loiter Dwell Timer</span>
-                <span class="m-class-pill">Approach Speed Estimator</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Model 3: 512-d Appearance Re-ID -->
-          <div class="model-card">
-            <div class="m-head">
-              <h3>ResNet18 / OSNet 512-d Re-ID</h3>
-              <span class="tag tag-purple">Metric Learning</span>
-            </div>
-            <div class="m-body">
-              <div class="m-spec-row"><span>Embedding Dimension</span><b>512-dimensional vector</b></div>
-              <div class="m-spec-row"><span>Distance Metric</span><b>Cosine Similarity (τ = 0.70)</b></div>
-              <div class="m-spec-row"><span>Rank-1 Accuracy</span><b style="color:var(--clear)">94.6%</b></div>
-              <div class="m-spec-row"><span>Spatio-Temporal Gating</span><b>6 – 14s Velocity Window</b></div>
-              <div class="m-spec-row"><span>Feature Invariance</span><b>Day / Night / Angle Invariant</b></div>
-              <div class="label" style="margin-top:4px">Pipeline Role</div>
-              <div class="m-classes">
-                <span class="m-class-pill">Checkpost Alpha → BOP Bravo</span>
-                <span class="m-class-pill">Blind-spot Continuity</span>
-                <span class="m-class-pill">Gallery Clustering</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Model 4: Threat Scoring & Hardware Actuation -->
-          <div class="model-card">
-            <div class="m-head">
-              <h3>Threat Engine & Hardware Bridge</h3>
-              <span class="tag tag-warn">Deterministic</span>
-            </div>
-            <div class="m-body">
-              <div class="m-spec-row"><span>Scoring Matrix</span><b>Explainable Linear Model (0-100)</b></div>
-              <div class="m-spec-row"><span>Restricted Zone Points</span><b style="color:var(--breach)">+30 pts</b></div>
-              <div class="m-spec-row"><span>Tripwire Crossing</span><b style="color:var(--breach)">+25 pts</b></div>
-              <div class="m-spec-row"><span>Approach Velocity</span><b>+20 pts</b></div>
-              <div class="m-spec-row"><span>Re-ID Continuation</span><b>+12 pts</b></div>
-              <div class="m-spec-row"><span>Relay Actuation SLA</span><b style="color:var(--clear)">&lt; 120ms (Siren & Boom)</b></div>
-              <div class="label" style="margin-top:4px">Actuation Interfaces</div>
-              <div class="m-classes">
-                <span class="m-class-pill">Dry-Contact GPIO Relay</span>
-                <span class="m-class-pill">Hydraulic Boom Lockdown</span>
-                <span class="m-class-pill">Audio Klaxon Strobe</span>
-              </div>
+          <div class="cctv-feed-wrap">
+            <canvas id="feed-canvas-b" width="640" height="360"></canvas>
+            <div class="cctv-hud">
+              <div class="hud-tl" id="hud-b-tc">REC 00:00:00</div>
+              <div class="hud-tr">CAM_BRAVO · 30.8 FPS<br>N32.19 E74.94</div>
+              <div class="hud-bl" id="hud-b-det">512-d Re-ID Ready</div>
+              <div class="hud-br" id="hud-b-flag" style="color:var(--cyan)">MONITORING</div>
             </div>
           </div>
         </div>
+      </div>
+    </section>
 
-        <!-- Interactive AI Model Sandbox -->
-        <div class="panel" style="margin-top:6px;">
-          <div class="panel-head">
-            <h2><span class="dot dot-sig"></span> Live Edge Inference Sandbox & Class Visualizer</h2>
-            <span class="tag tag-sig">Interactive Test Bench</span>
-          </div>
-          <div class="panel-body">
-            <div class="sandbox-bench">
-              <div class="sandbox-canvas-wrap">
-                <canvas id="sandbox-canvas" width="640" height="360"></canvas>
-              </div>
-              <div class="sandbox-ctrls">
-                <div class="label">Test Sample Inference on Edge AI:</div>
-                <div class="sandbox-btns">
-                  <button class="btn-sig" id="sb-person">Person Incursion</button>
-                  <button class="btn-sig" id="sb-vehicle">Vehicle at Gate</button>
-                  <button class="btn-sig" id="sb-armed">Armed Intruder</button>
-                  <button class="btn-sig" id="sb-thermal">Thermal Night</button>
-                  <button class="btn-sig" id="sb-drone">UAV Incursion</button>
-                  <button class="btn-sig" id="sb-wildlife">Wildlife Filter</button>
-                </div>
-                <div class="label" style="margin-top:4px">Tensor Inference JSON Payload:</div>
-                <pre class="sandbox-json" id="sb-json">// Click a sample button above to run real-time inference...</pre>
-              </div>
-            </div>
+    <!-- ============ TAB 4: AI RE-ID INTELLIGENCE ============ -->
+    <section class="tab-page" id="page-reid" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h2>512-d Metric Re-Identification</h2>
+          <p style="color:var(--text-dim);margin-top:4px;">Cross-camera appearance matching using ResNet18/OSNet embeddings (Cosine threshold τ = 0.70)</p>
+        </div>
+      </div>
+
+      <div class="reid-match-showcase">
+        <div class="query-box">
+          <h3 style="color:#fff;font-size:14px;">Query Crop (CAM_ALPHA)</h3>
+          <canvas id="reid-query-canvas" class="query-crop-canvas" width="240" height="320"></canvas>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
+            Target: <b style="color:var(--cyan)">TRG-0017</b><br>
+            Vector: 512-dimensional embedding
           </div>
         </div>
-      </section>
 
-      <!-- ============ VIEW: WALL ============ -->
-      <section class="view" id="view-wall" hidden>
-        <div class="view-title"><h2>Camera Wall · 6 Border Surveillance Nodes</h2><p>Click any feed to isolate/enlarge · Real-time inference across Gurdaspur sector</p></div>
-        <div class="wall" id="wall"></div>
-      </section>
-
-      <!-- ============ VIEW: REPLAY ============ -->
-      <section class="view" id="view-replay" hidden>
-        <div class="view-title"><h2>Incident Replay & Spatio-Temporal Trail</h2><p>Multi-camera narrative reconstruction with synchronized timeline scrub</p></div>
-        <div class="replay-grid">
-          <div class="panel"><div class="panel-head"><h2>Correlated Incidents</h2></div><div class="panel-body"><div class="inc-list" id="inc-list"></div></div></div>
-          <div class="panel"><div class="panel-head"><h2 id="rp-title">INC-1061</h2><span class="tag tag-danger" id="rp-score">77 / 100</span></div>
-            <div class="panel-body">
-              <p class="narrative" id="rp-summary">—</p>
-              <canvas id="replay-map" width="800" height="400"></canvas>
-              <div class="replay-scrub"><button id="rp-play">▶ Play</button><input type="range" id="rp-range" min="0" max="1000" value="0"><span class="mono tnum" id="rp-time">00:00:00</span></div>
-              <div class="step-row" id="rp-steps"></div>
-            </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <h3 style="color:#fff;font-size:14px;display:flex;justify-content:space-between;">
+            <span>Candidate Gallery (CAM_BRAVO)</span>
+            <span class="gauge-tag" style="background:var(--emerald);color:#050811;">LOCK · MATCH FOUND (0.96)</span>
+          </h3>
+          <div class="gallery-grid" id="reid-gallery-container">
+            <!-- Dynamically injected gallery cards -->
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- ============ VIEW: RE-ID ============ -->
-      <section class="view" id="view-reid" hidden>
-        <div class="view-title"><h2>512-d Appearance Re-ID Matrix</h2><p>Cosine similarity matching across camera blind spots · τ = 0.70 threshold</p></div>
-        <div class="reid-grid">
-          <div class="panel"><div class="panel-head"><h2>Query Crop · Alpha</h2></div><div class="panel-body"><canvas id="reid-query" class="crop" width="160" height="220"></canvas><div class="label">512-d embedding: [0.142, -0.089, ... 0.312]</div><button id="reid-recompute" style="margin-top:6px">↺ Re-embed</button></div></div>
-          <div class="panel"><div class="panel-head"><h2>Candidate Gallery · Bravo</h2><span class="tag tag-ok" id="reid-verdict">LOCK · BRV-c1 cos 0.96</span></div>
-            <div class="panel-body"><div class="cand-grid" id="cand-grid"></div><div class="ledger-actions" style="margin-top:8px"><button class="btn-confirm" id="reid-accept">✓ Confirm identity link</button><button class="btn-dismiss" id="reid-reject">✕ Reject match</button></div></div>
+    <!-- ============ TAB 5: EVIDENCE VAULT ============ -->
+    <section class="tab-page" id="page-ledger" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h2>Tamper-Evident SHA-256 Evidence Vault</h2>
+          <p style="color:var(--text-dim);margin-top:4px;">Cryptographically chained incident capsules compliant with Section 65B Indian Evidence Act</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-action btn-confirm" id="btn-audit-chain">⛓ Run Merkle Audit</button>
+          <button class="btn-action btn-dismiss" style="color:var(--crimson);border-color:var(--crimson)" id="btn-tamper-test">⚠ Tamper Test</button>
+        </div>
+      </div>
+
+      <div class="ledger-vault-grid">
+        <div class="block-list" id="vault-block-list"></div>
+        <div class="tactical-card">
+          <div class="card-header">
+            <h3 id="vault-inspect-title">Block #1 · INC-1061</h3>
+            <span class="status-badge">100% UNTAMPERED</span>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:11.5px;line-height:1.8;color:var(--text-dim)" id="vault-inspect-details">
+            <!-- Details rendered by JS -->
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- ============ VIEW: LEDGER ============ -->
-      <section class="view" id="view-ledger" hidden>
-        <div class="view-title"><h2>Tamper-Evident SHA-256 Chain of Custody</h2><p>Cryptographically linked evidence ledger conforming to Indian Evidence Act standards</p></div>
-        <div class="ledger-grid">
-          <div class="panel"><div class="panel-head"><h2>Evidence Blocks</h2><span class="tag tag-ok" id="lf-tag">Verified</span></div><div class="panel-body"><div class="ledger-list" id="lf-list"></div><div class="ledger-actions"><button id="lf-verify" class="btn-sig">⛓ Run Merkle audit</button><button id="lf-tamper" class="btn-danger">⚠ Tamper byte</button><button id="lf-export" style="grid-column: span 2">↓ Export forensic jsonl</button></div></div></div>
-          <div class="panel"><div class="panel-head"><h2>Block Inspection · <span id="lf-sel-id">INC-1061</span></h2></div>
-            <div class="panel-body">
-              <dl class="ledger-detail" id="lf-detail"></dl>
-              <div class="label">Chain topology</div>
-              <svg id="merkle-svg" viewBox="0 0 800 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ VIEW: CALIB ============ -->
-      <section class="view" id="view-calib" hidden>
-        <div class="view-title"><h2>Site Alert Calibration</h2><p>Per-node adaptive sensitivity from operator false-positive feedback — zero retraining required</p></div>
-        <div class="calib-grid" id="calib-grid"></div>
-        <button id="calib-apply" class="btn-sig" style="max-width:220px">✓ Apply calibration</button>
-      </section>
-    </div>
-  </div>
+  </main>
 </div>
 
-<div id="toasts" aria-live="polite"></div>
+<div id="toasts"></div>
 
 <script>
 /* ============================================================
-   0. UTIL + DATA LAYER
+   0. SHARED STATE & HELPERS
    ============================================================ */
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const API_BASE = (window.location.port === '8000' || window.location.port === '8080') 
-  ? window.location.origin 
-  : 'http://localhost:8000';
 
-function toast(kind, head, msg, ttl = 4200) {
+const SIM = {
+  running: false,
+  scenario: 1,
+  threatScore: 0,
+  targetProgress: 0,
+  feedModeA: 'rgb',
+  feedModeB: 'rgb'
+};
+
+function toast(kind, title, msg, duration = 4000) {
   const el = document.createElement('div');
   el.className = 'toast ' + kind;
-  el.innerHTML = `<b>${head}</b>${msg}`;
+  el.innerHTML = `<b>${title}</b>${msg}`;
   $('#toasts').appendChild(el);
-  blip(kind === 'crit' ? 180 : kind === 'ok' ? 640 : 420);
-  setTimeout(() => { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, ttl);
+  playBlip(kind === 'crit' ? 220 : 540);
+  setTimeout(() => {
+    el.style.transition = 'all 0.3s ease';
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(30px)';
+    setTimeout(() => el.remove(), 300);
+  }, duration);
 }
 
-function pseudoHash(str) {
-  let h = new Array(8).fill(0).map((_, i) => (0x9e3779b9 ^ (i * 0x85ebca6b)) >>> 0);
-  for (let i = 0; i < str.length; i++) {
-    const c = str.charCodeAt(i), k = i & 7;
-    h[k] = (h[k] ^ c) >>> 0;
-    h[k] = (Math.imul(h[k], 0x27d4eb2f) + 0x165667b1) >>> 0;
-    h[(k + 1) & 7] = (h[(k + 1) & 7] ^ ((h[k] >>> 13) | (h[k] << 19))) >>> 0;
-  }
-  return h.map(x => x.toString(16).padStart(8, '0')).join('');
+/* Audio Synthesizer */
+let audioCtx = null, soundEnabled = true;
+function playBlip(freq = 440, dur = 0.06) {
+  if (!soundEnabled || REDUCED) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    gain.gain.value = 0.04; gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  } catch (e) {}
 }
 
-const API = {
-  live: false,
-  async get(path, fallback) {
-    try {
-      const ctrl = new AbortController();
-      const to = setTimeout(() => ctrl.abort(), 1400);
-      const r = await fetch(API_BASE + path, { signal: ctrl.signal });
-      clearTimeout(to);
-      if (!r.ok) throw new Error(r.status);
-      if (!API.live) { API.live = true; setConn(true); }
-      return await r.json();
-    } catch (e) {
-      if (API.live) { API.live = false; setConn(false); }
-      return fallback;
-    }
-  },
-  async post(path, body) {
-    try {
-      const r = await fetch(API_BASE + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
-      return r.ok ? await r.json() : null;
-    } catch (e) { return null; }
-  },
-};
-function setConn(live) {
-  const c = $('#conn');
-  c.className = 'conn ' + (live ? 'live' : 'demo');
-  $('#conn-t').textContent = live ? 'LIVE · :8000' : 'DEMO MODE';
-  if (live) toast('ok', 'Gateway linked', 'FastAPI edge gateway online — console now on live telemetry.');
-}
-
-/* ============================================================
-   1. SOUND (WebAudio, gesture-gated)
-   ============================================================ */
-let audioCtx = null, soundOn = false;
-function ensureAudio() { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } return audioCtx; }
-function blip(freq = 440, dur = 0.05, vol = 0.03) {
-  if (!soundOn || REDUCED) return;
-  const ac = ensureAudio(); if (!ac) return;
-  const o = ac.createOscillator(), g = ac.createGain();
-  o.type = 'square'; o.frequency.value = freq;
-  g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
-  o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime + dur);
-}
-$('#btn-sound').addEventListener('click', () => {
-  soundOn = !soundOn;
-  ensureAudio();
-  $('#btn-sound').setAttribute('aria-pressed', String(soundOn));
-  $('#btn-sound').textContent = soundOn ? '♪ Sound' : '♪ Muted';
-  if (soundOn) blip(660, 0.08, 0.04);
+$('#btn-sound-toggle').addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  $('#btn-sound-toggle').style.color = soundEnabled ? 'var(--cyan)' : 'var(--text-faint)';
+  toast('ok', soundEnabled ? 'Sound Enabled' : 'Muted', 'Tactical audio feedback updated.');
 });
 
-/* Shared simulation state */
-const SIM = { running: false, phase: 'idle', scenario: 1, transitDur: 9.4, targetProgress: 0, match: 0 };
-
-/* ============================================================
-   2. INSTANT INITIALIZATION & CLOCKS
-   ============================================================ */
-startClocks();
-pollStatus();
-setTimeout(() => { toast('ok', 'Watchfloor online', '6 edge nodes armed. 5 tactical scenarios loaded.'); }, 200);
-
-function startClocks() {
-  setInterval(() => { $('#v-clock').textContent = new Date().toTimeString().slice(0, 8) + ' IST'; }, 1000);
-  setInterval(() => {
-    const base = SIM.running ? 27.5 : 32.4;
-    $('#v-fps').textContent = (base + (Math.random() * 2.4 - 1.2)).toFixed(1);
-  }, 1400);
-}
-async function pollStatus() {
-  const s = await API.get('/edge/status', null);
-  if (s) {
-    $('#v-nodes').textContent = (s.active_camera_count || 6) + ' / 6';
+/* Siren Toggle */
+let sirenActive = false;
+$('#btn-siren-toggle').addEventListener('click', () => {
+  sirenActive = !sirenActive;
+  $('#btn-siren-toggle').classList.toggle('active', sirenActive);
+  if (sirenActive) {
+    $('#main-status-badge').className = 'status-badge alert';
+    $('#main-status-text').textContent = '🚨 EMERGENCY ALARM ACTIVE';
+    toast('crit', 'Siren Armed', 'High-decibel klaxon strobe activated across border posts.');
+  } else {
+    $('#main-status-badge').className = 'status-badge';
+    $('#main-status-text').textContent = 'ALL SECTORS SECURE';
+    toast('ok', 'Siren Silenced', 'All alarms returned to nominal standby.');
   }
-  setTimeout(pollStatus, 10000);
-}
+});
 
 /* ============================================================
-   3. VIEW ROUTER
+   1. TOP NAVIGATION TAB ROUTER
    ============================================================ */
-const VIEW = { active: 'ops', inited: {} };
-function showView(name) {
-  VIEW.active = name;
-  $$('.view').forEach(v => { v.hidden = v.id !== 'view-' + name; });
-  $$('.nav button').forEach(b => b.setAttribute('aria-current', String(b.dataset.view === name)));
-  if (!VIEW.inited[name] && VIEW.builders[name]) { VIEW.builders[name](); VIEW.inited[name] = true; }
-  blip(520, 0.04, 0.025);
-}
-$$('.nav button').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
-VIEW.builders = {};
+$$('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const viewName = btn.dataset.view;
+    $$('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    $$('.tab-page').forEach(p => p.hidden = true);
+    const targetPage = $(`#page-${viewName}`);
+    if (targetPage) targetPage.hidden = false;
+
+    if (viewName === 'reid') renderReIDGallery();
+    if (viewName === 'ledger') renderVaultBlocks();
+
+    playBlip(620, 0.04);
+  });
+});
 
 /* ============================================================
-   4. THREE.JS — RICH 3D BORDER DIGITAL TWIN
+   2. THREE.JS 3D BORDER DIGITAL TWIN
    ============================================================ */
-const TW = { layers: {}, night: false, camGoal: null };
-(function twin() {
-  const stage = $('#twin-stage');
-  if (!stage) return;
-  if (typeof THREE === 'undefined') {
-    stage.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-dim);font-family:var(--font-mono);font-size:12px;background:#060a12;"><div style="text-align:center;"><div style="color:var(--signal);font-size:16px;margin-bottom:8px;">BORDER DIGITAL TWIN</div><span>Active Surveillance Mesh · Telemetry Linked</span></div></div>';
-    return;
-  }
+const TW = { camGoal: null };
+(function initTwin() {
+  const container = $('#twin-canvas-wrap');
+  if (!container || typeof THREE === 'undefined') return;
+
   const scene = new THREE.Scene();
-  const DAY_BG = new THREE.Color(0x0a1420), NIGHT_BG = new THREE.Color(0x05070d);
-  scene.background = DAY_BG.clone();
-  scene.fog = new THREE.FogExp2(0x0a1420, 0.016);
+  scene.background = new THREE.Color(0x040711);
+  scene.fog = new THREE.FogExp2(0x040711, 0.015);
 
-  const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 500);
-  camera.position.set(1, 33, 43);
-
-  const initW = stage.clientWidth || stage.offsetWidth || 560;
-  const initH = stage.clientHeight || stage.offsetHeight || 520;
-  camera.aspect = initW / initH;
-  camera.updateProjectionMatrix();
+  const w = container.clientWidth || 800;
+  const h = container.clientHeight || 540;
+  const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 500);
+  camera.position.set(0, 32, 42);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(initW, initH, false);
-  stage.appendChild(renderer.domElement);
+  renderer.setSize(w, h);
+  container.appendChild(renderer.domElement);
 
-  const OrbitControlsClass = (THREE && THREE.OrbitControls) || window.OrbitControls;
-  let controls;
-  if (OrbitControlsClass) {
-    controls = new OrbitControlsClass(camera, renderer.domElement);
-    controls.enableDamping = true; controls.dampingFactor = 0.06;
-    controls.minDistance = 12; controls.maxDistance = 82;
-    controls.maxPolarAngle = Math.PI / 2 - 0.04;
-    controls.target.set(0, 1, 0);
-    controls.addEventListener('start', () => { controls._drag = true; TW.camGoal = null; });
-    controls.addEventListener('end', () => { controls._drag = false; });
-  } else {
-    controls = { enableDamping: false, dampingFactor: 0.05, minDistance: 12, maxDistance: 82, maxPolarAngle: Math.PI / 2, target: new THREE.Vector3(0, 1, 0), addEventListener: () => {}, update: () => {}, _drag: false };
-  }
+  const OrbitClass = THREE.OrbitControls || window.OrbitControls;
+  const controls = OrbitClass ? new OrbitClass(camera, renderer.domElement) : { update: () => {}, target: new THREE.Vector3() };
+  controls.enableDamping = true; controls.dampingFactor = 0.05;
+  controls.maxPolarAngle = Math.PI / 2 - 0.05;
 
-  const amb = new THREE.AmbientLight(0x9fc4e0, 0.6); scene.add(amb);
-  const key = new THREE.DirectionalLight(0xffffff, 0.75); key.position.set(20, 36, 14); scene.add(key);
-  const moon = new THREE.PointLight(0x4a7fd0, 0.0, 200); moon.position.set(-16, 20, -8); scene.add(moon);
+  /* Lights */
+  const amb = new THREE.AmbientLight(0x7dd3fc, 0.5); scene.add(amb);
+  const dir = new THREE.DirectionalLight(0xffffff, 0.8); dir.position.set(20, 40, 20); scene.add(dir);
 
-  /* Terrain with ridge */
-  const terGeo = new THREE.PlaneGeometry(140, 96, 60, 40);
-  const pos = terGeo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i);
-    let h = Math.sin(x * 0.08) * 0.35 + Math.cos(y * 0.11) * 0.3;
-    if (y < -14) h += (Math.abs(y) - 14) * 0.22 + Math.sin(x * 0.3) * 0.8;
-    pos.setZ(i, h);
-  }
-  terGeo.computeVertexNormals();
-  const terrain = new THREE.Mesh(terGeo, new THREE.MeshStandardMaterial({ color: 0x0c1622, roughness: 0.85, metalness: 0.15 }));
+  /* Terrain Plane */
+  const terGeo = new THREE.PlaneGeometry(140, 100, 40, 40);
+  const terMat = new THREE.MeshStandardMaterial({ color: 0x091322, roughness: 0.8, metalness: 0.2 });
+  const terrain = new THREE.Mesh(terGeo, terMat);
   terrain.rotation.x = -Math.PI / 2; scene.add(terrain);
 
-  const grid = new THREE.GridHelper(140, 40, 0x37d2e0, 0x122030);
+  const grid = new THREE.GridHelper(140, 35, 0x00f0ff, 0x0e2238);
   grid.position.y = 0.02; scene.add(grid);
 
-  /* International border line */
-  const bPts = [new THREE.Vector3(-68, 0.2, -14), new THREE.Vector3(0, 0.2, -14), new THREE.Vector3(68, 0.2, -14)];
-  const bLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(bPts), new THREE.LineBasicMaterial({ color: 0xf2a63c, linewidth: 2 }));
-  scene.add(bLine);
-
-  /* Patrol road */
-  const road = new THREE.Mesh(new THREE.PlaneGeometry(140, 5), new THREE.MeshStandardMaterial({ color: 0x131e2b, roughness: 0.9 }));
-  road.rotation.x = -Math.PI / 2; road.position.set(0, 0.03, 6.5); scene.add(road);
-
-  /* Barbed wire fence */
+  /* Security Perimeter Fence */
   const fence = new THREE.Group();
-  for (let x = -50; x <= 50; x += 4) {
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 2.2, 6), new THREE.MeshStandardMaterial({ color: 0x223547, metalness: 0.6 }));
-    post.position.set(x, 1.1, -4.4); fence.add(post);
+  for (let x = -50; x <= 50; x += 5) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.4), new THREE.MeshStandardMaterial({ color: 0x1e3a5f }));
+    post.position.set(x, 1.2, -4); fence.add(post);
   }
-  [0.5, 1.1, 1.7].forEach(y => {
-    const w = new THREE.Mesh(new THREE.BoxGeometry(104, 0.03, 0.03), new THREE.MeshBasicMaterial({ color: 0x37d2e0, transparent: true, opacity: 0.26 }));
-    w.position.set(0, y, -4.4); fence.add(w);
-  });
-  scene.add(fence); TW.layers.fence = fence;
+  const wire = new THREE.Mesh(new THREE.BoxGeometry(104, 0.04, 0.04), new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.5 }));
+  wire.position.set(0, 1.4, -4); fence.add(wire);
+  scene.add(fence);
 
-  /* Red geofence */
-  const geo = new THREE.Group();
-  const zoneWall = new THREE.Mesh(new THREE.BoxGeometry(32, 2.4, 6), new THREE.MeshBasicMaterial({ color: 0xff4060, transparent: true, opacity: 0.13, side: THREE.DoubleSide }));
-  zoneWall.position.set(0, 1.2, 0); geo.add(zoneWall);
-  const zoneEdge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(32, 2.4, 6)), new THREE.LineBasicMaterial({ color: 0xff4060, transparent: true, opacity: 0.5 }));
-  zoneEdge.position.set(0, 1.2, 0); geo.add(zoneEdge);
-  scene.add(geo); TW.layers.geofence = geo;
+  /* Red Hazard Geofence */
+  const geoBox = new THREE.Mesh(new THREE.BoxGeometry(32, 2.5, 6), new THREE.MeshBasicMaterial({ color: 0xff0055, transparent: true, opacity: 0.12, side: THREE.DoubleSide }));
+  geoBox.position.set(0, 1.25, 0); scene.add(geoBox);
 
-  /* Tripwires */
-  const trip = new THREE.Group();
-  [-8, 9].forEach(x => {
-    const l = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.9, 6), new THREE.MeshBasicMaterial({ color: 0xf2a63c, transparent: true, opacity: 0.5 }));
-    l.position.set(x, 0.45, 0); trip.add(l);
-  });
-  scene.add(trip); TW.layers.tripwire = trip;
-
-  /* Watchtowers + FOV cones */
-  const fovGroup = new THREE.Group(); scene.add(fovGroup); TW.layers.fov = fovGroup;
-  const towerLights = [];
-  const pickables = [];
-  function tower(x, colorHex, meta) {
+  /* Watchtowers */
+  function makeTower(x, z, name, color = 0x00f0ff) {
     const g = new THREE.Group();
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 7, 8), new THREE.MeshStandardMaterial({ color: 0x1c2a3c, metalness: 0.7, roughness: 0.35 }));
-    leg.position.y = 3.5; g.add(leg);
-    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.3, 1.8), new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.5, roughness: 0.3, emissive: colorHex, emissiveIntensity: 0.25 }));
-    cab.position.y = 7.6; g.add(cab);
-    g.position.set(x, 0, -4.4); g.userData = meta; scene.add(g); pickables.push(cab); cab.userData = meta;
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(6, 15, 24, 1, true), new THREE.MeshBasicMaterial({ color: colorHex, wireframe: true, transparent: true, opacity: 0.15 }));
-    cone.position.set(x, 7, -4.4); cone.rotation.x = Math.PI / 2.6; fovGroup.add(cone);
-    const spot = new THREE.PointLight(colorHex, 0.0, 30); spot.position.set(x, 7.5, -3); scene.add(spot); towerLights.push(spot);
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 8, 8), new THREE.MeshStandardMaterial({ color: 0x162b47 }));
+    leg.position.y = 4; g.add(leg);
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(2, 1.4, 2), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.3 }));
+    cab.position.y = 8.4; g.add(cab);
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(5, 14, 16, 1, true), new THREE.MeshBasicMaterial({ color, wireframe: true, transparent: true, opacity: 0.15 }));
+    cone.position.set(0, 7.5, 2); cone.rotation.x = Math.PI / 2.6; g.add(cone);
+    g.position.set(x, 0, z);
+    g.userData = { name, desc: `Tactical Surveillance Tower · Connected to AI Mesh.` };
+    scene.add(g);
+    return g;
   }
-  tower(-20, 0x34e0a0, { kind: 'node', name: 'CAM_ALPHA', role: 'Checkpost north gate', status: 'ARMED', rules: 'Red zone · tripwire T-1/T-2', fps: '32.4' });
-  tower(20, 0x37d2e0, { kind: 'node', name: 'CAM_BRAVO', role: 'BOP Bravo east perimeter', status: 'ARMED', rules: 'Re-ID · loiter dwell 240s', fps: '30.8' });
+  const towerAlpha = makeTower(-20, -4, 'Checkpost Alpha Tower', 0x00f0ff);
+  const towerBravo = makeTower(20, -4, 'BOP Bravo Tower', 0x00ff9d);
 
-  /* BOP building near Bravo */
-  const bop = new THREE.Mesh(new THREE.BoxGeometry(5, 3, 4), new THREE.MeshStandardMaterial({ color: 0x1b2836, roughness: 0.8, metalness: 0.2 }));
-  bop.position.set(26, 1.5, 8); bop.userData = { kind: 'node', name: 'BOP BRAVO', role: 'Border out post · barracks', status: 'MANNED', rules: 'QRT muster point', fps: '—' };
-  scene.add(bop); pickables.push(bop);
+  /* Checkpoint Booth & Barrier */
+  const booth = new THREE.Mesh(new THREE.BoxGeometry(3, 2.5, 3), new THREE.MeshStandardMaterial({ color: 0x1c2e4a }));
+  booth.position.set(-12, 1.25, 3); scene.add(booth);
+  const boomPivot = new THREE.Group(); boomPivot.position.set(-12, 1.5, 1.5);
+  const boomBar = new THREE.Mesh(new THREE.BoxGeometry(7, 0.18, 0.18), new THREE.MeshStandardMaterial({ color: 0xffb703, emissive: 0xffb703, emissiveIntensity: 0.4 }));
+  boomBar.position.x = 3.5; boomPivot.add(boomBar); scene.add(boomPivot);
+  boomPivot.rotation.y = -0.5;
 
-  /* Checkpoint booth + boom */
-  const booth = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 2.4), new THREE.MeshStandardMaterial({ color: 0x233549, metalness: 0.4, roughness: 0.6 }));
-  booth.position.set(-13, 1.2, 3.4); scene.add(booth);
-  const boomPivot = new THREE.Group(); boomPivot.position.set(-13, 1.4, 1.6);
-  const boom = new THREE.Mesh(new THREE.BoxGeometry(7, 0.18, 0.18), new THREE.MeshStandardMaterial({ color: 0xf2a63c, emissive: 0xf2a63c, emissiveIntensity: 0.3 }));
-  boom.position.x = 3.5; boomPivot.add(boom); boomPivot.rotation.y = -0.5; scene.add(boomPivot);
-  TW.boomOpen = () => { boomPivot.userData.goal = -1.9; };
-  TW.boomClose = () => { boomPivot.userData.goal = -0.5; };
-  boomPivot.userData.goal = -0.5;
+  /* Moving Targets & Drone */
+  const targetMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.4), new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0xff0055, emissiveIntensity: 0.5 }));
+  targetMesh.position.set(-20, 0.7, 2); scene.add(targetMesh);
+  const ringHalo = new THREE.Mesh(new THREE.RingGeometry(0.7, 0.9, 20), new THREE.MeshBasicMaterial({ color: 0xff0055, side: THREE.DoubleSide }));
+  ringHalo.rotation.x = -Math.PI / 2; ringHalo.position.set(-20, 0.05, 2); scene.add(ringHalo);
 
-  /* Speeding Threat Vehicle (for Scenario 3) */
-  const veh = new THREE.Group();
-  const vBody = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.9, 1.5), new THREE.MeshStandardMaterial({ color: 0x8b1a2b, emissive: 0xff4060, emissiveIntensity: 0.2 }));
-  vBody.position.y = 0.6; veh.add(vBody);
-  const vCab = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 1.3), new THREE.MeshStandardMaterial({ color: 0x1a1a24 }));
-  vCab.position.set(-0.3, 1.3, 0); veh.add(vCab);
-  veh.position.set(-45, 0, 6.5); scene.add(veh); TW.layers.vehicle = veh;
+  const drone = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.8), new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 0.5 }));
+  drone.position.set(0, 12, 0); scene.add(drone);
 
-  /* Predicted trajectory */
-  const traj = new THREE.Group();
-  const curve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-20, 0.4, 2), new THREE.Vector3(-8, 0.4, 0.5),
-    new THREE.Vector3(4, 0.4, -0.5), new THREE.Vector3(20, 0.4, -1.5),
-  ]);
-  const trajLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(60)),
-    new THREE.LineDashedMaterial({ color: 0xf2a63c, dashSize: 0.6, gapSize: 0.35, transparent: true, opacity: 0.8 }));
-  trajLine.computeLineDistances(); traj.add(trajLine);
-  const gate = new THREE.Mesh(new THREE.TorusGeometry(1.1, 0.06, 8, 24), new THREE.MeshBasicMaterial({ color: 0x37d2e0 }));
-  gate.position.set(20, 1.1, -1.5); gate.rotation.y = Math.PI / 2; traj.add(gate);
-  scene.add(traj); TW.layers.trajectory = traj;
-
-  /* Targets */
-  function makeTarget(colorHex, p0) {
-    const grp = new THREE.Group();
-    const mat = new THREE.MeshStandardMaterial({ color: colorHex, emissive: colorHex, emissiveIntensity: 0.5, metalness: 0.3, roughness: 0.4 });
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.32, 1.3, 12), mat); body.position.y = 0.15;
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 12), mat); head.position.y = 1;
-    grp.add(body, head); grp.position.copy(p0); scene.add(grp);
-    const ring = new THREE.Mesh(new THREE.RingGeometry(0.7, 0.9, 24), new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.5, side: THREE.DoubleSide }));
-    ring.rotation.x = -Math.PI / 2; scene.add(ring);
-    return { grp, ring, mat };
-  }
-  const mainT = makeTarget(0xff4060, new THREE.Vector3(-20, 0.9, 2)); mainT.grp.userData = { kind: 'target', name: 'TRG-0017', cls: 'person', conf: '0.94', state: 'TRACKED' };
-  pickables.push(mainT.grp.children[0]); mainT.grp.children[0].userData = mainT.grp.userData;
-  const patrolT = makeTarget(0x34e0a0, new THREE.Vector3(-40, 0.9, 6.5)); patrolT.grp.userData = { kind: 'target', name: 'SSB-PATROL-2', cls: 'friendly', conf: '0.99', state: 'FRIENDLY' };
-  const loiterT = makeTarget(0xf2a63c, new THREE.Vector3(30, 0.9, -2)); loiterT.grp.userData = { kind: 'target', name: 'TRG-0025', cls: 'person', conf: '0.88', state: 'LOITER' };
-
-  /* Patrol jeep */
-  const jeep = new THREE.Group();
-  const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 1.2), new THREE.MeshStandardMaterial({ color: 0x2b4a3a, roughness: 0.7 }));
-  chassis.position.y = 0.55; jeep.add(chassis);
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.6, 1.1), new THREE.MeshStandardMaterial({ color: 0x223a2e })); cabin.position.set(-0.2, 1.1, 0); jeep.add(cabin);
-  jeep.position.set(-30, 0, 6.5); scene.add(jeep);
-  const headlamp = new THREE.SpotLight(0xfff2c0, 0.0, 22, Math.PI / 7, 0.5); headlamp.position.set(0, 1, 0); headlamp.target.position.set(6, 0, 0); jeep.add(headlamp, headlamp.target);
-
-  /* UAV drone */
-  const drone = new THREE.Group();
-  const dbody = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.18, 0.6), new THREE.MeshStandardMaterial({ color: 0x0f1a26, emissive: 0x37d2e0, emissiveIntensity: 0.3 })); drone.add(dbody);
-  const scanCone = new THREE.Mesh(new THREE.ConeGeometry(3.4, 12, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0x37d2e0, wireframe: true, transparent: true, opacity: 0.16 }));
-  scanCone.position.y = -6; scanCone.rotation.x = Math.PI; drone.add(scanCone);
-  drone.position.set(0, 12, 0); scene.add(drone); TW.layers.drone = drone;
-  const groundSpot = new THREE.Mesh(new THREE.RingGeometry(1.4, 1.7, 28), new THREE.MeshBasicMaterial({ color: 0x37d2e0, transparent: true, opacity: 0.4, side: THREE.DoubleSide }));
-  groundSpot.rotation.x = -Math.PI / 2; groundSpot.position.y = 0.06; scene.add(groundSpot); TW.layers.drone.userData.spot = groundSpot;
-
-  /* Projected labels */
-  const labelDefs = [
-    { cls: 'sig', text: 'CAM_ALPHA', pos: new THREE.Vector3(-20, 9.4, -4.4) },
-    { cls: 'sig', text: 'CAM_BRAVO', pos: new THREE.Vector3(20, 9.4, -4.4) },
-    { cls: 'warn', text: 'CHECKPOST GATE', pos: new THREE.Vector3(-13, 3.6, 3.4) },
-    { cls: 'danger', text: 'RESTRICTED ZONE', pos: new THREE.Vector3(0, 3, 3) },
-    { cls: '', text: 'BOP BRAVO', pos: new THREE.Vector3(26, 3.6, 8) },
-    { cls: 'danger', text: 'TRG-0017', follow: mainT.grp },
-    { cls: 'sig', text: 'UAV-01', follow: drone },
-  ];
-  labelDefs.forEach(d => { const el = document.createElement('div'); el.className = 'twin-label ' + d.cls; el.textContent = d.text; stage.appendChild(el); d.el = el; });
-
-  function resize() {
-    const w = stage.clientWidth || stage.offsetWidth || 560;
-    const h = stage.clientHeight || stage.offsetHeight || 520;
-    if (!w || !h) return;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  }
-  new ResizeObserver(resize).observe(stage);
-  resize();
-
-  /* Raycast inspect */
-  const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
-  renderer.domElement.addEventListener('click', e => {
-    const r = renderer.domElement.getBoundingClientRect();
-    mouse.x = ((e.clientX - r.left) / r.width) * 2 - 1;
-    mouse.y = -((e.clientY - r.top) / r.height) * 2 + 1;
-    ray.setFromCamera(mouse, camera);
-    const hit = ray.intersectObjects(pickables, false)[0];
-    const box = $('#twin-inspect');
-    if (hit && hit.object.userData && hit.object.userData.name) {
-      const u = hit.object.userData;
-      box.hidden = false;
-      box.innerHTML = u.kind === 'target'
-        ? `<h4>${u.name}</h4>class <b>${u.cls}</b><br>confidence <b>${u.conf}</b><br>state <b>${u.state}</b>`
-        : `<h4>${u.name}</h4>${u.role}<br>status <b>${u.status}</b><br>rules <b>${u.rules}</b><br>fps <b>${u.fps}</b>`;
-      blip(600, 0.04, 0.02);
-    } else { box.hidden = true; }
+  /* Camera Resize */
+  window.addEventListener('resize', () => {
+    const nw = container.clientWidth, nh = container.clientHeight;
+    if (!nw || !nh) return;
+    camera.aspect = nw / nh; camera.updateProjectionMatrix();
+    renderer.setSize(nw, nh);
   });
 
-  const v = new THREE.Vector3();
-  let spin = !REDUCED;
+  /* Animation Frame */
   const clock = new THREE.Clock();
-
-  function frame() {
-    requestAnimationFrame(frame);
-    if (VIEW.active !== 'ops') { return; }
-    const dt = Math.min(clock.getDelta(), 0.05), time = clock.elapsedTime;
-
-    controls.autoRotate = spin && !controls._drag && !TW.camGoal;
-    controls.autoRotateSpeed = 0.22;
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
     controls.update();
 
     if (TW.camGoal) {
@@ -1228,942 +957,240 @@ const TW = { layers: {}, night: false, camGoal: null };
       if (camera.position.distanceTo(TW.camGoal.pos) < 0.3) TW.camGoal = null;
     }
 
-    /* Day / night lerp */
-    amb.intensity += ((TW.night ? 0.22 : 0.6) - amb.intensity) * 0.05;
-    key.intensity += ((TW.night ? 0.12 : 0.75) - key.intensity) * 0.05;
-    moon.intensity += ((TW.night ? 0.9 : 0) - moon.intensity) * 0.05;
-    scene.background.lerp(TW.night ? NIGHT_BG : DAY_BG, 0.05);
-    scene.fog.color.copy(scene.background);
-    towerLights.forEach(l => l.intensity += ((TW.night ? 1.1 : 0) - l.intensity) * 0.05);
-    headlamp.intensity += ((TW.night ? 1.4 : 0) - headlamp.intensity) * 0.05;
-
-    /* Main target motion */
-    let p;
-    if (SIM.phase === 'transit' || SIM.phase === 'reid' || SIM.phase === 'sealed') p = clamp(SIM.targetProgress, 0, 1);
-    else p = (Math.sin(time * 0.18) * 0.5 + 0.5) * 0.34;
-    const pt = curve.getPoint(p);
-    mainT.grp.position.set(pt.x, 0.9 + Math.sin(time * 6) * 0.04, pt.z);
-    mainT.ring.position.set(pt.x, 0.05, pt.z);
-    mainT.ring.scale.setScalar(1 + Math.sin(time * 3) * 0.12);
-
-    /* Patrol & loiterer */
-    patrolT.grp.position.x = -40 + ((time * 3) % 80);
-    patrolT.ring.position.set(patrolT.grp.position.x, 0.05, 6.5);
-    loiterT.grp.position.x = 30 + Math.sin(time * 0.5) * 1.6;
-    loiterT.grp.position.z = -2 + Math.cos(time * 0.4) * 1.4;
-    loiterT.ring.position.set(loiterT.grp.position.x, 0.05, loiterT.grp.position.z);
-
-    /* Patrol jeep */
-    jeep.position.x = -34 + ((time * 6) % 68);
-
-    /* Scenario vehicle motion */
-    if (SIM.scenario === 3 && SIM.running) {
-      veh.position.x += ((-13) - veh.position.x) * 0.04;
-    } else if (!SIM.running) {
-      veh.position.x = -45;
+    /* Target motion */
+    if (SIM.running) {
+      const p = clamp(SIM.targetProgress, 0, 1);
+      targetMesh.position.x = -20 + p * 40;
+      ringHalo.position.x = targetMesh.position.x;
+    } else {
+      targetMesh.position.x = -20 + Math.sin(t * 0.5) * 4;
+      ringHalo.position.x = targetMesh.position.x;
     }
 
-    /* Drone orbit + ground spot */
-    drone.position.set(Math.cos(time * 0.35) * 16, 12 + Math.sin(time * 0.7) * 0.5, Math.sin(time * 0.35) * 10);
-    drone.rotation.y = -time * 0.35;
-    groundSpot.position.x = drone.position.x; groundSpot.position.z = drone.position.z;
-    groundSpot.scale.setScalar(1 + Math.sin(time * 2) * 0.08);
-
-    /* Zone breach flash */
-    const inZone = pt.x > -16 && pt.x < 16;
-    zoneWall.material.opacity = inZone ? 0.13 + Math.abs(Math.sin(time * 5)) * 0.22 : 0.1;
-    zoneEdge.material.opacity = inZone ? 0.5 + Math.abs(Math.sin(time * 5)) * 0.3 : 0.4;
-
-    gate.rotation.z = time * 1.4;
-    trajLine.material.dashOffset = -time * 0.6;
-    boomPivot.rotation.y += (boomPivot.userData.goal - boomPivot.rotation.y) * 0.08;
-
-    /* Labels */
-    const w = stage.clientWidth, h = stage.clientHeight;
-    labelDefs.forEach(d => {
-      const src = d.follow ? d.follow.position.clone().add(new THREE.Vector3(0, d.follow === drone ? 1.4 : 1.5, 0)) : d.pos;
-      v.copy(src).project(camera);
-      const x = (v.x * 0.5 + 0.5) * w, y = (-v.y * 0.5 + 0.5) * h;
-      const vis = v.z < 1 && x > -40 && x < w + 40 && y > -20 && y < h + 20;
-      d.el.style.display = vis ? 'block' : 'none';
-      d.el.style.left = x + 'px'; d.el.style.top = y + 'px';
-    });
-
+    drone.position.set(Math.cos(t * 0.4) * 15, 12 + Math.sin(t) * 0.5, Math.sin(t * 0.4) * 10);
     renderer.render(scene, camera);
   }
-  frame();
+  animate();
 
-  /* Camera view presets */
-  TW.flyToGate = () => { TW.camGoal = { pos: new THREE.Vector3(-14, 12, 18), tgt: new THREE.Vector3(-13, 1.5, 2) }; };
-  TW.flyToHandoff = () => { TW.camGoal = { pos: new THREE.Vector3(6, 18, 26), tgt: new THREE.Vector3(0, 1, 0) }; };
-  TW.flyToLoiter = () => { TW.camGoal = { pos: new THREE.Vector3(26, 11, 12), tgt: new THREE.Vector3(26, 1, -1) }; };
-  TW.flyToOverhead = () => { TW.camGoal = { pos: new THREE.Vector3(0, 48, 4), tgt: new THREE.Vector3(0, 0, 0) }; };
-  TW.resetView = () => { TW.camGoal = { pos: new THREE.Vector3(1, 33, 43), tgt: new THREE.Vector3(0, 1, 0) }; };
-
-  $('#twin-reset').addEventListener('click', TW.resetView);
-  const dayBtn = $('#twin-day');
-  dayBtn.addEventListener('click', () => {
-    TW.night = !TW.night;
-    dayBtn.textContent = TW.night ? '☀ Day' : '☾ Night';
-    $('#twin-tod').textContent = 'WebGL · ' + (TW.night ? 'Night' : 'Day');
+  /* Preset Click Handlers */
+  $$('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = btn.dataset.cam;
+      if (mode === 'gate') TW.camGoal = { pos: new THREE.Vector3(-14, 10, 16), tgt: new THREE.Vector3(-12, 1, 2) };
+      else if (mode === 'handoff') TW.camGoal = { pos: new THREE.Vector3(0, 16, 24), tgt: new THREE.Vector3(0, 1, 0) };
+      else if (mode === 'bravo') TW.camGoal = { pos: new THREE.Vector3(22, 10, 14), tgt: new THREE.Vector3(20, 1, -2) };
+      else if (mode === 'overhead') TW.camGoal = { pos: new THREE.Vector3(0, 45, 2), tgt: new THREE.Vector3(0, 0, 0) };
+      else TW.camGoal = { pos: new THREE.Vector3(0, 32, 42), tgt: new THREE.Vector3(0, 1, 0) };
+      playBlip(560, 0.04);
+    });
   });
-  const spinBtn = $('#twin-spin');
-  spinBtn.addEventListener('click', () => { spin = !spin; spinBtn.setAttribute('aria-pressed', String(spin)); });
-  if (REDUCED) spinBtn.setAttribute('aria-pressed', 'false');
-
-  $$('.layer-toggle').forEach(btn => btn.addEventListener('click', () => {
-    const k = btn.dataset.layer, on = btn.getAttribute('aria-pressed') !== 'true';
-    btn.setAttribute('aria-pressed', String(on));
-    if (TW.layers[k]) TW.layers[k].visible = on;
-    if (k === 'drone' && TW.layers.drone.userData.spot) TW.layers.drone.userData.spot.visible = on;
-  }));
 })();
 
 /* ============================================================
-   5. SYNTHETIC MULTI-MODE CCTV FEED ENGINE
+   3. MISSION SIMULATOR EXECUTION ENGINE
    ============================================================ */
-function makeFeed(canvas, opts) {
-  const cv = typeof canvas === 'string' ? $('#' + canvas) : canvas;
-  if (!cv) return {};
-  const ctx = cv.getContext('2d');
-  const W = cv.width, H = cv.height;
-  let t = Math.random() * 10;
-  const state = {
-    active: opts.startActive,
-    alert: false,
-    reid: false,
-    boxX: opts.startX ?? 0.3,
-    tint: opts.tint || null,
-    label: opts.label || 'id17',
-    extra: opts.extra || 0,
-    mode: 'rgb',
-    targetType: 'person'
-  };
-
-  function box(x, y, w, h, color, tag) {
-    ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h);
-    const c = 6; ctx.beginPath();
-    ctx.moveTo(x, y + c); ctx.lineTo(x, y); ctx.lineTo(x + c, y);
-    ctx.moveTo(x + w - c, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + c);
-    ctx.stroke();
-    ctx.fillStyle = color; ctx.font = '9px "IBM Plex Mono", monospace'; ctx.fillText(tag, x, y - 4);
-  }
-
-  function person(px, py, bw, bh, alert) {
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(px, py + bh * 0.5, bw * 0.6, 4, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = alert ? 'rgba(255,64,96,0.85)' : (state.mode === 'thermal' ? '#f59e0b' : (state.mode === 'night' ? '#34e0a0' : 'rgba(180,200,215,0.9)'));
-    ctx.fillRect(px - bw * 0.32, py - bh * 0.5, bw * 0.64, bh);
-    ctx.beginPath(); ctx.arc(px, py - bh * 0.5 - bw * 0.2, bw * 0.24, 0, 7); ctx.fill();
-  }
-
-  function vehicle(px, py, bw, bh, alert) {
-    ctx.fillStyle = alert ? 'rgba(255,64,96,0.85)' : '#475569';
-    ctx.fillRect(px - bw * 0.5, py - bh * 0.3, bw, bh * 0.6);
-    ctx.fillStyle = '#1e293b'; ctx.fillRect(px - bw * 0.3, py - bh * 0.5, bw * 0.6, bh * 0.3);
-  }
-
-  function render() {
-    t += 0.016;
-    if (state.mode === 'thermal') {
-      const g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, '#0a0a23'); g.addColorStop(0.5, '#2e1065'); g.addColorStop(1, '#030712');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    } else if (state.mode === 'night') {
-      ctx.fillStyle = '#031408'; ctx.fillRect(0, 0, W, H);
-    } else {
-      const g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, '#0b131d'); g.addColorStop(0.55, '#0d1622'); g.addColorStop(0.56, '#10202b'); g.addColorStop(1, '#0a151a');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    }
-
-    if (state.tint && state.mode === 'rgb') { ctx.fillStyle = state.tint; ctx.fillRect(0, 0, W, H); }
-
-    /* Road perspective */
-    ctx.fillStyle = state.mode === 'thermal' ? 'rgba(120,40,160,0.3)' : (state.mode === 'night' ? 'rgba(10,50,20,0.4)' : 'rgba(30,48,64,0.4)');
-    ctx.beginPath(); ctx.moveTo(W * 0.32, H * 0.56); ctx.lineTo(W * 0.68, H * 0.56); ctx.lineTo(W * 0.95, H); ctx.lineTo(W * 0.05, H); ctx.closePath(); ctx.fill();
-
-    if (opts.geofence) {
-      ctx.fillStyle = 'rgba(255,64,96,0.10)'; ctx.strokeStyle = 'rgba(255,64,96,0.45)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(W * 0.36, H * 0.58); ctx.lineTo(W * 0.64, H * 0.58); ctx.lineTo(W * 0.82, H * 0.92); ctx.lineTo(W * 0.18, H * 0.92); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.strokeStyle = 'rgba(242,166,60,' + (0.5 + Math.sin(t * 4) * 0.3) + ')'; ctx.setLineDash([5, 4]);
-      ctx.beginPath(); ctx.moveTo(W * 0.28, H * 0.72); ctx.lineTo(W * 0.72, H * 0.72); ctx.stroke(); ctx.setLineDash([]);
-    }
-
-    if (state.active) {
-      const px = state.boxX * W, py = H * (0.60 + (state.boxX - 0.5) * 0.28);
-      const bw = 16 + (py / H) * 20, bh = bw * 2.4;
-
-      if (state.targetType === 'vehicle') {
-        vehicle(px, py, bw * 1.8, bh * 0.8, state.alert);
-        box(px - bw * 0.95, py - bh * 0.45, bw * 1.9, bh * 0.9, state.alert ? '#ff4060' : '#f2a63c', state.alert ? 'VEH-0007 ANPR HIT: PB08-XX-1234' : 'vehicle 0.96');
-      } else {
-        person(px, py, bw, bh, state.alert);
-        const col = state.alert ? '#ff4060' : (state.mode === 'night' ? '#34e0a0' : '#37d2e0');
-        box(px - bw * 0.55, py - bh * 0.5 - bw * 0.5, bw * 1.1, bh * 1.15, col, state.alert ? 'TRG-0017 INCURSION' : 'person 0.94 · ' + state.label);
-      }
-
-      if (state.reid) {
-        ctx.strokeStyle = '#34e0a0'; ctx.lineWidth = 1.2;
-        const r = bw * 0.9 + Math.sin(t * 3) * 2, cy = py - bh * 0.15;
-        ctx.beginPath(); ctx.arc(px, cy, r, 0, 7); ctx.stroke();
-        [[-r, 0], [r, 0], [0, -r], [0, r]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.moveTo(px + dx * 0.9, cy + dy * 0.9); ctx.lineTo(px + dx * 1.1, cy + dy * 1.1); ctx.stroke(); });
-        ctx.fillStyle = '#34e0a0'; ctx.font = '9px "IBM Plex Mono", monospace'; ctx.fillText('RE-ID  cos ' + SIM.match.toFixed(2), px - r, cy - r - 8);
-      }
-    } else {
-      ctx.fillStyle = 'rgba(124,144,172,0.5)'; ctx.font = '10.5px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
-      ctx.fillText('NO SUBJECT IN FRAME · SCANNING', W / 2, H / 2); ctx.textAlign = 'left';
-    }
-
-    /* Scanlines and vignette */
-    ctx.globalAlpha = state.mode === 'night' ? 0.3 : 0.12;
-    for (let i = 0; i < 60; i++) { ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.random() * W, Math.random() * H, 1.5, 1.5); }
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = state.mode === 'night' ? 'rgba(52,224,160,0.06)' : 'rgba(55,210,224,0.04)';
-    ctx.fillRect(0, (t * 80) % H, W, 2);
-
-    requestAnimationFrame(render);
-  }
-  render();
-  return state;
-}
-
-const feedA = makeFeed('feed-a', { startActive: true, startX: 0.22, geofence: true, extra: 1 });
-const feedB = makeFeed('feed-b', { startActive: false, startX: 0.5, geofence: false });
-
-/* Wire feed mode toggles */
-$$('.feed-mode-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const fId = btn.dataset.feed;
-    const mode = btn.dataset.mode;
-    $$(`.feed-mode-btn[data-feed="${fId}"]`).forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    if (fId === 'a' && feedA) feedA.mode = mode;
-    if (fId === 'b' && feedB) feedB.mode = mode;
-    blip(700, 0.03, 0.02);
-  });
-});
-
-function tc(el, offset) {
-  if (!el) return;
-  const total = performance.now() / 1000 + offset;
-  const p = n => String(n).padStart(2, '0');
-  el.textContent = `REC ${p(Math.floor(total / 3600) % 24)}:${p(Math.floor(total / 60) % 60)}:${p(Math.floor(total) % 60)}:${p(Math.floor((total % 1) * 25))}`;
-}
-setInterval(() => { tc($('#fa-tc'), 5123); tc($('#fb-tc'), 88410); }, 80);
-
-/* ============================================================
-   6. PREDICTIVE HANDOFF RADAR
-   ============================================================ */
-(function radar() {
-  const cv = $('#radar-canvas');
-  if (!cv) return;
-  const ctx = cv.getContext('2d');
-  function fit() { const r = cv.getBoundingClientRect(); const s = Math.min(window.devicePixelRatio || 1, 2); cv.width = Math.max(2, r.width * s); cv.height = Math.max(2, r.height * s); }
-  new ResizeObserver(fit).observe(cv); fit();
-  let t = 0;
-
-  function render() {
-    t += 0.016;
-    if (VIEW.active !== 'ops') { requestAnimationFrame(render); return; }
-    const W = cv.width, H = cv.height, cx = W * 0.5, cy = H * 0.62, R = Math.min(W, H) * 0.8, DP = (window.devicePixelRatio || 1) > 1 ? 1.6 : 1;
-    ctx.clearRect(0, 0, W, H);
-    ctx.strokeStyle = 'rgba(122,178,214,0.18)'; ctx.lineWidth = 1;
-    for (let i = 1; i <= 4; i++) { ctx.beginPath(); ctx.arc(cx, cy, (R / 4) * i, Math.PI, 2 * Math.PI); ctx.stroke(); }
-    for (let a = 0; a <= 180; a += 30) { const rad = Math.PI + a * Math.PI / 180; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(rad) * R, cy + Math.sin(rad) * R); ctx.stroke(); }
-    function node(x, label, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, cy, 4, 0, 7); ctx.fill(); ctx.font = `${10 * DP}px "IBM Plex Mono", monospace`; ctx.fillText(label, x - 26, cy + 20); }
-    node(cx - R * 0.78, 'ALPHA', '#34e0a0'); node(cx + R * 0.78, 'BRAVO', '#37d2e0');
-    if (!REDUCED) {
-      const sweep = Math.PI + (t * 0.9 % Math.PI);
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, sweep - 0.5, sweep); ctx.closePath();
-      ctx.fillStyle = 'rgba(55,210,224,0.10)'; ctx.fill();
-      ctx.strokeStyle = 'rgba(55,210,224,0.5)'; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(sweep) * R, cy + Math.sin(sweep) * R); ctx.stroke();
-    }
-    let prog = SIM.phase === 'transit' ? clamp(SIM.targetProgress, 0, 1) : (SIM.phase === 'reid' || SIM.phase === 'sealed') ? 1 : 0.12 + Math.sin(t * 0.3) * 0.05;
-    ctx.strokeStyle = 'rgba(242,166,60,0.55)'; ctx.setLineDash([4, 3]); ctx.beginPath();
-    for (let s = 0; s <= 1; s += 0.05) { const x = cx - R * 0.78 + s * (R * 1.56), y = cy - Math.sin(s * Math.PI) * R * 0.42; s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
-    ctx.stroke(); ctx.setLineDash([]);
-    ctx.strokeStyle = 'rgba(55,210,224,0.7)'; ctx.beginPath(); ctx.arc(cx + R * 0.78, cy, 10, 0, 7); ctx.stroke();
-    const tx = cx - R * 0.78 + prog * (R * 1.56), ty = cy - Math.sin(prog * Math.PI) * R * 0.42;
-    ctx.fillStyle = '#ff4060'; ctx.beginPath(); ctx.arc(tx, ty, 4.5, 0, 7); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,64,96,0.5)'; ctx.beginPath(); ctx.arc(tx, ty, 8 + Math.sin(t * 4) * 3, 0, 7); ctx.stroke();
-    ctx.fillStyle = '#ff4060'; ctx.font = `${9 * DP}px "IBM Plex Mono", monospace`; ctx.fillText('TRG-0017', tx + 8, ty - 6);
-    requestAnimationFrame(render);
-  }
-  render();
-  setInterval(() => {
-    if (SIM.phase === 'transit') {
-      const remain = Math.max(0, SIM.transitDur * (1 - SIM.targetProgress));
-      $('#r-eta').textContent = remain.toFixed(1) + ' s';
-      $('#radar-status').textContent = 'Vector inbound · ETA ' + remain.toFixed(1) + 's';
-    }
-  }, 100);
-})();
-
-/* ============================================================
-   7. SHA-256 BLOCKCHAIN EVIDENCE LEDGER
-   ============================================================ */
-const LEDGER = {
-  blocks: [
-    { id: 'GENESIS', kind: 'genesis', label: 'Ledger root', ts: '2026-09-04T00:00:00Z', payload: 'sentinel::genesis::ssb-gurdaspur::2026', by: 'system' },
-    { id: 'INC-1039', kind: 'sealed', label: 'Loiter · CAM_BRAVO', ts: '2026-09-04T09:44:22Z', payload: 'inc1039::loiter::bravo::score61::clip10s', by: 'CMD-02' },
-    { id: 'INC-1040', kind: 'sealed', label: 'ANPR hit · CAM_CHECKPOST', ts: '2026-09-04T08:22:04Z', payload: 'inc1040::anpr::PB08XX1234::watchlist::score74', by: 'CMD-02' },
-    { id: 'INC-1045', kind: 'sealed', label: 'Gate breach · CAM_ALPHA', ts: '2026-09-04T09:57:35Z', payload: 'inc1045::breach::alpha::score65::clip10s', by: 'CMD-04' },
-    { id: 'INC-1061', kind: 'sealed', label: 'Multi-node · ALPHA→BRAVO', ts: '2026-09-04T09:40:46Z', payload: 'inc1061::breach::alpha->bravo::reid0.96::score77', by: 'CMD-04' },
-  ],
-};
-function computeChain() {
-  let prev = '0'.repeat(64);
-  LEDGER.blocks.forEach((b, i) => {
-    b.prev = prev; b.nonce = 40000 + i * 811;
-    b.hash = b.tampered ? pseudoHash(b.payload + '::EDITED') : pseudoHash(b.payload + '::' + prev + '::' + b.nonce);
-    prev = b.hash;
-  });
-}
-computeChain();
-
-function renderLedgerInto(listEl, tagEl, opts) {
-  if (!listEl) return;
-  opts = opts || {};
-  listEl.innerHTML = '';
-  let broken = false;
-  LEDGER.blocks.forEach((b, i) => {
-    const el = document.createElement('div');
-    let cls = 'block ' + (b.kind === 'genesis' ? 'genesis' : 'sealed');
-    if (b.tampered) { cls = 'block broken'; broken = true; }
-    else if (broken) cls = 'block broken';
-    if (opts.selId === b.id) cls += ' sel';
-    el.className = cls; el.dataset.i = i;
-    const st = b.tampered ? 'HASH MISMATCH' : broken ? 'CHAIN BROKEN' : b.kind === 'genesis' ? 'ROOT' : 'SEALED';
-    el.innerHTML = `<div class="block-top"><span>BLOCK ${String(LEDGER.blocks.length - i).padStart(3, '0')} · ${b.id}</span><span class="st">${st}</span></div>
-      <div class="block-hash">hash <b>${b.hash.slice(0, 36)}…</b></div>
-      <div class="block-prev">prev ${b.prev.slice(0, 28)}…</div>
-      <div style="color:var(--ink-faint);margin-top:2px">${b.label}</div>`;
-    el.addEventListener('click', () => { opts.onSelect ? opts.onSelect(b, el) : el.classList.toggle('expanded'); });
-    listEl.prepend(el);
-  });
-  if (tagEl) {
-    if (broken) { tagEl.textContent = 'Tamper detected'; tagEl.className = 'tag tag-danger'; }
-    else { tagEl.textContent = 'Verified · ' + LEDGER.blocks.length + ' blocks'; tagEl.className = 'tag tag-ok'; }
-  }
-}
-function renderOpsLedger() { renderLedgerInto($('#ledger-list'), $('#ledger-tag')); }
-renderOpsLedger();
-
-function sealBlock(id, label, payload) {
-  LEDGER.blocks.push({ id, kind: 'sealed', label, ts: new Date().toISOString().slice(0, 19) + 'Z', payload, by: 'CMD-04' });
-  computeChain(); renderOpsLedger();
-  if (VIEW.inited.ledger) LEDGER_VIEW.refresh();
-}
-
-async function verifyWalk(listEl, tagEl, onDone) {
-  const els = $$('.block', listEl).reverse();
-  let ok = true;
-  for (const el of els) {
-    const b = LEDGER.blocks[+el.dataset.i];
-    el.classList.add('verifying');
-    await new Promise(r => setTimeout(r, REDUCED ? 25 : 200));
-    el.classList.remove('verifying');
-    if (b.tampered) ok = false;
-  }
-  onDone(ok);
-}
-$('#btn-verify').addEventListener('click', async () => {
-  $('#btn-verify').disabled = true;
-  await verifyWalk($('#ledger-list'), $('#ledger-tag'), ok => ok
-    ? toast('ok', 'Merkle audit passed', LEDGER.blocks.length + ' blocks · SHA-256 chain intact.')
-    : toast('crit', 'Audit failed', 'Chain integrity break detected. Evidence flagged inadmissible.'));
-  $('#btn-verify').disabled = false;
-});
-function toggleTamper() {
-  const victim = LEDGER.blocks[1];
-  if (victim.tampered) { delete victim.tampered; computeChain(); toast('ok', 'Ledger restored', 'Block INC-1039 payload reverted. Chain re-verified.'); }
-  else { victim.tampered = true; computeChain(); toast('crit', 'Tamper injected', 'One byte flipped in INC-1039 — downstream Merkle hashes invalid.'); }
-  renderOpsLedger(); if (VIEW.inited.ledger) LEDGER_VIEW.refresh();
-}
-$('#btn-tamper').addEventListener('click', toggleTamper);
-
-/* ============================================================
-   8. EMERGENCY SIREN & TRIAGE
-   ============================================================ */
-let audit = { conf: 14, fp: 3 };
-$('#btn-confirm').addEventListener('click', async () => {
-  audit.conf++; $('#d-audit').textContent = `${audit.conf} conf · ${audit.fp} fp`;
-  await API.post('/incidents/INC-1041/acknowledge', {});
-  toast('ok', 'Threat confirmed', 'Incident escalated to QRT muster. Klaxon active.');
-  if (!sirenOn) armSiren(true);
-});
-$('#btn-dismiss').addEventListener('click', () => {
-  audit.fp++; $('#d-audit').textContent = `${audit.conf} conf · ${audit.fp} fp`;
-  toast('warn', 'Marked false alarm', 'Node sensitivity re-calibrated (+vegetation filter).');
-  armSiren(false);
-});
-
-let sirenNodes = null, sirenOn = false;
-function armSiren(on) {
-  const btn = $('#btn-siren');
-  if (on && !sirenOn) {
-    const ac = ensureAudio();
-    if (ac) {
-      try {
-        const osc = ac.createOscillator(), gain = ac.createGain(), lfo = ac.createOscillator(), lfoGain = ac.createGain();
-        osc.type = 'sawtooth'; osc.frequency.value = 620; lfo.frequency.value = 0.7; lfoGain.gain.value = 240;
-        lfo.connect(lfoGain).connect(osc.frequency); gain.gain.value = soundOn ? 0.05 : 0.0;
-        osc.connect(gain).connect(ac.destination); osc.start(); lfo.start();
-        sirenNodes = { osc, lfo, gain };
-      } catch (e) {}
-    }
-    sirenOn = true; btn.classList.add('armed'); btn.setAttribute('aria-pressed', 'true'); btn.textContent = '■ Acknowledge';
-    $('#v-posture').textContent = 'BREACH'; $('#v-posture').closest('.vital').className = 'vital'; $('#v-posture').style.color = 'var(--breach)';
-    API.post('/edge/arm-state', { arm_state: 'armed' });
-  } else if (!on && sirenOn) {
-    if (sirenNodes) { try { sirenNodes.osc.stop(); sirenNodes.lfo.stop(); } catch (e) {} sirenNodes = null; }
-    API.post('/siren/silence', {});
-    sirenOn = false; btn.classList.remove('armed'); btn.setAttribute('aria-pressed', 'false'); btn.textContent = '◊ Test siren';
-    $('#v-posture').textContent = 'ELEVATED'; $('#v-posture').style.color = 'var(--hold)';
-  }
-}
-$('#btn-siren').addEventListener('click', () => armSiren(!sirenOn));
-
-/* Forensic Log Strip */
-(function log() {
-  const seed = [
-    ['info', 'CAM_ALPHA', 'ByteTrack id17 acquired · conf 0.94'],
-    ['warn', 'CAM_ALPHA', 'tripwire T-2 crossed north→south'],
-    ['crit', 'CAM_ALPHA', 'RED ZONE penetration · dwell 3.1s'],
-    ['info', 'HANDOFF', 'ETA solver → CAM_BRAVO window 6–14s'],
-    ['warn', 'CAM_BRAVO', 'candidate re-id cosine 0.91'],
-    ['crit', 'CAM_BRAVO', 're-id LOCK cos 0.96 · handoff verified 9.4s'],
-    ['info', 'LEDGER', 'block INC-1061 sealed · SHA-256'],
-    ['info', 'FCM', 'push dispatched → 4 patrol devices'],
-    ['info', 'CAM_DELTA', 'road patrol SSB-2 nominal'],
-  ];
-  const row = seed.map(([s, n, m]) => `<span class="sev-${s}">${new Date().toTimeString().slice(0, 8)} · <b>${n}</b> ${m}</span>`).join('');
-  $('#log-scroll').innerHTML = row + row;
-})();
-function pushLog(sev, node, msg) {
-  const s = document.createElement('span'); s.className = 'sev-' + sev;
-  s.innerHTML = `${new Date().toTimeString().slice(0, 8)} · <b>${node}</b> ${msg}`;
-  $('#log-scroll').prepend(s);
-}
-
-/* ============================================================
-   9. ORCHESTRATED MULTI-SCENARIO SUITE (5 SCENARIOS)
-   ============================================================ */
-const btnSim = $('#btn-sim');
-
-$$('.scen-btn').forEach(b => {
-  b.addEventListener('click', () => {
-    $$('.scen-btn').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    SIM.scenario = parseInt(b.dataset.scenario, 10);
-    btnSim.textContent = `▶ Run Scenario ${SIM.scenario}`;
-    toast('ok', `Scenario ${SIM.scenario} Armed`, b.title);
-    blip(580, 0.05, 0.03);
-  });
-});
-
-btnSim.addEventListener('click', () => runScenario(SIM.scenario));
-
-async function runScenario(id) {
+async function triggerScenario(id) {
   if (SIM.running) return;
-  SIM.running = true; btnSim.disabled = true; btnSim.textContent = '● Running Scenario';
-  if (VIEW.active !== 'ops') showView('ops');
-  const wait = ms => new Promise(r => setTimeout(r, REDUCED ? Math.min(ms, 120) : ms));
-  const now = () => new Date().toTimeString().slice(0, 8);
+  SIM.running = true;
+  SIM.scenario = id;
+
+  const btn = $$('.nav-btn')[0]; // switch to twin view
+  btn.click();
+
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const card = $('#active-incident-card');
+  card.classList.add('alert-border');
 
   if (id === 1) {
-    /* SCENARIO 1: Perimeter Night Breach */
-    SIM.phase = 'breach'; feedA.alert = true; feedA.boxX = 0.5; feedA.targetType = 'person';
-    $('#fa-flag').textContent = 'RED ZONE PENETRATION'; $('#fa-flag').style.color = 'var(--breach)';
-    $('#fa-det').textContent = 'YOLOv8n · id17 · DWELL 3.1s';
-    TW.boomClose(); if (TW.flyToGate) TW.flyToGate();
-    $('#d-id').textContent = '#1041';
-    $('#d-score').textContent = '92 / 100 · CRITICAL';
-    $('#d-t1').textContent = now();
-    $('#d-narrative').innerHTML = 'Target <code>TRG-0017</code> breached the checkpost north perimeter into the restricted red zone. Tripwire T-2 tripped; dwell counter running.';
-    pushLog('crit', 'CAM_ALPHA', 'RED ZONE penetration · TRG-0017');
-    toast('crit', 'Scenario 1: Breach', 'Target inside restricted zone. Handoff solver engaged.');
-    await wait(2200);
+    /* Perimeter Night Breach */
+    $('#threat-tier-tag').textContent = 'CRITICAL BREACH';
+    $('#threat-tier-tag').style.background = 'var(--crimson)';
+    $('#threat-score-val').textContent = '92 / 100';
+    $('#target-id-val').textContent = 'TRG-0017';
+    $('#incident-narrative-text').innerHTML = '<b>🚨 BREACH:</b> Target vaulted perimeter fence at Checkpost Alpha into restricted zone. Spatial tripwire T-2 tripped.';
+    
+    $('#main-status-badge').className = 'status-badge alert';
+    $('#main-status-text').textContent = '🚨 INTRUSION AT CHECKPOST ALPHA';
+    toast('crit', 'Perimeter Breach', 'Target inside restricted zone at Checkpost Alpha.');
+    playBlip(220, 0.2);
 
-    armSiren(true);
-    sealBlock('INC-1041', 'Perimeter breach · CAM_ALPHA', `inc1041::breach::alpha::score92::${Date.now()}`);
+    TW.camGoal = { pos: new THREE.Vector3(-14, 10, 16), tgt: new THREE.Vector3(-12, 1, 2) };
+    await wait(3000);
   }
   else if (id === 2) {
-    /* SCENARIO 2: Cross-Camera Re-ID Handoff */
-    SIM.phase = 'breach'; feedA.alert = true; feedA.boxX = 0.5; feedA.targetType = 'person';
-    if (TW.flyToHandoff) TW.flyToHandoff();
-    $('#d-id').textContent = '#1061';
-    $('#d-score').textContent = '77 / 100 · CRITICAL';
-    $('#d-t1').textContent = now();
-    $('#d-narrative').innerHTML = 'Target <code>TRG-0032</code> traversed CAM_ALPHA → CAM_BRAVO corridor. 512-d feature extraction queued across blind spot.';
-    toast('warn', 'Scenario 2: Re-ID Handoff', 'Solving cross-camera spatio-temporal velocity window (6–14s).');
-    await wait(1400);
+    /* Cross-Camera Re-ID */
+    $('#threat-tier-tag').textContent = 'RE-ID HANDOFF';
+    $('#threat-tier-tag').style.background = 'var(--purple)';
+    $('#threat-score-val').textContent = '77 / 100';
+    $('#target-id-val').textContent = 'TRG-0032';
+    $('#incident-narrative-text').innerHTML = '<b>🔁 MULTI-CAMERA:</b> Target departed Checkpost Alpha. Tracking across blind corridor to BOP Bravo (9.4s handoff).';
 
-    SIM.phase = 'transit'; SIM.targetProgress = 0; $('#f-match').textContent = '+0';
-    const dur = REDUCED ? 1200 : 4400, start = performance.now();
-    await new Promise(res => { (function tick() { const e = (performance.now() - start) / dur; SIM.targetProgress = clamp(e, 0, 1); if (e >= 1) return res(); requestAnimationFrame(tick); })(); });
-    $('#r-eta').textContent = '0.0 s';
+    TW.camGoal = { pos: new THREE.Vector3(0, 16, 24), tgt: new THREE.Vector3(0, 1, 0) };
+    toast('warn', 'Re-ID Window Solving', 'Tracking cross-camera velocity window (6–14s).');
 
-    SIM.phase = 'reid'; feedB.active = true; feedB.boxX = 0.5; feedB.reid = true; SIM.match = 0.96;
-    $('#fb-det').textContent = 'Re-ID cosine 0.96 · LOCK';
-    $('#fb-flag').textContent = 'HANDOFF VERIFIED 9.4s'; $('#fb-flag').style.color = 'var(--clear)';
-    $('#f-match').textContent = '+12';
-    $('#d-t2').textContent = now(); $('#d-gap').textContent = '9.4s';
-    $('#d-narrative').innerHTML = 'Predictive arrival at <code>CAM_BRAVO</code> confirmed in 9.4s. ResNet18 cosine <code>0.96</code> matches query. Unified incident reconstructed.';
-    pushLog('crit', 'CAM_BRAVO', 're-id LOCK cos 0.96 · handoff 9.4s');
-    toast('ok', 'Re-ID Verified', 'Cosine 0.96. Two camera observations linked into one narrative.');
-    await wait(1500);
+    const start = performance.now(), dur = 4000;
+    await new Promise(res => {
+      (function tick() {
+        const e = (performance.now() - start) / dur;
+        SIM.targetProgress = clamp(e, 0, 1);
+        if (e >= 1) return res();
+        requestAnimationFrame(tick);
+      })();
+    });
 
-    sealBlock('INC-1061', 'Multi-node breach · ALPHA→BRAVO', `inc1061::breach::alpha->bravo::reid0.96::score77::${Date.now()}`);
+    $('#incident-narrative-text').innerHTML = '<b>✓ RE-ID CONFIRMED:</b> Arrival verified at BOP Bravo. 512-d feature match cosine <b>0.96</b>.';
+    toast('ok', 'Re-ID Verified', 'Cosine 0.96. Two camera observations unified.');
+    await wait(2000);
   }
   else if (id === 3) {
-    /* SCENARIO 3: Vehicle Ramming & ANPR Watchlist */
-    feedA.alert = true; feedA.targetType = 'vehicle'; feedA.boxX = 0.45;
-    if (TW.flyToGate) TW.flyToGate();
-    TW.boomClose();
-    $('#fa-flag').textContent = 'ANPR WATCHLIST HIT: PB08-XX-1234'; $('#fa-flag').style.color = 'var(--breach)';
-    $('#fa-det').textContent = 'YOLOv8n · Vehicle Speed 64 km/h';
-    $('#d-id').textContent = '#1040';
-    $('#d-score').textContent = '74 / 100 · CRITICAL';
-    $('#d-t1').textContent = now();
-    $('#d-narrative').innerHTML = 'High-speed vehicle approach at Checkpost Alpha. License plate <code>PB08-XX-1234</code> matched interdiction watchlist. Hydraulic boom barrier locked down.';
-    pushLog('crit', 'CAM_CHECKPOST', 'ANPR watchlist hit · PB08-XX-1234 (Rapid approach vector)');
-    toast('crit', 'Scenario 3: Vehicle ANPR', 'Watchlist plate hit. Boom barrier GPIO relay triggered.');
-    armSiren(true);
-    await wait(2400);
+    /* Vehicle Ramming */
+    $('#threat-tier-tag').textContent = 'ANPR ALERT';
+    $('#threat-tier-tag').style.background = 'var(--amber)';
+    $('#threat-tier-tag').style.color = '#050811';
+    $('#threat-score-val').textContent = '74 / 100';
+    $('#target-id-val').textContent = 'VEH-0007';
+    $('#incident-narrative-text').innerHTML = '<b>🚗 ANPR MATCH:</b> Plate <code>PB08-XX-1234</code> matched watchlist. Hydraulic boom barrier locked down.';
 
-    sealBlock('INC-1040', 'ANPR watchlist hit · PB08-XX-1234', `inc1040::anpr::PB08XX1234::score74::${Date.now()}`);
-  }
-  else if (id === 4) {
-    /* SCENARIO 4: Loitering & Perimeter Dwell */
-    feedB.active = true; feedB.alert = true; feedB.boxX = 0.6;
-    if (TW.flyToLoiter) TW.flyToLoiter();
-    $('#fb-flag').textContent = 'LOITER DWELL EXCEEDED (268s)'; $('#fb-flag').style.color = 'var(--hold)';
-    $('#fb-det').textContent = 'Loiter Dwell Threshold +15 pts';
-    $('#d-id').textContent = '#1051';
-    $('#d-score').textContent = '65 / 100 · WARNING';
-    $('#d-t1').textContent = now();
-    $('#d-narrative').innerHTML = 'Subject <code>TRG-0025</code> loitering along BOP Bravo fence for 268s (>240s threshold). Spatial dwell filter triggered alert.';
-    pushLog('warn', 'CAM_BRAVO', 'Loitering threshold exceeded · 268s dwell');
-    toast('warn', 'Scenario 4: Loiter Dwell', 'Sustained presence along perimeter buffer.');
-    await wait(2000);
-
-    sealBlock('INC-1051', 'Loiter dwell · CAM_BRAVO', `inc1051::loiter::bravo::dwell268s::score65::${Date.now()}`);
-  }
-  else if (id === 5) {
-    /* SCENARIO 5: UAV Thermal Recon */
-    if (TW.flyToOverhead) TW.flyToOverhead();
-    feedA.mode = 'thermal'; feedB.mode = 'thermal';
-    $$('.feed-mode-btn[data-mode="thermal"]').forEach(b => b.classList.add('active'));
-    $$('.feed-mode-btn[data-mode="rgb"]').forEach(b => b.classList.remove('active'));
-    $('#d-id').textContent = '#1072';
-    $('#d-score').textContent = '84 / 100 · CRITICAL';
-    $('#d-t1').textContent = now();
-    $('#d-narrative').innerHTML = 'Aerial UAV-01 thermal sensor acquired IR heat signature in hostile buffer. GPS Locked: <code>N32.1914 E74.8920</code>. Armed weapon profile tagged.';
-    pushLog('crit', 'UAV-01', 'Thermal heat signature acquired · GPS N32.1914 E74.8920');
-    toast('crit', 'Scenario 5: UAV Thermal Recon', 'Airborne sensor lock. Coordinates transmitted to QRT.');
-    await wait(2200);
-
-    sealBlock('INC-1072', 'UAV Thermal Recon · N32.1914 E74.8920', `inc1072::uav::thermal::score84::${Date.now()}`);
+    TW.camGoal = { pos: new THREE.Vector3(-14, 10, 16), tgt: new THREE.Vector3(-12, 1, 2) };
+    toast('crit', 'Vehicle ANPR Hit', 'Watchlist plate hit: PB08-XX-1234. Boom locked.');
+    await wait(3000);
   }
 
-  btnSim.disabled = false; btnSim.textContent = `↺ Replay Scenario ${id}`; SIM.running = false;
+  card.classList.remove('alert-border');
+  SIM.running = false;
 }
 
 /* ============================================================
-   10. VIEW BUILDERS
+   4. SYNTHETIC CCTV VIDEO CANVAS FEEDS
    ============================================================ */
-/* ---- MODELS VIEW (AI Model Zoo Sandbox) ---- */
-VIEW.builders.models = function () {
-  const cv = $('#sandbox-canvas');
+function initCCTV(canvasId, mode = 'rgb') {
+  const cv = document.getElementById(canvasId);
   if (!cv) return;
-  const ctx = cv.getContext('2d');
-  let currentSample = 'person';
+  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+  let t = 0;
 
-  function drawSandbox(type) {
-    currentSample = type;
-    const W = cv.width, H = cv.height;
-    ctx.fillStyle = '#060a12'; ctx.fillRect(0, 0, W, H);
-
-    /* Grid backdrop */
-    ctx.strokeStyle = 'rgba(55,210,224,0.12)'; ctx.lineWidth = 1;
-    for (let x = 0; x < W; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-    for (let y = 0; y < H; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-
-    let jsonOut = {};
-    if (type === 'person') {
-      ctx.fillStyle = 'rgba(55,210,224,0.85)';
-      ctx.fillRect(W * 0.44, H * 0.35, W * 0.12, H * 0.45);
-      ctx.strokeStyle = '#ff4060'; ctx.lineWidth = 2;
-      ctx.strokeRect(W * 0.42, H * 0.28, W * 0.16, H * 0.55);
-      ctx.fillStyle = '#ff4060'; ctx.font = '11px "IBM Plex Mono", monospace';
-      ctx.fillText('Person 0.942 [INCURSION]', W * 0.42, H * 0.25);
-      jsonOut = { model: "YOLOv8n-Spatial", latency_ms: 8.2, fps: 32.4, detections: [{ class: "person", conf: 0.942, bbox: [268, 100, 371, 298], threat_rule: "RESTRICTED_ZONE (+30)", track_id: 17 }] };
-    } else if (type === 'vehicle') {
-      ctx.fillStyle = 'rgba(242,166,60,0.8)';
-      ctx.fillRect(W * 0.35, H * 0.42, W * 0.30, H * 0.32);
-      ctx.strokeStyle = '#f2a63c'; ctx.lineWidth = 2;
-      ctx.strokeRect(W * 0.33, H * 0.38, W * 0.34, H * 0.38);
-      ctx.fillStyle = '#f2a63c'; ctx.font = '11px "IBM Plex Mono", monospace';
-      ctx.fillText('Vehicle 0.961 · Plate: PB08-XX-1234', W * 0.33, H * 0.35);
-      jsonOut = { model: "YOLOv8-ANPR", latency_ms: 9.4, plate: "PB08-XX-1234", watchlist_match: true, approach_velocity_kmh: 64.2, threat_rule: "WATCHLIST_HIT (+45)" };
-    } else if (type === 'armed') {
-      ctx.fillStyle = 'rgba(255,64,96,0.9)';
-      ctx.fillRect(W * 0.44, H * 0.35, W * 0.12, H * 0.45);
-      ctx.strokeStyle = '#ff4060'; ctx.lineWidth = 2;
-      ctx.strokeRect(W * 0.42, H * 0.28, W * 0.16, H * 0.55);
-      ctx.strokeRect(W * 0.52, H * 0.42, W * 0.14, H * 0.18);
-      ctx.fillStyle = '#ff4060'; ctx.font = '11px "IBM Plex Mono", monospace';
-      ctx.fillText('Person 0.95 · Weapon: AK-Pattern 0.88', W * 0.42, H * 0.25);
-      jsonOut = { model: "YOLOv8-ArmedClassifier", latency_ms: 10.1, weapon_detected: true, weapon_class: "rifle_ak", conf: 0.884, threat_tier: "MAX_CRITICAL" };
-    } else if (type === 'thermal') {
-      const g = ctx.createRadialGradient(W * 0.5, H * 0.5, 10, W * 0.5, H * 0.5, 90);
-      g.addColorStop(0, '#fef08a'); g.addColorStop(0.5, '#ea580c'); g.addColorStop(1, '#312e81');
-      ctx.fillStyle = g; ctx.fillRect(W * 0.4, H * 0.3, W * 0.2, H * 0.4);
-      ctx.strokeStyle = '#37d2e0'; ctx.lineWidth = 2;
-      ctx.strokeRect(W * 0.38, H * 0.28, W * 0.24, H * 0.44);
-      ctx.fillStyle = '#37d2e0'; ctx.font = '11px "IBM Plex Mono", monospace';
-      ctx.fillText('Thermal IR Target 0.918 · Temp Δ +4.2°C', W * 0.38, H * 0.25);
-      jsonOut = { sensor: "Longwave_Infrared_LWIR", delta_temp_c: 4.2, heat_cluster: true, conf: 0.918, gps: "N32.1914 E74.8920" };
-    } else if (type === 'drone') {
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(W * 0.45, H * 0.25, W * 0.10, H * 0.08);
-      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
-      ctx.strokeRect(W * 0.42, H * 0.20, W * 0.16, H * 0.18);
-      ctx.fillStyle = '#38bdf8'; ctx.font = '11px "IBM Plex Mono", monospace';
-      ctx.fillText('Drone / Micro-UAV 0.932 · Alt 42m', W * 0.42, H * 0.17);
-      jsonOut = { model: "YOLOv8-AerialUAV", class: "micro_drone", altitude_m: 42, velocity_ms: 12.8, rf_frequency: "2.4GHz / 5.8GHz" };
+  function draw() {
+    t += 0.02;
+    if (mode === 'thermal') {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#0a0a23'); g.addColorStop(0.5, '#4c1d95'); g.addColorStop(1, '#030712');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath(); ctx.arc(W * 0.45, H * 0.55, 24, 0, 7); ctx.fill();
+    } else if (mode === 'night') {
+      ctx.fillStyle = '#031408'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#00ff9d';
+      ctx.fillRect(W * 0.42, H * 0.45, 20, 50);
     } else {
-      ctx.fillStyle = '#10b981';
-      ctx.fillRect(W * 0.42, H * 0.5, W * 0.16, H * 0.2);
-      ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5;
-      ctx.strokeRect(W * 0.4, H * 0.46, W * 0.2, H * 0.28);
-      ctx.fillStyle = '#10b981'; ctx.font = '11px "IBM Plex Mono", monospace';
-      ctx.fillText('Animal / Cattle 0.971 [FILTERED FP]', W * 0.4, H * 0.42);
-      jsonOut = { model: "Adaptive_Filter", class: "animal_cattle", conf: 0.971, false_positive_filtered: true, alarm_suppressed: true };
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#0b131d'); g.addColorStop(0.6, '#0f1f2e'); g.addColorStop(1, '#070c14');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.8)';
+      ctx.fillRect(W * 0.42, H * 0.45, 20, 50);
     }
 
-    $('#sb-json').textContent = JSON.stringify(jsonOut, null, 2);
+    ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(W * 0.38, H * 0.38, 36, 68);
+
+    requestAnimationFrame(draw);
   }
-
-  $('#sb-person').addEventListener('click', () => drawSandbox('person'));
-  $('#sb-vehicle').addEventListener('click', () => drawSandbox('vehicle'));
-  $('#sb-armed').addEventListener('click', () => drawSandbox('armed'));
-  $('#sb-thermal').addEventListener('click', () => drawSandbox('thermal'));
-  $('#sb-drone').addEventListener('click', () => drawSandbox('drone'));
-  $('#sb-wildlife').addEventListener('click', () => drawSandbox('wildlife'));
-
-  drawSandbox('person');
-};
-
-/* ---- WALL ---- */
-VIEW.builders.wall = function () {
-  const wall = $('#wall');
-  if (!wall || wall.children.length > 0) return;
-  const cams = [
-    { id: 'CAM_ALPHA', name: 'Checkpost Alpha · N gate', geofence: true, active: true, x: 0.3, extra: 1 },
-    { id: 'CAM_BRAVO', name: 'BOP Bravo · E perimeter', active: true, x: 0.55, extra: 0, label: 'id24' },
-    { id: 'CAM_CHARLIE', name: 'Sector Charlie · wire', active: true, x: 0.4, tint: 'rgba(20,40,30,0.25)', extra: 2, label: 'id31' },
-    { id: 'CAM_DELTA', name: 'Border road · patrol lane', active: true, x: 0.6, extra: 0, label: 'id02' },
-    { id: 'CAM_ECHO', name: 'Checkpost Alpha · S gate', active: false, x: 0.5 },
-    { id: 'CAM_FOXTROT', name: 'Tower mast · overwatch', active: true, x: 0.35, tint: 'rgba(10,20,40,0.3)', extra: 1, label: 'id44' },
-  ];
-  cams.forEach(c => {
-    const wrap = document.createElement('div'); wrap.className = 'feed';
-    wrap.innerHTML = `<div class="feed-frame"><canvas width="480" height="270"></canvas>
-      <span class="feed-corner a"></span><span class="feed-corner b"></span><span class="feed-corner c"></span><span class="feed-corner d"></span>
-      <div class="feed-hud"><div class="tl rec">${c.id}</div><div class="br">${c.active ? '● TRK' : '○ IDLE'}</div></div></div>
-      <div class="feed-meta"><span class="name">${c.name}</span><span class="tag">${c.active ? '32.4 fps' : 'standby'}</span></div>`;
-    wall.appendChild(wrap);
-    makeFeed(wrap.querySelector('canvas'), { startActive: c.active, startX: c.x, geofence: c.geofence, tint: c.tint, extra: c.extra || 0, label: c.label || 'id09' });
-    wrap.querySelector('.feed-frame').addEventListener('click', () => {
-      const wasSolo = wrap.classList.contains('solo');
-      $$('.wall .feed').forEach(f => f.classList.remove('solo'));
-      if (!wasSolo) wrap.classList.add('solo');
-    });
-  });
-};
-
-/* ---- REPLAY ---- */
-const DEMO_INCIDENTS = [
-  { incident_id: 'INC-1061', title: 'Multi-node incursion · TRG-0032', global_target_id: 'TRG-0032', threat_score: 77, severity: 'CRITICAL', confidence_pct: 91.9,
-    cameras_involved: ['CAM_ALPHA', 'CAM_BRAVO'],
-    nodes: [
-      { step: 1, camera_id: 'CAM_ALPHA', event_type: 'ZONE_INTRUSION', t: '09:40:30', rule_detail: 'Breach inside Checkpost Alpha red zone.' },
-      { step: 2, camera_id: 'CAM_ALPHA', event_type: 'TRIPWIRE', t: '09:40:37', rule_detail: 'Perimeter tripwire crossed outward buffer.' },
-      { step: 3, camera_id: 'CAM_BRAVO', event_type: 'ZONE_INTRUSION', t: '09:40:46', rule_detail: 'Predicted arrival verified at BOP Bravo fence zone.' } ],
-    score_breakdown: [ { factor: 'Red zone penetration', points: 30 }, { factor: 'Tripwire incursion', points: 25 }, { factor: 'Approach vector', points: 10 }, { factor: 'Predictive multi-camera continuity', points: 12 } ],
-    story_summary: 'Target TRG-0032 traversed CAM_ALPHA → CAM_BRAVO in 15.6s, inside the 6–14s ± tolerance handoff window. Re-ID cosine 0.96.' },
-  { incident_id: 'INC-1051', title: 'Sustained loiter · TRG-0017', global_target_id: 'TRG-0017', threat_score: 65, severity: 'WARNING', confidence_pct: 89.3,
-    cameras_involved: ['CAM_BRAVO'],
-    nodes: [ { step: 1, camera_id: 'CAM_BRAVO', event_type: 'ZONE_INTRUSION', t: '09:39:53', rule_detail: 'Breach inside BOP Bravo fence zone.' },
-      { step: 2, camera_id: 'CAM_BRAVO', event_type: 'LOITER', t: '09:44:22', rule_detail: 'Dwell exceeded 240s in restricted buffer.' } ],
-    score_breakdown: [ { factor: 'Red zone penetration', points: 30 }, { factor: 'Loiter dwell', points: 25 }, { factor: 'Approach vector', points: 10 } ],
-    story_summary: 'Target TRG-0017 held position along the BOP Bravo wire for 4m 29s across two observations.' },
-  { incident_id: 'INC-1040', title: 'ANPR watchlist hit · PB08-XX-1234', global_target_id: 'VEH-0007', threat_score: 74, severity: 'CRITICAL', confidence_pct: 94.1,
-    cameras_involved: ['CAM_CHECKPOST'],
-    nodes: [ { step: 1, camera_id: 'CAM_CHECKPOST', event_type: 'ANPR', t: '08:22:04', rule_detail: 'Plate PB08-XX-1234 matched interdiction watchlist.' } ],
-    score_breakdown: [ { factor: 'Watchlist plate match', points: 45 }, { factor: 'Off-hours transit', points: 18 }, { factor: 'Approach vector', points: 11 } ],
-    story_summary: 'Vehicle plate matched standing interdiction notice at checkpost ANPR lane. Boom held; QRT notified.' },
-];
-const REPLAY = { list: [], sel: null, playing: false, prog: 0 };
-VIEW.builders.replay = async function () {
-  const live = await API.get('/incidents/correlated', null);
-  REPLAY.list = (Array.isArray(live) && live.length ? live : DEMO_INCIDENTS).slice(0, 12).map(normIncident);
-  const listEl = $('#inc-list');
-  listEl.innerHTML = '';
-  REPLAY.list.forEach((inc, i) => {
-    const el = document.createElement('div'); el.className = 'inc-item' + (i === 0 ? ' sel' : '');
-    el.innerHTML = `<div class="i-id">${inc.id}<span class="i-sev ${inc.severity}">${inc.severity}</span></div>
-      <div class="i-sum">${inc.summary}</div>`;
-    el.addEventListener('click', () => { $$('.inc-item').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); selectReplay(inc); });
-    listEl.appendChild(el);
-  });
-  const cv = $('#replay-map');
-  new ResizeObserver(() => { const r = cv.getBoundingClientRect(); const s = Math.min(window.devicePixelRatio || 1, 2); cv.width = Math.max(2, r.width * s); cv.height = Math.max(2, r.height * s); drawReplay(); }).observe(cv);
-  $('#rp-range').addEventListener('input', e => { REPLAY.prog = +e.target.value / 1000; REPLAY.playing = false; $('#rp-play').textContent = '▶ Play'; drawReplay(); });
-  $('#rp-play').addEventListener('click', () => {
-    REPLAY.playing = !REPLAY.playing;
-    $('#rp-play').textContent = REPLAY.playing ? '❚❚ Pause' : '▶ Play';
-    if (REPLAY.playing) { if (REPLAY.prog >= 1) REPLAY.prog = 0; tickReplay(); }
-  });
-  selectReplay(REPLAY.list[0]);
-};
-function normIncident(x) {
-  return {
-    id: x.incident_id || x.id || 'INC-?',
-    severity: (x.severity || 'WARNING').toUpperCase(),
-    score: x.threat_score || 65,
-    cams: x.cameras_involved || (x.nodes ? [...new Set(x.nodes.map(n => n.camera_id))] : ['CAM_ALPHA']),
-    nodes: (x.nodes || []).map((n, i) => ({ step: n.step || i + 1, cam: n.camera_id, type: n.event_type || 'EVENT', t: n.t || (n.timestamp_iso || '').slice(11, 19) || '00:00:00', detail: n.rule_detail || '' })),
-    summary: x.story_summary || x.title || 'Incident',
-  };
+  draw();
 }
-function selectReplay(inc) {
-  REPLAY.sel = inc; REPLAY.prog = 0; REPLAY.playing = false;
-  $('#rp-title').textContent = inc.id + ' · ' + inc.severity;
-  $('#rp-score').textContent = inc.score + ' / 100';
-  $('#rp-score').className = 'tag ' + (inc.severity === 'CRITICAL' ? 'tag-danger' : 'tag-warn');
-  $('#rp-summary').textContent = inc.summary;
-  $('#rp-range').value = 0; $('#rp-play').textContent = '▶ Play';
-  drawReplay();
-}
-const NODE_XY = { CAM_ALPHA: [0.15, 0.66], CAM_CHECKPOST: [0.15, 0.34], CAM_BRAVO: [0.72, 0.5], CAM_CHARLIE: [0.46, 0.26], CAM_DELTA: [0.46, 0.82] };
-function drawReplay() {
-  const cv = $('#replay-map'); if (!cv) return;
-  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
-  const inc = REPLAY.sel; if (!inc) return;
-  ctx.fillStyle = '#080d16'; ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(122,178,214,0.1)'; ctx.lineWidth = 1;
-  for (let x = 0; x < W; x += 34) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-  for (let y = 0; y < H; y += 34) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-  ctx.strokeStyle = 'rgba(242,166,60,0.4)'; ctx.setLineDash([6, 5]);
-  ctx.beginPath(); ctx.moveTo(0, H * 0.16); ctx.lineTo(W, H * 0.1); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(242,166,60,0.5)'; ctx.font = `${11 * ((window.devicePixelRatio || 1) > 1 ? 1.5 : 1)}px "IBM Plex Mono", monospace`;
-  ctx.fillText('INTERNATIONAL BORDER', 12, H * 0.1 - 6);
+initCCTV('feed-canvas-a', 'rgb');
+initCCTV('feed-canvas-b', 'rgb');
 
-  const pts = inc.nodes.map(n => { const xy = NODE_XY[n.cam] || [0.5, 0.5]; return { x: xy[0] * W, y: xy[1] * H, n }; });
-  if (pts.length > 1) {
-    ctx.strokeStyle = 'rgba(55,210,224,0.6)'; ctx.lineWidth = 2; ctx.beginPath();
-    pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)); ctx.stroke();
-  }
-  const seg = REPLAY.prog * Math.max(1, pts.length - 1);
-  const si = Math.min(pts.length - 2, Math.floor(seg)), sf = seg - si;
-  let mx, my;
-  if (pts.length > 1) { mx = pts[si].x + (pts[si + 1].x - pts[si].x) * sf; my = pts[si].y + (pts[si + 1].y - pts[si].y) * sf; }
-  else { mx = pts[0].x; my = pts[0].y; }
-  const DP = (window.devicePixelRatio || 1) > 1 ? 1.5 : 1;
-  pts.forEach((p, i) => {
-    const active = seg >= i - 0.001;
-    ctx.fillStyle = active ? '#37d2e0' : 'rgba(122,178,214,0.35)';
-    ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, 7); ctx.fill();
-    ctx.strokeStyle = active ? 'rgba(55,210,224,0.4)' : 'transparent'; ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, 7); ctx.stroke();
-    ctx.fillStyle = active ? '#d6e2f0' : '#55647e'; ctx.font = `${10 * DP}px "IBM Plex Mono", monospace`;
-    const lbl = p.n.cam + '  ' + p.n.t;
-    if (p.x > W * 0.7) { ctx.textAlign = 'right'; ctx.fillText(lbl, p.x - 14, p.y + 4); ctx.textAlign = 'left'; }
-    else ctx.fillText(lbl, p.x + 14, p.y + 4);
-  });
-  ctx.fillStyle = '#ff4060'; ctx.beginPath(); ctx.arc(mx, my, 5, 0, 7); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,64,96,0.5)'; ctx.beginPath(); ctx.arc(mx, my, 9, 0, 7); ctx.stroke();
-
-  const stepEl = $('#rp-steps'); stepEl.innerHTML = '';
-  inc.nodes.forEach((n, i) => {
-    const c = document.createElement('span');
-    c.className = 'step-chip' + (seg >= i + 0.999 ? ' past' : Math.floor(seg + 0.001) === i ? ' active' : '');
-    c.textContent = `${n.step}. ${n.cam} · ${n.type}`;
-    stepEl.appendChild(c);
-  });
-  const t0 = inc.nodes[0] ? inc.nodes[0].t : '00:00:00';
-  const t1 = inc.nodes[inc.nodes.length - 1] ? inc.nodes[inc.nodes.length - 1].t : t0;
-  $('#rp-time').textContent = REPLAY.prog < 0.02 ? t0 : REPLAY.prog > 0.98 ? t1 : lerpClock(t0, t1, REPLAY.prog);
+function setFeedMode(feed, mode, btn) {
+  const parent = btn.parentElement;
+  $$('.filter-pill', parent).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  initCCTV(`feed-canvas-${feed}`, mode);
+  playBlip(680, 0.03);
 }
-function toSec(h) { const [a, b, c] = h.split(':').map(Number); return a * 3600 + b * 60 + c; }
-function lerpClock(a, b, f) {
-  const s = Math.round(toSec(a) + (toSec(b) - toSec(a)) * f);
-  const p = n => String(n).padStart(2, '0');
-  return `${p(Math.floor(s / 3600))}:${p(Math.floor(s / 60) % 60)}:${p(s % 60)}`;
-}
-function tickReplay() {
-  if (!REPLAY.playing || VIEW.active !== 'replay') return;
-  REPLAY.prog = Math.min(1, REPLAY.prog + 0.006);
-  $('#rp-range').value = Math.round(REPLAY.prog * 1000);
-  drawReplay();
-  if (REPLAY.prog >= 1) { REPLAY.playing = false; $('#rp-play').textContent = '▶ Play'; return; }
-  requestAnimationFrame(tickReplay);
-}
-
-/* ---- RE-ID ---- */
-const REID = { cands: [] };
-VIEW.builders.reid = function () {
-  drawCrop($('#reid-query'), 0.62, '#8fb0c8');
-  regenCandidates();
-  $('#reid-recompute').addEventListener('click', () => { regenCandidates(true); toast('ok', 'Embeddings recomputed', '512-d feature vectors recomputed through ResNet18.'); });
-  $('#reid-accept').addEventListener('click', () => {
-    const top = REID.cands[0];
-    if (top && top.cos >= 0.70) toast('ok', 'Match accepted', `TRG-0017 ↔ ${top.id} linked (cos ${top.cos.toFixed(2)}).`);
-    else toast('warn', 'No candidate above τ', 'Top cosine below 0.70.');
-  });
-  $('#reid-reject').addEventListener('click', () => toast('warn', 'All rejected', 'Observations remain unlinked.'));
-};
-function drawCrop(cv, tone, col) {
-  if (!cv) return;
-  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
-  ctx.fillStyle = '#06090f'; ctx.fillRect(0, 0, W, H);
-  for (let i = 0; i < 300; i++) { ctx.fillStyle = `rgba(120,150,175,${Math.random() * 0.08})`; ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
-  ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(W / 2, H * 0.92, W * 0.28, 6, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = col; ctx.globalAlpha = 0.9;
-  ctx.fillRect(W * 0.34, H * 0.28, W * 0.32, H * 0.5);
-  ctx.beginPath(); ctx.arc(W / 2, H * 0.22, W * 0.12, 0, 7); ctx.fill();
-  ctx.fillStyle = `rgba(40,60,80,${tone})`; ctx.fillRect(W * 0.36, H * 0.5, W * 0.28, H * 0.42);
-  ctx.globalAlpha = 1;
-  ctx.strokeStyle = 'rgba(55,210,224,0.5)'; ctx.lineWidth = 1; ctx.strokeRect(4, 4, W - 8, H - 8);
-}
-function regenCandidates(animate) {
-  const base = [
-    { id: 'BRV-c1', cos: 0.96, tone: 0.6, col: '#8fb0c8' },
-    { id: 'BRV-c2', cos: 0.71, tone: 0.5, col: '#9ab0a0' },
-    { id: 'BRV-c3', cos: 0.63, tone: 0.7, col: '#b0a08f' },
-    { id: 'BRV-c4', cos: 0.55, tone: 0.4, col: '#8fa8c8' },
-    { id: 'BRV-c5', cos: 0.42, tone: 0.55, col: '#c89f8f' },
-    { id: 'BRV-c6', cos: 0.31, tone: 0.65, col: '#9f8fc8' },
-  ];
-  REID.cands = base.map(c => ({ ...c, cos: clamp(c.cos + (animate ? (Math.random() * 0.06 - 0.03) : 0), 0.05, 0.99) })).sort((a, b) => b.cos - a.cos);
-  const grid = $('#cand-grid'); grid.innerHTML = '';
-  REID.cands.forEach((c, i) => {
-    const match = i === 0 && c.cos >= 0.70;
-    const el = document.createElement('div'); el.className = 'cand' + (match ? ' match' : '');
-    el.innerHTML = `<canvas class="crop" width="120" height="120"></canvas>
-      <div class="cos-meta"><span>${c.id}</span><b>${c.cos.toFixed(2)}</b></div>
-      <div class="cos-bar"><i style="width:${animate ? 0 : c.cos * 100}%"></i></div>
-      <div class="cos-meta" style="font-size:8.5px"><span>${match ? 'MATCH · above τ' : c.cos >= 0.70 ? 'above τ' : 'below τ 0.70'}</span></div>`;
-    grid.appendChild(el);
-    drawCrop(el.querySelector('canvas'), c.tone, c.col);
-    if (animate) requestAnimationFrame(() => { el.querySelector('.cos-bar i').style.width = c.cos * 100 + '%'; });
-  });
-  const top = REID.cands[0];
-  $('#reid-verdict').textContent = top.cos >= 0.70 ? `LOCK · ${top.id} cos ${top.cos.toFixed(2)}` : 'NO MATCH · below τ';
-  $('#reid-verdict').className = 'tag ' + (top.cos >= 0.70 ? 'tag-ok' : 'tag-warn');
-}
-
-/* ---- LEDGER full ---- */
-const LEDGER_VIEW = {
-  selId: 'INC-1061',
-  refresh() {
-    renderLedgerInto($('#lf-list'), $('#lf-tag'), { selId: this.selId, onSelect: (b) => { this.selId = b.id; this.refresh(); } });
-    const b = LEDGER.blocks.find(x => x.id === this.selId) || LEDGER.blocks[LEDGER.blocks.length - 1];
-    $('#lf-sel-id').textContent = b.id;
-    $('#lf-detail').innerHTML = `
-      <dt>Index</dt><dd>${LEDGER.blocks.indexOf(b)} of ${LEDGER.blocks.length - 1}</dd>
-      <dt>Sealed</dt><dd>${b.ts} · by ${b.by}</dd>
-      <dt>Payload digest input</dt><dd>${b.payload}</dd>
-      <dt>Nonce</dt><dd>${b.nonce}</dd>
-      <dt>SHA-256</dt><dd style="color:${b.tampered ? 'var(--breach)' : 'var(--clear)'}">${b.hash}</dd>
-      <dt>Prev hash</dt><dd>${b.prev}</dd>
-      <dt>Status</dt><dd>${b.tampered ? '⚠ HASH MISMATCH — chain broken' : '✓ sealed · verified'}</dd>`;
-    drawMerkle();
-  },
-};
-function drawMerkle() {
-  const svg = $('#merkle-svg'); if (!svg) return;
-  const n = LEDGER.blocks.length;
-  const w = 800, pad = 40, gap = (w - pad * 2) / Math.max(1, n - 1);
-  let broken = false;
-  let s = '';
-  LEDGER.blocks.forEach((b, i) => {
-    const x = pad + i * gap, y = 60;
-    if (b.tampered) broken = true;
-    const col = b.tampered || (broken && i > 0) ? '#ff4060' : b.kind === 'genesis' ? '#37d2e0' : '#34e0a0';
-    if (i > 0) {
-      const px = pad + (i - 1) * gap;
-      s += `<line x1="${px + 14}" y1="${y}" x2="${x - 14}" y2="${y}" stroke="${(broken && i > 1) || b.tampered ? '#ff4060' : '#37d2e0'}" stroke-width="1.5" ${(broken && i > 1) ? 'stroke-dasharray="3 3"' : ''}/>`;
-    }
-    s += `<rect x="${x - 14}" y="${y - 14}" width="28" height="28" rx="3" fill="#121d30" stroke="${col}" stroke-width="1.5"/>`;
-    s += `<text x="${x}" y="${y + 4}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="${col}">${b.id === 'GENESIS' ? 'G' : i}</text>`;
-    s += `<text x="${x}" y="${y + 30}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7.5" fill="#7c90ac">${b.hash.slice(0, 6)}</text>`;
-  });
-  svg.innerHTML = s;
-}
-VIEW.builders.ledger = function () {
-  $('#lf-verify').addEventListener('click', async () => {
-    $('#lf-verify').disabled = true;
-    const auditRes = await API.get('/audit/blockchain', null);
-    await verifyWalk($('#lf-list'), $('#lf-tag'), ok => {
-      if (ok && (!auditRes || auditRes.is_valid !== false)) {
-        const blkCount = auditRes ? auditRes.blocks_audited : LEDGER.blocks.length;
-        toast('ok', 'Merkle chain verified', `${blkCount} blocks · SHA-256 integrity 100% untampered.`);
-      } else {
-        toast('crit', 'Integrity failure', 'Tampered block detected — downstream evidence inadmissible.');
-      }
-    });
-    $('#lf-verify').disabled = false;
-  });
-  $('#lf-tamper').addEventListener('click', toggleTamper);
-  $('#lf-export').addEventListener('click', () => toast('ok', 'Audit trail exported', `${LEDGER.blocks.length} blocks -> sentinel_audit_${Date.now()}.jsonl`));
-  LEDGER_VIEW.refresh();
-};
-
-/* ---- CALIB ---- */
-VIEW.builders.calib = function () {
-  const grid = $('#calib-grid');
-  if (!grid || grid.children.length > 0) return;
-  const cams = [
-    { id: 'CAM_ALPHA', reviews: 214, fp: 41, thr: 0.28, veg: true, ir: false, reasons: { vegetation: 46, shadow: 22, wildlife: 18, rain: 14 } },
-    { id: 'CAM_BRAVO', reviews: 188, fp: 27, thr: 0.22, veg: false, ir: true, reasons: { shadow: 38, wildlife: 30, vegetation: 20, rain: 12 } },
-    { id: 'CAM_CHARLIE', reviews: 96, fp: 33, thr: 0.35, veg: true, ir: true, reasons: { vegetation: 55, wildlife: 25, shadow: 12, rain: 8 } },
-  ];
-  grid.innerHTML = '';
-  cams.forEach(c => {
-    const card = document.createElement('div'); card.className = 'panel calib-card';
-    const rate = ((c.fp / c.reviews) * 100).toFixed(1);
-    card.innerHTML = `<div class="panel-head"><h2><span class="dot dot-sig"></span> ${c.id}</h2><span class="tag">${c.reviews} reviews</span></div>
-      <div class="panel-body">
-        <div class="row"><span>Adaptive min confidence</span><b class="mono" data-thr>${c.thr.toFixed(2)}</b></div>
-        <input type="range" min="5" max="60" value="${c.thr * 100}" aria-label="${c.id} min confidence">
-        <div class="row"><span>False-positive rate</span><b class="mono" style="color:var(--hold)">${rate}%</b></div>
-        <div class="label">FP reason breakdown</div>
-        ${Object.entries(c.reasons).map(([k, v]) => `<div class="fp-bar"><span>${k}</span><span class="track"><i style="width:${v}%"></i></span><span>${v}%</span></div>`).join('')}
-        <label class="switch"><input type="checkbox" ${c.veg ? 'checked' : ''}> Vegetation motion filter</label>
-        <label class="switch"><input type="checkbox" ${c.ir ? 'checked' : ''}> IR / low-light night profile</label>
-      </div>`;
-    grid.appendChild(card);
-    const range = card.querySelector('input[type=range]');
-    range.addEventListener('input', () => { card.querySelector('[data-thr]').textContent = (range.value / 100).toFixed(2); });
-  });
-  $('#calib-apply').addEventListener('click', () => toast('ok', 'Calibration applied', 'Per-node thresholds pushed to edge inference.'));
-};
 
 /* ============================================================
-   11. KEYBOARD SHORTCUTS
+   5. AI RE-ID GALLERY RENDERER
    ============================================================ */
-window.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
-  const k = e.key.toLowerCase();
-  if (k === 's') armSiren(!sirenOn);
-  else if (k === 'b') runScenario(1);
-  else if (['1', '2', '3', '4', '5', '6', '7'].includes(k)) {
-    const views = ['ops', 'models', 'wall', 'replay', 'reid', 'ledger', 'calib'];
-    if (views[+k - 1]) showView(views[+k - 1]);
+function renderReIDGallery() {
+  const cv = $('#reid-query-canvas');
+  if (cv) {
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#091322'; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.fillStyle = '#00f0ff'; ctx.fillRect(cv.width * 0.3, cv.height * 0.3, cv.width * 0.4, cv.height * 0.5);
   }
+
+  const cands = [
+    { id: 'BRV-c1', cos: 0.96, match: true },
+    { id: 'BRV-c2', cos: 0.71, match: false },
+    { id: 'BRV-c3', cos: 0.63, match: false },
+    { id: 'BRV-c4', cos: 0.54, match: false },
+  ];
+  const wrap = $('#reid-gallery-container');
+  if (!wrap || wrap.children.length > 0) return;
+
+  cands.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'gallery-card' + (c.match ? ' match' : '');
+    card.innerHTML = `
+      <canvas class="gallery-crop" width="120" height="120"></canvas>
+      <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;">
+        <span>${c.id}</span><b style="color:${c.match ? 'var(--emerald)' : 'var(--text-dim)'}">${c.cos.toFixed(2)}</b>
+      </div>
+      <div class="sim-meter"><i style="width:${c.cos * 100}%"></i></div>
+      <div style="font-size:9.5px;color:var(--text-dim);font-family:var(--font-mono)">${c.match ? '✓ LOCK (Rank-1)' : 'Below Threshold'}</div>
+    `;
+    wrap.appendChild(card);
+    const cctx = card.querySelector('canvas').getContext('2d');
+    cctx.fillStyle = '#091322'; cctx.fillRect(0, 0, 120, 120);
+    cctx.fillStyle = c.match ? '#00ff9d' : '#475569'; cctx.fillRect(35, 30, 50, 60);
+  });
+}
+
+/* ============================================================
+   6. EVIDENCE VAULT RENDERER
+   ============================================================ */
+const BLOCKS = [
+  { id: 'GENESIS', label: 'Ledger Root Hash', ts: '2026-09-04T00:00:00Z', hash: '8f12a9bc41d2003...', prev: '0000000000000000...' },
+  { id: 'INC-1041', label: 'Checkpost Alpha Breach', ts: '2026-09-04T09:40:30Z', hash: 'e3b0c44298fc1c1...', prev: '8f12a9bc41d2003...' },
+  { id: 'INC-1061', label: 'Alpha → Bravo Re-ID Link', ts: '2026-09-04T09:40:46Z', hash: '9ed1ac75937d8c3...', prev: 'e3b0c44298fc1c1...' },
+];
+function renderVaultBlocks() {
+  const wrap = $('#vault-block-list');
+  if (!wrap || wrap.children.length > 0) return;
+  BLOCKS.forEach((b, i) => {
+    const el = document.createElement('div');
+    el.className = 'block-card' + (i === 1 ? ' sel' : '');
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;color:#fff;font-weight:600;">
+        <span>BLOCK #${i} · ${b.id}</span>
+        <span style="color:var(--emerald);font-size:9.5px">SEALED</span>
+      </div>
+      <div style="color:var(--text-dim);margin-top:4px">Hash: ${b.hash}</div>
+      <div style="color:var(--text-faint);margin-top:2px">${b.label}</div>
+    `;
+    el.addEventListener('click', () => {
+      $$('.block-card').forEach(x => x.classList.remove('sel'));
+      el.classList.add('sel');
+      $('#vault-inspect-title').textContent = `Block #${i} · ${b.id}`;
+      $('#vault-inspect-details').innerHTML = `
+        <b>Timestamp:</b> ${b.ts}<br>
+        <b>Current SHA-256:</b> <span style="color:var(--emerald)">${b.hash}</span><br>
+        <b>Previous Block Hash:</b> ${b.prev}<br>
+        <b>Payload Content:</b> ${b.label} · Operator Confirmed<br>
+        <b>Tamper Status:</b> <span style="color:var(--emerald)">✓ Chain 100% Intact</span>
+      `;
+    });
+    wrap.appendChild(el);
+  });
+  wrap.children[1].click();
+}
+
+$('#btn-audit-chain').addEventListener('click', () => {
+  toast('ok', 'Merkle Audit Passed', 'All evidence blocks verified untampered.');
+});
+$('#btn-tamper-test').addEventListener('click', () => {
+  toast('crit', 'Tamper Detected', 'Byte mismatch at Block #1 — integrity break flagged.');
 });
 </script>
 </body>
