@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sentinel Watchfloor</title>
-<meta name="description" content="Interactive tactical command console for the IBVAP Sentinel border video-analytics ecosystem." />
+<title>Sentinel Watchfloor — Cyber Camera AI Surveillance</title>
+<meta name="description" content="Tactical command console for the IBVAP Sentinel border video-analytics ecosystem with 3D Digital Twin, Multi-Camera Re-ID, and Model Zoo." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,11 +14,6 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <style>
-  /* ============================================================
-     SENTINEL WATCHFLOOR — tactical command console
-     Committed single-theme dark: an operator's darkened ops room.
-     Every colour is painted from a token so the page holds on any host ground.
-     ============================================================ */
   :root {
     --ground:      #060910;
     --ground-2:    #0a0f1a;
@@ -35,6 +30,7 @@
     --hold:        #f2a63c;
     --breach:      #ff4060;
     --clear:       #34e0a0;
+    --purple:      #a371f7;
 
     --font-display: "Chakra Petch", "Arial Narrow", sans-serif;
     --font-body:    "IBM Plex Sans", system-ui, sans-serif;
@@ -55,7 +51,7 @@
       var(--ground);
     color: var(--ink);
     font-family: var(--font-body);
-    font-size: 14px;
+    font-size: 13.5px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
@@ -74,21 +70,21 @@
   .mono { font-family: var(--font-mono); }
   .tnum { font-variant-numeric: tabular-nums; }
   .label {
-    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.14em;
     text-transform: uppercase; color: var(--ink-dim);
   }
   a { color: var(--signal); }
   :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--signal-deep); }
 
   button {
     font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-    letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink);
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink);
     background: var(--surface-3); border: 1px solid var(--line-strong);
-    border-radius: var(--radius); padding: 8px 12px; cursor: pointer;
+    border-radius: var(--radius); padding: 7px 11px; cursor: pointer;
     transition: background 0.14s ease, border-color 0.14s ease, transform 0.06s ease, color 0.14s ease;
   }
   button:hover { background: var(--surface-2); border-color: var(--signal); }
@@ -107,99 +103,119 @@
   .app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
 
   .rail {
-    display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center;
-    gap: 16px; padding: 9px 14px; margin: 10px 10px 0;
+    display: grid; grid-template-columns: auto minmax(0,1fr) auto auto; align-items: center;
+    gap: 14px; padding: 8px 14px; margin: 8px 10px 0;
     background: linear-gradient(180deg, var(--surface-2), var(--surface));
     border: 1px solid var(--line); border-radius: var(--radius);
   }
-  .crest { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .crest { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .crest-mark {
-    position: relative; flex: none; width: 36px; height: 36px; display: grid; place-items: center;
+    position: relative; flex: none; width: 34px; height: 34px; display: grid; place-items: center;
     border: 1px solid var(--line-strong); border-radius: var(--radius);
     background: radial-gradient(circle at 30% 25%, rgba(55, 210, 224, 0.25), transparent 70%), var(--ground);
   }
-  .crest-mark svg { width: 19px; height: 19px; }
+  .crest-mark svg { width: 18px; height: 18px; }
   .crest-mark::after {
-    content: ""; position: absolute; top: -3px; right: -3px; width: 8px; height: 8px;
+    content: ""; position: absolute; top: -3px; right: -3px; width: 7px; height: 7px;
     border-radius: 50%; background: var(--clear); animation: beacon 2.6s ease-out infinite;
   }
   @keyframes beacon {
     0% { box-shadow: 0 0 0 0 rgba(52, 224, 160, 0.6); }
-    70% { box-shadow: 0 0 0 9px rgba(52, 224, 160, 0); }
+    70% { box-shadow: 0 0 0 8px rgba(52, 224, 160, 0); }
     100% { box-shadow: 0 0 0 0 rgba(52, 224, 160, 0); }
   }
-  .crest h1 { font-size: 16px; letter-spacing: 0.06em; line-height: 1.1; }
-  .crest p { margin: 2px 0 0; font-size: 10px; letter-spacing: 0.07em; color: var(--ink-dim); font-family: var(--font-mono); }
+  .crest h1 { font-size: 15px; letter-spacing: 0.06em; line-height: 1.1; }
+  .crest p { margin: 1px 0 0; font-size: 9.5px; letter-spacing: 0.07em; color: var(--ink-dim); font-family: var(--font-mono); }
+
+  /* Scenario quick launcher dock in header */
+  .scen-dock {
+    display: flex; align-items: center; gap: 4px; background: rgba(6,9,16,0.6);
+    padding: 3px 6px; border: 1px solid var(--line); border-radius: var(--radius);
+    overflow-x: auto;
+  }
+  .scen-dock .scen-label {
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; color: var(--signal);
+    text-transform: uppercase; padding: 0 6px 0 2px; white-space: nowrap; font-weight: 600;
+  }
+  .scen-btn {
+    padding: 5px 9px; font-size: 9.5px; letter-spacing: 0.06em; background: var(--surface-3);
+    border: 1px solid var(--line); color: var(--ink-dim); border-radius: 3px; white-space: nowrap;
+  }
+  .scen-btn:hover { color: var(--signal); border-color: var(--signal); background: var(--surface-2); }
+  .scen-btn.active { color: var(--ground); background: var(--signal); border-color: var(--signal); font-weight: 700; }
+  .scen-btn.warn-scen.active { color: var(--ground); background: var(--hold); border-color: var(--hold); }
+  .scen-btn.crit-scen.active { color: #fff; background: var(--breach); border-color: var(--breach); }
 
   .vitals {
     display: flex; gap: 1px; background: var(--line); border: 1px solid var(--line);
     border-radius: var(--radius); overflow: hidden;
   }
-  .vital { display: flex; flex-direction: column; gap: 1px; padding: 5px 11px; background: var(--surface); min-width: 84px; }
-  .vital b { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; }
+  .vital { display: flex; flex-direction: column; gap: 1px; padding: 4px 9px; background: var(--surface); min-width: 78px; }
+  .vital b { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; }
   .vital.ok b { color: var(--clear); } .vital.warn b { color: var(--hold); } .vital.sig b { color: var(--signal); }
 
-  .rail-actions { display: flex; gap: 8px; align-items: center; }
+  .rail-actions { display: flex; gap: 6px; align-items: center; }
   .conn {
-    display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10px;
-    letter-spacing: 0.1em; padding: 7px 10px; border-radius: var(--radius); border: 1px solid var(--line-strong);
+    display: flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 9.5px;
+    letter-spacing: 0.08em; padding: 6px 9px; border-radius: var(--radius); border: 1px solid var(--line-strong);
     color: var(--ink-dim); white-space: nowrap;
   }
-  .conn .d { width: 7px; height: 7px; border-radius: 50%; background: var(--hold); }
+  .conn .d { width: 6px; height: 6px; border-radius: 50%; background: var(--hold); }
   .conn.live { color: var(--clear); border-color: rgba(52,224,160,0.4); }
   .conn.live .d { background: var(--clear); box-shadow: 0 0 8px var(--clear); animation: blink 1.6s steps(1) infinite; }
   .conn.demo .d { background: var(--hold); }
 
   /* ---------- body + nav ---------- */
-  .body { display: flex; flex: 1; gap: 10px; padding: 10px; min-height: 0; }
+  .body { display: flex; flex: 1; gap: 8px; padding: 8px 10px 10px; min-height: 0; }
   .nav {
-    flex: none; width: var(--nav-w); display: flex; flex-direction: column; gap: 6px;
-    padding: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    flex: none; width: var(--nav-w); display: flex; flex-direction: column; gap: 5px;
+    padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
   }
   .nav button {
-    padding: 0; height: 44px; display: grid; place-items: center; gap: 2px; position: relative;
+    padding: 0; height: 42px; display: grid; place-items: center; gap: 2px; position: relative;
     background: transparent; border-color: transparent; color: var(--ink-faint);
-    text-transform: none; letter-spacing: 0.06em; font-size: 8px;
+    text-transform: none; letter-spacing: 0.06em; font-size: 7.5px; font-weight: 600;
   }
-  .nav button svg { width: 17px; height: 17px; }
+  .nav button svg { width: 16px; height: 16px; }
   .nav button:hover { background: var(--surface-2); border-color: var(--line); color: var(--ink-dim); }
   .nav button[aria-current="true"] { color: var(--signal); background: rgba(55,210,224,0.1); border-color: rgba(55,210,224,0.4); }
   .nav button[aria-current="true"]::before {
-    content: ""; position: absolute; left: -8px; top: 8px; bottom: 8px; width: 2px; background: var(--signal);
+    content: ""; position: absolute; left: -6px; top: 7px; bottom: 7px; width: 2px; background: var(--signal);
   }
   .nav .spacer { flex: 1; }
 
   .views { flex: 1; min-width: 0; position: relative; }
-  .view { display: flex; flex-direction: column; gap: 10px; }
+  .view { display: flex; flex-direction: column; gap: 8px; }
 
   /* ---------- panels ---------- */
   .panel { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); min-height: 0; }
   .panel-danger { border-color: rgba(255, 64, 96, 0.4); box-shadow: inset 0 0 0 1px rgba(255, 64, 96, 0.08); }
   .panel-head {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 9px 12px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 7px 11px; border-bottom: 1px solid var(--line);
   }
-  .panel-head h2 { font-size: 12px; letter-spacing: 0.11em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
-  .panel-head h2 .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .panel-head h2 { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; gap: 7px; }
+  .panel-head h2 .dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
   .dot-sig { background: var(--signal); box-shadow: 0 0 8px var(--signal); }
   .dot-ok { background: var(--clear); box-shadow: 0 0 8px var(--clear); }
   .dot-warn { background: var(--hold); box-shadow: 0 0 8px var(--hold); }
   .dot-live { background: var(--breach); animation: blink 1.1s steps(1) infinite; }
   @keyframes blink { 50% { opacity: 0.25; } }
-  .panel-body { padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .panel-body { padding: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 
   .tag {
-    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
-    padding: 3px 7px; border-radius: 3px; border: 1px solid var(--line-strong); color: var(--ink-dim); white-space: nowrap;
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 3px; border: 1px solid var(--line-strong); color: var(--ink-dim); white-space: nowrap;
   }
   .tag-sig { color: var(--signal); border-color: rgba(55,210,224,0.4); background: rgba(55,210,224,0.08); }
   .tag-warn { color: var(--hold); border-color: rgba(242,166,60,0.4); background: rgba(242,166,60,0.08); }
   .tag-danger { color: var(--breach); border-color: rgba(255,64,96,0.4); background: rgba(255,64,96,0.08); }
   .tag-ok { color: var(--clear); border-color: rgba(52,224,160,0.4); background: rgba(52,224,160,0.08); }
+  .tag-purple { color: var(--purple); border-color: rgba(163,113,247,0.4); background: rgba(163,113,247,0.08); }
 
   /* ---------- OPS board ---------- */
-  #view-ops .board { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.82fr); gap: 10px; }
-  .col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  #view-ops .board { display: grid; grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr) minmax(0, 0.84fr); gap: 8px; }
+  .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 
   #twin-panel { min-height: 560px; display: flex; flex-direction: column; }
   #twin-panel .panel-body { padding: 0; position: relative; flex: 1; min-height: 520px; height: 100%; }
@@ -207,56 +223,64 @@
   #twin-stage:active { cursor: grabbing; }
   #twin-stage canvas { display: block; width: 100% !important; height: 100% !important; }
   .twin-label {
-    position: absolute; transform: translate(-50%, -50%); font-family: var(--font-mono); font-size: 9.5px;
-    letter-spacing: 0.08em; padding: 2px 6px; border-radius: 3px; background: rgba(6, 9, 16, 0.82);
+    position: absolute; transform: translate(-50%, -50%); font-family: var(--font-mono); font-size: 9px;
+    letter-spacing: 0.08em; padding: 2px 5px; border-radius: 3px; background: rgba(6, 9, 16, 0.85);
     border: 1px solid var(--line-strong); color: var(--ink-dim); white-space: nowrap; pointer-events: none;
     will-change: transform, left, top;
   }
   .twin-label.sig { color: var(--signal); border-color: rgba(55,210,224,0.45); }
   .twin-label.warn { color: var(--hold); border-color: rgba(242,166,60,0.45); }
   .twin-label.danger { color: var(--breach); border-color: rgba(255,64,96,0.5); background: rgba(30,6,12,0.85); }
-  .twin-dock { position: absolute; left: 10px; bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px; max-width: 62%; }
+  .twin-dock { position: absolute; left: 8px; bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px; max-width: 62%; }
   .layer-toggle {
-    padding: 5px 9px; font-size: 9.5px; letter-spacing: 0.08em; background: rgba(6, 9, 16, 0.78);
+    padding: 4px 8px; font-size: 9px; letter-spacing: 0.06em; background: rgba(6, 9, 16, 0.78);
     border: 1px solid var(--line); color: var(--ink-faint);
   }
   .layer-toggle[aria-pressed="true"] { color: var(--signal); border-color: rgba(55,210,224,0.5); background: rgba(55,210,224,0.1); }
-  .twin-tools { position: absolute; right: 10px; top: 10px; display: flex; gap: 5px; }
-  .twin-tools button { padding: 6px 8px; background: rgba(6,9,16,0.78); }
+  .twin-tools { position: absolute; right: 8px; top: 8px; display: flex; gap: 4px; }
+  .twin-tools button { padding: 5px 7px; background: rgba(6,9,16,0.78); font-size: 9.5px; }
   .twin-readout {
-    position: absolute; right: 10px; bottom: 10px; font-family: var(--font-mono); font-size: 9.5px;
-    letter-spacing: 0.06em; color: var(--ink-dim); background: rgba(6, 9, 16, 0.78);
-    border: 1px solid var(--line); border-radius: 3px; padding: 5px 8px; text-align: right; line-height: 1.7;
+    position: absolute; right: 8px; bottom: 8px; font-family: var(--font-mono); font-size: 9px;
+    letter-spacing: 0.05em; color: var(--ink-dim); background: rgba(6, 9, 16, 0.8);
+    border: 1px solid var(--line); border-radius: 3px; padding: 5px 7px; text-align: right; line-height: 1.6;
   }
   .twin-readout span { color: var(--signal); }
   #twin-inspect {
-    position: absolute; left: 10px; top: 10px; max-width: 220px; padding: 9px 11px;
-    background: rgba(6, 9, 16, 0.92); border: 1px solid var(--line-strong); border-radius: var(--radius);
-    font-family: var(--font-mono); font-size: 10px; line-height: 1.65; color: var(--ink-dim);
+    position: absolute; left: 8px; top: 8px; max-width: 220px; padding: 8px 10px;
+    background: rgba(6, 9, 16, 0.94); border: 1px solid var(--line-strong); border-radius: var(--radius);
+    font-family: var(--font-mono); font-size: 9.5px; line-height: 1.6; color: var(--ink-dim);
   }
-  #twin-inspect h4 { font-size: 11px; color: var(--signal); letter-spacing: 0.08em; margin-bottom: 4px; }
+  #twin-inspect h4 { font-size: 11px; color: var(--signal); letter-spacing: 0.08em; margin-bottom: 3px; }
   #twin-inspect b { color: var(--ink); font-weight: 500; }
 
-  /* ---------- feed component ---------- */
+  /* ---------- feed component & visual modes ---------- */
   .feed { position: relative; }
   .feed-frame { position: relative; aspect-ratio: 16 / 9; background: #04060b; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
   .feed-frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .feed-hud { position: absolute; inset: 0; pointer-events: none; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.05em; }
-  .feed-hud .tl { position: absolute; top: 6px; left: 7px; color: var(--signal); }
-  .feed-hud .tr { position: absolute; top: 6px; right: 7px; color: var(--ink-dim); text-align: right; }
-  .feed-hud .bl { position: absolute; bottom: 6px; left: 7px; color: var(--clear); }
-  .feed-hud .br { position: absolute; bottom: 6px; right: 7px; color: var(--hold); text-align: right; }
+  .feed-hud { position: absolute; inset: 0; pointer-events: none; font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.05em; }
+  .feed-hud .tl { position: absolute; top: 5px; left: 6px; color: var(--signal); }
+  .feed-hud .tr { position: absolute; top: 5px; right: 6px; color: var(--ink-dim); text-align: right; }
+  .feed-hud .bl { position: absolute; bottom: 5px; left: 6px; color: var(--clear); }
+  .feed-hud .br { position: absolute; bottom: 5px; right: 6px; color: var(--hold); text-align: right; }
   .feed-hud .rec::before {
-    content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-    background: var(--breach); margin-right: 5px; vertical-align: middle; animation: blink 1.1s steps(1) infinite;
+    content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--breach); margin-right: 4px; vertical-align: middle; animation: blink 1.1s steps(1) infinite;
   }
-  .feed-corner { position: absolute; width: 12px; height: 12px; border: 1px solid rgba(55,210,224,0.4); }
-  .feed-corner.a { top: 4px; left: 4px; border-right: 0; border-bottom: 0; }
-  .feed-corner.b { top: 4px; right: 4px; border-left: 0; border-bottom: 0; }
-  .feed-corner.c { bottom: 4px; left: 4px; border-right: 0; border-top: 0; }
-  .feed-corner.d { bottom: 4px; right: 4px; border-left: 0; border-top: 0; }
-  .feed-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; }
-  .feed-meta .name { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--ink); }
+  .feed-corner { position: absolute; width: 10px; height: 10px; border: 1px solid rgba(55,210,224,0.4); }
+  .feed-corner.a { top: 3px; left: 3px; border-right: 0; border-bottom: 0; }
+  .feed-corner.b { top: 3px; right: 3px; border-left: 0; border-bottom: 0; }
+  .feed-corner.c { bottom: 3px; left: 3px; border-right: 0; border-top: 0; }
+  .feed-corner.d { bottom: 3px; right: 3px; border-left: 0; border-top: 0; }
+  .feed-meta { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 5px; }
+  .feed-meta .name { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; color: var(--ink); }
+  
+  /* Feed mode switch buttons */
+  .feed-modes { display: flex; gap: 3px; }
+  .feed-mode-btn {
+    padding: 2px 5px; font-size: 8px; letter-spacing: 0.05em; background: rgba(6,9,16,0.7);
+    border: 1px solid var(--line); color: var(--ink-dim); border-radius: 2px;
+  }
+  .feed-mode-btn.active { color: var(--ground); background: var(--signal); border-color: var(--signal); font-weight: 700; }
 
   /* ---------- radar ---------- */
   #radar-canvas {
@@ -264,39 +288,39 @@
     background: radial-gradient(circle at 50% 60%, rgba(55,210,224,0.06), transparent 70%);
     border: 1px solid var(--line); border-radius: 3px;
   }
-  .radar-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; margin-top: 8px; }
-  .radar-strip div { background: var(--surface); padding: 7px 9px; }
-  .radar-strip b { font-family: var(--font-mono); font-size: 12px; display: block; margin-top: 1px; }
+  .radar-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+  .radar-strip div { background: var(--surface); padding: 6px 8px; }
+  .radar-strip b { font-family: var(--font-mono); font-size: 11px; display: block; margin-top: 1px; }
   .radar-strip .v-eta b { color: var(--hold); } .radar-strip .v-spd b { color: var(--signal); } .radar-strip .v-hdg b { color: var(--ink); }
-  .factors { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .factors { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
   .factor {
-    display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 6px 8px;
-    background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; font-family: var(--font-mono); font-size: 10px;
+    display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 5px 7px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; font-family: var(--font-mono); font-size: 9.5px;
   }
   .factor span:first-child { color: var(--ink-dim); }
   .factor b { color: var(--hold); } .factor.pos b { color: var(--clear); } .factor.crit b { color: var(--breach); }
 
   /* ---------- dossier ---------- */
-  .dossier-score { font-family: var(--font-mono); font-weight: 600; font-size: 11px; padding: 3px 8px; border-radius: 3px; background: var(--breach); color: #fff; }
-  .narrative { font-size: 12.5px; line-height: 1.55; color: var(--ink); }
-  .narrative code { font-family: var(--font-mono); font-size: 11px; color: var(--signal); background: rgba(55,210,224,0.09); padding: 1px 4px; border-radius: 3px; }
-  .trace { display: flex; align-items: stretch; gap: 6px; font-family: var(--font-mono); font-size: 9.5px; }
-  .trace-node { flex: 1; padding: 7px 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; text-align: center; line-height: 1.5; }
+  .dossier-score { font-family: var(--font-mono); font-weight: 600; font-size: 10.5px; padding: 2px 7px; border-radius: 3px; background: var(--breach); color: #fff; }
+  .narrative { font-size: 12px; line-height: 1.5; color: var(--ink); }
+  .narrative code { font-family: var(--font-mono); font-size: 10.5px; color: var(--signal); background: rgba(55,210,224,0.09); padding: 1px 3px; border-radius: 3px; }
+  .trace { display: flex; align-items: stretch; gap: 5px; font-family: var(--font-mono); font-size: 9px; }
+  .trace-node { flex: 1; padding: 6px 7px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; text-align: center; line-height: 1.45; }
   .trace-node .n-cam { color: var(--signal); font-weight: 600; }
   .trace-node.breach { border-color: rgba(255,64,96,0.45); } .trace-node.breach .n-cam { color: var(--breach); }
   .trace-node.reid { border-color: rgba(52,224,160,0.45); } .trace-node.reid .n-cam { color: var(--clear); }
   .trace-link { display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--hold); padding: 0 2px; white-space: nowrap; }
-  .triage { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .triage { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .btn-dismiss { color: var(--ink-dim); }
-  .triage-stats { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-faint); letter-spacing: 0.05em; }
+  .triage-stats { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 9px; color: var(--ink-faint); letter-spacing: 0.05em; }
   .triage-stats b { color: var(--ink-dim); }
 
   /* ---------- ledger (OPS mini) ---------- */
   #ledger-panel .panel-body { flex: 1; min-height: 0; }
-  .ledger-list { display: flex; flex-direction: column; gap: 7px; overflow-y: auto; padding-right: 4px; flex: 1; min-height: 120px; }
+  .ledger-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; padding-right: 3px; flex: 1; min-height: 110px; }
   .block {
-    padding: 8px 9px; background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
-    border-radius: 3px; font-family: var(--font-mono); font-size: 10px; cursor: pointer;
+    padding: 7px 8px; background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
+    border-radius: 3px; font-family: var(--font-mono); font-size: 9.5px; cursor: pointer;
     transition: border-color 0.14s ease, background 0.14s ease;
   }
   .block:hover { background: var(--surface-3); }
@@ -306,28 +330,51 @@
   .block.broken { border-left-color: var(--breach); background: rgba(255,64,96,0.1); }
   .block.sel { border-color: var(--signal); }
   .block-top { display: flex; justify-content: space-between; align-items: center; color: var(--ink); font-weight: 600; }
-  .block-top .st { font-size: 8.5px; letter-spacing: 0.1em; padding: 2px 5px; border-radius: 2px; border: 1px solid var(--line-strong); color: var(--ink-dim); font-weight: 500; }
+  .block-top .st { font-size: 8px; letter-spacing: 0.08em; padding: 1px 4px; border-radius: 2px; border: 1px solid var(--line-strong); color: var(--ink-dim); font-weight: 500; }
   .block.sealed .st { color: var(--clear); border-color: rgba(52,224,160,0.4); }
   .block.broken .st { color: var(--breach); border-color: rgba(255,64,96,0.4); }
-  .block-hash { color: var(--ink-dim); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .block-hash { color: var(--ink-dim); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .block-hash b { color: var(--ink); font-weight: 500; }
   .block.expanded .block-hash, .block.expanded .block-prev { white-space: normal; word-break: break-all; }
   .block-prev { color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ledger-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ledger-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
   /* ---------- log strip ---------- */
   .logstrip {
-    display: flex; align-items: center; gap: 14px; padding: 7px 14px; background: var(--surface);
-    border: 1px solid var(--line); border-radius: var(--radius); font-family: var(--font-mono); font-size: 10.5px; overflow: hidden;
+    display: flex; align-items: center; gap: 12px; padding: 6px 12px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: var(--radius); font-family: var(--font-mono); font-size: 10px; overflow: hidden;
   }
   .logstrip .label { flex: none; }
-  #log-scroll { display: flex; gap: 26px; white-space: nowrap; animation: marquee 46s linear infinite; }
+  #log-scroll { display: flex; gap: 24px; white-space: nowrap; animation: marquee 46s linear infinite; }
   #log-scroll span b { color: var(--ink); }
   #log-scroll .sev-crit b { color: var(--breach); } #log-scroll .sev-warn b { color: var(--hold); } #log-scroll .sev-info b { color: var(--signal); }
   @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
+  /* ---------- MODELS VIEW ---------- */
+  .models-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 10px; }
+  .model-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+  .model-card .m-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .model-card .m-head h3 { font-size: 12.5px; letter-spacing: 0.08em; color: var(--signal); }
+  .model-card .m-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; font-family: var(--font-mono); font-size: 10.5px; }
+  .m-spec-row { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--line); padding-bottom: 4px; }
+  .m-spec-row span { color: var(--ink-dim); } .m-spec-row b { color: var(--ink); }
+  .m-classes { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .m-class-pill { font-size: 9px; padding: 2px 6px; border-radius: 3px; background: var(--surface-3); border: 1px solid var(--line-strong); color: var(--ink-dim); }
+  .m-class-pill.target { color: var(--breach); border-color: rgba(255,64,96,0.4); }
+  .m-class-pill.weapon { color: var(--hold); border-color: rgba(242,166,60,0.4); }
+
+  .sandbox-bench {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin-top: 8px;
+  }
+  .sandbox-canvas-wrap { position: relative; aspect-ratio: 16/9; background: #03060a; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+  .sandbox-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+  .sandbox-ctrls { display: flex; flex-direction: column; gap: 8px; }
+  .sandbox-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .sandbox-json { font-family: var(--font-mono); font-size: 9.5px; background: #050811; border: 1px solid var(--line); border-radius: 3px; padding: 8px; height: 140px; overflow-y: auto; color: var(--signal); }
+
   /* ---------- WALL ---------- */
-  .wall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .wall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .wall .feed-frame { cursor: pointer; }
   .wall .feed.solo { grid-column: span 2; grid-row: span 2; }
   @media (max-width: 900px) { .wall { grid-template-columns: repeat(2, 1fr); } .wall .feed.solo { grid-column: span 2; grid-row: auto; } }
@@ -351,70 +398,55 @@
   .replay-scrub input[type=range] { flex: 1; accent-color: var(--signal); }
   .step-row { display: flex; gap: 6px; flex-wrap: wrap; }
   .step-chip {
-    font-family: var(--font-mono); font-size: 9.5px; padding: 5px 8px; border-radius: 3px;
+    font-family: var(--font-mono); font-size: 9.5px; padding: 4px 7px; border-radius: 3px;
     background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-dim);
   }
   .step-chip.active { border-color: var(--signal); color: var(--signal); background: rgba(55,210,224,0.08); }
   .step-chip.past { color: var(--ink-faint); }
 
   /* ---------- RE-ID ---------- */
-  .reid-grid { display: grid; grid-template-columns: 220px minmax(0,1fr); gap: 12px; }
+  .reid-grid { display: grid; grid-template-columns: 220px minmax(0,1fr); gap: 10px; }
   .crop { width: 100%; aspect-ratio: 3/4; background: #04060b; border: 1px solid var(--line-strong); border-radius: 3px; display: block; }
-  .cand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-  .cand { background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .cand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .cand { background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 7px; display: flex; flex-direction: column; gap: 5px; }
   .cand.match { border-color: var(--clear); box-shadow: inset 0 0 0 1px rgba(52,224,160,0.15); }
   .cand .crop { aspect-ratio: 1/1; }
-  .cos-bar { height: 6px; background: var(--surface-3); border-radius: 3px; overflow: hidden; position: relative; }
+  .cos-bar { height: 5px; background: var(--surface-3); border-radius: 3px; overflow: hidden; position: relative; }
   .cos-bar i { display: block; height: 100%; background: var(--ink-faint); transition: width 0.5s ease; }
   .cand.match .cos-bar i { background: var(--clear); }
-  .cos-meta { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--ink-dim); }
+  .cos-meta { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-dim); }
   .cand.match .cos-meta b { color: var(--clear); }
 
   /* ---------- LEDGER full ---------- */
-  .ledger-grid { display: grid; grid-template-columns: 300px minmax(0,1fr); gap: 12px; }
-  .ledger-detail { font-family: var(--font-mono); font-size: 11px; line-height: 1.8; }
-  .ledger-detail dt { color: var(--ink-dim); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 8px; }
+  .ledger-grid { display: grid; grid-template-columns: 300px minmax(0,1fr); gap: 10px; }
+  .ledger-detail { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.75; }
+  .ledger-detail dt { color: var(--ink-dim); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; }
   .ledger-detail dd { margin: 0; color: var(--ink); word-break: break-all; }
-  #merkle-svg { width: 100%; height: 130px; display: block; }
+  #merkle-svg { width: 100%; height: 120px; display: block; }
 
   /* ---------- CALIB ---------- */
-  .calib-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
-  .calib-card .row { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10.5px; margin: 6px 0; }
+  .calib-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 8px; }
+  .calib-card .row { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; margin: 5px 0; }
   .calib-card input[type=range] { width: 100%; accent-color: var(--signal); }
-  .fp-bar { display: grid; grid-template-columns: 78px 1fr 34px; gap: 8px; align-items: center; font-family: var(--font-mono); font-size: 10px; color: var(--ink-dim); margin: 4px 0; }
-  .fp-bar .track { height: 6px; background: var(--surface-3); border-radius: 3px; overflow: hidden; }
+  .fp-bar { display: grid; grid-template-columns: 78px 1fr 34px; gap: 8px; align-items: center; font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-dim); margin: 3px 0; }
+  .fp-bar .track { height: 5px; background: var(--surface-3); border-radius: 3px; overflow: hidden; }
   .fp-bar .track i { display: block; height: 100%; background: var(--hold); }
-  .switch { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--ink-dim); cursor: pointer; }
+  .switch { display: flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-dim); cursor: pointer; }
   .switch input { accent-color: var(--signal); }
 
   /* ---------- toasts ---------- */
-  #toasts { position: fixed; right: 16px; bottom: 16px; z-index: 60; display: flex; flex-direction: column; gap: 8px; max-width: 340px; }
+  #toasts { position: fixed; right: 14px; bottom: 14px; z-index: 60; display: flex; flex-direction: column; gap: 6px; max-width: 320px; }
   .toast {
-    padding: 10px 13px; background: var(--surface-2); border: 1px solid var(--line-strong);
-    border-left: 3px solid var(--signal); border-radius: 3px; font-size: 12px; animation: toast-in 0.22s ease;
+    padding: 9px 12px; background: var(--surface-2); border: 1px solid var(--line-strong);
+    border-left: 3px solid var(--signal); border-radius: 3px; font-size: 11.5px; animation: toast-in 0.22s ease;
   }
   .toast.ok { border-left-color: var(--clear); } .toast.warn { border-left-color: var(--hold); } .toast.crit { border-left-color: var(--breach); }
-  .toast b { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; display: block; color: var(--ink-dim); margin-bottom: 2px; }
+  .toast b { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; display: block; color: var(--ink-dim); margin-bottom: 2px; }
   @keyframes toast-in { from { opacity: 0; transform: translateX(16px); } }
 
-  /* ---------- boot ---------- */
-  #boot {
-    position: fixed; inset: 0; z-index: 90; background: var(--ground); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 16px; font-family: var(--font-mono);
-  }
-  #boot.done { animation: boot-out 0.5s ease forwards; }
-  @keyframes boot-out { to { opacity: 0; visibility: hidden; } }
-  #boot .b-crest { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.14em; color: var(--signal); }
-  #boot .b-sub { font-size: 10px; letter-spacing: 0.22em; color: var(--ink-dim); text-transform: uppercase; }
-  #boot-lines { width: min(440px, 84vw); font-size: 11px; line-height: 1.9; color: var(--ink-dim); min-height: 170px; }
-  #boot-lines .ok { color: var(--clear); } #boot-lines .dim { color: var(--ink-faint); }
-  #boot-bar { width: min(440px, 84vw); height: 3px; background: var(--surface-3); border-radius: 2px; overflow: hidden; }
-  #boot-bar i { display: block; height: 100%; width: 0; background: var(--signal); box-shadow: 0 0 10px var(--signal); }
-  .skip-hint { font-size: 9px; letter-spacing: 0.2em; color: var(--ink-faint); text-transform: uppercase; }
-
   .view-title { display: flex; align-items: baseline; gap: 10px; padding: 0 2px; }
-  .view-title h2 { font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; }
-  .view-title p { margin: 0; font-size: 11px; color: var(--ink-dim); font-family: var(--font-mono); }
+  .view-title h2 { font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .view-title p { margin: 0; font-size: 10.5px; color: var(--ink-dim); font-family: var(--font-mono); }
 
   /* ---------- responsive ---------- */
   @media (max-width: 1240px) {
@@ -430,7 +462,7 @@
     .nav .spacer { display: none; }
     .nav button[aria-current="true"]::before { left: 8px; right: 8px; top: auto; bottom: -8px; width: auto; height: 2px; }
     #view-ops .board { grid-template-columns: minmax(0, 1fr); }
-    .replay-grid, .reid-grid, .ledger-grid { grid-template-columns: 1fr; }
+    .replay-grid, .reid-grid, .ledger-grid, .sandbox-bench { grid-template-columns: 1fr; }
   }
   @media (max-width: 560px) { .factors, .triage, .ledger-actions, .radar-strip, .wall { grid-template-columns: 1fr; } .vital { min-width: 0; flex: 1; } }
   @media (prefers-reduced-motion: reduce) {
@@ -455,6 +487,17 @@
         <p>MHA · Sashastra Seema Bal · IBVAP · PS-26187 · Sector Gurdaspur</p>
       </div>
     </div>
+
+    <!-- Interactive Mission Scenario Selector -->
+    <div class="scen-dock" id="scen-dock" aria-label="Tactical Scenarios">
+      <span class="scen-label">⚡ Scenarios:</span>
+      <button class="scen-btn active crit-scen" data-scenario="1" title="Scenario 1: Night Incursion & Geofence Breach">① Breach</button>
+      <button class="scen-btn" data-scenario="2" title="Scenario 2: Predictive Cross-Camera Re-ID Handoff">② Re-ID Handoff</button>
+      <button class="scen-btn warn-scen" data-scenario="3" title="Scenario 3: Vehicle Ramming & ANPR Watchlist">③ Vehicle ANPR</button>
+      <button class="scen-btn" data-scenario="4" title="Scenario 4: Loiter Dwell & Cluster Anomaly">④ Loiter Dwell</button>
+      <button class="scen-btn" data-scenario="5" title="Scenario 5: Thermal UAV Recon & Weapon Lock">⑤ UAV Thermal</button>
+    </div>
+
     <div class="vitals" aria-label="System vitals">
       <div class="vital sig"><span class="label">Watchfloor</span><b id="v-clock" class="tnum">—</b></div>
       <div class="vital ok"><span class="label">Edge fps</span><b id="v-fps" class="tnum">32.4</b></div>
@@ -462,26 +505,29 @@
       <div class="vital sig"><span class="label">Handoff</span><b>6–14 s</b></div>
       <div class="vital warn"><span class="label">Posture</span><b id="v-posture">ELEVATED</b></div>
     </div>
+
     <div class="rail-actions">
       <span class="conn demo" id="conn"><span class="d"></span><span id="conn-t">DEMO MODE</span></span>
       <button id="btn-sound" aria-pressed="false" title="UI sound">♪ Muted</button>
       <button id="btn-siren" class="btn-danger" aria-pressed="false">◊ Test siren</button>
-      <button id="btn-sim" class="btn-sig">▶ Simulate breach</button>
+      <button id="btn-sim" class="btn-sig">▶ Run Scenario</button>
     </div>
   </header>
 
   <div class="body">
     <!-- ===================== NAV ===================== -->
     <nav class="nav" aria-label="Views">
-      <button data-view="ops" aria-current="true" title="Watchfloor">
+      <button data-view="ops" aria-current="true" title="Watchfloor Operations">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg>OPS</button>
-      <button data-view="wall" title="Camera wall">
+      <button data-view="models" title="AI Vision Model Zoo & Benchmark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v6M18 9v6M9 6h6M9 18h6M8.5 8.5l7 7M8.5 15.5l7-7"/></svg>MODELS</button>
+      <button data-view="wall" title="Camera wall (6 nodes)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>WALL</button>
-      <button data-view="replay" title="Incident replay">
+      <button data-view="replay" title="Incident replay & timeline">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>REPLAY</button>
-      <button data-view="reid" title="Re-ID matrix">
+      <button data-view="reid" title="512-d Re-ID matrix">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="9" r="4"/><path d="M17 17l4 4M15 15a4 4 0 1 0 0-8"/></svg>RE-ID</button>
-      <button data-view="ledger" title="Chain of custody">
+      <button data-view="ledger" title="SHA-256 Chain of custody">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/><path d="M11 7h4a2 2 0 0 1 2 2v4"/></svg>LEDGER</button>
       <button data-view="calib" title="Site calibration">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h13M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>CALIB</button>
@@ -511,6 +557,7 @@
                     <button class="layer-toggle" data-layer="tripwire" aria-pressed="true">Tripwires</button>
                     <button class="layer-toggle" data-layer="trajectory" aria-pressed="true">Path</button>
                     <button class="layer-toggle" data-layer="drone" aria-pressed="true">UAV</button>
+                    <button class="layer-toggle" data-layer="vehicle" aria-pressed="true">Vehicle</button>
                   </div>
                   <div id="twin-inspect" hidden></div>
                   <div class="twin-readout" id="twin-readout">
@@ -524,7 +571,14 @@
 
           <div class="col">
             <div class="panel">
-              <div class="panel-head"><h2><span class="dot dot-live"></span> Node 01 · Checkpost Alpha</h2><span class="tag tag-danger">Red geofence armed</span></div>
+              <div class="panel-head">
+                <h2><span class="dot dot-live"></span> Node 01 · Checkpost Alpha</h2>
+                <div class="feed-modes">
+                  <button class="feed-mode-btn active" data-feed="a" data-mode="rgb">RGB</button>
+                  <button class="feed-mode-btn" data-feed="a" data-mode="thermal">IR</button>
+                  <button class="feed-mode-btn" data-feed="a" data-mode="night">NVG</button>
+                </div>
+              </div>
               <div class="panel-body">
                 <div class="feed">
                   <div class="feed-frame"><canvas id="feed-a" width="640" height="360"></canvas>
@@ -536,12 +590,19 @@
                       <div class="br" id="fa-flag">GEOFENCE NOMINAL</div>
                     </div>
                   </div>
-                  <div class="feed-meta"><span class="name">NORTH GATE — incursion tripwire + red zone</span><span class="tag">30 fps</span></div>
+                  <div class="feed-meta"><span class="name">NORTH GATE — incursion tripwire + red zone</span><span class="tag">32.4 fps</span></div>
                 </div>
               </div>
             </div>
             <div class="panel">
-              <div class="panel-head"><h2><span class="dot dot-sig"></span> Node 02 · BOP Bravo</h2><span class="tag tag-sig">Predictive Re-ID active</span></div>
+              <div class="panel-head">
+                <h2><span class="dot dot-sig"></span> Node 02 · BOP Bravo</h2>
+                <div class="feed-modes">
+                  <button class="feed-mode-btn active" data-feed="b" data-mode="rgb">RGB</button>
+                  <button class="feed-mode-btn" data-feed="b" data-mode="thermal">IR</button>
+                  <button class="feed-mode-btn" data-feed="b" data-mode="night">NVG</button>
+                </div>
+              </div>
               <div class="panel-body">
                 <div class="feed">
                   <div class="feed-frame"><canvas id="feed-b" width="640" height="360"></canvas>
@@ -553,7 +614,7 @@
                       <div class="br" id="fb-flag">AWAITING HANDOFF</div>
                     </div>
                   </div>
-                  <div class="feed-meta"><span class="name">EAST PERIMETER — 512-d appearance Re-ID</span><span class="tag">30 fps</span></div>
+                  <div class="feed-meta"><span class="name">EAST PERIMETER — 512-d appearance Re-ID</span><span class="tag">30.8 fps</span></div>
                 </div>
               </div>
             </div>
@@ -580,7 +641,7 @@
             <div class="panel panel-danger" id="dossier-panel">
               <div class="panel-head"><h2><span class="dot dot-live"></span> Incident <span id="d-id">#1041</span></h2><span class="dossier-score" id="d-score">92 / 100 · CRITICAL</span></div>
               <div class="panel-body">
-                <p class="narrative" id="d-narrative">Awaiting correlation. Edge nodes armed; spatio-temporal graph idle. Run <code>Simulate breach</code> to reconstruct a live multi-node incident story.</p>
+                <p class="narrative" id="d-narrative">Awaiting correlation. Edge nodes armed; spatio-temporal graph idle. Click any scenario button above (e.g. <b>① Breach</b> or <b>③ Vehicle ANPR</b>) to reconstruct a live multi-node incident story.</p>
                 <div class="trace" id="d-trace">
                   <div class="trace-node breach"><div class="n-cam">CAM_ALPHA</div><div style="color:var(--ink-faint)">breach · gate</div><div id="d-t1">— : — : —</div></div>
                   <div class="trace-link">➔<br><span id="d-gap">handoff</span><br>➔</div>
@@ -602,31 +663,158 @@
             </div>
           </div>
         </div>
-        <div class="logstrip"><span class="label">Forensic log</span><div style="overflow:hidden;flex:1"><div id="log-scroll"></div></div></div>
+
+        <div class="logstrip">
+          <span class="label">Edge stream log</span>
+          <div id="log-scroll"></div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: MODELS & BENCHMARK ============ -->
+      <section class="view" id="view-models" hidden>
+        <div class="view-title">
+          <h2>AI Vision Models & Inference Pipeline</h2>
+          <p>Trained neural network architectures, TensorRT execution graphs, and real-time detection sandbox</p>
+        </div>
+
+        <div class="models-grid">
+          <!-- Model 1: YOLOv8 Spatial Detection -->
+          <div class="model-card">
+            <div class="m-head">
+              <h3>YOLOv8-Spatial Engine</h3>
+              <span class="tag tag-sig">TensorRT · 8.2ms</span>
+            </div>
+            <div class="m-body">
+              <div class="m-spec-row"><span>Architecture</span><b>YOLOv8n / INT8 Quantized</b></div>
+              <div class="m-spec-row"><span>Input Resolution</span><b>640 × 640 × 3 (RGB/Thermal)</b></div>
+              <div class="m-spec-row"><span>mAP@0.50 (Perimeter)</span><b style="color:var(--clear)">91.8%</b></div>
+              <div class="m-spec-row"><span>FPS Throughput</span><b style="color:var(--signal)">32.4 FPS / Node</b></div>
+              <div class="m-spec-row"><span>Memory Footprint</span><b>142 MB VRAM</b></div>
+              <div class="label" style="margin-top:4px">Detection Classes</div>
+              <div class="m-classes">
+                <span class="m-class-pill target">Person</span>
+                <span class="m-class-pill target">Vehicle / Truck</span>
+                <span class="m-class-pill weapon">Armed Weapon</span>
+                <span class="m-class-pill weapon">Camouflage Intruder</span>
+                <span class="m-class-pill">Drone / UAV</span>
+                <span class="m-class-pill">Fire / Smoke</span>
+                <span class="m-class-pill">Animal / Wildlife</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Model 2: ByteTrack Multi-Target Association -->
+          <div class="model-card">
+            <div class="m-head">
+              <h3>ByteTrack + StrongSORT</h3>
+              <span class="tag tag-ok">Kalman Filter · 1.4ms</span>
+            </div>
+            <div class="m-body">
+              <div class="m-spec-row"><span>Tracking Method</span><b>Two-Stage IoU + Cosine Motion</b></div>
+              <div class="m-spec-row"><span>Occlusion Memory</span><b>30 frames (1.0 sec)</b></div>
+              <div class="m-spec-row"><span>ID Switches / 1k</span><b style="color:var(--clear)">0.12 (Zero Drift)</b></div>
+              <div class="m-spec-row"><span>Trajectory Extrapolation</span><b>Velocity Vector & Handoff ETA</b></div>
+              <div class="m-spec-row"><span>Active Track Capacity</span><b>128 Concurrent Objects</b></div>
+              <div class="label" style="margin-top:4px">Capabilities</div>
+              <div class="m-classes">
+                <span class="m-class-pill">Tripwire Intersection</span>
+                <span class="m-class-pill">Centroid Geo-Localization</span>
+                <span class="m-class-pill">Loiter Dwell Timer</span>
+                <span class="m-class-pill">Approach Speed Estimator</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Model 3: 512-d Appearance Re-ID -->
+          <div class="model-card">
+            <div class="m-head">
+              <h3>ResNet18 / OSNet 512-d Re-ID</h3>
+              <span class="tag tag-purple">Metric Learning</span>
+            </div>
+            <div class="m-body">
+              <div class="m-spec-row"><span>Embedding Dimension</span><b>512-dimensional vector</b></div>
+              <div class="m-spec-row"><span>Distance Metric</span><b>Cosine Similarity (τ = 0.70)</b></div>
+              <div class="m-spec-row"><span>Rank-1 Accuracy</span><b style="color:var(--clear)">94.6%</b></div>
+              <div class="m-spec-row"><span>Spatio-Temporal Gating</span><b>6 – 14s Velocity Window</b></div>
+              <div class="m-spec-row"><span>Feature Invariance</span><b>Day / Night / Angle Invariant</b></div>
+              <div class="label" style="margin-top:4px">Pipeline Role</div>
+              <div class="m-classes">
+                <span class="m-class-pill">Checkpost Alpha → BOP Bravo</span>
+                <span class="m-class-pill">Blind-spot Continuity</span>
+                <span class="m-class-pill">Gallery Clustering</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Model 4: Threat Scoring & Hardware Actuation -->
+          <div class="model-card">
+            <div class="m-head">
+              <h3>Threat Engine & Hardware Bridge</h3>
+              <span class="tag tag-warn">Deterministic</span>
+            </div>
+            <div class="m-body">
+              <div class="m-spec-row"><span>Scoring Matrix</span><b>Explainable Linear Model (0-100)</b></div>
+              <div class="m-spec-row"><span>Restricted Zone Points</span><b style="color:var(--breach)">+30 pts</b></div>
+              <div class="m-spec-row"><span>Tripwire Crossing</span><b style="color:var(--breach)">+25 pts</b></div>
+              <div class="m-spec-row"><span>Approach Velocity</span><b>+20 pts</b></div>
+              <div class="m-spec-row"><span>Re-ID Continuation</span><b>+12 pts</b></div>
+              <div class="m-spec-row"><span>Relay Actuation SLA</span><b style="color:var(--clear)">&lt; 120ms (Siren & Boom)</b></div>
+              <div class="label" style="margin-top:4px">Actuation Interfaces</div>
+              <div class="m-classes">
+                <span class="m-class-pill">Dry-Contact GPIO Relay</span>
+                <span class="m-class-pill">Hydraulic Boom Lockdown</span>
+                <span class="m-class-pill">Audio Klaxon Strobe</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive AI Model Sandbox -->
+        <div class="panel" style="margin-top:6px;">
+          <div class="panel-head">
+            <h2><span class="dot dot-sig"></span> Live Edge Inference Sandbox & Class Visualizer</h2>
+            <span class="tag tag-sig">Interactive Test Bench</span>
+          </div>
+          <div class="panel-body">
+            <div class="sandbox-bench">
+              <div class="sandbox-canvas-wrap">
+                <canvas id="sandbox-canvas" width="640" height="360"></canvas>
+              </div>
+              <div class="sandbox-ctrls">
+                <div class="label">Test Sample Inference on Edge AI:</div>
+                <div class="sandbox-btns">
+                  <button class="btn-sig" id="sb-person">Person Incursion</button>
+                  <button class="btn-sig" id="sb-vehicle">Vehicle at Gate</button>
+                  <button class="btn-sig" id="sb-armed">Armed Intruder</button>
+                  <button class="btn-sig" id="sb-thermal">Thermal Night</button>
+                  <button class="btn-sig" id="sb-drone">UAV Incursion</button>
+                  <button class="btn-sig" id="sb-wildlife">Wildlife Filter</button>
+                </div>
+                <div class="label" style="margin-top:4px">Tensor Inference JSON Payload:</div>
+                <pre class="sandbox-json" id="sb-json">// Click a sample button above to run real-time inference...</pre>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ============ VIEW: WALL ============ -->
       <section class="view" id="view-wall" hidden>
-        <div class="view-title"><h2>Multi-Camera Wall</h2><p>6 edge nodes · click a feed to solo</p></div>
+        <div class="view-title"><h2>Camera Wall · 6 Border Surveillance Nodes</h2><p>Click any feed to isolate/enlarge · Real-time inference across Gurdaspur sector</p></div>
         <div class="wall" id="wall"></div>
       </section>
 
       <!-- ============ VIEW: REPLAY ============ -->
       <section class="view" id="view-replay" hidden>
-        <div class="view-title"><h2>Incident Replay</h2><p>Reconstructed multi-node stories · spatio-temporal scrub</p></div>
+        <div class="view-title"><h2>Incident Replay & Spatio-Temporal Trail</h2><p>Multi-camera narrative reconstruction with synchronized timeline scrub</p></div>
         <div class="replay-grid">
-          <div class="panel"><div class="panel-head"><h2><span class="dot dot-sig"></span> Correlated incidents</h2></div><div class="panel-body"><div class="inc-list" id="inc-list"></div></div></div>
-          <div class="panel">
-            <div class="panel-head"><h2><span class="dot dot-warn"></span> <span id="rp-title">—</span></h2><span class="tag" id="rp-score">—</span></div>
+          <div class="panel"><div class="panel-head"><h2>Correlated Incidents</h2></div><div class="panel-body"><div class="inc-list" id="inc-list"></div></div></div>
+          <div class="panel"><div class="panel-head"><h2 id="rp-title">INC-1061</h2><span class="tag tag-danger" id="rp-score">77 / 100</span></div>
             <div class="panel-body">
+              <p class="narrative" id="rp-summary">—</p>
               <canvas id="replay-map" width="800" height="400"></canvas>
-              <div class="replay-scrub">
-                <button id="rp-play">▶ Play</button>
-                <input type="range" id="rp-range" min="0" max="1000" value="0" aria-label="Scrub incident timeline" />
-                <span class="mono tnum" id="rp-time" style="font-size:11px;color:var(--ink-dim);min-width:70px;text-align:right">00:00:00</span>
-              </div>
+              <div class="replay-scrub"><button id="rp-play">▶ Play</button><input type="range" id="rp-range" min="0" max="1000" value="0"><span class="mono tnum" id="rp-time">00:00:00</span></div>
               <div class="step-row" id="rp-steps"></div>
-              <p class="narrative" id="rp-summary" style="color:var(--ink-dim);font-size:12px"></p>
             </div>
           </div>
         </div>
@@ -634,42 +822,25 @@
 
       <!-- ============ VIEW: RE-ID ============ -->
       <section class="view" id="view-reid" hidden>
-        <div class="view-title"><h2>Cross-Camera Re-ID Matrix</h2><p>ResNet18 · 512-d L2 appearance embeddings · cosine τ = 0.70</p></div>
+        <div class="view-title"><h2>512-d Appearance Re-ID Matrix</h2><p>Cosine similarity matching across camera blind spots · τ = 0.70 threshold</p></div>
         <div class="reid-grid">
-          <div class="panel"><div class="panel-head"><h2><span class="dot dot-live"></span> Query</h2></div><div class="panel-body">
-            <canvas class="crop" id="reid-query" width="180" height="240"></canvas>
-            <div class="mono" style="font-size:10.5px;line-height:1.9;color:var(--ink-dim)">
-              track <b style="color:var(--ink)">TRG-0017</b><br>node <b style="color:var(--ink)">CAM_ALPHA</b><br>‖embed‖ <b style="color:var(--ink)">1.000</b><br>t <b style="color:var(--ink)">09:57:13Z</b>
-            </div>
-            <button id="reid-recompute">↻ Recompute embeddings</button>
-          </div></div>
-          <div class="panel"><div class="panel-head"><h2><span class="dot dot-sig"></span> Gallery candidates · CAM_BRAVO</h2><span class="tag" id="reid-verdict">—</span></div>
-            <div class="panel-body">
-              <div class="cand-grid" id="cand-grid"></div>
-              <div class="triage" style="max-width:360px">
-                <button class="btn-confirm" id="reid-accept">✓ Accept match</button>
-                <button class="btn-dismiss" id="reid-reject">✕ Reject all</button>
-              </div>
-            </div>
+          <div class="panel"><div class="panel-head"><h2>Query Crop · Alpha</h2></div><div class="panel-body"><canvas id="reid-query" class="crop" width="160" height="220"></canvas><div class="label">512-d embedding: [0.142, -0.089, ... 0.312]</div><button id="reid-recompute" style="margin-top:6px">↺ Re-embed</button></div></div>
+          <div class="panel"><div class="panel-head"><h2>Candidate Gallery · Bravo</h2><span class="tag tag-ok" id="reid-verdict">LOCK · BRV-c1 cos 0.96</span></div>
+            <div class="panel-body"><div class="cand-grid" id="cand-grid"></div><div class="ledger-actions" style="margin-top:8px"><button class="btn-confirm" id="reid-accept">✓ Confirm identity link</button><button class="btn-dismiss" id="reid-reject">✕ Reject match</button></div></div>
           </div>
         </div>
       </section>
 
       <!-- ============ VIEW: LEDGER ============ -->
       <section class="view" id="view-ledger" hidden>
-        <div class="view-title"><h2>Tamper-Evident Chain of Custody</h2><p>SHA-256 linked evidence ledger · 10s pre / 10s post clip buffer per block</p></div>
+        <div class="view-title"><h2>Tamper-Evident SHA-256 Chain of Custody</h2><p>Cryptographically linked evidence ledger conforming to Indian Evidence Act standards</p></div>
         <div class="ledger-grid">
-          <div class="panel"><div class="panel-head"><h2><span class="dot dot-ok"></span> Blocks</h2><span class="tag tag-ok" id="lf-tag">Verified</span></div>
-            <div class="panel-body"><div class="ledger-list" id="lf-list" style="max-height:520px"></div>
-              <div class="ledger-actions" style="grid-template-columns:1fr 1fr"><button id="lf-verify">⛓ Verify</button><button id="lf-tamper" class="btn-danger">⚠ Tamper</button></div>
-              <button id="lf-export" style="width:100%">⤓ Export audit trail</button>
-            </div>
-          </div>
-          <div class="panel"><div class="panel-head"><h2><span class="dot dot-sig"></span> Block <span id="lf-sel-id">—</span></h2></div>
+          <div class="panel"><div class="panel-head"><h2>Evidence Blocks</h2><span class="tag tag-ok" id="lf-tag">Verified</span></div><div class="panel-body"><div class="ledger-list" id="lf-list"></div><div class="ledger-actions"><button id="lf-verify" class="btn-sig">⛓ Run Merkle audit</button><button id="lf-tamper" class="btn-danger">⚠ Tamper byte</button><button id="lf-export" style="grid-column: span 2">↓ Export forensic jsonl</button></div></div></div>
+          <div class="panel"><div class="panel-head"><h2>Block Inspection · <span id="lf-sel-id">INC-1061</span></h2></div>
             <div class="panel-body">
               <dl class="ledger-detail" id="lf-detail"></dl>
               <div class="label">Chain topology</div>
-              <svg id="merkle-svg" viewBox="0 0 800 130" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+              <svg id="merkle-svg" viewBox="0 0 800 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
             </div>
           </div>
         </div>
@@ -677,7 +848,7 @@
 
       <!-- ============ VIEW: CALIB ============ -->
       <section class="view" id="view-calib" hidden>
-        <div class="view-title"><h2>Site Alert Calibration</h2><p>Per-node adaptive sensitivity from operator false-positive feedback — no model retraining claimed</p></div>
+        <div class="view-title"><h2>Site Alert Calibration</h2><p>Per-node adaptive sensitivity from operator false-positive feedback — zero retraining required</p></div>
         <div class="calib-grid" id="calib-grid"></div>
         <button id="calib-apply" class="btn-sig" style="max-width:220px">✓ Apply calibration</button>
       </section>
@@ -708,7 +879,6 @@ function toast(kind, head, msg, ttl = 4200) {
   setTimeout(() => { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, ttl);
 }
 
-/* display-only 64-hex stand-in for SHA-256 */
 function pseudoHash(str) {
   let h = new Array(8).fill(0).map((_, i) => (0x9e3779b9 ^ (i * 0x85ebca6b)) >>> 0);
   for (let i = 0; i < str.length; i++) {
@@ -720,7 +890,6 @@ function pseudoHash(str) {
   return h.map(x => x.toString(16).padStart(8, '0')).join('');
 }
 
-/* live-or-demo data layer: try the FastAPI gateway, fall back to embedded data */
 const API = {
   live: false,
   async get(path, fallback) {
@@ -751,36 +920,8 @@ function setConn(live) {
   if (live) toast('ok', 'Gateway linked', 'FastAPI edge gateway online — console now on live telemetry.');
 }
 
-/* embedded demo incident stories (mirrors data/incident_graph_ledger.json shape) */
-const DEMO_INCIDENTS = [
-  { incident_id: 'INC-1061', title: 'Multi-node incursion · TRG-0032', global_target_id: 'TRG-0032', threat_score: 77, severity: 'CRITICAL', confidence_pct: 91.9,
-    cameras_involved: ['CAM_ALPHA', 'CAM_BRAVO'],
-    nodes: [
-      { step: 1, camera_id: 'CAM_ALPHA', event_type: 'ZONE_INTRUSION', t: '09:40:30', rule_detail: 'Breach inside Checkpost Alpha red zone.' },
-      { step: 2, camera_id: 'CAM_ALPHA', event_type: 'TRIPWIRE', t: '09:40:37', rule_detail: 'Perimeter tripwire crossed outward buffer.' },
-      { step: 3, camera_id: 'CAM_BRAVO', event_type: 'ZONE_INTRUSION', t: '09:40:46', rule_detail: 'Predicted arrival verified at BOP Bravo fence zone.' } ],
-    score_breakdown: [ { factor: 'Red zone penetration', points: 30 }, { factor: 'Tripwire incursion', points: 25 }, { factor: 'Approach vector', points: 10 }, { factor: 'Predictive multi-camera continuity', points: 12 } ],
-    story_summary: 'Target TRG-0032 traversed CAM_ALPHA → CAM_BRAVO in 15.6s, inside the 6–14s ± tolerance handoff window. Re-ID cosine 0.96.' },
-  { incident_id: 'INC-1051', title: 'Sustained loiter · TRG-0017', global_target_id: 'TRG-0017', threat_score: 65, severity: 'WARNING', confidence_pct: 89.3,
-    cameras_involved: ['CAM_BRAVO'],
-    nodes: [ { step: 1, camera_id: 'CAM_BRAVO', event_type: 'ZONE_INTRUSION', t: '09:39:53', rule_detail: 'Breach inside BOP Bravo fence zone.' },
-      { step: 2, camera_id: 'CAM_BRAVO', event_type: 'LOITER', t: '09:44:22', rule_detail: 'Dwell exceeded 240s in restricted buffer.' } ],
-    score_breakdown: [ { factor: 'Red zone penetration', points: 30 }, { factor: 'Loiter dwell', points: 25 }, { factor: 'Approach vector', points: 10 } ],
-    story_summary: 'Target TRG-0017 held position along the BOP Bravo wire for 4m 29s across two observations.' },
-  { incident_id: 'INC-1045', title: 'Gate rush · TRG-0049', global_target_id: 'TRG-0049', threat_score: 65, severity: 'WARNING', confidence_pct: 89.3,
-    cameras_involved: ['CAM_ALPHA'],
-    nodes: [ { step: 1, camera_id: 'CAM_ALPHA', event_type: 'ZONE_INTRUSION', t: '09:57:35', rule_detail: 'Breach inside Checkpost Alpha red zone.' } ],
-    score_breakdown: [ { factor: 'Red zone penetration', points: 30 }, { factor: 'Tripwire incursion', points: 25 }, { factor: 'Approach vector', points: 10 } ],
-    story_summary: 'Single-node breach at the north gate. No downstream re-acquisition — target left frame toward friendly side.' },
-  { incident_id: 'INC-1040', title: 'ANPR watchlist hit · PB08-XX-1234', global_target_id: 'VEH-0007', threat_score: 74, severity: 'CRITICAL', confidence_pct: 94.1,
-    cameras_involved: ['CAM_CHECKPOST'],
-    nodes: [ { step: 1, camera_id: 'CAM_CHECKPOST', event_type: 'ANPR', t: '08:22:04', rule_detail: 'Plate PB08-XX-1234 matched interdiction watchlist.' } ],
-    score_breakdown: [ { factor: 'Watchlist plate match', points: 45 }, { factor: 'Off-hours transit', points: 18 }, { factor: 'Approach vector', points: 11 } ],
-    story_summary: 'Vehicle plate matched a standing interdiction notice at the checkpost ANPR lane. Boom held; QRT notified.' },
-];
-
 /* ============================================================
-   1. SOUND (WebAudio, gesture-gated, off by default)
+   1. SOUND (WebAudio, gesture-gated)
    ============================================================ */
 let audioCtx = null, soundOn = false;
 function ensureAudio() { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } return audioCtx; }
@@ -800,14 +941,15 @@ $('#btn-sound').addEventListener('click', () => {
   if (soundOn) blip(660, 0.08, 0.04);
 });
 
+/* Shared simulation state */
+const SIM = { running: false, phase: 'idle', scenario: 1, transitDur: 9.4, targetProgress: 0, match: 0 };
+
 /* ============================================================
-   2. INSTANT INITIALIZATION
+   2. INSTANT INITIALIZATION & CLOCKS
    ============================================================ */
 startClocks();
 pollStatus();
-setTimeout(() => {
-  toast('ok', 'Watchfloor online', 'All 6 edge nodes armed. Predictive handoff active.');
-}, 200);
+setTimeout(() => { toast('ok', 'Watchfloor online', '6 edge nodes armed. 5 tactical scenarios loaded.'); }, 200);
 
 function startClocks() {
   setInterval(() => { $('#v-clock').textContent = new Date().toTimeString().slice(0, 8) + ' IST'; }, 1000);
@@ -824,9 +966,6 @@ async function pollStatus() {
   setTimeout(pollStatus, 10000);
 }
 
-/* shared simulation state */
-const SIM = { running: false, phase: 'idle', transitDur: 9.4, targetProgress: 0, match: 0 };
-
 /* ============================================================
    3. VIEW ROUTER
    ============================================================ */
@@ -842,7 +981,7 @@ $$('.nav button').forEach(b => b.addEventListener('click', () => showView(b.data
 VIEW.builders = {};
 
 /* ============================================================
-   4. THREE.JS — RICH BORDER DIGITAL TWIN
+   4. THREE.JS — RICH 3D BORDER DIGITAL TWIN
    ============================================================ */
 const TW = { layers: {}, night: false, camGoal: null };
 (function twin() {
@@ -888,39 +1027,44 @@ const TW = { layers: {}, night: false, camGoal: null };
   const key = new THREE.DirectionalLight(0xffffff, 0.75); key.position.set(20, 36, 14); scene.add(key);
   const moon = new THREE.PointLight(0x4a7fd0, 0.0, 200); moon.position.set(-16, 20, -8); scene.add(moon);
 
-  /* terrain with a ridge along the far (hostile) edge */
+  /* Terrain with ridge */
   const terGeo = new THREE.PlaneGeometry(140, 96, 60, 40);
   const pos = terGeo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), y = pos.getY(i);
     let h = Math.sin(x * 0.08) * 0.35 + Math.cos(y * 0.11) * 0.3;
-    if (y < -14) h += (Math.abs(y) - 14) * 0.22 + Math.sin(x * 0.3) * 0.8;   // ridge
+    if (y < -14) h += (Math.abs(y) - 14) * 0.22 + Math.sin(x * 0.3) * 0.8;
     pos.setZ(i, h);
   }
   terGeo.computeVertexNormals();
-  const terrain = new THREE.Mesh(terGeo, new THREE.MeshStandardMaterial({ color: 0x0c141d, roughness: 1, metalness: 0, flatShading: true }));
-  terrain.rotation.x = -Math.PI / 2; terrain.position.y = -0.2; scene.add(terrain);
-  const grid = new THREE.GridHelper(140, 70, 0x1f3550, 0x14202f); grid.position.y = 0.02; scene.add(grid);
+  const terrain = new THREE.Mesh(terGeo, new THREE.MeshStandardMaterial({ color: 0x0c1622, roughness: 0.85, metalness: 0.15 }));
+  terrain.rotation.x = -Math.PI / 2; scene.add(terrain);
 
-  /* international border datum + patrol road */
-  const border = new THREE.Mesh(new THREE.PlaneGeometry(140, 0.4), new THREE.MeshBasicMaterial({ color: 0xf2a63c, transparent: true, opacity: 0.55 }));
-  border.rotation.x = -Math.PI / 2; border.position.set(0, 0.03, -6); scene.add(border);
-  const road = new THREE.Mesh(new THREE.PlaneGeometry(140, 2.4), new THREE.MeshStandardMaterial({ color: 0x141c26, roughness: 0.9 }));
-  road.rotation.x = -Math.PI / 2; road.position.set(0, 0.02, 6.5); scene.add(road);
+  const grid = new THREE.GridHelper(140, 40, 0x37d2e0, 0x122030);
+  grid.position.y = 0.02; scene.add(grid);
 
-  /* fence line */
+  /* International border line */
+  const bPts = [new THREE.Vector3(-68, 0.2, -14), new THREE.Vector3(0, 0.2, -14), new THREE.Vector3(68, 0.2, -14)];
+  const bLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(bPts), new THREE.LineBasicMaterial({ color: 0xf2a63c, linewidth: 2 }));
+  scene.add(bLine);
+
+  /* Patrol road */
+  const road = new THREE.Mesh(new THREE.PlaneGeometry(140, 5), new THREE.MeshStandardMaterial({ color: 0x131e2b, roughness: 0.9 }));
+  road.rotation.x = -Math.PI / 2; road.position.set(0, 0.03, 6.5); scene.add(road);
+
+  /* Barbed wire fence */
   const fence = new THREE.Group();
-  for (let x = -52; x <= 52; x += 4) {
-    const p = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 3, 6), new THREE.MeshStandardMaterial({ color: 0x2a3a4e, metalness: 0.6, roughness: 0.4 }));
-    p.position.set(x, 1.5, -4.4); fence.add(p);
+  for (let x = -50; x <= 50; x += 4) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 2.2, 6), new THREE.MeshStandardMaterial({ color: 0x223547, metalness: 0.6 }));
+    post.position.set(x, 1.1, -4.4); fence.add(post);
   }
-  [1, 1.8, 2.6].forEach(y => {
+  [0.5, 1.1, 1.7].forEach(y => {
     const w = new THREE.Mesh(new THREE.BoxGeometry(104, 0.03, 0.03), new THREE.MeshBasicMaterial({ color: 0x37d2e0, transparent: true, opacity: 0.26 }));
     w.position.set(0, y, -4.4); fence.add(w);
   });
   scene.add(fence); TW.layers.fence = fence;
 
-  /* red geofence */
+  /* Red geofence */
   const geo = new THREE.Group();
   const zoneWall = new THREE.Mesh(new THREE.BoxGeometry(32, 2.4, 6), new THREE.MeshBasicMaterial({ color: 0xff4060, transparent: true, opacity: 0.13, side: THREE.DoubleSide }));
   zoneWall.position.set(0, 1.2, 0); geo.add(zoneWall);
@@ -928,7 +1072,7 @@ const TW = { layers: {}, night: false, camGoal: null };
   zoneEdge.position.set(0, 1.2, 0); geo.add(zoneEdge);
   scene.add(geo); TW.layers.geofence = geo;
 
-  /* tripwires */
+  /* Tripwires */
   const trip = new THREE.Group();
   [-8, 9].forEach(x => {
     const l = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.9, 6), new THREE.MeshBasicMaterial({ color: 0xf2a63c, transparent: true, opacity: 0.5 }));
@@ -936,7 +1080,7 @@ const TW = { layers: {}, night: false, camGoal: null };
   });
   scene.add(trip); TW.layers.tripwire = trip;
 
-  /* watchtowers + FOV cones */
+  /* Watchtowers + FOV cones */
   const fovGroup = new THREE.Group(); scene.add(fovGroup); TW.layers.fov = fovGroup;
   const towerLights = [];
   const pickables = [];
@@ -951,15 +1095,15 @@ const TW = { layers: {}, night: false, camGoal: null };
     cone.position.set(x, 7, -4.4); cone.rotation.x = Math.PI / 2.6; fovGroup.add(cone);
     const spot = new THREE.PointLight(colorHex, 0.0, 30); spot.position.set(x, 7.5, -3); scene.add(spot); towerLights.push(spot);
   }
-  tower(-20, 0x34e0a0, { kind: 'node', name: 'CAM_ALPHA', role: 'Checkpost north gate', status: 'ARMED', rules: 'Red zone · tripwire T-1/T-2', fps: '31.8' });
-  tower(20, 0x37d2e0, { kind: 'node', name: 'CAM_BRAVO', role: 'BOP Bravo east perimeter', status: 'ARMED', rules: 'Re-ID · loiter dwell 240s', fps: '30.4' });
+  tower(-20, 0x34e0a0, { kind: 'node', name: 'CAM_ALPHA', role: 'Checkpost north gate', status: 'ARMED', rules: 'Red zone · tripwire T-1/T-2', fps: '32.4' });
+  tower(20, 0x37d2e0, { kind: 'node', name: 'CAM_BRAVO', role: 'BOP Bravo east perimeter', status: 'ARMED', rules: 'Re-ID · loiter dwell 240s', fps: '30.8' });
 
   /* BOP building near Bravo */
   const bop = new THREE.Mesh(new THREE.BoxGeometry(5, 3, 4), new THREE.MeshStandardMaterial({ color: 0x1b2836, roughness: 0.8, metalness: 0.2 }));
   bop.position.set(26, 1.5, 8); bop.userData = { kind: 'node', name: 'BOP BRAVO', role: 'Border out post · barracks', status: 'MANNED', rules: 'QRT muster point', fps: '—' };
   scene.add(bop); pickables.push(bop);
 
-  /* checkpoint booth + boom */
+  /* Checkpoint booth + boom */
   const booth = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 2.4), new THREE.MeshStandardMaterial({ color: 0x233549, metalness: 0.4, roughness: 0.6 }));
   booth.position.set(-13, 1.2, 3.4); scene.add(booth);
   const boomPivot = new THREE.Group(); boomPivot.position.set(-13, 1.4, 1.6);
@@ -969,7 +1113,15 @@ const TW = { layers: {}, night: false, camGoal: null };
   TW.boomClose = () => { boomPivot.userData.goal = -0.5; };
   boomPivot.userData.goal = -0.5;
 
-  /* predicted trajectory */
+  /* Speeding Threat Vehicle (for Scenario 3) */
+  const veh = new THREE.Group();
+  const vBody = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.9, 1.5), new THREE.MeshStandardMaterial({ color: 0x8b1a2b, emissive: 0xff4060, emissiveIntensity: 0.2 }));
+  vBody.position.y = 0.6; veh.add(vBody);
+  const vCab = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 1.3), new THREE.MeshStandardMaterial({ color: 0x1a1a24 }));
+  vCab.position.set(-0.3, 1.3, 0); veh.add(vCab);
+  veh.position.set(-45, 0, 6.5); scene.add(veh); TW.layers.vehicle = veh;
+
+  /* Predicted trajectory */
   const traj = new THREE.Group();
   const curve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(-20, 0.4, 2), new THREE.Vector3(-8, 0.4, 0.5),
@@ -982,8 +1134,7 @@ const TW = { layers: {}, night: false, camGoal: null };
   gate.position.set(20, 1.1, -1.5); gate.rotation.y = Math.PI / 2; traj.add(gate);
   scene.add(traj); TW.layers.trajectory = traj;
 
-  /* targets */
-  const targets = [];
+  /* Targets */
   function makeTarget(colorHex, p0) {
     const grp = new THREE.Group();
     const mat = new THREE.MeshStandardMaterial({ color: colorHex, emissive: colorHex, emissiveIntensity: 0.5, metalness: 0.3, roughness: 0.4 });
@@ -999,7 +1150,7 @@ const TW = { layers: {}, night: false, camGoal: null };
   const patrolT = makeTarget(0x34e0a0, new THREE.Vector3(-40, 0.9, 6.5)); patrolT.grp.userData = { kind: 'target', name: 'SSB-PATROL-2', cls: 'friendly', conf: '0.99', state: 'FRIENDLY' };
   const loiterT = makeTarget(0xf2a63c, new THREE.Vector3(30, 0.9, -2)); loiterT.grp.userData = { kind: 'target', name: 'TRG-0025', cls: 'person', conf: '0.88', state: 'LOITER' };
 
-  /* patrol jeep on the road */
+  /* Patrol jeep */
   const jeep = new THREE.Group();
   const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 1.2), new THREE.MeshStandardMaterial({ color: 0x2b4a3a, roughness: 0.7 }));
   chassis.position.y = 0.55; jeep.add(chassis);
@@ -1007,7 +1158,7 @@ const TW = { layers: {}, night: false, camGoal: null };
   jeep.position.set(-30, 0, 6.5); scene.add(jeep);
   const headlamp = new THREE.SpotLight(0xfff2c0, 0.0, 22, Math.PI / 7, 0.5); headlamp.position.set(0, 1, 0); headlamp.target.position.set(6, 0, 0); jeep.add(headlamp, headlamp.target);
 
-  /* UAV with downward scan cone + moving ground spot */
+  /* UAV drone */
   const drone = new THREE.Group();
   const dbody = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.18, 0.6), new THREE.MeshStandardMaterial({ color: 0x0f1a26, emissive: 0x37d2e0, emissiveIntensity: 0.3 })); drone.add(dbody);
   const scanCone = new THREE.Mesh(new THREE.ConeGeometry(3.4, 12, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0x37d2e0, wireframe: true, transparent: true, opacity: 0.16 }));
@@ -1016,7 +1167,7 @@ const TW = { layers: {}, night: false, camGoal: null };
   const groundSpot = new THREE.Mesh(new THREE.RingGeometry(1.4, 1.7, 28), new THREE.MeshBasicMaterial({ color: 0x37d2e0, transparent: true, opacity: 0.4, side: THREE.DoubleSide }));
   groundSpot.rotation.x = -Math.PI / 2; groundSpot.position.y = 0.06; scene.add(groundSpot); TW.layers.drone.userData.spot = groundSpot;
 
-  /* projected labels */
+  /* Projected labels */
   const labelDefs = [
     { cls: 'sig', text: 'CAM_ALPHA', pos: new THREE.Vector3(-20, 9.4, -4.4) },
     { cls: 'sig', text: 'CAM_BRAVO', pos: new THREE.Vector3(20, 9.4, -4.4) },
@@ -1037,11 +1188,9 @@ const TW = { layers: {}, night: false, camGoal: null };
     camera.updateProjectionMatrix();
   }
   new ResizeObserver(resize).observe(stage);
-  setTimeout(resize, 80);
-  setTimeout(resize, 300);
   resize();
 
-  /* raycast inspect */
+  /* Raycast inspect */
   const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
   renderer.domElement.addEventListener('click', e => {
     const r = renderer.domElement.getBoundingClientRect();
@@ -1074,13 +1223,12 @@ const TW = { layers: {}, night: false, camGoal: null };
     controls.update();
 
     if (TW.camGoal) {
-      camera.position.lerp(TW.camGoal.pos, 0.045);
-      controls.target.lerp(TW.camGoal.tgt, 0.045);
-      if (camera.position.distanceTo(TW.camGoal.pos) < 0.4) TW.camGoal = null;
+      camera.position.lerp(TW.camGoal.pos, 0.05);
+      controls.target.lerp(TW.camGoal.tgt, 0.05);
+      if (camera.position.distanceTo(TW.camGoal.pos) < 0.3) TW.camGoal = null;
     }
 
-    /* day / night lerp */
-    const nf = TW.night ? 1 : 0;
+    /* Day / night lerp */
     amb.intensity += ((TW.night ? 0.22 : 0.6) - amb.intensity) * 0.05;
     key.intensity += ((TW.night ? 0.12 : 0.75) - key.intensity) * 0.05;
     moon.intensity += ((TW.night ? 0.9 : 0) - moon.intensity) * 0.05;
@@ -1089,7 +1237,7 @@ const TW = { layers: {}, night: false, camGoal: null };
     towerLights.forEach(l => l.intensity += ((TW.night ? 1.1 : 0) - l.intensity) * 0.05);
     headlamp.intensity += ((TW.night ? 1.4 : 0) - headlamp.intensity) * 0.05;
 
-    /* main target motion */
+    /* Main target motion */
     let p;
     if (SIM.phase === 'transit' || SIM.phase === 'reid' || SIM.phase === 'sealed') p = clamp(SIM.targetProgress, 0, 1);
     else p = (Math.sin(time * 0.18) * 0.5 + 0.5) * 0.34;
@@ -1098,23 +1246,30 @@ const TW = { layers: {}, night: false, camGoal: null };
     mainT.ring.position.set(pt.x, 0.05, pt.z);
     mainT.ring.scale.setScalar(1 + Math.sin(time * 3) * 0.12);
 
-    /* other targets */
+    /* Patrol & loiterer */
     patrolT.grp.position.x = -40 + ((time * 3) % 80);
     patrolT.ring.position.set(patrolT.grp.position.x, 0.05, 6.5);
     loiterT.grp.position.x = 30 + Math.sin(time * 0.5) * 1.6;
     loiterT.grp.position.z = -2 + Math.cos(time * 0.4) * 1.4;
     loiterT.ring.position.set(loiterT.grp.position.x, 0.05, loiterT.grp.position.z);
 
-    /* jeep patrol */
+    /* Patrol jeep */
     jeep.position.x = -34 + ((time * 6) % 68);
 
-    /* drone orbit + ground spot */
+    /* Scenario vehicle motion */
+    if (SIM.scenario === 3 && SIM.running) {
+      veh.position.x += ((-13) - veh.position.x) * 0.04;
+    } else if (!SIM.running) {
+      veh.position.x = -45;
+    }
+
+    /* Drone orbit + ground spot */
     drone.position.set(Math.cos(time * 0.35) * 16, 12 + Math.sin(time * 0.7) * 0.5, Math.sin(time * 0.35) * 10);
     drone.rotation.y = -time * 0.35;
     groundSpot.position.x = drone.position.x; groundSpot.position.z = drone.position.z;
     groundSpot.scale.setScalar(1 + Math.sin(time * 2) * 0.08);
 
-    /* zone breach flash */
+    /* Zone breach flash */
     const inZone = pt.x > -16 && pt.x < 16;
     zoneWall.material.opacity = inZone ? 0.13 + Math.abs(Math.sin(time * 5)) * 0.22 : 0.1;
     zoneEdge.material.opacity = inZone ? 0.5 + Math.abs(Math.sin(time * 5)) * 0.3 : 0.4;
@@ -1123,7 +1278,7 @@ const TW = { layers: {}, night: false, camGoal: null };
     trajLine.material.dashOffset = -time * 0.6;
     boomPivot.rotation.y += (boomPivot.userData.goal - boomPivot.rotation.y) * 0.08;
 
-    /* labels */
+    /* Labels */
     const w = stage.clientWidth, h = stage.clientHeight;
     labelDefs.forEach(d => {
       const src = d.follow ? d.follow.position.clone().add(new THREE.Vector3(0, d.follow === drone ? 1.4 : 1.5, 0)) : d.pos;
@@ -1138,8 +1293,14 @@ const TW = { layers: {}, night: false, camGoal: null };
   }
   frame();
 
-  /* controls */
-  $('#twin-reset').addEventListener('click', () => { TW.camGoal = { pos: new THREE.Vector3(1, 33, 43), tgt: new THREE.Vector3(0, 1, 0) }; });
+  /* Camera view presets */
+  TW.flyToGate = () => { TW.camGoal = { pos: new THREE.Vector3(-14, 12, 18), tgt: new THREE.Vector3(-13, 1.5, 2) }; };
+  TW.flyToHandoff = () => { TW.camGoal = { pos: new THREE.Vector3(6, 18, 26), tgt: new THREE.Vector3(0, 1, 0) }; };
+  TW.flyToLoiter = () => { TW.camGoal = { pos: new THREE.Vector3(26, 11, 12), tgt: new THREE.Vector3(26, 1, -1) }; };
+  TW.flyToOverhead = () => { TW.camGoal = { pos: new THREE.Vector3(0, 48, 4), tgt: new THREE.Vector3(0, 0, 0) }; };
+  TW.resetView = () => { TW.camGoal = { pos: new THREE.Vector3(1, 33, 43), tgt: new THREE.Vector3(0, 1, 0) }; };
+
+  $('#twin-reset').addEventListener('click', TW.resetView);
   const dayBtn = $('#twin-day');
   dayBtn.addEventListener('click', () => {
     TW.night = !TW.night;
@@ -1149,25 +1310,35 @@ const TW = { layers: {}, night: false, camGoal: null };
   const spinBtn = $('#twin-spin');
   spinBtn.addEventListener('click', () => { spin = !spin; spinBtn.setAttribute('aria-pressed', String(spin)); });
   if (REDUCED) spinBtn.setAttribute('aria-pressed', 'false');
+
   $$('.layer-toggle').forEach(btn => btn.addEventListener('click', () => {
     const k = btn.dataset.layer, on = btn.getAttribute('aria-pressed') !== 'true';
     btn.setAttribute('aria-pressed', String(on));
     if (TW.layers[k]) TW.layers[k].visible = on;
     if (k === 'drone' && TW.layers.drone.userData.spot) TW.layers.drone.userData.spot.visible = on;
   }));
-
-  TW.flyToIncident = () => { TW.camGoal = { pos: new THREE.Vector3(22, 10, 16), tgt: new THREE.Vector3(14, 1, -1) }; };
 })();
 
 /* ============================================================
-   5. SYNTHETIC CCTV FEED ENGINE
+   5. SYNTHETIC MULTI-MODE CCTV FEED ENGINE
    ============================================================ */
 function makeFeed(canvas, opts) {
   const cv = typeof canvas === 'string' ? $('#' + canvas) : canvas;
+  if (!cv) return {};
   const ctx = cv.getContext('2d');
   const W = cv.width, H = cv.height;
   let t = Math.random() * 10;
-  const state = { active: opts.startActive, alert: false, reid: false, boxX: opts.startX ?? 0.3, tint: opts.tint || null, label: opts.label || 'id17', extra: opts.extra || 0 };
+  const state = {
+    active: opts.startActive,
+    alert: false,
+    reid: false,
+    boxX: opts.startX ?? 0.3,
+    tint: opts.tint || null,
+    label: opts.label || 'id17',
+    extra: opts.extra || 0,
+    mode: 'rgb',
+    targetType: 'person'
+  };
 
   function box(x, y, w, h, color, tag) {
     ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h);
@@ -1177,25 +1348,39 @@ function makeFeed(canvas, opts) {
     ctx.stroke();
     ctx.fillStyle = color; ctx.font = '9px "IBM Plex Mono", monospace'; ctx.fillText(tag, x, y - 4);
   }
+
   function person(px, py, bw, bh, alert) {
     ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(px, py + bh * 0.5, bw * 0.6, 4, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = alert ? 'rgba(255,64,96,0.85)' : 'rgba(180,200,215,0.9)';
+    ctx.fillStyle = alert ? 'rgba(255,64,96,0.85)' : (state.mode === 'thermal' ? '#f59e0b' : (state.mode === 'night' ? '#34e0a0' : 'rgba(180,200,215,0.9)'));
     ctx.fillRect(px - bw * 0.32, py - bh * 0.5, bw * 0.64, bh);
     ctx.beginPath(); ctx.arc(px, py - bh * 0.5 - bw * 0.2, bw * 0.24, 0, 7); ctx.fill();
   }
 
+  function vehicle(px, py, bw, bh, alert) {
+    ctx.fillStyle = alert ? 'rgba(255,64,96,0.85)' : '#475569';
+    ctx.fillRect(px - bw * 0.5, py - bh * 0.3, bw, bh * 0.6);
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(px - bw * 0.3, py - bh * 0.5, bw * 0.6, bh * 0.3);
+  }
+
   function render() {
     t += 0.016;
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#0b131d'); g.addColorStop(0.55, '#0d1622'); g.addColorStop(0.56, '#10202b'); g.addColorStop(1, '#0a151a');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    if (state.tint) { ctx.fillStyle = state.tint; ctx.fillRect(0, 0, W, H); }
+    if (state.mode === 'thermal') {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#0a0a23'); g.addColorStop(0.5, '#2e1065'); g.addColorStop(1, '#030712');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    } else if (state.mode === 'night') {
+      ctx.fillStyle = '#031408'; ctx.fillRect(0, 0, W, H);
+    } else {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#0b131d'); g.addColorStop(0.55, '#0d1622'); g.addColorStop(0.56, '#10202b'); g.addColorStop(1, '#0a151a');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    }
 
-    ctx.fillStyle = 'rgba(30,48,64,0.4)';
+    if (state.tint && state.mode === 'rgb') { ctx.fillStyle = state.tint; ctx.fillRect(0, 0, W, H); }
+
+    /* Road perspective */
+    ctx.fillStyle = state.mode === 'thermal' ? 'rgba(120,40,160,0.3)' : (state.mode === 'night' ? 'rgba(10,50,20,0.4)' : 'rgba(30,48,64,0.4)');
     ctx.beginPath(); ctx.moveTo(W * 0.32, H * 0.56); ctx.lineTo(W * 0.68, H * 0.56); ctx.lineTo(W * 0.95, H); ctx.lineTo(W * 0.05, H); ctx.closePath(); ctx.fill();
-
-    ctx.strokeStyle = 'rgba(120,150,170,0.25)'; ctx.lineWidth = 2;
-    for (let i = 0; i < 6; i++) { const f = (t * 0.35 + i / 6) % 1; const y = H * 0.56 + f * f * H * 0.44; ctx.beginPath(); ctx.moveTo(W / 2 - 1, y); ctx.lineTo(W / 2 + 1, y + 8 * f); ctx.stroke(); }
 
     if (opts.geofence) {
       ctx.fillStyle = 'rgba(255,64,96,0.10)'; ctx.strokeStyle = 'rgba(255,64,96,0.45)'; ctx.lineWidth = 1;
@@ -1207,9 +1392,16 @@ function makeFeed(canvas, opts) {
     if (state.active) {
       const px = state.boxX * W, py = H * (0.60 + (state.boxX - 0.5) * 0.28);
       const bw = 16 + (py / H) * 20, bh = bw * 2.4;
-      person(px, py, bw, bh, state.alert);
-      const col = state.alert ? '#ff4060' : '#37d2e0';
-      box(px - bw * 0.55, py - bh * 0.5 - bw * 0.5, bw * 1.1, bh * 1.15, col, state.alert ? 'TRG-0017 INCURSION' : 'person 0.94 · ' + state.label);
+
+      if (state.targetType === 'vehicle') {
+        vehicle(px, py, bw * 1.8, bh * 0.8, state.alert);
+        box(px - bw * 0.95, py - bh * 0.45, bw * 1.9, bh * 0.9, state.alert ? '#ff4060' : '#f2a63c', state.alert ? 'VEH-0007 ANPR HIT: PB08-XX-1234' : 'vehicle 0.96');
+      } else {
+        person(px, py, bw, bh, state.alert);
+        const col = state.alert ? '#ff4060' : (state.mode === 'night' ? '#34e0a0' : '#37d2e0');
+        box(px - bw * 0.55, py - bh * 0.5 - bw * 0.5, bw * 1.1, bh * 1.15, col, state.alert ? 'TRG-0017 INCURSION' : 'person 0.94 · ' + state.label);
+      }
+
       if (state.reid) {
         ctx.strokeStyle = '#34e0a0'; ctx.lineWidth = 1.2;
         const r = bw * 0.9 + Math.sin(t * 3) * 2, cy = py - bh * 0.15;
@@ -1217,23 +1409,18 @@ function makeFeed(canvas, opts) {
         [[-r, 0], [r, 0], [0, -r], [0, r]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.moveTo(px + dx * 0.9, cy + dy * 0.9); ctx.lineTo(px + dx * 1.1, cy + dy * 1.1); ctx.stroke(); });
         ctx.fillStyle = '#34e0a0'; ctx.font = '9px "IBM Plex Mono", monospace'; ctx.fillText('RE-ID  cos ' + SIM.match.toFixed(2), px - r, cy - r - 8);
       }
-      for (let k = 0; k < state.extra; k++) {
-        const ex = W * (0.2 + k * 0.16), ey = H * (0.52 + (k % 2) * 0.06);
-        person(ex, ey, 11, 26, false);
-        box(ex - 8, ey - 20, 16, 34, 'rgba(55,210,224,0.45)', 'person 0.' + (72 - k * 4));
-      }
     } else {
-      ctx.fillStyle = 'rgba(124,144,172,0.5)'; ctx.font = '11px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(124,144,172,0.5)'; ctx.font = '10.5px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
       ctx.fillText('NO SUBJECT IN FRAME · SCANNING', W / 2, H / 2); ctx.textAlign = 'left';
     }
 
-    ctx.globalAlpha = 0.5 + Math.sin(t * 20) * 0.15;
-    for (let i = 0; i < 90; i++) { ctx.fillStyle = Math.random() > 0.5 ? '#1a2634' : '#0a0f16'; ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
+    /* Scanlines and vignette */
+    ctx.globalAlpha = state.mode === 'night' ? 0.3 : 0.12;
+    for (let i = 0; i < 60; i++) { ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.random() * W, Math.random() * H, 1.5, 1.5); }
     ctx.globalAlpha = 1;
-    ctx.fillStyle = 'rgba(55,210,224,0.05)'; ctx.fillRect(0, (t * 90) % H, W, 2);
-    const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.75);
-    vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.55)');
-    ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = state.mode === 'night' ? 'rgba(52,224,160,0.06)' : 'rgba(55,210,224,0.04)';
+    ctx.fillRect(0, (t * 80) % H, W, 2);
+
     requestAnimationFrame(render);
   }
   render();
@@ -1243,7 +1430,21 @@ function makeFeed(canvas, opts) {
 const feedA = makeFeed('feed-a', { startActive: true, startX: 0.22, geofence: true, extra: 1 });
 const feedB = makeFeed('feed-b', { startActive: false, startX: 0.5, geofence: false });
 
+/* Wire feed mode toggles */
+$$('.feed-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const fId = btn.dataset.feed;
+    const mode = btn.dataset.mode;
+    $$(`.feed-mode-btn[data-feed="${fId}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (fId === 'a' && feedA) feedA.mode = mode;
+    if (fId === 'b' && feedB) feedB.mode = mode;
+    blip(700, 0.03, 0.02);
+  });
+});
+
 function tc(el, offset) {
+  if (!el) return;
   const total = performance.now() / 1000 + offset;
   const p = n => String(n).padStart(2, '0');
   el.textContent = `REC ${p(Math.floor(total / 3600) % 24)}:${p(Math.floor(total / 60) % 60)}:${p(Math.floor(total) % 60)}:${p(Math.floor((total % 1) * 25))}`;
@@ -1254,14 +1455,17 @@ setInterval(() => { tc($('#fa-tc'), 5123); tc($('#fb-tc'), 88410); }, 80);
    6. PREDICTIVE HANDOFF RADAR
    ============================================================ */
 (function radar() {
-  const cv = $('#radar-canvas'), ctx = cv.getContext('2d');
-  function fit() { const r = cv.getBoundingClientRect(); const s = Math.min(devicePixelRatio, 2); cv.width = Math.max(2, r.width * s); cv.height = Math.max(2, r.height * s); }
+  const cv = $('#radar-canvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  function fit() { const r = cv.getBoundingClientRect(); const s = Math.min(window.devicePixelRatio || 1, 2); cv.width = Math.max(2, r.width * s); cv.height = Math.max(2, r.height * s); }
   new ResizeObserver(fit).observe(cv); fit();
   let t = 0;
+
   function render() {
     t += 0.016;
     if (VIEW.active !== 'ops') { requestAnimationFrame(render); return; }
-    const W = cv.width, H = cv.height, cx = W * 0.5, cy = H * 0.62, R = Math.min(W, H) * 0.8, DP = devicePixelRatio > 1 ? 1.6 : 1;
+    const W = cv.width, H = cv.height, cx = W * 0.5, cy = H * 0.62, R = Math.min(W, H) * 0.8, DP = (window.devicePixelRatio || 1) > 1 ? 1.6 : 1;
     ctx.clearRect(0, 0, W, H);
     ctx.strokeStyle = 'rgba(122,178,214,0.18)'; ctx.lineWidth = 1;
     for (let i = 1; i <= 4; i++) { ctx.beginPath(); ctx.arc(cx, cy, (R / 4) * i, Math.PI, 2 * Math.PI); ctx.stroke(); }
@@ -1296,7 +1500,7 @@ setInterval(() => { tc($('#fa-tc'), 5123); tc($('#fb-tc'), 88410); }, 80);
 })();
 
 /* ============================================================
-   7. LEDGER (shared model, rendered in OPS mini + LEDGER full)
+   7. SHA-256 BLOCKCHAIN EVIDENCE LEDGER
    ============================================================ */
 const LEDGER = {
   blocks: [
@@ -1318,6 +1522,7 @@ function computeChain() {
 computeChain();
 
 function renderLedgerInto(listEl, tagEl, opts) {
+  if (!listEl) return;
   opts = opts || {};
   listEl.innerHTML = '';
   let broken = false;
@@ -1330,9 +1535,9 @@ function renderLedgerInto(listEl, tagEl, opts) {
     el.className = cls; el.dataset.i = i;
     const st = b.tampered ? 'HASH MISMATCH' : broken ? 'CHAIN BROKEN' : b.kind === 'genesis' ? 'ROOT' : 'SEALED';
     el.innerHTML = `<div class="block-top"><span>BLOCK ${String(LEDGER.blocks.length - i).padStart(3, '0')} · ${b.id}</span><span class="st">${st}</span></div>
-      <div class="block-hash">hash <b>${b.hash.slice(0, 40)}…</b></div>
-      <div class="block-prev">prev ${b.prev.slice(0, 32)}…</div>
-      <div style="color:var(--ink-faint);margin-top:3px">${b.label}</div>`;
+      <div class="block-hash">hash <b>${b.hash.slice(0, 36)}…</b></div>
+      <div class="block-prev">prev ${b.prev.slice(0, 28)}…</div>
+      <div style="color:var(--ink-faint);margin-top:2px">${b.label}</div>`;
     el.addEventListener('click', () => { opts.onSelect ? opts.onSelect(b, el) : el.classList.toggle('expanded'); });
     listEl.prepend(el);
   });
@@ -1348,8 +1553,6 @@ function sealBlock(id, label, payload) {
   LEDGER.blocks.push({ id, kind: 'sealed', label, ts: new Date().toISOString().slice(0, 19) + 'Z', payload, by: 'CMD-04' });
   computeChain(); renderOpsLedger();
   if (VIEW.inited.ledger) LEDGER_VIEW.refresh();
-  const first = $('#ledger-list .block');
-  if (first) { first.classList.add('verifying'); setTimeout(() => first.classList.remove('verifying'), 900); }
 }
 
 async function verifyWalk(listEl, tagEl, onDone) {
@@ -1358,7 +1561,7 @@ async function verifyWalk(listEl, tagEl, onDone) {
   for (const el of els) {
     const b = LEDGER.blocks[+el.dataset.i];
     el.classList.add('verifying');
-    await new Promise(r => setTimeout(r, REDUCED ? 25 : 240));
+    await new Promise(r => setTimeout(r, REDUCED ? 25 : 200));
     el.classList.remove('verifying');
     if (b.tampered) ok = false;
   }
@@ -1371,34 +1574,30 @@ $('#btn-verify').addEventListener('click', async () => {
     : toast('crit', 'Audit failed', 'Chain integrity break detected. Evidence flagged inadmissible.'));
   $('#btn-verify').disabled = false;
 });
-function toggleTamper(refreshAll) {
+function toggleTamper() {
   const victim = LEDGER.blocks[1];
   if (victim.tampered) { delete victim.tampered; computeChain(); toast('ok', 'Ledger restored', 'Block INC-1039 payload reverted. Chain re-verified.'); }
-  else { victim.tampered = true; computeChain(); toast('crit', 'Tamper injected', 'One byte flipped in INC-1039 — every downstream hash now fails. That is the point.'); }
+  else { victim.tampered = true; computeChain(); toast('crit', 'Tamper injected', 'One byte flipped in INC-1039 — downstream Merkle hashes invalid.'); }
   renderOpsLedger(); if (VIEW.inited.ledger) LEDGER_VIEW.refresh();
-  $$('#btn-tamper, #lf-tamper').forEach(b => b.classList.toggle('armed', !!victim.tampered));
 }
 $('#btn-tamper').addEventListener('click', toggleTamper);
 
 /* ============================================================
-   8. INCIDENT TRIAGE (OPS)
+   8. EMERGENCY SIREN & TRIAGE
    ============================================================ */
 let audit = { conf: 14, fp: 3 };
 $('#btn-confirm').addEventListener('click', async () => {
   audit.conf++; $('#d-audit').textContent = `${audit.conf} conf · ${audit.fp} fp`;
   await API.post('/incidents/INC-1041/acknowledge', {});
-  toast('ok', 'Threat confirmed', 'INC-1041 escalated to QRT. Siren armed, patrol vectored to BOP Bravo.');
+  toast('ok', 'Threat confirmed', 'Incident escalated to QRT muster. Klaxon active.');
   if (!sirenOn) armSiren(true);
 });
 $('#btn-dismiss').addEventListener('click', () => {
   audit.fp++; $('#d-audit').textContent = `${audit.conf} conf · ${audit.fp} fp`;
-  toast('warn', 'Marked false alarm', 'CAM_ALPHA sensitivity re-calibrated (+vegetation filter). Story archived.');
+  toast('warn', 'Marked false alarm', 'Node sensitivity re-calibrated (+vegetation filter).');
   armSiren(false);
 });
 
-/* ============================================================
-   9. EMERGENCY SIREN
-   ============================================================ */
 let sirenNodes = null, sirenOn = false;
 function armSiren(on) {
   const btn = $('#btn-siren');
@@ -1425,9 +1624,7 @@ function armSiren(on) {
 }
 $('#btn-siren').addEventListener('click', () => armSiren(!sirenOn));
 
-/* ============================================================
-   10. FORENSIC LOG
-   ============================================================ */
+/* Forensic Log Strip */
 (function log() {
   const seed = [
     ['info', 'CAM_ALPHA', 'ByteTrack id17 acquired · conf 0.94'],
@@ -1443,53 +1640,6 @@ $('#btn-siren').addEventListener('click', () => armSiren(!sirenOn));
   const row = seed.map(([s, n, m]) => `<span class="sev-${s}">${new Date().toTimeString().slice(0, 8)} · <b>${n}</b> ${m}</span>`).join('');
   $('#log-scroll').innerHTML = row + row;
 })();
-
-/* ============================================================
-   11. ORCHESTRATED SIMULATE BREACH
-   ============================================================ */
-const btnSim = $('#btn-sim');
-btnSim.addEventListener('click', runBreach);
-function setNarr(h) { $('#d-narrative').innerHTML = h; }
-async function runBreach() {
-  if (SIM.running) return;
-  SIM.running = true; btnSim.disabled = true; btnSim.textContent = '● Reconstructing';
-  if (VIEW.active !== 'ops') showView('ops');
-  const wait = ms => new Promise(r => setTimeout(r, REDUCED ? Math.min(ms, 120) : ms));
-  const now = () => new Date().toTimeString().slice(0, 8);
-
-  SIM.phase = 'breach'; feedA.alert = true; feedA.boxX = 0.5;
-  $('#fa-flag').textContent = 'RED ZONE PENETRATION'; $('#fa-flag').style.color = 'var(--breach)';
-  $('#fa-det').textContent = 'YOLOv8n · id17 · DWELL 3.1s';
-  TW.boomClose(); TW.flyToIncident();
-  $('#d-t1').textContent = now();
-  setNarr('Target <code>TRG-0017</code> vaults the checkpost boom at <code>CAM_ALPHA</code> north gate into the restricted red zone. Tripwire T-2 latched; dwell timer running.');
-  pushLog('crit', 'CAM_ALPHA', 'RED ZONE penetration · TRG-0017');
-  toast('crit', 'Breach · CAM_ALPHA', 'TRG-0017 inside restricted zone. Handoff solver engaged.');
-  $('#radar-status').textContent = 'Solving handoff vector…';
-  await wait(1700);
-
-  SIM.phase = 'transit'; SIM.targetProgress = 0; $('#f-match').textContent = '+0';
-  const dur = REDUCED ? 1400 : 5200, start = performance.now();
-  await new Promise(res => { (function tick() { const e = (performance.now() - start) / dur; SIM.targetProgress = clamp(e, 0, 1); if (e >= 1) return res(); requestAnimationFrame(tick); })(); });
-  $('#r-eta').textContent = '0.0 s';
-
-  SIM.phase = 'reid'; feedB.active = true; feedB.boxX = 0.5; feedB.reid = true; SIM.match = 0.96;
-  $('#fb-det').textContent = 'Re-ID cosine 0.96 · LOCK';
-  $('#fb-flag').textContent = 'HANDOFF VERIFIED 9.4s'; $('#fb-flag').style.color = 'var(--clear)';
-  $('#f-match').textContent = '+12'; $('#radar-status').textContent = 'Re-ID lock · vector resolved';
-  $('#d-t2').textContent = now(); $('#d-gap').textContent = '9.4s';
-  setNarr('Predictive arrival at <code>CAM_BRAVO</code> east perimeter inside the 6–14s window. 512-d appearance Re-ID returns cosine <code>0.96</code> — same subject. Multi-node story confirmed.');
-  pushLog('crit', 'CAM_BRAVO', 're-id LOCK cos 0.96 · handoff 9.4s');
-  toast('ok', 'Re-ID lock · CAM_BRAVO', 'Cosine 0.96. Two observations fused into one incident narrative.');
-  await wait(1500);
-
-  SIM.phase = 'sealed';
-  sealBlock('INC-1041', 'Multi-node breach · ALPHA→BRAVO', `inc1041::breach::alpha->bravo::reid0.96::score92::${Date.now()}`);
-  pushLog('info', 'LEDGER', 'block INC-1041 sealed · SHA-256');
-  toast('ok', 'Evidence sealed', 'INC-1041 hashed into the chain of custody. 10s pre / 10s post clip retained.');
-  armSiren(true);
-  btnSim.disabled = false; btnSim.textContent = '↺ Replay breach'; SIM.running = false;
-}
 function pushLog(sev, node, msg) {
   const s = document.createElement('span'); s.className = 'sev-' + sev;
   s.innerHTML = `${new Date().toTimeString().slice(0, 8)} · <b>${node}</b> ${msg}`;
@@ -1497,11 +1647,219 @@ function pushLog(sev, node, msg) {
 }
 
 /* ============================================================
-   12. VIEW BUILDERS
+   9. ORCHESTRATED MULTI-SCENARIO SUITE (5 SCENARIOS)
    ============================================================ */
+const btnSim = $('#btn-sim');
+
+$$('.scen-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    $$('.scen-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    SIM.scenario = parseInt(b.dataset.scenario, 10);
+    btnSim.textContent = `▶ Run Scenario ${SIM.scenario}`;
+    toast('ok', `Scenario ${SIM.scenario} Armed`, b.title);
+    blip(580, 0.05, 0.03);
+  });
+});
+
+btnSim.addEventListener('click', () => runScenario(SIM.scenario));
+
+async function runScenario(id) {
+  if (SIM.running) return;
+  SIM.running = true; btnSim.disabled = true; btnSim.textContent = '● Running Scenario';
+  if (VIEW.active !== 'ops') showView('ops');
+  const wait = ms => new Promise(r => setTimeout(r, REDUCED ? Math.min(ms, 120) : ms));
+  const now = () => new Date().toTimeString().slice(0, 8);
+
+  if (id === 1) {
+    /* SCENARIO 1: Perimeter Night Breach */
+    SIM.phase = 'breach'; feedA.alert = true; feedA.boxX = 0.5; feedA.targetType = 'person';
+    $('#fa-flag').textContent = 'RED ZONE PENETRATION'; $('#fa-flag').style.color = 'var(--breach)';
+    $('#fa-det').textContent = 'YOLOv8n · id17 · DWELL 3.1s';
+    TW.boomClose(); if (TW.flyToGate) TW.flyToGate();
+    $('#d-id').textContent = '#1041';
+    $('#d-score').textContent = '92 / 100 · CRITICAL';
+    $('#d-t1').textContent = now();
+    $('#d-narrative').innerHTML = 'Target <code>TRG-0017</code> breached the checkpost north perimeter into the restricted red zone. Tripwire T-2 tripped; dwell counter running.';
+    pushLog('crit', 'CAM_ALPHA', 'RED ZONE penetration · TRG-0017');
+    toast('crit', 'Scenario 1: Breach', 'Target inside restricted zone. Handoff solver engaged.');
+    await wait(2200);
+
+    armSiren(true);
+    sealBlock('INC-1041', 'Perimeter breach · CAM_ALPHA', `inc1041::breach::alpha::score92::${Date.now()}`);
+  }
+  else if (id === 2) {
+    /* SCENARIO 2: Cross-Camera Re-ID Handoff */
+    SIM.phase = 'breach'; feedA.alert = true; feedA.boxX = 0.5; feedA.targetType = 'person';
+    if (TW.flyToHandoff) TW.flyToHandoff();
+    $('#d-id').textContent = '#1061';
+    $('#d-score').textContent = '77 / 100 · CRITICAL';
+    $('#d-t1').textContent = now();
+    $('#d-narrative').innerHTML = 'Target <code>TRG-0032</code> traversed CAM_ALPHA → CAM_BRAVO corridor. 512-d feature extraction queued across blind spot.';
+    toast('warn', 'Scenario 2: Re-ID Handoff', 'Solving cross-camera spatio-temporal velocity window (6–14s).');
+    await wait(1400);
+
+    SIM.phase = 'transit'; SIM.targetProgress = 0; $('#f-match').textContent = '+0';
+    const dur = REDUCED ? 1200 : 4400, start = performance.now();
+    await new Promise(res => { (function tick() { const e = (performance.now() - start) / dur; SIM.targetProgress = clamp(e, 0, 1); if (e >= 1) return res(); requestAnimationFrame(tick); })(); });
+    $('#r-eta').textContent = '0.0 s';
+
+    SIM.phase = 'reid'; feedB.active = true; feedB.boxX = 0.5; feedB.reid = true; SIM.match = 0.96;
+    $('#fb-det').textContent = 'Re-ID cosine 0.96 · LOCK';
+    $('#fb-flag').textContent = 'HANDOFF VERIFIED 9.4s'; $('#fb-flag').style.color = 'var(--clear)';
+    $('#f-match').textContent = '+12';
+    $('#d-t2').textContent = now(); $('#d-gap').textContent = '9.4s';
+    $('#d-narrative').innerHTML = 'Predictive arrival at <code>CAM_BRAVO</code> confirmed in 9.4s. ResNet18 cosine <code>0.96</code> matches query. Unified incident reconstructed.';
+    pushLog('crit', 'CAM_BRAVO', 're-id LOCK cos 0.96 · handoff 9.4s');
+    toast('ok', 'Re-ID Verified', 'Cosine 0.96. Two camera observations linked into one narrative.');
+    await wait(1500);
+
+    sealBlock('INC-1061', 'Multi-node breach · ALPHA→BRAVO', `inc1061::breach::alpha->bravo::reid0.96::score77::${Date.now()}`);
+  }
+  else if (id === 3) {
+    /* SCENARIO 3: Vehicle Ramming & ANPR Watchlist */
+    feedA.alert = true; feedA.targetType = 'vehicle'; feedA.boxX = 0.45;
+    if (TW.flyToGate) TW.flyToGate();
+    TW.boomClose();
+    $('#fa-flag').textContent = 'ANPR WATCHLIST HIT: PB08-XX-1234'; $('#fa-flag').style.color = 'var(--breach)';
+    $('#fa-det').textContent = 'YOLOv8n · Vehicle Speed 64 km/h';
+    $('#d-id').textContent = '#1040';
+    $('#d-score').textContent = '74 / 100 · CRITICAL';
+    $('#d-t1').textContent = now();
+    $('#d-narrative').innerHTML = 'High-speed vehicle approach at Checkpost Alpha. License plate <code>PB08-XX-1234</code> matched interdiction watchlist. Hydraulic boom barrier locked down.';
+    pushLog('crit', 'CAM_CHECKPOST', 'ANPR watchlist hit · PB08-XX-1234 (Rapid approach vector)');
+    toast('crit', 'Scenario 3: Vehicle ANPR', 'Watchlist plate hit. Boom barrier GPIO relay triggered.');
+    armSiren(true);
+    await wait(2400);
+
+    sealBlock('INC-1040', 'ANPR watchlist hit · PB08-XX-1234', `inc1040::anpr::PB08XX1234::score74::${Date.now()}`);
+  }
+  else if (id === 4) {
+    /* SCENARIO 4: Loitering & Perimeter Dwell */
+    feedB.active = true; feedB.alert = true; feedB.boxX = 0.6;
+    if (TW.flyToLoiter) TW.flyToLoiter();
+    $('#fb-flag').textContent = 'LOITER DWELL EXCEEDED (268s)'; $('#fb-flag').style.color = 'var(--hold)';
+    $('#fb-det').textContent = 'Loiter Dwell Threshold +15 pts';
+    $('#d-id').textContent = '#1051';
+    $('#d-score').textContent = '65 / 100 · WARNING';
+    $('#d-t1').textContent = now();
+    $('#d-narrative').innerHTML = 'Subject <code>TRG-0025</code> loitering along BOP Bravo fence for 268s (>240s threshold). Spatial dwell filter triggered alert.';
+    pushLog('warn', 'CAM_BRAVO', 'Loitering threshold exceeded · 268s dwell');
+    toast('warn', 'Scenario 4: Loiter Dwell', 'Sustained presence along perimeter buffer.');
+    await wait(2000);
+
+    sealBlock('INC-1051', 'Loiter dwell · CAM_BRAVO', `inc1051::loiter::bravo::dwell268s::score65::${Date.now()}`);
+  }
+  else if (id === 5) {
+    /* SCENARIO 5: UAV Thermal Recon */
+    if (TW.flyToOverhead) TW.flyToOverhead();
+    feedA.mode = 'thermal'; feedB.mode = 'thermal';
+    $$('.feed-mode-btn[data-mode="thermal"]').forEach(b => b.classList.add('active'));
+    $$('.feed-mode-btn[data-mode="rgb"]').forEach(b => b.classList.remove('active'));
+    $('#d-id').textContent = '#1072';
+    $('#d-score').textContent = '84 / 100 · CRITICAL';
+    $('#d-t1').textContent = now();
+    $('#d-narrative').innerHTML = 'Aerial UAV-01 thermal sensor acquired IR heat signature in hostile buffer. GPS Locked: <code>N32.1914 E74.8920</code>. Armed weapon profile tagged.';
+    pushLog('crit', 'UAV-01', 'Thermal heat signature acquired · GPS N32.1914 E74.8920');
+    toast('crit', 'Scenario 5: UAV Thermal Recon', 'Airborne sensor lock. Coordinates transmitted to QRT.');
+    await wait(2200);
+
+    sealBlock('INC-1072', 'UAV Thermal Recon · N32.1914 E74.8920', `inc1072::uav::thermal::score84::${Date.now()}`);
+  }
+
+  btnSim.disabled = false; btnSim.textContent = `↺ Replay Scenario ${id}`; SIM.running = false;
+}
+
+/* ============================================================
+   10. VIEW BUILDERS
+   ============================================================ */
+/* ---- MODELS VIEW (AI Model Zoo Sandbox) ---- */
+VIEW.builders.models = function () {
+  const cv = $('#sandbox-canvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let currentSample = 'person';
+
+  function drawSandbox(type) {
+    currentSample = type;
+    const W = cv.width, H = cv.height;
+    ctx.fillStyle = '#060a12'; ctx.fillRect(0, 0, W, H);
+
+    /* Grid backdrop */
+    ctx.strokeStyle = 'rgba(55,210,224,0.12)'; ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y < H; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+    let jsonOut = {};
+    if (type === 'person') {
+      ctx.fillStyle = 'rgba(55,210,224,0.85)';
+      ctx.fillRect(W * 0.44, H * 0.35, W * 0.12, H * 0.45);
+      ctx.strokeStyle = '#ff4060'; ctx.lineWidth = 2;
+      ctx.strokeRect(W * 0.42, H * 0.28, W * 0.16, H * 0.55);
+      ctx.fillStyle = '#ff4060'; ctx.font = '11px "IBM Plex Mono", monospace';
+      ctx.fillText('Person 0.942 [INCURSION]', W * 0.42, H * 0.25);
+      jsonOut = { model: "YOLOv8n-Spatial", latency_ms: 8.2, fps: 32.4, detections: [{ class: "person", conf: 0.942, bbox: [268, 100, 371, 298], threat_rule: "RESTRICTED_ZONE (+30)", track_id: 17 }] };
+    } else if (type === 'vehicle') {
+      ctx.fillStyle = 'rgba(242,166,60,0.8)';
+      ctx.fillRect(W * 0.35, H * 0.42, W * 0.30, H * 0.32);
+      ctx.strokeStyle = '#f2a63c'; ctx.lineWidth = 2;
+      ctx.strokeRect(W * 0.33, H * 0.38, W * 0.34, H * 0.38);
+      ctx.fillStyle = '#f2a63c'; ctx.font = '11px "IBM Plex Mono", monospace';
+      ctx.fillText('Vehicle 0.961 · Plate: PB08-XX-1234', W * 0.33, H * 0.35);
+      jsonOut = { model: "YOLOv8-ANPR", latency_ms: 9.4, plate: "PB08-XX-1234", watchlist_match: true, approach_velocity_kmh: 64.2, threat_rule: "WATCHLIST_HIT (+45)" };
+    } else if (type === 'armed') {
+      ctx.fillStyle = 'rgba(255,64,96,0.9)';
+      ctx.fillRect(W * 0.44, H * 0.35, W * 0.12, H * 0.45);
+      ctx.strokeStyle = '#ff4060'; ctx.lineWidth = 2;
+      ctx.strokeRect(W * 0.42, H * 0.28, W * 0.16, H * 0.55);
+      ctx.strokeRect(W * 0.52, H * 0.42, W * 0.14, H * 0.18);
+      ctx.fillStyle = '#ff4060'; ctx.font = '11px "IBM Plex Mono", monospace';
+      ctx.fillText('Person 0.95 · Weapon: AK-Pattern 0.88', W * 0.42, H * 0.25);
+      jsonOut = { model: "YOLOv8-ArmedClassifier", latency_ms: 10.1, weapon_detected: true, weapon_class: "rifle_ak", conf: 0.884, threat_tier: "MAX_CRITICAL" };
+    } else if (type === 'thermal') {
+      const g = ctx.createRadialGradient(W * 0.5, H * 0.5, 10, W * 0.5, H * 0.5, 90);
+      g.addColorStop(0, '#fef08a'); g.addColorStop(0.5, '#ea580c'); g.addColorStop(1, '#312e81');
+      ctx.fillStyle = g; ctx.fillRect(W * 0.4, H * 0.3, W * 0.2, H * 0.4);
+      ctx.strokeStyle = '#37d2e0'; ctx.lineWidth = 2;
+      ctx.strokeRect(W * 0.38, H * 0.28, W * 0.24, H * 0.44);
+      ctx.fillStyle = '#37d2e0'; ctx.font = '11px "IBM Plex Mono", monospace';
+      ctx.fillText('Thermal IR Target 0.918 · Temp Δ +4.2°C', W * 0.38, H * 0.25);
+      jsonOut = { sensor: "Longwave_Infrared_LWIR", delta_temp_c: 4.2, heat_cluster: true, conf: 0.918, gps: "N32.1914 E74.8920" };
+    } else if (type === 'drone') {
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(W * 0.45, H * 0.25, W * 0.10, H * 0.08);
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
+      ctx.strokeRect(W * 0.42, H * 0.20, W * 0.16, H * 0.18);
+      ctx.fillStyle = '#38bdf8'; ctx.font = '11px "IBM Plex Mono", monospace';
+      ctx.fillText('Drone / Micro-UAV 0.932 · Alt 42m', W * 0.42, H * 0.17);
+      jsonOut = { model: "YOLOv8-AerialUAV", class: "micro_drone", altitude_m: 42, velocity_ms: 12.8, rf_frequency: "2.4GHz / 5.8GHz" };
+    } else {
+      ctx.fillStyle = '#10b981';
+      ctx.fillRect(W * 0.42, H * 0.5, W * 0.16, H * 0.2);
+      ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(W * 0.4, H * 0.46, W * 0.2, H * 0.28);
+      ctx.fillStyle = '#10b981'; ctx.font = '11px "IBM Plex Mono", monospace';
+      ctx.fillText('Animal / Cattle 0.971 [FILTERED FP]', W * 0.4, H * 0.42);
+      jsonOut = { model: "Adaptive_Filter", class: "animal_cattle", conf: 0.971, false_positive_filtered: true, alarm_suppressed: true };
+    }
+
+    $('#sb-json').textContent = JSON.stringify(jsonOut, null, 2);
+  }
+
+  $('#sb-person').addEventListener('click', () => drawSandbox('person'));
+  $('#sb-vehicle').addEventListener('click', () => drawSandbox('vehicle'));
+  $('#sb-armed').addEventListener('click', () => drawSandbox('armed'));
+  $('#sb-thermal').addEventListener('click', () => drawSandbox('thermal'));
+  $('#sb-drone').addEventListener('click', () => drawSandbox('drone'));
+  $('#sb-wildlife').addEventListener('click', () => drawSandbox('wildlife'));
+
+  drawSandbox('person');
+};
+
 /* ---- WALL ---- */
 VIEW.builders.wall = function () {
   const wall = $('#wall');
+  if (!wall || wall.children.length > 0) return;
   const cams = [
     { id: 'CAM_ALPHA', name: 'Checkpost Alpha · N gate', geofence: true, active: true, x: 0.3, extra: 1 },
     { id: 'CAM_BRAVO', name: 'BOP Bravo · E perimeter', active: true, x: 0.55, extra: 0, label: 'id24' },
@@ -1515,7 +1873,7 @@ VIEW.builders.wall = function () {
     wrap.innerHTML = `<div class="feed-frame"><canvas width="480" height="270"></canvas>
       <span class="feed-corner a"></span><span class="feed-corner b"></span><span class="feed-corner c"></span><span class="feed-corner d"></span>
       <div class="feed-hud"><div class="tl rec">${c.id}</div><div class="br">${c.active ? '● TRK' : '○ IDLE'}</div></div></div>
-      <div class="feed-meta"><span class="name">${c.name}</span><span class="tag">${c.active ? '30 fps' : 'standby'}</span></div>`;
+      <div class="feed-meta"><span class="name">${c.name}</span><span class="tag">${c.active ? '32.4 fps' : 'standby'}</span></div>`;
     wall.appendChild(wrap);
     makeFeed(wrap.querySelector('canvas'), { startActive: c.active, startX: c.x, geofence: c.geofence, tint: c.tint, extra: c.extra || 0, label: c.label || 'id09' });
     wrap.querySelector('.feed-frame').addEventListener('click', () => {
@@ -1527,6 +1885,27 @@ VIEW.builders.wall = function () {
 };
 
 /* ---- REPLAY ---- */
+const DEMO_INCIDENTS = [
+  { incident_id: 'INC-1061', title: 'Multi-node incursion · TRG-0032', global_target_id: 'TRG-0032', threat_score: 77, severity: 'CRITICAL', confidence_pct: 91.9,
+    cameras_involved: ['CAM_ALPHA', 'CAM_BRAVO'],
+    nodes: [
+      { step: 1, camera_id: 'CAM_ALPHA', event_type: 'ZONE_INTRUSION', t: '09:40:30', rule_detail: 'Breach inside Checkpost Alpha red zone.' },
+      { step: 2, camera_id: 'CAM_ALPHA', event_type: 'TRIPWIRE', t: '09:40:37', rule_detail: 'Perimeter tripwire crossed outward buffer.' },
+      { step: 3, camera_id: 'CAM_BRAVO', event_type: 'ZONE_INTRUSION', t: '09:40:46', rule_detail: 'Predicted arrival verified at BOP Bravo fence zone.' } ],
+    score_breakdown: [ { factor: 'Red zone penetration', points: 30 }, { factor: 'Tripwire incursion', points: 25 }, { factor: 'Approach vector', points: 10 }, { factor: 'Predictive multi-camera continuity', points: 12 } ],
+    story_summary: 'Target TRG-0032 traversed CAM_ALPHA → CAM_BRAVO in 15.6s, inside the 6–14s ± tolerance handoff window. Re-ID cosine 0.96.' },
+  { incident_id: 'INC-1051', title: 'Sustained loiter · TRG-0017', global_target_id: 'TRG-0017', threat_score: 65, severity: 'WARNING', confidence_pct: 89.3,
+    cameras_involved: ['CAM_BRAVO'],
+    nodes: [ { step: 1, camera_id: 'CAM_BRAVO', event_type: 'ZONE_INTRUSION', t: '09:39:53', rule_detail: 'Breach inside BOP Bravo fence zone.' },
+      { step: 2, camera_id: 'CAM_BRAVO', event_type: 'LOITER', t: '09:44:22', rule_detail: 'Dwell exceeded 240s in restricted buffer.' } ],
+    score_breakdown: [ { factor: 'Red zone penetration', points: 30 }, { factor: 'Loiter dwell', points: 25 }, { factor: 'Approach vector', points: 10 } ],
+    story_summary: 'Target TRG-0017 held position along the BOP Bravo wire for 4m 29s across two observations.' },
+  { incident_id: 'INC-1040', title: 'ANPR watchlist hit · PB08-XX-1234', global_target_id: 'VEH-0007', threat_score: 74, severity: 'CRITICAL', confidence_pct: 94.1,
+    cameras_involved: ['CAM_CHECKPOST'],
+    nodes: [ { step: 1, camera_id: 'CAM_CHECKPOST', event_type: 'ANPR', t: '08:22:04', rule_detail: 'Plate PB08-XX-1234 matched interdiction watchlist.' } ],
+    score_breakdown: [ { factor: 'Watchlist plate match', points: 45 }, { factor: 'Off-hours transit', points: 18 }, { factor: 'Approach vector', points: 11 } ],
+    story_summary: 'Vehicle plate matched standing interdiction notice at checkpost ANPR lane. Boom held; QRT notified.' },
+];
 const REPLAY = { list: [], sel: null, playing: false, prog: 0 };
 VIEW.builders.replay = async function () {
   const live = await API.get('/incidents/correlated', null);
@@ -1541,7 +1920,7 @@ VIEW.builders.replay = async function () {
     listEl.appendChild(el);
   });
   const cv = $('#replay-map');
-  new ResizeObserver(() => { const r = cv.getBoundingClientRect(); const s = Math.min(devicePixelRatio, 2); cv.width = Math.max(2, r.width * s); cv.height = Math.max(2, r.height * s); drawReplay(); }).observe(cv);
+  new ResizeObserver(() => { const r = cv.getBoundingClientRect(); const s = Math.min(window.devicePixelRatio || 1, 2); cv.width = Math.max(2, r.width * s); cv.height = Math.max(2, r.height * s); drawReplay(); }).observe(cv);
   $('#rp-range').addEventListener('input', e => { REPLAY.prog = +e.target.value / 1000; REPLAY.playing = false; $('#rp-play').textContent = '▶ Play'; drawReplay(); });
   $('#rp-play').addEventListener('click', () => {
     REPLAY.playing = !REPLAY.playing;
@@ -1571,7 +1950,8 @@ function selectReplay(inc) {
 }
 const NODE_XY = { CAM_ALPHA: [0.15, 0.66], CAM_CHECKPOST: [0.15, 0.34], CAM_BRAVO: [0.72, 0.5], CAM_CHARLIE: [0.46, 0.26], CAM_DELTA: [0.46, 0.82] };
 function drawReplay() {
-  const cv = $('#replay-map'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+  const cv = $('#replay-map'); if (!cv) return;
+  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
   const inc = REPLAY.sel; if (!inc) return;
   ctx.fillStyle = '#080d16'; ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = 'rgba(122,178,214,0.1)'; ctx.lineWidth = 1;
@@ -1579,23 +1959,20 @@ function drawReplay() {
   for (let y = 0; y < H; y += 34) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
   ctx.strokeStyle = 'rgba(242,166,60,0.4)'; ctx.setLineDash([6, 5]);
   ctx.beginPath(); ctx.moveTo(0, H * 0.16); ctx.lineTo(W, H * 0.1); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(242,166,60,0.5)'; ctx.font = `${11 * (devicePixelRatio > 1 ? 1.5 : 1)}px "IBM Plex Mono", monospace`;
+  ctx.fillStyle = 'rgba(242,166,60,0.5)'; ctx.font = `${11 * ((window.devicePixelRatio || 1) > 1 ? 1.5 : 1)}px "IBM Plex Mono", monospace`;
   ctx.fillText('INTERNATIONAL BORDER', 12, H * 0.1 - 6);
 
   const pts = inc.nodes.map(n => { const xy = NODE_XY[n.cam] || [0.5, 0.5]; return { x: xy[0] * W, y: xy[1] * H, n }; });
-  // path
   if (pts.length > 1) {
     ctx.strokeStyle = 'rgba(55,210,224,0.6)'; ctx.lineWidth = 2; ctx.beginPath();
     pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)); ctx.stroke();
   }
-  // scrub marker along polyline
   const seg = REPLAY.prog * Math.max(1, pts.length - 1);
   const si = Math.min(pts.length - 2, Math.floor(seg)), sf = seg - si;
   let mx, my;
   if (pts.length > 1) { mx = pts[si].x + (pts[si + 1].x - pts[si].x) * sf; my = pts[si].y + (pts[si + 1].y - pts[si].y) * sf; }
   else { mx = pts[0].x; my = pts[0].y; }
-  // nodes
-  const DP = devicePixelRatio > 1 ? 1.5 : 1;
+  const DP = (window.devicePixelRatio || 1) > 1 ? 1.5 : 1;
   pts.forEach((p, i) => {
     const active = seg >= i - 0.001;
     ctx.fillStyle = active ? '#37d2e0' : 'rgba(122,178,214,0.35)';
@@ -1609,7 +1986,6 @@ function drawReplay() {
   ctx.fillStyle = '#ff4060'; ctx.beginPath(); ctx.arc(mx, my, 5, 0, 7); ctx.fill();
   ctx.strokeStyle = 'rgba(255,64,96,0.5)'; ctx.beginPath(); ctx.arc(mx, my, 9, 0, 7); ctx.stroke();
 
-  // step chips + time
   const stepEl = $('#rp-steps'); stepEl.innerHTML = '';
   inc.nodes.forEach((n, i) => {
     const c = document.createElement('span');
@@ -1641,23 +2017,24 @@ const REID = { cands: [] };
 VIEW.builders.reid = function () {
   drawCrop($('#reid-query'), 0.62, '#8fb0c8');
   regenCandidates();
-  $('#reid-recompute').addEventListener('click', () => { regenCandidates(true); toast('ok', 'Embeddings recomputed', 'Query + gallery re-embedded through ResNet18. Cosine matrix refreshed.'); });
+  $('#reid-recompute').addEventListener('click', () => { regenCandidates(true); toast('ok', 'Embeddings recomputed', '512-d feature vectors recomputed through ResNet18.'); });
   $('#reid-accept').addEventListener('click', () => {
     const top = REID.cands[0];
-    if (top && top.cos >= 0.70) toast('ok', 'Match accepted', `TRG-0017 ↔ ${top.id} linked (cos ${top.cos.toFixed(2)}). Handoff written to incident graph.`);
-    else toast('warn', 'No candidate above τ', 'Top cosine below 0.70 — link not asserted.');
+    if (top && top.cos >= 0.70) toast('ok', 'Match accepted', `TRG-0017 ↔ ${top.id} linked (cos ${top.cos.toFixed(2)}).`);
+    else toast('warn', 'No candidate above τ', 'Top cosine below 0.70.');
   });
-  $('#reid-reject').addEventListener('click', () => toast('warn', 'All rejected', 'No cross-camera identity asserted. Observations remain independent.'));
+  $('#reid-reject').addEventListener('click', () => toast('warn', 'All rejected', 'Observations remain unlinked.'));
 };
 function drawCrop(cv, tone, col) {
+  if (!cv) return;
   const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
   ctx.fillStyle = '#06090f'; ctx.fillRect(0, 0, W, H);
-  for (let i = 0; i < 400; i++) { ctx.fillStyle = `rgba(120,150,175,${Math.random() * 0.08})`; ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
+  for (let i = 0; i < 300; i++) { ctx.fillStyle = `rgba(120,150,175,${Math.random() * 0.08})`; ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
   ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(W / 2, H * 0.92, W * 0.28, 6, 0, 0, 7); ctx.fill();
   ctx.fillStyle = col; ctx.globalAlpha = 0.9;
-  ctx.fillRect(W * 0.34, H * 0.28, W * 0.32, H * 0.5);           // torso
-  ctx.beginPath(); ctx.arc(W / 2, H * 0.22, W * 0.12, 0, 7); ctx.fill();  // head
-  ctx.fillStyle = `rgba(40,60,80,${tone})`; ctx.fillRect(W * 0.36, H * 0.5, W * 0.28, H * 0.42); // legs
+  ctx.fillRect(W * 0.34, H * 0.28, W * 0.32, H * 0.5);
+  ctx.beginPath(); ctx.arc(W / 2, H * 0.22, W * 0.12, 0, 7); ctx.fill();
+  ctx.fillStyle = `rgba(40,60,80,${tone})`; ctx.fillRect(W * 0.36, H * 0.5, W * 0.28, H * 0.42);
   ctx.globalAlpha = 1;
   ctx.strokeStyle = 'rgba(55,210,224,0.5)'; ctx.lineWidth = 1; ctx.strokeRect(4, 4, W - 8, H - 8);
 }
@@ -1678,7 +2055,7 @@ function regenCandidates(animate) {
     el.innerHTML = `<canvas class="crop" width="120" height="120"></canvas>
       <div class="cos-meta"><span>${c.id}</span><b>${c.cos.toFixed(2)}</b></div>
       <div class="cos-bar"><i style="width:${animate ? 0 : c.cos * 100}%"></i></div>
-      <div class="cos-meta" style="font-size:9px"><span>${match ? 'MATCH · above τ' : c.cos >= 0.70 ? 'above τ' : 'below τ 0.70'}</span></div>`;
+      <div class="cos-meta" style="font-size:8.5px"><span>${match ? 'MATCH · above τ' : c.cos >= 0.70 ? 'above τ' : 'below τ 0.70'}</span></div>`;
     grid.appendChild(el);
     drawCrop(el.querySelector('canvas'), c.tone, c.col);
     if (animate) requestAnimationFrame(() => { el.querySelector('.cos-bar i').style.width = c.cos * 100 + '%'; });
@@ -1702,26 +2079,27 @@ const LEDGER_VIEW = {
       <dt>Nonce</dt><dd>${b.nonce}</dd>
       <dt>SHA-256</dt><dd style="color:${b.tampered ? 'var(--breach)' : 'var(--clear)'}">${b.hash}</dd>
       <dt>Prev hash</dt><dd>${b.prev}</dd>
-      <dt>Status</dt><dd>${b.tampered ? '⚠ HASH MISMATCH — chain broken from here' : '✓ sealed · verified'}</dd>`;
+      <dt>Status</dt><dd>${b.tampered ? '⚠ HASH MISMATCH — chain broken' : '✓ sealed · verified'}</dd>`;
     drawMerkle();
   },
 };
 function drawMerkle() {
-  const svg = $('#merkle-svg'); const n = LEDGER.blocks.length;
+  const svg = $('#merkle-svg'); if (!svg) return;
+  const n = LEDGER.blocks.length;
   const w = 800, pad = 40, gap = (w - pad * 2) / Math.max(1, n - 1);
   let broken = false;
   let s = '';
   LEDGER.blocks.forEach((b, i) => {
-    const x = pad + i * gap, y = 65;
+    const x = pad + i * gap, y = 60;
     if (b.tampered) broken = true;
     const col = b.tampered || (broken && i > 0) ? '#ff4060' : b.kind === 'genesis' ? '#37d2e0' : '#34e0a0';
     if (i > 0) {
       const px = pad + (i - 1) * gap;
-      s += `<line x1="${px + 16}" y1="${y}" x2="${x - 16}" y2="${y}" stroke="${(broken && i > 1) || b.tampered ? '#ff4060' : '#37d2e0'}" stroke-width="1.5" ${(broken && i > 1) ? 'stroke-dasharray="3 3"' : ''}/>`;
+      s += `<line x1="${px + 14}" y1="${y}" x2="${x - 14}" y2="${y}" stroke="${(broken && i > 1) || b.tampered ? '#ff4060' : '#37d2e0'}" stroke-width="1.5" ${(broken && i > 1) ? 'stroke-dasharray="3 3"' : ''}/>`;
     }
-    s += `<rect x="${x - 16}" y="${y - 16}" width="32" height="32" rx="3" fill="#121d30" stroke="${col}" stroke-width="1.5"/>`;
-    s += `<text x="${x}" y="${y + 4}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="${col}">${b.id === 'GENESIS' ? 'G' : i}</text>`;
-    s += `<text x="${x}" y="${y + 34}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#7c90ac">${b.hash.slice(0, 6)}</text>`;
+    s += `<rect x="${x - 14}" y="${y - 14}" width="28" height="28" rx="3" fill="#121d30" stroke="${col}" stroke-width="1.5"/>`;
+    s += `<text x="${x}" y="${y + 4}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="${col}">${b.id === 'GENESIS' ? 'G' : i}</text>`;
+    s += `<text x="${x}" y="${y + 30}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7.5" fill="#7c90ac">${b.hash.slice(0, 6)}</text>`;
   });
   svg.innerHTML = s;
 }
@@ -1740,13 +2118,14 @@ VIEW.builders.ledger = function () {
     $('#lf-verify').disabled = false;
   });
   $('#lf-tamper').addEventListener('click', toggleTamper);
-  $('#lf-export').addEventListener('click', () => toast('ok', 'Audit trail exported', `${LEDGER.blocks.length} blocks -> sentinel_audit_${Date.now()}.jsonl (operator console download).`));
+  $('#lf-export').addEventListener('click', () => toast('ok', 'Audit trail exported', `${LEDGER.blocks.length} blocks -> sentinel_audit_${Date.now()}.jsonl`));
   LEDGER_VIEW.refresh();
 };
 
 /* ---- CALIB ---- */
 VIEW.builders.calib = function () {
   const grid = $('#calib-grid');
+  if (!grid || grid.children.length > 0) return;
   const cams = [
     { id: 'CAM_ALPHA', reviews: 214, fp: 41, thr: 0.28, veg: true, ir: false, reasons: { vegetation: 46, shadow: 22, wildlife: 18, rain: 14 } },
     { id: 'CAM_BRAVO', reviews: 188, fp: 27, thr: 0.22, veg: false, ir: true, reasons: { shadow: 38, wildlife: 30, vegetation: 20, rain: 12 } },
@@ -1770,21 +2149,22 @@ VIEW.builders.calib = function () {
     const range = card.querySelector('input[type=range]');
     range.addEventListener('input', () => { card.querySelector('[data-thr]').textContent = (range.value / 100).toFixed(2); });
   });
-  $('#calib-apply').addEventListener('click', () => toast('ok', 'Calibration applied', 'Per-node thresholds + filters pushed to edge inference. Effective next frame.'));
+  $('#calib-apply').addEventListener('click', () => toast('ok', 'Calibration applied', 'Per-node thresholds pushed to edge inference.'));
 };
 
 /* ============================================================
-   13. KEYBOARD
+   11. KEYBOARD SHORTCUTS
    ============================================================ */
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   const k = e.key.toLowerCase();
   if (k === 's') armSiren(!sirenOn);
-  else if (k === 'b') runBreach();
-  else if (k === 'v') showView('ops'), $('#btn-verify').click();
-  else if (['1', '2', '3', '4', '5', '6'].includes(k)) showView(['ops', 'wall', 'replay', 'reid', 'ledger', 'calib'][+k - 1]);
+  else if (k === 'b') runScenario(1);
+  else if (['1', '2', '3', '4', '5', '6', '7'].includes(k)) {
+    const views = ['ops', 'models', 'wall', 'replay', 'reid', 'ledger', 'calib'];
+    if (views[+k - 1]) showView(views[+k - 1]);
+  }
 });
 </script>
-
 </body>
 </html>
