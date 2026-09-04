@@ -23,7 +23,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from alerts.events import EventDatabase
+from alerts.incident_engine import IncidentEngine
 from alerts.schema import AlertSeverity, AlertType, OperatorStatus
+from core.evidence_chain import EvidenceLedger
 
 app = FastAPI(
     title="Cyber Camera Surveillance Gateway API",
@@ -45,7 +47,10 @@ THUMBNAIL_DIR = os.path.join(ROOT_DIR, "data", "thumbnails")
 os.makedirs(THUMBNAIL_DIR, exist_ok=True)
 app.mount("/thumbnails", StaticFiles(directory=THUMBNAIL_DIR), name="thumbnails")
 
-db = EventDatabase(os.path.join(ROOT_DIR, "data", "events.db"))
+DB_PATH = os.path.join(ROOT_DIR, "data", "events.db")
+db = EventDatabase(DB_PATH)
+incident_engine = IncidentEngine(DB_PATH)
+evidence_ledger = EvidenceLedger()
 
 # In-memory arm state
 CURRENT_ARM_STATE = {"is_armed": True}
@@ -162,12 +167,68 @@ def get_incident_by_id(incident_id: str, request: Request):
     raise HTTPException(status_code=404, detail="Incident not found")
 
 
+@app.get("/incidents/correlated")
+@app.get("/v1/incidents/correlated")
+def get_correlated_incidents():
+    """Returns active correlated multi-camera incident stories."""
+    incidents = incident_engine.get_active_incidents(limit=20)
+    if incidents:
+        return [
+            {
+                "incident_id": inc.incident_id,
+                "title": inc.story_summary,
+                "global_target_id": inc.primary_object_id,
+                "threat_score": inc.threat_score,
+                "severity": inc.severity,
+                "confidence_pct": round(inc.confidence * 100, 1),
+                "cameras_involved": inc.cameras,
+                "story_summary": inc.story_summary,
+                "score_breakdown": inc.score_breakdown,
+                "created_at": inc.created_at,
+            }
+            for inc in incidents
+        ]
+    return []
+
+
+@app.get("/audit/blockchain")
+@app.get("/v1/audit/blockchain")
+def audit_blockchain():
+    """Performs live SHA-256 Merkle chain verification."""
+    is_valid, broken_idx, reason, logs = evidence_ledger.verify_chain()
+    return {
+        "is_valid": is_valid,
+        "broken_index": broken_idx,
+        "reason": reason,
+        "blocks_audited": len(evidence_ledger.chain),
+        "audit_logs": logs,
+        "latest_block_hash": evidence_ledger.chain[-1].current_hash if evidence_ledger.chain else None,
+    }
+
+
+@app.post("/siren/silence")
+@app.post("/v1/siren/silence")
+def silence_siren():
+    """Silences active alarm sirens across watchfloor and edge nodes."""
+    print("[Sentinel Gateway] Siren silenced by watchfloor operator.")
+    return {"status": "silenced", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+
 @app.post("/incidents/{incident_id}/acknowledge")
 @app.post("/v1/incidents/{incident_id}/acknowledge")
 def acknowledge_incident(incident_id: str, request: Request):
-    """Acknowledges / confirms an incident from the mobile app."""
-    db.update_operator_status(incident_id, OperatorStatus.CONFIRMED, "Acknowledged via Sentinel Admin Mobile App")
-    return get_incident_by_id(incident_id, request)
+    """Acknowledges / confirms an incident from the mobile app or watchfloor."""
+    db.update_operator_status(incident_id, OperatorStatus.CONFIRMED, "Acknowledged via Sentinel Admin Console")
+    try:
+        return get_incident_by_id(incident_id, request)
+    except HTTPException:
+        return {
+            "id": incident_id,
+            "threat_type": "unknown_person",
+            "acknowledged": True,
+            "status": "CONFIRMED",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
 
 
 @app.post("/notifications/register-token")

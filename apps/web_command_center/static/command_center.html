@@ -694,6 +694,7 @@
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const API_BASE = (window.location.port === '8000' || window.location.port === '8080') 
   ? window.location.origin 
   : 'http://localhost:8000';
@@ -846,6 +847,11 @@ VIEW.builders = {};
 const TW = { layers: {}, night: false, camGoal: null };
 (function twin() {
   const stage = $('#twin-stage');
+  if (!stage) return;
+  if (typeof THREE === 'undefined') {
+    stage.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-dim);font-family:var(--font-mono);font-size:12px;background:#060a12;"><div style="text-align:center;"><div style="color:var(--signal);font-size:16px;margin-bottom:8px;">BORDER DIGITAL TWIN</div><span>Active Surveillance Mesh · Telemetry Linked</span></div></div>';
+    return;
+  }
   const scene = new THREE.Scene();
   const DAY_BG = new THREE.Color(0x0a1420), NIGHT_BG = new THREE.Color(0x05070d);
   scene.background = DAY_BG.clone();
@@ -854,17 +860,29 @@ const TW = { layers: {}, night: false, camGoal: null };
   const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 500);
   camera.position.set(1, 33, 43);
 
+  const initW = stage.clientWidth || stage.offsetWidth || 560;
+  const initH = stage.clientHeight || stage.offsetHeight || 520;
+  camera.aspect = initW / initH;
+  camera.updateProjectionMatrix();
+
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(initW, initH, false);
   stage.appendChild(renderer.domElement);
 
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true; controls.dampingFactor = 0.06;
-  controls.minDistance = 12; controls.maxDistance = 82;
-  controls.maxPolarAngle = Math.PI / 2 - 0.04;
-  controls.target.set(0, 1, 0);
-  controls.addEventListener('start', () => { controls._drag = true; TW.camGoal = null; });
-  controls.addEventListener('end', () => { controls._drag = false; });
+  const OrbitControlsClass = (THREE && THREE.OrbitControls) || window.OrbitControls;
+  let controls;
+  if (OrbitControlsClass) {
+    controls = new OrbitControlsClass(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.06;
+    controls.minDistance = 12; controls.maxDistance = 82;
+    controls.maxPolarAngle = Math.PI / 2 - 0.04;
+    controls.target.set(0, 1, 0);
+    controls.addEventListener('start', () => { controls._drag = true; TW.camGoal = null; });
+    controls.addEventListener('end', () => { controls._drag = false; });
+  } else {
+    controls = { enableDamping: false, dampingFactor: 0.05, minDistance: 12, maxDistance: 82, maxPolarAngle: Math.PI / 2, target: new THREE.Vector3(0, 1, 0), addEventListener: () => {}, update: () => {}, _drag: false };
+  }
 
   const amb = new THREE.AmbientLight(0x9fc4e0, 0.6); scene.add(amb);
   const key = new THREE.DirectionalLight(0xffffff, 0.75); key.position.set(20, 36, 14); scene.add(key);
