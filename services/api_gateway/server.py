@@ -235,7 +235,9 @@ def register_device_token(payload: Dict[str, Any]):
 
 from fastapi.responses import FileResponse
 
-STATIC_HTML = os.path.join(ROOT_DIR, "apps", "web_command_center", "static", "index.html")
+STATIC_HTML = os.path.join(ROOT_DIR, "apps", "web_command_center", "static", "command_center.html")
+if not os.path.exists(STATIC_HTML):
+    STATIC_HTML = os.path.join(ROOT_DIR, "apps", "web_command_center", "static", "index.html")
 
 @app.get("/")
 @app.get("/hud")
