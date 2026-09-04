@@ -120,24 +120,36 @@ export default function IncidentsPanel({ incidents, error, onAcknowledge }) {
                     </div>
                   )}
 
-                  {!acknowledged && (
-                    <div className="mt-4 flex gap-2 border-t border-[#1A1D21] pt-3">
-                      <button
-                        onClick={() => handleAck(inc.incident_id, "CONFIRMED")}
-                        disabled={busyId === inc.incident_id}
-                        className="flex items-center gap-1.5 rounded-[3px] border border-green/55 bg-green/10 px-2.5 py-1.5 text-[11px] font-medium text-green disabled:opacity-50"
-                      >
-                        <CircleCheck size={12} /> Confirm
-                      </button>
-                      <button
-                        onClick={() => handleAck(inc.incident_id, "DISMISSED_FP")}
-                        disabled={busyId === inc.incident_id}
-                        className="flex items-center gap-1.5 rounded-[3px] border border-line2 bg-panel2 px-2.5 py-1.5 text-[11px] font-medium text-dim disabled:opacity-50"
-                      >
-                        <XCircle size={12} /> Dismiss FP
-                      </button>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#1A1D21] pt-3">
+                    <div className="flex gap-2">
+                      {!acknowledged && (
+                        <>
+                          <button
+                            onClick={() => handleAck(inc.incident_id, "CONFIRMED")}
+                            disabled={busyId === inc.incident_id}
+                            className="flex items-center gap-1.5 rounded-[3px] border border-green/55 bg-green/10 px-2.5 py-1.5 text-[11px] font-medium text-green disabled:opacity-50"
+                          >
+                            <CircleCheck size={12} /> Confirm
+                          </button>
+                          <button
+                            onClick={() => handleAck(inc.incident_id, "DISMISSED_FP")}
+                            disabled={busyId === inc.incident_id}
+                            className="flex items-center gap-1.5 rounded-[3px] border border-line2 bg-panel2 px-2.5 py-1.5 text-[11px] font-medium text-dim disabled:opacity-50"
+                          >
+                            <XCircle size={12} /> Dismiss FP
+                          </button>
+                        </>
+                      )}
                     </div>
-                  )}
+                    <a
+                      href={`http://localhost:8000/incidents/${inc.incident_id}/dossier`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 rounded-[3px] border border-blue-500/50 bg-blue-500/10 px-3 py-1.5 font-mono text-[11px] font-bold text-blue-400 hover:bg-blue-500/20"
+                    >
+                      📄 Official Forensic Dossier (PDF)
+                    </a>
+                  </div>
                 </div>
               )}
             </div>

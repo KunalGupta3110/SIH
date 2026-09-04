@@ -25,13 +25,13 @@ if str(ROOT_DIR) not in sys.path:
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 
-from backend import correlation_engine, database, evidence_ledger, hardware_bridge, notifications, threat_engine
+from backend import correlation_engine, database, dossier_generator, evidence_ledger, hardware_bridge, notifications, retrospective_engine, threat_engine
 from core.vision.camera_health import CameraHealthMonitor
 
 camera_health_monitor = CameraHealthMonitor()
@@ -589,6 +589,41 @@ def acknowledge_incident(incident_id: str, body: AcknowledgeIn):
     global _siren_active
     _siren_active = False   # acknowledging an incident also quiets the siren
     return _incident_with_story(database.get_incident(incident_id))
+
+
+@app.get("/incidents/{incident_id}/dossier", response_class=HTMLResponse)
+@app.get("/v1/incidents/{incident_id}/dossier", response_class=HTMLResponse)
+def get_incident_dossier_html(incident_id: str):
+    incident = database.get_incident(incident_id)
+    if not incident:
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
+    
+    events = database.get_events_for_incident(incident_id)
+    blocks = database.get_all_ledger_blocks()
+    incident_block = next((b for b in blocks if json.loads(b["payload_json"]).get("incident_id") == incident_id), None)
+    
+    html = dossier_generator.generate_incident_dossier_html(incident, events, incident_block)
+    return HTMLResponse(content=html)
+
+
+@app.post("/edge/upload-video")
+@app.post("/v1/edge/upload-video")
+async def upload_retrospective_video(
+    file: UploadFile = File(...),
+    camera_id: str = Form("CAM_ALPHA"),
+    zone_name: str = Form("Sector 4 Checkpost Alpha"),
+):
+    try:
+        contents = await file.read()
+        res = retrospective_engine.analyze_uploaded_video(
+            file_bytes=contents,
+            filename=file.filename or "uploaded_footage.mp4",
+            camera_id=camera_id,
+            zone_name=zone_name,
+        )
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to process video: {str(e)}")
 
 
 # ---------------------------------------------------------------------------

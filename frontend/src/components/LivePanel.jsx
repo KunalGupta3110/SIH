@@ -254,6 +254,15 @@ export default function LivePanel() {
         </div>
       </div>
 
+      {/* Retrospective Video Forensic Analysis Uploader */}
+      <div className="mb-6">
+        <SectionHeader
+          title="Retrospective Video Forensics & Evidence Uploader"
+          sub="Upload external CCTV footage (.mp4) for automated forensic frame analysis, threat scoring, and cryptographic sealing."
+        />
+        <RetrospectiveUploader onIncidentCreated={onCaseTriggered} />
+      </div>
+
       {/* Real-Time Live Multi-Camera Grid */}
       <div>
         <SectionHeader
@@ -269,3 +278,89 @@ export default function LivePanel() {
     </div>
   );
 }
+
+function RetrospectiveUploader({ onIncidentCreated }) {
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  async function handleUpload(e) {
+    e.preventDefault();
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    setResult(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("camera_id", "CAM_ALPHA");
+    formData.append("zone_name", "Uploaded Sector Footage");
+
+    try {
+      const res = await fetch("http://localhost:8000/edge/upload-video", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error(`Upload failed: ${res.statusText}`);
+      const data = await res.json();
+      setResult(data);
+      onIncidentCreated?.();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="rounded-[4px] border border-line bg-panel p-4">
+      <form onSubmit={handleUpload} className="flex flex-wrap items-center gap-3">
+        <input
+          type="file"
+          accept="video/mp4,video/avi,video/mkv"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          className="font-mono text-[12px] text-dim2 file:mr-3 file:rounded-[3px] file:border file:border-line2 file:bg-panel2 file:px-3 file:py-1.5 file:font-mono file:text-[11px] file:text-ink hover:file:bg-line"
+        />
+        <button
+          type="submit"
+          disabled={!file || uploading}
+          className="flex items-center gap-1.5 rounded-[3px] border border-blue-500/50 bg-blue-500/20 px-4 py-1.5 font-mono text-[12px] font-bold text-blue-300 transition-colors hover:bg-blue-500/30 disabled:opacity-40"
+        >
+          {uploading ? "Analyzing Video Footage…" : "📤 Upload & Run Forensic Analysis"}
+        </button>
+      </form>
+
+      {error && (
+        <div className="mt-3 rounded-[3px] border border-red/40 bg-red/10 px-3 py-2 text-[12px] text-red font-mono">
+          {error}
+        </div>
+      )}
+
+      {result && (
+        <div className="mt-4 rounded-[4px] border border-green/40 bg-green/10 p-3.5 text-[12px]">
+          <div className="flex items-center justify-between font-bold text-green">
+            <span>✅ Forensic Analysis Complete — Incident {result.incident_id} Created</span>
+            <a
+              href={`http://localhost:8000/incidents/${result.incident_id}/dossier`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-[3px] border border-green bg-green/20 px-2.5 py-1 text-[11px] text-white hover:bg-green/30 font-mono"
+            >
+              📄 Open Official Dossier (PDF)
+            </a>
+          </div>
+          <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-[11px] text-dim2">
+            <div>• <b>Duration:</b> {result.video_metadata?.duration_seconds}s</div>
+            <div>• <b>Resolution:</b> {result.video_metadata?.resolution}</div>
+            <div>• <b>Threat Score:</b> <span className="text-red font-bold">{result.analysis_results?.threat_score}/100</span></div>
+          </div>
+          <div className="mt-2 truncate font-mono text-[10px] text-faint">
+            Sealed SHA-256 Hash: {result.analysis_results?.sealed_block_hash}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
