@@ -108,11 +108,18 @@ def test_acceptance_criteria():
     assert broken_i == 1, f"Expected broken block 1, got {broken_i}"
     print(f" -> [PASS] Tamper correctly flagged live at Block #{broken_i} ({rsn})")
 
-    # Clean up test files
-    if os.path.exists("data/test_events.db"):
-        os.remove("data/test_events.db")
-    if os.path.exists("data/test_evidence_ledger.json"):
-        os.remove("data/test_evidence_ledger.json")
+    # Clean up test files safely on Windows
+    try:
+        if os.path.exists("data/test_events.db"):
+            os.remove("data/test_events.db")
+    except Exception:
+        pass
+
+    try:
+        if os.path.exists("data/test_evidence_ledger.json"):
+            os.remove("data/test_evidence_ledger.json")
+    except Exception:
+        pass
 
     print("\n" + "="*70)
     print(" [OK] ALL ACCEPTANCE CRITERIA VERIFIED & PASSED (5/5)")
