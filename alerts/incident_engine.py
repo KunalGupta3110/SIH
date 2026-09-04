@@ -360,6 +360,9 @@ class IncidentCorrelationEngine:
             return results
 
 
+# Aliases for backwards compatibility
+IncidentEngine = IncidentCorrelationEngine
+
 # Global Default Singleton
 _default_incident_engine = IncidentCorrelationEngine()
 

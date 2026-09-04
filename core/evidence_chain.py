@@ -202,6 +202,9 @@ class EvidenceChain:
         return True, None, "100% Valid and Untampered", logs
 
 
+# Aliases for backwards compatibility
+EvidenceLedger = EvidenceChain
+
 # Global Default Singleton
 _default_chain = EvidenceChain()
 
