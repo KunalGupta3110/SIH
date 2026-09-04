@@ -54,17 +54,29 @@ def is_handoff_pair(event_a: dict, event_b: dict) -> bool:
     return HANDOFF_MIN_SECONDS <= gap <= HANDOFF_MAX_SECONDS
 
 
-def find_handoff_partner(new_event: dict) -> dict | None:
+def find_track_or_handoff_partner(new_event: dict) -> dict | None:
     """
-    Look through recently-stored events for one that pairs with new_event
-    as a cross-camera handoff. Returns that event, or None if there isn't one.
+    Look through recently-stored events for:
+      1. Same track on same camera within 15s (temporal debouncing / continuation).
+      2. Cross-camera handoff partner (6-14s window).
     """
     recent_events = database.get_recent_events(limit=LOOKBACK_EVENT_LIMIT)
     for candidate in recent_events:
         if candidate["event_id"] == new_event["event_id"]:
             continue
+        
+        # Case 1: Same camera, same track ID within 15s (Debounce continuous presence)
+        if (candidate["camera_id"] == new_event["camera_id"] and 
+            candidate.get("track_id") is not None and 
+            candidate.get("track_id") == new_event.get("track_id")):
+            gap = seconds_between(candidate, new_event)
+            if gap <= 15.0:
+                return candidate
+
+        # Case 2: Cross-camera handoff
         if is_handoff_pair(candidate, new_event):
             return candidate
+
     return None
 
 
@@ -72,15 +84,14 @@ def correlate_event(new_event: dict) -> str:
     """
     Attach new_event to an incident and return that incident's id.
 
-    Step 1: if a handoff partner exists and it's already part of an
-            incident, join that same incident.
+    Step 1: if a track continuation or handoff partner exists and it's already
+            part of an incident, join that same incident.
     Step 2: otherwise, start a brand-new incident containing just this event.
 
-    The caller (backend/main.py) is responsible for inserting new_event
-    into security_events *before* calling this, so it shows up in the
-    lookback search for later events too.
+    The caller (backend/main.py) inserts new_event into security_events before
+    calling this, so it shows up in lookback searches.
     """
-    partner = find_handoff_partner(new_event)
+    partner = find_track_or_handoff_partner(new_event)
 
     incident_id = None
     if partner is not None:

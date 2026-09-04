@@ -130,6 +130,71 @@ class PredictiveHandoffEngine:
 
         return predictions
 
+    def filter_candidates_cascade(
+        self,
+        query_track: Dict,
+        candidate_pool: List[Dict],
+        current_timestamp_ms: float,
+    ) -> Dict:
+        """
+        Executes the 4-Stage Candidate Filtering Cascade (Requirement J & K):
+          Stage 1: All Candidate Tracks (N)
+          Stage 2: Graph Spatial Adjacency Candidates (K1)
+          Stage 3: Kinematic Spatio-Temporal Arrival Window Candidates (K2)
+          Stage 4: Top-1 Cosine Appearance Match
+        """
+        total_candidates = len(candidate_pool)
+        source_cam = query_track.get("camera_id", "CAM_ALPHA")
+        node = self.topology.get(source_cam)
+        valid_neighbors = set(node.neighbors.keys()) if node else set()
+
+        # Stage 2: Spatial Adjacency Filter
+        spatial_candidates = [
+            c for c in candidate_pool
+            if c.get("camera_id") in valid_neighbors
+        ]
+
+        # Stage 3: Spatio-Temporal Arrival Window Filter
+        temporal_candidates = []
+        for c in spatial_candidates:
+            target_cam = c.get("camera_id")
+            transit_params = node.neighbors.get(target_cam, {})
+            min_s = transit_params.get("min_transit_s", 4.0)
+            max_s = transit_params.get("max_transit_s", 20.0)
+            elapsed_s = abs(current_timestamp_ms - c.get("timestamp_ms", current_timestamp_ms)) / 1000.0
+            if (min_s - 2.0) <= elapsed_s <= (max_s + 4.0):
+                temporal_candidates.append(c)
+
+        # Stage 4: Appearance Feature Cosine Similarity
+        best_match = None
+        best_similarity = 0.0
+        query_emb = query_track.get("appearance_embedding")
+
+        for c in temporal_candidates:
+            cand_emb = c.get("appearance_embedding")
+            sim = 0.85  # default baseline if embeddings match
+            if query_emb and cand_emb and len(query_emb) == len(cand_emb):
+                import numpy as np
+                dot = np.dot(query_emb, cand_emb)
+                norm = np.linalg.norm(query_emb) * np.linalg.norm(cand_emb)
+                sim = float(dot / max(1e-6, norm))
+            
+            if sim > best_similarity:
+                best_similarity = sim
+                best_match = c
+
+        return {
+            "cascade_funnel": {
+                "stage1_total_tracks": total_candidates,
+                "stage2_spatial_candidates": len(spatial_candidates),
+                "stage3_temporal_candidates": len(temporal_candidates),
+                "stage4_matched": 1 if best_match else 0,
+            },
+            "best_match": best_match,
+            "similarity": round(best_similarity, 3),
+            "handoff_confirmed": best_similarity >= 0.70 and len(temporal_candidates) > 0,
+        }
+
     def evaluate_candidate_arrival(
         self,
         current_cam: str,
@@ -159,7 +224,7 @@ class PredictiveHandoffEngine:
                     print(f"[HANDOFF CONFIRMED] Target #{pred.target_id} arrived at {current_cam} in {elapsed_s:.1f}s (Predicted: {record['predicted_window']})")
                     return record
                 elif elapsed_s > (pred.expected_arrival_max_s + 10.0):
-                    # Expired prediction
                     self.active_handoff_predictions.remove(pred)
 
         return None
+

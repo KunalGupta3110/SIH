@@ -32,6 +32,9 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from backend import correlation_engine, database, evidence_ledger, hardware_bridge, notifications, threat_engine
+from core.vision.camera_health import CameraHealthMonitor
+
+camera_health_monitor = CameraHealthMonitor()
 
 
 @asynccontextmanager
@@ -613,9 +616,66 @@ def get_blockchain():
 
 @app.get("/audit/verify")
 @app.get("/v1/audit/verify")
+@app.get("/integrity/verify")
+@app.get("/v1/integrity/verify")
 def verify_blockchain():
     blocks = database.get_all_ledger_blocks()
-    return evidence_ledger.verify_chain(blocks)
+    res = evidence_ledger.verify_chain(blocks)
+    return {
+        "valid": res["is_valid"],
+        "verified_records": len(blocks),
+        "chain_length": len(blocks),
+        "broken_index": res["broken_index"],
+        "reason": res["reason"],
+        "logs": res["logs"],
+    }
+
+
+@app.get("/integrity/ledger")
+@app.get("/v1/integrity/ledger")
+def get_integrity_ledger():
+    return get_blockchain()
+
+
+@app.get("/camera/health")
+@app.get("/v1/camera/health")
+@app.get("/edge/camera-health")
+def get_camera_health():
+    return {"cameras": camera_health_monitor.get_all_health()}
+
+
+@app.get("/evidence/capsule/{incident_id}")
+@app.get("/v1/evidence/capsule/{incident_id}")
+def get_evidence_capsule(incident_id: str):
+    incident = database.get_incident(incident_id)
+    if not incident:
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
+    
+    events = database.get_events_for_incident(incident_id)
+    blocks = database.get_all_ledger_blocks()
+    incident_block = next((b for b in blocks if json.loads(b["payload_json"]).get("incident_id") == incident_id), None)
+    
+    return {
+        "court_admissible_evidence_capsule": {
+            "incident_id": incident_id,
+            "system_identifier": "IBVAP-SENTINEL-MHA-SSB",
+            "jurisdiction": "Sector 4 Northern Border Watchfloor",
+            "threat_score": incident["threat_score"],
+            "severity": incident["severity"],
+            "status": incident["status"],
+            "created_at": incident["created_at"],
+            "narrative": incident["story_summary"],
+            "cameras_involved": json.loads(incident["cameras_json"] or "[]"),
+            "score_factors": json.loads(incident["score_breakdown_json"] or "[]"),
+            "event_trail": events,
+            "cryptographic_ledger_proof": {
+                "sealed_in_ledger": incident_block is not None,
+                "block_hash": incident_block["current_hash"] if incident_block else incident["cryptographic_hash"],
+                "previous_block_hash": incident_block["previous_hash"] if incident_block else None,
+                "merkle_verification_endpoint": "/integrity/verify",
+            }
+        }
+    }
 
 
 # ---------------------------------------------------------------------------

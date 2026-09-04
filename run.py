@@ -27,15 +27,15 @@ ROOT_DIR = Path(__file__).resolve().parent
 def print_banner():
     print("""
 ======================================================================
-       🛡️  CYBER CAMERA SURVEILLANCE — MASTER ECOSYSTEM LAUNCHER  🛡️
-    Ministry of Home Affairs | SSB | SIH 2026 Problem Statement 26187
+ [IBVAP SENTINEL] MASTER BORDER SURVEILLANCE PLATFORM
+ Ministry of Home Affairs | SSB | SIH 2026 Problem Statement 26187
 ======================================================================
     """)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cyber Camera Surveillance - Master Launcher")
-    parser.add_argument("--demo", type=int, choices=[1, 2, 3, 4, 5, 6], help="Run Demo Scenario (1: Breach, 2: Re-ID, 3: Vehicle, 4: Webcam, 5: Incident Reconstruction, 6: Live Multi-Cam Real Tester)")
+    parser = argparse.ArgumentParser(description="IBVAP Sentinel - Master Launcher")
+    parser.add_argument("--demo", type=int, choices=[1, 2, 3, 4, 5, 6, 7], help="Run Demo Scenario (1: Breach, 2: Cross-Cam Re-ID, 3: Camera Failure, 4: Loitering Anomaly, 5: Reconstruction, 6: Vehicle Ramming, 7: Live Multi-Cam)")
     args = parser.parse_args()
 
     print_banner()
@@ -48,15 +48,18 @@ def main():
         subprocess.run([sys.executable, "demos/scenario_2_cross_cam_reid.py"], cwd=ROOT_DIR)
         return
     elif args.demo == 3:
-        subprocess.run([sys.executable, "demos/scenario_3_vehicle_ramming.py"], cwd=ROOT_DIR)
+        subprocess.run([sys.executable, "demos/scenario_3_camera_failure.py"], cwd=ROOT_DIR)
         return
     elif args.demo == 4:
-        subprocess.run([sys.executable, "demos/scenario_4_tabletop_webcam.py"], cwd=ROOT_DIR)
+        subprocess.run([sys.executable, "demos/scenario_4_loitering_anomaly.py"], cwd=ROOT_DIR)
         return
     elif args.demo == 5:
         subprocess.run([sys.executable, "demos/scenario_reconstruct_incident.py"], cwd=ROOT_DIR)
         return
     elif args.demo == 6:
+        subprocess.run([sys.executable, "demos/scenario_3_vehicle_ramming.py"], cwd=ROOT_DIR)
+        return
+    elif args.demo == 7:
         subprocess.run([sys.executable, "demos/live_real_world_tester.py"], cwd=ROOT_DIR)
         return
 

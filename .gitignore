@@ -26,3 +26,19 @@ env/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Environment & Secrets
+.env
+.env.*
+*.local
+
+# Node & Frontend Build
+node_modules/
+dist/
+build/
+.turbo/
+
+# Databases & Scratch
+scratch/
+*.db-journal
+
