@@ -72,34 +72,23 @@ def main():
         return
 
     # Default / --all
-    print("[1/2] Starting FastAPI Gateway (Port 8000)...")
-    api_proc = subprocess.Popen([sys.executable, "-m", "uvicorn", "services.api_gateway.server:app", "--host", "0.0.0.0", "--port", "8000"], cwd=ROOT_DIR)
-    time.sleep(1.5)
-
-    print("[2/2] Starting Web Command Center (Port 8501)...")
-    dash_proc = subprocess.Popen(["streamlit", "run", "apps/web_command_center/app.py", "--server.port", "8501", "--server.headless", "true"], cwd=ROOT_DIR)
-    time.sleep(1.5)
-
+    print("[Starting] FastAPI Gateway & Sentinel Watchfloor on http://localhost:8000...")
     import webbrowser
     webbrowser.open("http://localhost:8000")
 
     print("\n" + "="*70)
     print(" ✅ ALL SERVICES ONLINE & OPERATIONAL!")
-    print(" 🛸 3D Sentinel Watchfloor:   http://localhost:8000  (Auto-Opened in Browser)")
-    print(" 📊 Streamlit Ops Dashboard:  http://localhost:8501")
+    print(" 🛸 Sentinel Watchfloor UI:   http://localhost:8000  (Auto-Opened in Browser)")
     print(" 🌐 REST API Swagger Docs:    http://localhost:8000/docs")
     print(" 📱 Mobile Admin App:         cd apps/mobile_admin && flutter run")
     print(" 🎮 Run Threat Scenario 5:    python run.py --demo 5")
     print("="*70)
-    print("\n[NOTE] Visual 3D UI is live in your browser at http://localhost:8000.")
-    print("Press Ctrl+C to safely terminate all services.")
+    print("\nPress Ctrl+C to safely terminate server.")
 
     try:
-        api_proc.wait()
+        subprocess.run([sys.executable, "-m", "uvicorn", "services.api_gateway.server:app", "--host", "0.0.0.0", "--port", "8000"], cwd=ROOT_DIR)
     except KeyboardInterrupt:
-        print("\nTerminating all services...")
-        api_proc.terminate()
-        dash_proc.terminate()
+        print("\nServer terminated.")
 
 
 if __name__ == "__main__":

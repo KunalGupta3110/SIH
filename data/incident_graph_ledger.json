@@ -609,13 +609,14 @@
     "title": "Multi-Stage Border Incursion: PERSON #TRG-0017",
     "global_target_id": "TRG-0017",
     "target_class": "person",
-    "threat_score": 65,
-    "severity": "WARNING",
-    "confidence_pct": 89.3,
+    "threat_score": 92,
+    "severity": "CRITICAL",
+    "confidence_pct": 95.2,
     "start_time_iso": "2026-09-04T09:39:53.177095+00:00",
-    "last_update_iso": "2026-09-04T11:57:04.114758+00:00",
+    "last_update_iso": "2026-09-04T12:19:03.728935+00:00",
     "cameras_involved": [
-      "CAM_BRAVO"
+      "CAM_BRAVO",
+      "CAM_ALPHA"
     ],
     "nodes": [
       {
@@ -645,6 +646,20 @@
         "event_type": "ZONE_INTRUSION",
         "timestamp_iso": "2026-09-04T11:57:04.114758+00:00",
         "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T12:19:01.018977+00:00",
+        "rule_detail": "Target crossed North Gate Red Zone moving East towards perimeter fence."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "CROSS_CAMERA_MATCH",
+        "timestamp_iso": "2026-09-04T12:19:03.728935+00:00",
+        "rule_detail": "Target arrival verified via Predictive Handoff in 9.4s with 96.4% appearance similarity."
       }
     ],
     "score_breakdown": [
@@ -661,12 +676,22 @@
       {
         "factor": "Moderate Approach Vector",
         "points": 10,
-        "evidence": "Kinematic velocity 75.0 px/s."
+        "evidence": "Kinematic velocity 85.0 px/s."
+      },
+      {
+        "factor": "Static Loitering Dwell Time",
+        "points": 15,
+        "evidence": "Target stationary in caution corridor for 4.2s (threshold 3.0s)."
+      },
+      {
+        "factor": "Predictive Multi-Camera Continuity",
+        "points": 12,
+        "evidence": "Target successfully linked across nodes via spatio-temporal transit prediction."
       }
     ],
-    "cryptographic_block_hash": "4109ccfca4ec6987da67724966573df792c1a047f35115885595f0614e28daf1",
+    "cryptographic_block_hash": "d34299c456b257bf5463358dfe53e6a7f0592569b599a19918c139b6943b9075",
     "operator_triage": "UNREVIEWED",
-    "story_summary": "Multi-node progression: Target TRG-0017 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
+    "story_summary": "Multi-node progression: Target TRG-0017 traversed 2 camera nodes (CAM_BRAVO -> CAM_ALPHA) with sustained threat level CRITICAL."
   },
   {
     "incident_id": "INC-1052",

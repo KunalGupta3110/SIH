@@ -178,8 +178,14 @@ def register_device_token(payload: Dict[str, Any]):
     return {"status": "registered", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
+from fastapi.responses import FileResponse
+
+COMMAND_CENTER_HTML = os.path.join(ROOT_DIR, "apps", "web_command_center", "static", "command_center.html")
+
 @app.get("/")
 def root():
+    if os.path.exists(COMMAND_CENTER_HTML):
+        return FileResponse(COMMAND_CENTER_HTML)
     return {
         "platform": "IBVAP Sentinel Edge AI Ecosystem",
         "status": "OPERATIONAL",
