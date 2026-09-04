@@ -3,15 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>IBVAP Sentinel — Tactical Command Console</title>
-<meta name="description" content="Autonomous Border Video Analytics Platform with High-Fidelity 3D Digital Twin, Cross-Camera Re-ID, Multi-Feed CCTV Wall, and SHA-256 Blockchain Ledger." />
+<title>IBVAP Sentinel — Watchfloor</title>
+<meta name="description" content="AI-based video analytics for border CCTV: human/vehicle detection, facial recognition, ANPR, intrusion alerts, cross-camera Re-ID, and a SHA-256 evidence ledger — running on existing IP cameras." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" />
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <style>
   :root {
@@ -246,163 +243,49 @@
   }
   .scen-btn.active .badge-num { background: var(--crimson); color: #fff; }
 
-  /* 3D Master Grid */
-  .twin-grid {
+  /* OPS View Master Grid */
+  .ops-grid {
     display: grid;
     grid-template-columns: 1fr 420px;
     gap: 14px;
   }
   @media (max-width: 1200px) {
-    .twin-grid { grid-template-columns: 1fr; }
+    .ops-grid { grid-template-columns: 1fr; }
   }
 
-  /* 3D Canvas Card */
-  .canvas-card {
+  /* OPS Hero Card — plain live-camera view, not a visualization */
+  .hero-card {
     background: var(--bg-card);
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    overflow: hidden;
-    display: flex; flex-direction: column;
-    box-shadow: var(--shadow-card);
-    position: relative;
-    min-height: 590px;
-  }
-  .canvas-card.alert-border {
-    border-color: var(--crimson);
-    animation: border-alarm 0.9s infinite alternate;
-  }
-  @keyframes border-alarm {
-    from { box-shadow: 0 0 15px rgba(214, 69, 80, 0.2); }
-    to { box-shadow: 0 0 30px rgba(214, 69, 80, 0.6); }
-  }
-
-  .canvas-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 14px;
-    background: rgba(4, 9, 18, 0.92);
-    border-bottom: 1px solid var(--line);
-    z-index: 10;
-  }
-  .canvas-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; }
-  .canvas-title svg { width: 15px; height: 15px; stroke: var(--cyan); }
-
-  /* Camera Presets */
-  .cam-presets { display: flex; align-items: center; gap: 5px; }
-  .preset-btn {
-    padding: 4px 9px; border-radius: var(--radius-sm);
-    background: rgba(12, 22, 38, 0.8); border: 1px solid var(--line);
-    color: var(--text-dim); font-family: var(--font-mono); font-size: 10.5px;
-    cursor: pointer; transition: all 0.15s ease;
-  }
-  .preset-btn:hover { color: #fff; border-color: var(--cyan); }
-  .preset-btn:active { transform: scale(0.96); }
-  .preset-btn.active { background: var(--cyan); color: #02050d; font-weight: 700; border-color: var(--cyan); }
-
-  /* 3D Viewport */
-  .canvas-viewport {
-    flex: 1; width: 100%; height: 100%; min-height: 530px;
-    position: relative; background: #020612; cursor: grab;
-  }
-  .canvas-viewport:active { cursor: grabbing; }
-
-  /* HUD Overlays */
-  .hud-overlay {
-    position: absolute; inset: 0; pointer-events: none; z-index: 5;
-    display: flex; flex-direction: column; justify-content: space-between;
     padding: 14px;
+    display: flex; flex-direction: column; gap: 12px;
+    box-shadow: var(--shadow-card);
   }
-  .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
-  .hud-telemetry {
-    background: rgba(2, 6, 14, 0.85); border: 1px solid var(--line);
-    padding: 7px 11px; border-radius: var(--radius-sm);
-    font-family: var(--font-mono); font-size: 10.5px; color: var(--cyan);
-    backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 2px;
-  }
-  .hud-vision-filters {
-    display: flex; gap: 4px; pointer-events: auto;
-    background: rgba(2, 6, 14, 0.88); padding: 3px; border-radius: var(--radius-sm);
-    border: 1px solid var(--line);
-  }
-  .filter-btn {
-    padding: 3px 8px; font-family: var(--font-mono); font-size: 10px;
-    border-radius: 3px; border: 1px solid transparent; background: transparent;
-    color: var(--text-dim); cursor: pointer; transition: all 0.15s ease;
-  }
-  .filter-btn:hover { color: #fff; background: rgba(232, 163, 61, 0.1); }
-  .filter-btn.active { background: rgba(232, 163, 61, 0.2); border-color: var(--cyan); color: var(--cyan); font-weight: 600; }
+  .hero-card.alert-border { border-color: var(--crimson); }
 
-  .hud-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
-  .hud-threat-banner {
-    background: rgba(6, 13, 24, 0.92); border: 1px solid var(--line);
-    padding: 9px 13px; border-radius: var(--radius-sm);
-    display: flex; align-items: center; gap: 12px; backdrop-filter: blur(12px);
-    pointer-events: auto; max-width: 480px;
-  }
-  .threat-gauge {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width: 62px; height: 62px; border-radius: 50%;
-    background: conic-gradient(var(--crimson) 0% 77%, rgba(255, 255, 255, 0.08) 77% 100%);
-    position: relative; box-shadow: 0 0 14px var(--crimson-glow); flex-shrink: 0;
-  }
-  .threat-gauge::before {
-    content: ""; position: absolute; inset: 5px; border-radius: 50%;
-    background: #040914;
-  }
-  .threat-gauge-val {
-    position: relative; z-index: 2; font-family: var(--font-display);
-    font-size: 20px; font-weight: 700; color: #fff; line-height: 1;
-  }
-  .threat-gauge-lbl {
-    position: relative; z-index: 2; font-family: var(--font-mono);
-    font-size: 7.5px; color: var(--text-dim); letter-spacing: 0.08em;
-  }
+  .hero-header { display: flex; align-items: center; justify-content: space-between; }
+  .hero-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; }
+  .hero-title svg { width: 15px; height: 15px; stroke: var(--cyan); }
 
-  /* 3D Radar Minimap */
-  .radar-minimap {
-    width: 110px; height: 110px; border-radius: 50%;
-    background: rgba(2, 6, 14, 0.9); border: 1px solid var(--line-strong);
-    position: relative; overflow: hidden; backdrop-filter: blur(8px);
-    box-shadow: 0 0 16px rgba(232, 163, 61, 0.15); pointer-events: auto;
-  }
-  .radar-sweep {
-    position: absolute; inset: 0;
-    background: conic-gradient(from 0deg, rgba(232, 163, 61, 0.35) 0deg, transparent 60deg, transparent 360deg);
-    border-radius: 50%; animation: radar-spin 3s linear infinite;
-  }
-  @keyframes radar-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .radar-ring {
-    position: absolute; inset: 18px; border-radius: 50%;
-    border: 1px dashed rgba(232, 163, 61, 0.25);
-  }
-  .radar-crosshair-h { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(232, 163, 61, 0.2); }
-  .radar-crosshair-v { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(232, 163, 61, 0.2); }
-  .radar-blip {
-    position: absolute; width: 5px; height: 5px; border-radius: 50%;
-    background: var(--crimson); box-shadow: 0 0 6px var(--crimson);
-    transform: translate(-50%, -50%);
-  }
+  .hero-feeds { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
 
-  /* 3D Object Inspector Modal */
-  .inspector-hud {
-    position: absolute; top: 50px; right: 14px; width: 270px;
-    background: rgba(4, 9, 18, 0.96); border: 1px solid var(--cyan);
-    border-radius: var(--radius-sm); padding: 12px;
-    box-shadow: 0 8px 30px rgba(232, 163, 61, 0.25);
-    backdrop-filter: blur(16px); z-index: 20; pointer-events: auto;
-    display: none; animation: fadeIn 0.15s ease;
+  /* Selected-incident detail strip below the camera feeds — plain text, no glow */
+  .incident-detail-bar {
+    background: rgba(2, 6, 14, 0.7); border: 1px solid var(--line);
+    border-left: 3px solid var(--cyan); border-radius: var(--radius-sm);
+    padding: 10px 12px; display: flex; align-items: flex-start; gap: 10px;
   }
-  .inspector-hud.open { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-  .inspector-header {
-    display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 6px;
+  .incident-detail-score {
+    flex-shrink: 0; font-family: var(--font-display); font-size: 22px; font-weight: 700;
+    color: #fff; line-height: 1;
   }
-  .inspector-title { font-family: var(--font-heading); font-size: 12px; font-weight: 700; color: var(--cyan); }
-  .inspector-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 15px; }
-  .inspector-close:hover { color: #fff; }
-  .inspector-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; font-family: var(--font-mono); }
-  .inspector-row span { color: var(--text-dim); }
-  .inspector-row b { color: #fff; font-weight: 500; }
+  .incident-detail-body { flex: 1; min-width: 0; }
+  .incident-detail-tier {
+    display: inline-block; font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+    padding: 2px 7px; border-radius: 3px; margin-bottom: 4px; color: #fff;
+  }
+  .incident-detail-text { font-size: 12px; color: var(--text-main); line-height: 1.5; }
 
   /* Side Panel & Cards */
   .side-panel { display: flex; flex-direction: column; gap: 12px; }
@@ -694,81 +577,67 @@
       </div>
     </section>
 
-    <!-- VIEW 1: OPS (3D DIGITAL TWIN + INCIDENT RECONSTRUCTION) -->
+    <!-- VIEW 1: OPS (LIVE CAMERAS + INCIDENT QUEUE) -->
     <div id="page-ops" class="tab-page reveal-item reveal-delay-3">
-      <div class="twin-grid">
-        
-        <!-- 3D Canvas Viewport -->
-        <div class="canvas-card" id="twin-main-card">
-          <div class="canvas-header">
-            <div class="canvas-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-              Sector 4B · Checkpost Alpha to BOP Bravo Tactical Twin
+      <div class="ops-grid">
+
+        <!-- Live Camera Hero — the actual video feed, not a visualization -->
+        <div class="hero-card" id="ops-hero-card">
+          <div class="hero-header">
+            <div class="hero-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              Sector 4B · Checkpost Alpha &amp; BOP Bravo — Existing IP CCTV
             </div>
-            <div class="cam-presets">
-              <button class="preset-btn active" data-cam="default">Overview</button>
-              <button class="preset-btn" data-cam="alpha">Tower Alpha</button>
-              <button class="preset-btn" data-cam="bravo">Tower Bravo</button>
-              <button class="preset-btn" data-cam="target">Target Lock</button>
+            <span class="mono" style="font-size:9.5px;color:var(--text-dim);">6 CAMERAS · AI-ENHANCED</span>
+          </div>
+
+          <div class="hero-feeds">
+            <div class="cctv-feed-card">
+              <div class="feed-header">
+                <span>CAM_ALPHA · 32.1914°N</span>
+                <span style="color:var(--crimson);font-weight:700;">LIVE</span>
+              </div>
+              <div class="feed-canvas-wrap">
+                <canvas id="feed-canvas-ops-a" width="480" height="270"></canvas>
+              </div>
+              <div class="feed-footer">
+                <span style="font-size:10.5px;color:var(--text-dim);">Existing IP Camera Feed</span>
+                <div class="filter-pills">
+                  <button class="filter-pill active" onclick="setFeedMode('ops-a', 'rgb', this)">STANDARD</button>
+                  <button class="filter-pill" onclick="setFeedMode('ops-a', 'night', this)">NIGHT AI</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="cctv-feed-card">
+              <div class="feed-header">
+                <span>CAM_BRAVO · 32.1922°N</span>
+                <span style="color:var(--text-dim);font-weight:700;">LIVE</span>
+              </div>
+              <div class="feed-canvas-wrap">
+                <canvas id="feed-canvas-ops-b" width="480" height="270"></canvas>
+              </div>
+              <div class="feed-footer">
+                <span style="font-size:10.5px;color:var(--text-dim);">Existing IP Camera Feed</span>
+                <div class="filter-pills">
+                  <button class="filter-pill active" onclick="setFeedMode('ops-b', 'rgb', this)">STANDARD</button>
+                  <button class="filter-pill" onclick="setFeedMode('ops-b', 'night', this)">NIGHT AI</button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="canvas-viewport" id="twin-canvas-wrap">
-            <div class="hud-overlay">
-              <div class="hud-top">
-                <div class="hud-telemetry">
-                  <div>LAT/LONG: <b>32.1914° N, 74.8920° E</b></div>
-                  <div>FPS: <b id="hud-fps-val">60.0</b> · CAMERAS: <b>6 EXISTING IP CCTV</b></div>
-                  <div>SOURCE: <b>STANDARD IP CCTV · AI-ENHANCED</b></div>
-                </div>
-
-                <div class="hud-vision-filters">
-                  <button class="filter-btn active" onclick="setVisionShader('standard')">STANDARD</button>
-                  <button class="filter-btn" onclick="setVisionShader('thermal')">LOW-LIGHT AI</button>
-                  <button class="filter-btn" onclick="setVisionShader('nvg')">NIGHT AI MODE</button>
-                </div>
+          <!-- Selected incident detail, plain text -->
+          <div class="incident-detail-bar">
+            <div class="incident-detail-score" id="threat-score-val">77</div>
+            <div class="incident-detail-body">
+              <div style="display:flex;align-items:center;gap:7px;">
+                <span id="threat-tier-tag" class="incident-detail-tier" style="background:var(--crimson);">CRITICAL BREACH</span>
+                <span class="mono" style="font-size:11px;color:var(--text-dim);" id="target-id-val">TRG-1041</span>
               </div>
-
-              <div class="hud-bottom">
-                <div class="hud-threat-banner">
-                  <div class="threat-gauge">
-                    <span class="threat-gauge-val" id="threat-score-val">77</span>
-                    <span class="threat-gauge-lbl">THREAT</span>
-                  </div>
-                  <div>
-                    <div style="display:flex;align-items:center;gap:7px;">
-                      <span id="threat-tier-tag" style="background:var(--crimson);color:#fff;padding:2px 7px;border-radius:3px;font-family:var(--font-mono);font-size:9.5px;font-weight:700;">CRITICAL BREACH</span>
-                      <span class="mono" style="font-size:11.5px;color:var(--text-dim);" id="target-id-val">TRG-1041</span>
-                    </div>
-                    <div style="font-size:11px;color:var(--text-main);margin-top:3px;" id="incident-narrative-text">
-                      Target penetrated Checkpost Alpha red zone. Heading vector 042° toward BOP Bravo.
-                    </div>
-                  </div>
-                </div>
-
-                <div class="radar-minimap" title="Sector Position Map">
-                  <div class="radar-sweep"></div>
-                  <div class="radar-ring"></div>
-                  <div class="radar-crosshair-h"></div>
-                  <div class="radar-crosshair-v"></div>
-                  <div class="radar-blip" id="radar-blip-target" style="top:45%;left:35%;"></div>
-                  <div class="radar-blip" style="top:50%;left:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);"></div>
-                </div>
+              <div class="incident-detail-text" id="incident-narrative-text">
+                Target penetrated Checkpost Alpha red zone. Heading vector 042° toward BOP Bravo.
               </div>
-            </div>
-
-            <!-- Inspector Modal -->
-            <div class="inspector-hud" id="inspector-modal">
-              <div class="inspector-header">
-                <span class="inspector-title" id="inspect-name">CCTV TOWER ALPHA</span>
-                <button class="inspector-close" onclick="closeInspector()">✕</button>
-              </div>
-              <div class="inspector-row"><span>Type:</span> <b id="inspect-type">Existing CCTV Mounting Post</b></div>
-              <div class="inspector-row"><span>Optical Range:</span> <b id="inspect-range">250m Optical, IR-Enhanced</b></div>
-              <div class="inspector-row"><span>AI Sensors:</span> <b id="inspect-sensors">IP Camera + AI Video Analytics</b></div>
-              <div class="inspector-row"><span>Status:</span> <b id="inspect-status" style="color:var(--emerald);">ONLINE · TRACKING</b></div>
-              <div class="inspector-row"><span>Telemetry:</span> <b id="inspect-telem">32.1914°N / 74.8920°E</b></div>
-              <button class="btn btn-primary" style="width:100%;margin-top:7px;font-size:10.5px;" onclick="focusInspectedObject()">Focus Camera</button>
             </div>
           </div>
         </div>
@@ -1233,644 +1102,52 @@ function selectIncident(id) {
   tag.style.background = inc.severity === 'critical' ? 'var(--crimson)'
     : inc.severity === 'warning' ? 'var(--amber)' : 'var(--purple)';
 
-  if (typeof THREE !== 'undefined' && inc.camGoal) {
-    TW.camGoal = { pos: new THREE.Vector3(...inc.camGoal.pos), tgt: new THREE.Vector3(...inc.camGoal.tgt) };
-  }
   playBlip(600, 0.03);
 }
 
 renderIncidentQueue();
 renderFactors(INCIDENTS[0].factors);
-// selectIncident() itself is called once the 3D twin (TW.camGoal) exists — see
-// the bottom of this script, right after initCCTV() sets up the CCTV feeds.
-
-/* ============================================================
-   HIGH-FIDELITY 3D DIGITAL TWIN (Hardware-Grade Procedural Models)
-   ============================================================ */
-const TW = {
-  camGoal: null,
-  boomGoal: -0.5,
-  focusedObj: null,
-  visionMode: 'standard',
-  propsSpin: [],
-  searchlights: [],
-  jeepWheels: [],
-  suvWheels: []
-};
-
-const SIM = {
-  scenario: 0,
-  running: false,
-  targetProgress: 0
-};
-
-let scene, camera, renderer, controls, pickables = [];
-
-(function init3DWorld() {
-  const container = $('#twin-canvas-wrap');
-  if (!container || typeof THREE === 'undefined') return;
-
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x02050e);
-  scene.fog = new THREE.FogExp2(0x02050e, 0.012);
-
-  const w = container.clientWidth || 800;
-  const h = container.clientHeight || 560;
-  camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 800);
-  camera.position.set(0, 32, 48);
-
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(w, h);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  container.appendChild(renderer.domElement);
-
-  const OrbitClass = THREE.OrbitControls || window.OrbitControls;
-  controls = OrbitClass ? new OrbitClass(camera, renderer.domElement) : { update: () => {}, target: new THREE.Vector3() };
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-  controls.maxPolarAngle = Math.PI / 2 - 0.04;
-
-  /* Lighting */
-  const ambLight = new THREE.AmbientLight(0x38557a, 0.65);
-  scene.add(ambLight);
-
-  const dirLight = new THREE.DirectionalLight(0xdcf8ff, 0.85);
-  dirLight.position.set(25, 55, 25);
-  dirLight.castShadow = true;
-  scene.add(dirLight);
-
-  /* Terrain & Ridge */
-  const terGeo = new THREE.PlaneGeometry(160, 120, 40, 40);
-  const terMat = new THREE.MeshStandardMaterial({ color: 0x07111e, roughness: 0.9, metalness: 0.1 });
-  const terrain = new THREE.Mesh(terGeo, terMat);
-  terrain.rotation.x = -Math.PI / 2;
-  terrain.receiveShadow = true;
-  scene.add(terrain);
-
-  const gridHelper = new THREE.GridHelper(160, 40, 0x6e8fb0, 0x0c2035);
-  gridHelper.position.y = 0.02;
-  scene.add(gridHelper);
-
-  /* Instanced Low-Poly Rocks & Scrub Vegetation */
-  const rockGeo = new THREE.DodecahedronGeometry(0.5, 0);
-  const rockMat = new THREE.MeshStandardMaterial({ color: 0x1a2638, roughness: 0.8 });
-  const rockMesh = new THREE.InstancedMesh(rockGeo, rockMat, 24);
-  const dummy = new THREE.Object3D();
-  for (let i = 0; i < 24; i++) {
-    const rx = (Math.random() - 0.5) * 140;
-    const rz = (Math.random() - 0.5) * 80;
-    if (Math.abs(rz - 6) < 6) continue; // keep off road
-    const scale = 0.6 + Math.random() * 1.2;
-    dummy.position.set(rx, scale * 0.3, rz);
-    dummy.rotation.set(Math.random(), Math.random(), Math.random());
-    dummy.scale.set(scale, scale, scale);
-    dummy.updateMatrix();
-    rockMesh.setMatrixAt(i, dummy.matrix);
-  }
-  scene.add(rockMesh);
-
-  /* Road with Tyre-Track Ruts */
-  const roadMat = new THREE.MeshStandardMaterial({ color: 0x0d1624, roughness: 0.85 });
-  const road = new THREE.Mesh(new THREE.PlaneGeometry(160, 6), roadMat);
-  road.rotation.x = -Math.PI / 2;
-  road.position.set(0, 0.03, 6);
-  road.receiveShadow = true;
-  scene.add(road);
-
-  // Tyre track ruts
-  [-1.2, 1.2].forEach(offset => {
-    const rut = new THREE.Mesh(
-      new THREE.PlaneGeometry(160, 0.4),
-      new THREE.MeshBasicMaterial({ color: 0x080f1a, transparent: true, opacity: 0.6 })
-    );
-    rut.rotation.x = -Math.PI / 2;
-    rut.position.set(0, 0.035, 6 + offset);
-    scene.add(rut);
-  });
-
-  // Road centerlines
-  for (let x = -75; x <= 75; x += 6) {
-    const stripe = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.2), new THREE.MeshBasicMaterial({ color: 0xd98c2b }));
-    stripe.rotation.x = -Math.PI / 2;
-    stripe.position.set(x, 0.04, 6);
-    scene.add(stripe);
-  }
-
-  /* Shimmering Red Geofence */
-  const geoBox = new THREE.Mesh(
-    new THREE.BoxGeometry(40, 3.2, 8),
-    new THREE.MeshBasicMaterial({ color: 0xd64550, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
-  );
-  geoBox.position.set(0, 1.6, 0);
-  scene.add(geoBox);
-
-  const geoEdge = new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.BoxGeometry(40, 3.2, 8)),
-    new THREE.LineBasicMaterial({ color: 0xd64550, transparent: true, opacity: 0.65 })
-  );
-  geoEdge.position.set(0, 1.6, 0);
-  scene.add(geoEdge);
-
-  /* Barbed-Wire Perimeter Fence */
-  const fenceGroup = new THREE.Group();
-  for (let x = -65; x <= 65; x += 3.5) {
-    // Tapered post
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.1, 2.6, 6), new THREE.MeshStandardMaterial({ color: 0x18304e }));
-    post.position.set(x, 1.3, -4);
-    fenceGroup.add(post);
-
-    // Hazard LED
-    const led = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), new THREE.MeshBasicMaterial({ color: 0x6e8fb0 }));
-    led.position.set(x, 2.6, -4);
-    fenceGroup.add(led);
-  }
-  [0.6, 1.3, 2.0].forEach(y => {
-    const wire = new THREE.Mesh(
-      new THREE.BoxGeometry(134, 0.03, 0.03),
-      new THREE.MeshBasicMaterial({ color: 0x6e8fb0, transparent: true, opacity: 0.4 })
-    );
-    wire.position.set(0, y, -4);
-    fenceGroup.add(wire);
-  });
-  scene.add(fenceGroup);
-
-  /* 1. REAL HARDWARE BRACED LATTICE WATCHTOWERS */
-  function buildLatticeTower(x, z, name, tint = 0x6e8fb0) {
-    const tGroup = new THREE.Group();
-    const legMat = new THREE.MeshStandardMaterial({ color: 0x16253b, metalness: 0.7, roughness: 0.3 });
-
-    // 4 Corner Truss Legs
-    [[-1.1, -1.1], [1.1, -1.1], [-1.1, 1.1], [1.1, 1.1]].forEach(([dx, dz]) => {
-      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.15, 9.5, 6), legMat);
-      leg.position.set(dx, 4.75, dz);
-      tGroup.add(leg);
-    });
-
-    // Cross-bracing lines
-    const trussMat = new THREE.LineBasicMaterial({ color: 0x22416b });
-    const trussGeo = new THREE.BufferGeometry();
-    const pts = [
-      new THREE.Vector3(-1.1, 0, -1.1), new THREE.Vector3(1.1, 4.75, -1.1),
-      new THREE.Vector3(1.1, 0, -1.1), new THREE.Vector3(-1.1, 4.75, -1.1),
-      new THREE.Vector3(-1.1, 4.75, -1.1), new THREE.Vector3(1.1, 9.5, -1.1),
-      new THREE.Vector3(1.1, 4.75, -1.1), new THREE.Vector3(-1.1, 9.5, -1.1),
-      new THREE.Vector3(-1.1, 0, 1.1), new THREE.Vector3(1.1, 4.75, 1.1),
-      new THREE.Vector3(1.1, 0, 1.1), new THREE.Vector3(-1.1, 4.75, 1.1),
-    ];
-    trussGeo.setFromPoints(pts);
-    tGroup.add(new THREE.LineSegments(trussGeo, trussMat));
-
-    // Access ladder
-    for (let ly = 0.5; ly <= 9.5; ly += 0.6) {
-      const rung = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.04, 0.04), legMat);
-      rung.position.set(1.1, ly, 0);
-      tGroup.add(rung);
-    }
-
-    // Catwalk Platform with Railings
-    const platform = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.25, 3.6), new THREE.MeshStandardMaterial({ color: 0x0e1928 }));
-    platform.position.y = 9.6;
-    tGroup.add(platform);
-
-    // Octagonal / Chamfered Observation Cabin
-    const cabin = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.6, 1.8, 2.0, 8),
-      new THREE.MeshStandardMaterial({ color: 0x091424, metalness: 0.5, roughness: 0.3 })
-    );
-    cabin.position.y = 10.7;
-    tGroup.add(cabin);
-
-    // 360 Glass Window Band
-    const glass = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.65, 1.65, 0.65, 8),
-      new THREE.MeshStandardMaterial({ color: tint, emissive: tint, emissiveIntensity: 0.45, transparent: true, opacity: 0.7 })
-    );
-    glass.position.y = 10.9;
-    tGroup.add(glass);
-
-    // Rotating PTZ Camera + Searchlight Head
-    const headPivot = new THREE.Group();
-    headPivot.position.y = 12.0;
-
-    const ptzCam = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.22, 0.22, 0.55, 10),
-      new THREE.MeshStandardMaterial({ color: tint, metalness: 0.8 })
-    );
-    ptzCam.rotation.z = Math.PI / 2;
-    headPivot.add(ptzCam);
-
-    // Visible Volumetric Sweeping Searchlight Cone
-    const lightCone = new THREE.Mesh(
-      new THREE.ConeGeometry(5.5, 16, 16, 1, true),
-      new THREE.MeshBasicMaterial({ color: tint, wireframe: true, transparent: true, opacity: 0.16 })
-    );
-    lightCone.position.set(0, -7.5, 3);
-    lightCone.rotation.x = Math.PI / 2.6;
-    headPivot.add(lightCone);
-
-    tGroup.add(headPivot);
-    tGroup._headPivot = headPivot;
-
-    tGroup.position.set(x, 0, z);
-    tGroup.userData = {
-      name,
-      type: 'Existing CCTV Watchtower',
-      range: '250m Optical, IR-Enhanced',
-      sensors: 'IP Camera + AI Video Analytics + Searchlight',
-      status: 'ONLINE · MONITORING'
-    };
-
-    scene.add(tGroup);
-    pickables.push(cabin);
-    cabin.userData = tGroup.userData;
-    cabin._parentGroup = tGroup;
-
-    return tGroup;
-  }
-
-  const towerAlpha = buildLatticeTower(-24, -4, 'Checkpost Alpha Tower', 0x6e8fb0);
-  const towerBravo = buildLatticeTower(24, -4, 'BOP Bravo Tower', 0x5fbe8a);
-
-  /* 2. CHECKPOINT HQ & MOTORIZED HYDRAULIC BOOM BARRIER */
-  const checkpointHQ = new THREE.Group();
-  const hqBuilding = new THREE.Mesh(
-    new THREE.BoxGeometry(4.2, 3.2, 3.8),
-    new THREE.MeshStandardMaterial({ color: 0x121e33, metalness: 0.4, roughness: 0.4 })
-  );
-  hqBuilding.position.set(-14, 1.6, 2.5);
-  checkpointHQ.add(hqBuilding);
-
-  // Sandbag fortifications
-  for (let sy = 0.2; sy <= 0.8; sy += 0.3) {
-    for (let sx = -16.5; sx <= -11.5; sx += 0.9) {
-      const bag = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.25, 0.4), new THREE.MeshStandardMaterial({ color: 0x5a4a32, roughness: 0.9 }));
-      bag.position.set(sx, sy, 4.8);
-      checkpointHQ.add(bag);
-    }
-  }
-
-  // Motorized Barrier Arm
-  const barrierPivot = new THREE.Group();
-  barrierPivot.position.set(-14, 1.4, 3.0);
-  const barrierArm = new THREE.Mesh(
-    new THREE.BoxGeometry(8.5, 0.2, 0.2),
-    new THREE.MeshStandardMaterial({ color: 0xd98c2b, emissive: 0xd98c2b, emissiveIntensity: 0.4 })
-  );
-  barrierArm.position.x = 4.25;
-  barrierPivot.add(barrierArm);
-  checkpointHQ.add(barrierPivot);
-  barrierPivot.rotation.y = -0.5;
-  scene.add(checkpointHQ);
-
-  /* 3. REALISTIC 4x4 PATROL JEEP */
-  const patrolJeep = new THREE.Group();
-  const pjChassis = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.8, 1.6), new THREE.MeshStandardMaterial({ color: 0x1a3324, metalness: 0.5 }));
-  pjChassis.position.y = 0.65;
-  patrolJeep.add(pjChassis);
-
-  const pjCabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.7, 1.4), new THREE.MeshStandardMaterial({ color: 0x0f1f16 }));
-  pjCabin.position.set(-0.3, 1.4, 0);
-  patrolJeep.add(pjCabin);
-
-  // Windshield
-  const pjWindshield = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.6), new THREE.MeshStandardMaterial({ color: 0x6e8fb0, transparent: true, opacity: 0.6 }));
-  pjWindshield.position.set(0.61, 1.4, 0);
-  pjWindshield.rotation.y = Math.PI / 2;
-  patrolJeep.add(pjWindshield);
-
-  // 4 Rotating Wheels
-  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
-  [[-1.1, -0.9], [1.1, -0.9], [-1.1, 0.9], [1.1, 0.9]].forEach(([wx, wz]) => {
-    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.3, 12), wheelMat);
-    w.rotation.x = Math.PI / 2;
-    w.position.set(wx, 0.4, wz);
-    patrolJeep.add(w);
-    TW.jeepWheels.push(w);
-  });
-  patrolJeep.position.set(12, 0, 6);
-  scene.add(patrolJeep);
-
-  /* 4. SPEEDING INTERDICTION SUV (Scenario 3) */
-  const suvVehicle = new THREE.Group();
-  const suvBody = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.1, 1.9), new THREE.MeshStandardMaterial({ color: 0x731122, metalness: 0.6 }));
-  suvBody.position.y = 0.85;
-  suvVehicle.add(suvBody);
-
-  const suvTop = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.8, 1.6), new THREE.MeshStandardMaterial({ color: 0x0a0e17 }));
-  suvTop.position.set(-0.3, 1.7, 0);
-  suvVehicle.add(suvTop);
-
-  // Headlight light beams
-  [-0.6, 0.6].forEach(dz => {
-    const beam = new THREE.Mesh(new THREE.ConeGeometry(1.2, 8, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff3b0, transparent: true, opacity: 0.25 }));
-    beam.position.set(6.0, 0.8, dz);
-    beam.rotation.z = -Math.PI / 2;
-    suvVehicle.add(beam);
-  });
-
-  [[-1.3, -1.0], [1.3, -1.0], [-1.3, 1.0], [1.3, 1.0]].forEach(([wx, wz]) => {
-    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.32, 12), wheelMat);
-    w.rotation.x = Math.PI / 2;
-    w.position.set(wx, 0.45, wz);
-    suvVehicle.add(w);
-    TW.suvWheels.push(w);
-  });
-  suvVehicle.position.set(-50, 0, 6);
-  suvVehicle.userData = {
-    name: 'Interdiction SUV (PB08-XX-1234)',
-    type: 'High-Speed Vehicle Target',
-    range: 'Speed: 68 km/h',
-    sensors: 'ANPR Blacklisted',
-    status: 'FLAGGED · RAMMING ALERT'
-  };
-  scene.add(suvVehicle);
-  pickables.push(suvBody);
-  suvBody.userData = suvVehicle.userData;
-  suvBody._parentGroup = suvVehicle;
-
-  /* 5. LOW-POLY ARTICULATED HUMANOID TARGET */
-  const intruderGroup = new THREE.Group();
-  
-  // Tapered Torso & Tactical Vest
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.35), new THREE.MeshStandardMaterial({ color: 0xd64550, emissive: 0xd64550, emissiveIntensity: 0.4 }));
-  torso.position.y = 1.25;
-  intruderGroup.add(torso);
-
-  // Hips
-  const hips = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.25, 0.3), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-  hips.position.y = 0.8;
-  intruderGroup.add(hips);
-
-  // Helmet Head with NVG
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 10), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-  head.position.y = 1.85;
-  intruderGroup.add(head);
-
-  const nvg = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.08, 0.12), new THREE.MeshBasicMaterial({ color: 0x5fbe8a }));
-  nvg.position.set(0, 1.85, 0.22);
-  intruderGroup.add(nvg);
-
-  // Articulated Legs & Arms
-  const legGeo = new THREE.BoxGeometry(0.18, 0.7, 0.18);
-  const leftLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({ color: 0x1f2937 }));
-  leftLeg.position.set(-0.18, 0.35, 0);
-  intruderGroup.add(leftLeg);
-
-  const rightLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({ color: 0x1f2937 }));
-  rightLeg.position.set(0.18, 0.35, 0);
-  intruderGroup.add(rightLeg);
-
-  const armGeo = new THREE.BoxGeometry(0.14, 0.65, 0.14);
-  const leftArm = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: 0x374151 }));
-  leftArm.position.set(-0.38, 1.15, 0);
-  intruderGroup.add(leftArm);
-
-  const rightArm = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: 0x374151 }));
-  rightArm.position.set(0.38, 1.15, 0);
-  intruderGroup.add(rightArm);
-
-  // Danger Aura Ring
-  const dangerHalo = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.1, 24), new THREE.MeshBasicMaterial({ color: 0xd64550, side: THREE.DoubleSide }));
-  dangerHalo.rotation.x = -Math.PI / 2;
-  dangerHalo.position.y = 0.04;
-  intruderGroup.add(dangerHalo);
-
-  intruderGroup.position.set(-20, 0, 1);
-  intruderGroup.userData = {
-    name: 'Infiltrator Target (TRG-1041)',
-    type: 'Hostile Perimeter Incursion',
-    range: 'Heading: 042° · 2.8 m/s',
-    sensors: 'YOLOv8s Confidence: 95.4%',
-    status: 'ACTIVE BREACH · RED ZONE'
-  };
-  scene.add(intruderGroup);
-  pickables.push(torso);
-  torso.userData = intruderGroup.userData;
-  torso._parentGroup = intruderGroup;
-
-  /* Raycaster Inspector */
-  const raycaster = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
-
-  container.addEventListener('click', e => {
-    const rect = container.getBoundingClientRect();
-    mouse.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
-    mouse.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-    const hits = raycaster.intersectObjects(pickables);
-    if (hits.length > 0) {
-      const obj = hits[0].object;
-      if (obj.userData && obj.userData.name) {
-        showInspector(obj.userData, obj._parentGroup || obj);
-        playBlip(780, 0.05);
-      }
-    }
-  });
-
-  /* Animation Frame Loop */
-  const clock = new THREE.Clock();
-  let frameCount = 0, lastFpsTime = performance.now();
-
-  function renderLoop() {
-    requestAnimationFrame(renderLoop);
-    const t = clock.getElapsedTime();
-
-    frameCount++;
-    if (performance.now() - lastFpsTime >= 1000) {
-      $('#hud-fps-val').textContent = (frameCount).toFixed(1);
-      frameCount = 0;
-      lastFpsTime = performance.now();
-    }
-
-    controls.update();
-
-    // Smooth Camera Transition
-    if (TW.camGoal) {
-      camera.position.lerp(TW.camGoal.pos, 0.05);
-      controls.target.lerp(TW.camGoal.tgt, 0.05);
-      if (camera.position.distanceTo(TW.camGoal.pos) < 0.2) TW.camGoal = null;
-    }
-
-    // Boom barrier servo
-    barrierPivot.rotation.y += (TW.boomGoal - barrierPivot.rotation.y) * 0.08;
-
-    // Rotate Tower Heads / Searchlights
-    if (towerAlpha._headPivot) towerAlpha._headPivot.rotation.y = Math.sin(t * 0.5) * 0.6;
-    if (towerBravo._headPivot) towerBravo._headPivot.rotation.y = -Math.sin(t * 0.5) * 0.6;
-
-    // Patrol Jeep Drive & Wheel Spin
-    patrolJeep.position.x = -40 + ((t * 6) % 80);
-    TW.jeepWheels.forEach(w => w.rotation.z -= 0.1);
-
-    // Vehicle Ramming Motion (Scenario 3)
-    if (SIM.scenario === 3 && SIM.running) {
-      suvVehicle.position.x += ((-13.5) - suvVehicle.position.x) * 0.04;
-      TW.suvWheels.forEach(w => w.rotation.z -= 0.15);
-    } else if (!SIM.running) {
-      suvVehicle.position.x = -50;
-    }
-
-    // Humanoid Target Walk Gait (Leg swing & arm counter-swing)
-    if (SIM.scenario === 2 && SIM.running) {
-      const p = clamp(SIM.targetProgress, 0, 1);
-      intruderGroup.position.x = -20 + p * 42;
-      leftLeg.rotation.x = Math.sin(t * 9) * 0.45;
-      rightLeg.rotation.x = -Math.sin(t * 9) * 0.45;
-      leftArm.rotation.x = -Math.sin(t * 9) * 0.4;
-      rightArm.rotation.x = Math.sin(t * 9) * 0.4;
-    } else if (SIM.scenario === 1 && SIM.running) {
-      intruderGroup.position.x = -20 + clamp(SIM.targetProgress, 0, 1) * 16;
-      leftLeg.rotation.x = Math.sin(t * 9) * 0.45;
-      rightLeg.rotation.x = -Math.sin(t * 9) * 0.45;
-      leftArm.rotation.x = -Math.sin(t * 9) * 0.4;
-      rightArm.rotation.x = Math.sin(t * 9) * 0.4;
-    } else {
-      intruderGroup.position.x = -20 + Math.sin(t * 0.6) * 3;
-      leftLeg.rotation.x = 0; rightLeg.rotation.x = 0;
-      leftArm.rotation.x = 0; rightArm.rotation.x = 0;
-    }
-
-    // Radar Minimap Blip
-    const blip = $('#radar-blip-target');
-    if (blip) {
-      const bx = 50 + (intruderGroup.position.x / 140) * 80;
-      const by = 50 + (intruderGroup.position.z / 100) * 80;
-      blip.style.left = `${bx}%`;
-      blip.style.top = `${by}%`;
-    }
-
-    // Shimmering Geofence Incursion Strobe
-    const inRedZone = intruderGroup.position.x > -18 && intruderGroup.position.x < 18;
-    geoBox.material.opacity = inRedZone ? 0.14 + Math.abs(Math.sin(t * 6)) * 0.25 : 0.12;
-    geoEdge.material.opacity = inRedZone ? 0.65 + Math.abs(Math.sin(t * 6)) * 0.35 : 0.5;
-
-    renderer.render(scene, camera);
-  }
-  renderLoop();
-
-  /* Viewfinder Presets */
-  $$('.preset-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      $$('.preset-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const cam = btn.dataset.cam;
-      if (cam === 'alpha') TW.camGoal = { pos: new THREE.Vector3(-24, 12, 16), tgt: new THREE.Vector3(-24, 4, -4) };
-      else if (cam === 'bravo') TW.camGoal = { pos: new THREE.Vector3(24, 12, 16), tgt: new THREE.Vector3(24, 4, -4) };
-      else if (cam === 'target') TW.camGoal = { pos: new THREE.Vector3(intruderGroup.position.x, 6, 10), tgt: intruderGroup.position };
-      else TW.camGoal = { pos: new THREE.Vector3(0, 32, 48), tgt: new THREE.Vector3(0, 0, 0) };
-      playBlip(600, 0.03);
-    });
-  });
-
-  window.addEventListener('resize', () => {
-    const nw = container.clientWidth, nh = container.clientHeight;
-    if (!nw || !nh) return;
-    camera.aspect = nw / nh;
-    camera.updateProjectionMatrix();
-    renderer.setSize(nw, nh);
-  });
-})();
-
-/* Inspector Actions */
-function showInspector(data, group) {
-  TW.focusedObj = group;
-  $('#inspect-name').textContent = data.name;
-  $('#inspect-type').textContent = data.type;
-  $('#inspect-range').textContent = data.range;
-  $('#inspect-sensors').textContent = data.sensors;
-  $('#inspect-status').textContent = data.status;
-  $('#inspector-modal').classList.add('open');
-}
-
-function closeInspector() {
-  $('#inspector-modal').classList.remove('open');
-}
-
-function focusInspectedObject() {
-  if (!TW.focusedObj) return;
-  const p = TW.focusedObj.position;
-  TW.camGoal = { pos: new THREE.Vector3(p.x, p.y + 8, p.z + 14), tgt: p };
-  closeInspector();
-}
-
-function setVisionShader(mode) {
-  $$('.filter-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  TW.visionMode = mode;
-
-  if (mode === 'thermal') {
-    scene.background = new THREE.Color(0x060214);
-    scene.fog.color = new THREE.Color(0x060214);
-    toast('ok', 'Low-Light AI Enhance Active', 'Software low-light rendering applied to existing camera feed.');
-  } else if (mode === 'nvg') {
-    scene.background = new THREE.Color(0x02160a);
-    scene.fog.color = new THREE.Color(0x02160a);
-    toast('ok', 'Night AI Mode Active', 'AI-enhanced night visibility on standard IP camera feed.');
-  } else {
-    scene.background = new THREE.Color(0x02050e);
-    scene.fog.color = new THREE.Color(0x02050e);
-    toast('ok', 'Standard View Active', 'Default daytime camera composite.');
-  }
-}
-
-/* 5 Scenarios */
+selectIncident(INCIDENTS[0].id);
+
+/* The 3D digital twin that used to live here has been removed — this is a
+   CCTV-analytics platform over existing IP cameras, not a 3D simulation of
+   border hardware, so the OPS view now just shows the two live camera feeds
+   (initCCTV, defined further down) plus the incident queue above. */
+
+/* 5 Scenarios — plain data + timed toasts, no 3D scene to drive anymore. */
+let scenarioRunning = false;
 async function triggerScenario(id) {
-  if (SIM.running) return;
-  SIM.running = true;
-  SIM.scenario = id;
-  SIM.targetProgress = 0;
+  if (scenarioRunning) return;
+  scenarioRunning = true;
 
   switchTab('ops');
   $$('.scen-btn').forEach(b => b.classList.remove('active'));
   const btn = $(`.scen-btn:nth-child(${id})`);
   if (btn) btn.classList.add('active');
 
-  const card = $('#twin-main-card');
+  const card = $('#ops-hero-card');
   card.classList.add('alert-border');
 
   if (id === 1) {
     $('#threat-tier-tag').textContent = 'CRITICAL BREACH';
     $('#threat-tier-tag').style.background = 'var(--crimson)';
-    $('#threat-score-val').textContent = '92 / 100';
+    $('#threat-score-val').textContent = '92';
     $('#target-id-val').textContent = 'TRG-1041';
     $('#incident-narrative-text').innerHTML = '<b>🚨 BREACH IN PROGRESS:</b> Infiltrator crossed Checkpost Alpha fence line into Red Hazard Zone. Threat score <b>92/100</b>.';
 
-    TW.camGoal = { pos: new THREE.Vector3(-24, 10, 16), tgt: new THREE.Vector3(-18, 1, 0) };
     armSiren(true);
     toast('crit', 'Scenario 1: Breach Alert', 'Checkpost Alpha incursion sealed into Blockchain Block #1.');
-
-    const start = performance.now(), dur = 3200;
-    await new Promise(res => {
-      (function tick() {
-        const e = (performance.now() - start) / dur;
-        SIM.targetProgress = clamp(e, 0, 1);
-        if (e >= 1) return res();
-        requestAnimationFrame(tick);
-      })();
-    });
+    await wait(3200);
   }
   else if (id === 2) {
     $('#threat-tier-tag').textContent = 'RE-ID HANDOFF';
     $('#threat-tier-tag').style.background = 'var(--purple)';
-    $('#threat-score-val').textContent = '77 / 100';
+    $('#threat-score-val').textContent = '77';
     $('#target-id-val').textContent = 'TRG-1041 ➔ BRV-c1';
     $('#incident-narrative-text').innerHTML = '<b>🛰️ RE-ID IN PROGRESS:</b> Target traversed blind spot. Spatial Gate 6–14s ETA Window matching against BOP Bravo...';
 
-    TW.camGoal = { pos: new THREE.Vector3(0, 18, 28), tgt: new THREE.Vector3(0, 1, 0) };
     toast('warn', 'Scenario 2: Predictive Re-ID', 'Predictive handoff tracking target across 26m blind corridor.');
-
-    const start = performance.now(), dur = 4200;
-    await new Promise(res => {
-      (function tick() {
-        const e = (performance.now() - start) / dur;
-        SIM.targetProgress = clamp(e, 0, 1);
-        if (e >= 1) return res();
-        requestAnimationFrame(tick);
-      })();
-    });
+    await wait(2200);
 
     $('#incident-narrative-text').innerHTML = '<b>✓ RE-ID CONFIRMED:</b> Arrival verified at BOP Bravo (9.4s). 512-d feature cosine similarity <b>0.96</b> (Rank-1 Lock).';
     toast('ok', 'Re-ID Match Verified', 'Cosine 0.96 locks candidate identity.');
@@ -1880,12 +1157,10 @@ async function triggerScenario(id) {
     $('#threat-tier-tag').textContent = 'ANPR ALERT';
     $('#threat-tier-tag').style.background = 'var(--amber)';
     $('#threat-tier-tag').style.color = '#02050e';
-    $('#threat-score-val').textContent = '74 / 100';
+    $('#threat-score-val').textContent = '74';
     $('#target-id-val').textContent = 'VEH-0007';
     $('#incident-narrative-text').innerHTML = '<b>🚗 ANPR MATCH:</b> Plate <code>PB08-XX-1234</code> matched against blacklist by AI plate-reading on the existing gate camera. Barrier lock signal sent.';
 
-    TW.camGoal = { pos: new THREE.Vector3(-14, 10, 18), tgt: new THREE.Vector3(-14, 1, 3) };
-    TW.boomGoal = -0.5;
     armSiren(true);
     toast('crit', 'Scenario 3: ANPR Hit', 'Blacklisted plate detected. Gate barrier lock signal sent.');
     await wait(3600);
@@ -1894,11 +1169,10 @@ async function triggerScenario(id) {
     $('#threat-tier-tag').textContent = 'LOITER ALERT';
     $('#threat-tier-tag').style.background = '#0284c7';
     $('#threat-tier-tag').style.color = '#fff';
-    $('#threat-score-val').textContent = '65 / 100';
+    $('#threat-score-val').textContent = '65';
     $('#target-id-val').textContent = 'TRG-0025';
     $('#incident-narrative-text').innerHTML = '<b>⏳ LOITER DWELL:</b> Subject dwelling along outer BOP Bravo wire for 268s (>240s threshold). Threat +15 pts.';
 
-    TW.camGoal = { pos: new THREE.Vector3(24, 10, 16), tgt: new THREE.Vector3(24, 1, -2) };
     toast('warn', 'Scenario 4: Loiter Dwell', 'Sustained presence along outer perimeter.');
     await wait(3000);
   }
@@ -1906,17 +1180,16 @@ async function triggerScenario(id) {
     $('#threat-tier-tag').textContent = 'FRS MATCH';
     $('#threat-tier-tag').style.background = 'var(--emerald)';
     $('#threat-tier-tag').style.color = '#02050e';
-    $('#threat-score-val').textContent = '81 / 100';
+    $('#threat-score-val').textContent = '81';
     $('#target-id-val').textContent = 'FRS-0092';
     $('#incident-narrative-text').innerHTML = '<b>🧑‍💻 FACE MATCH:</b> Facial recognition on CAM_ALPHA matched a watchlist entry, confidence <b>93.1%</b>, from the existing gate camera feed.';
 
-    TW.camGoal = { pos: new THREE.Vector3(-24, 10, 16), tgt: new THREE.Vector3(-18, 1, 0) };
     toast('crit', 'Scenario 5: Facial Recognition', 'Watchlist match, confidence 93.1%, flagged for review.');
     await wait(3200);
   }
 
   card.classList.remove('alert-border');
-  SIM.running = false;
+  scenarioRunning = false;
 }
 
 /* CCTV Feeds — synthetic but detailed: perspective corridor, scanlines, grain, an
@@ -2028,6 +1301,8 @@ function initCCTV(canvasId, mode = 'rgb') {
 }
 initCCTV('feed-canvas-a', 'rgb');
 initCCTV('feed-canvas-b', 'rgb');
+initCCTV('feed-canvas-ops-a', 'rgb');
+initCCTV('feed-canvas-ops-b', 'rgb');
 selectIncident(INCIDENTS[0].id);
 
 function setFeedMode(feed, mode, btn) {
