@@ -1,4 +1,4 @@
-import { Shield, Video, GitBranch, Link2, CheckSquare, Map as MapIcon, Bell, BellOff } from "lucide-react";
+import { Shield, Video, GitBranch, Link2, CheckSquare, Map as MapIcon, Bell, BellOff, Cpu } from "lucide-react";
 
 const NAV_ITEMS = [
   { key: "live", label: "Live Ops", icon: Video },
@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { key: "evidence", label: "Evidence Chain", icon: Link2 },
   { key: "triage", label: "Operator Triage", icon: CheckSquare },
   { key: "map", label: "Tactical Map", icon: MapIcon },
+  { key: "zoo", label: "AI Model Zoo", icon: Cpu },
 ];
 
 export default function NavRail({ section, setSection, armState, onToggleArm, armPending }) {

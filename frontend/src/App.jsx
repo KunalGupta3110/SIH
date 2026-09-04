@@ -6,6 +6,7 @@ import IncidentsPanel from "./components/IncidentsPanel.jsx";
 import EvidencePanel from "./components/EvidencePanel.jsx";
 import TriagePanel from "./components/TriagePanel.jsx";
 import MapPanel from "./components/MapPanel.jsx";
+import ModelZooPanel from "./components/ModelZooPanel.jsx";
 import { usePoll } from "./lib/usePoll.js";
 import api from "./lib/api.js";
 
@@ -78,6 +79,7 @@ export default function App() {
             <TriagePanel incidents={incidents} error={incidentsError} onAcknowledge={refetchIncidents} />
           )}
           {section === "map" && <MapPanel incidents={incidents} />}
+          {section === "zoo" && <ModelZooPanel />}
         </div>
       </div>
     </div>
