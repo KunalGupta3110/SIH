@@ -27,6 +27,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from backend import correlation_engine, database, evidence_ledger, hardware_bridge, notifications, threat_engine
@@ -57,6 +59,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+STATIC_DIR = ROOT_DIR / "apps" / "web_command_center" / "static"
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def serve_frontend_root():
+    html_file = STATIC_DIR / "command_center.html"
+    if html_file.exists():
+        return FileResponse(str(html_file))
+    return {"message": "IBVAP Sentinel Backend Active", "docs": "/docs"}
 
 CAMERA_COUNT = 6
 

@@ -85,7 +85,7 @@ def _free_port_if_occupied(port: int = 8000):
             for pid_str in res.split():
                 pid_str = pid_str.strip()
                 if pid_str and pid_str != '0' and pid_str != current_pid:
-                    print(f"      [Auto-Recovery] Port {port} was occupied — terminating lingering PID {pid_str} ...", flush=True)
+                    print(f"      [Auto-Recovery] Port {port} was occupied - terminating lingering PID {pid_str} ...", flush=True)
                     subprocess.run(f'taskkill /F /PID {pid_str}', shell=True, capture_output=True)
             time.sleep(0.6)
     except Exception:
@@ -93,13 +93,13 @@ def _free_port_if_occupied(port: int = 8000):
 
 
 def _open_docs_after_short_delay():
-    """Give Uvicorn a moment to actually start listening before we try to open a browser tab."""
+    """Give Uvicorn a moment to start listening before opening the 3D Command Console in browser."""
     def _open():
-        time.sleep(1.5)
+        time.sleep(1.2)
         try:
-            webbrowser.open("http://localhost:8000/docs")
+            webbrowser.open("http://localhost:8000/")
         except Exception:
-            pass   # no browser available (e.g. a headless server) — not a problem
+            pass   # no browser available (e.g. headless server)
     threading.Thread(target=_open, daemon=True).start()
 
 
