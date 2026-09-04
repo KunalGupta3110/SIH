@@ -691,6 +691,9 @@
         <button class="scen-btn" onclick="triggerScenario(5)">
           <span class="badge-num">5</span> Facial Recognition
         </button>
+        <button class="scen-btn" style="border-color:var(--emerald);color:var(--emerald);" onclick="simulateHandoffLive()">
+          🎬 Simulate Handoff (Live)
+        </button>
       </div>
     </section>
 
@@ -1096,6 +1099,23 @@ function armSiren(state) {
   }
 }
 
+// Polls GET /edge/status — real arm state + unreviewed count, not a static
+// string. Skips overwriting the badge while the siren is actively armed so
+// it doesn't fight with armSiren()'s own "DEFCON 1" styling above.
+async function refreshEdgeStatus() {
+  const data = await apiGet('/edge/status');
+  if (sirenActive) return;   // armSiren() owns the badge while alarmed
+  const badge = $('#main-status-badge');
+  const text = $('#main-status-text');
+  if (data === null) {
+    badge.className = 'status-badge alert';
+    text.textContent = 'BACKEND OFFLINE';
+    return;
+  }
+  badge.className = 'status-badge';
+  text.textContent = `${data.arm_state.toUpperCase()} · ${data.unreviewed_events} UNREVIEWED`;
+}
+
 $('#btn-sound-toggle').addEventListener('click', () => {
   soundEnabled = !soundEnabled;
   $('#btn-sound-toggle').style.color = soundEnabled ? 'var(--cyan)' : 'var(--text-faint)';
@@ -1145,51 +1165,61 @@ const RULE_DEFS = [
   { key: 'night_window',     icon: '🌙', label: 'Night Window (20:00–05:00 IST)', pts: 10 },
 ];
 
-const INCIDENTS = [
-  {
-    id: 'INC-1041', camera: 'CAM_ALPHA', type: 'Restricted Zone Incursion', time: '2 min ago',
-    score: 92, severity: 'critical', tier: 'CRITICAL BREACH', target: 'TRG-1041',
-    factors: ['restricted_zone', 'toward_border', 'loitering', 'night_window'],
-    narrative: 'Target penetrated Checkpost Alpha red zone. Heading vector 042° toward BOP Bravo.',
-    camGoal: { pos: [-24, 10, 16], tgt: [-18, 1, 0] },
-  },
-  {
-    id: 'INC-1042', camera: 'CAM_ALPHA → CAM_BRAVO', type: 'Cross-Camera Re-ID Handoff', time: '9 min ago',
-    score: 77, severity: 'critical', tier: 'RE-ID HANDOFF', target: 'TRG-1041 ➔ BRV-c1',
-    factors: ['restricted_zone', 'toward_border', 'loitering', 'cross_cam_reid'],
-    narrative: 'Arrival verified at BOP Bravo 9.4s after Alpha exit. 512-d feature cosine similarity 0.96 (Rank-1 Lock).',
-    camGoal: { pos: [0, 18, 28], tgt: [0, 1, 0] },
-  },
-  {
-    id: 'INC-1043', camera: 'CAM_GATE', type: 'ANPR Blacklist Match', time: '18 min ago',
-    score: 74, severity: 'warning', tier: 'ANPR ALERT', target: 'VEH-0007',
-    factors: ['restricted_zone', 'toward_border'],
-    narrative: 'Plate PB08-XX-1234 matched against blacklist by AI plate-reading on the existing gate camera.',
-    camGoal: { pos: [-14, 10, 18], tgt: [-14, 1, 3] },
-  },
-  {
-    id: 'INC-1044', camera: 'CAM_BRAVO', type: 'Suspicious Loitering', time: '41 min ago',
-    score: 65, severity: 'warning', tier: 'LOITER ALERT', target: 'TRG-0025',
-    factors: ['restricted_zone', 'toward_border', 'loitering'],
-    narrative: 'Subject dwelling along outer BOP Bravo wire for 268s (> 240s threshold).',
-    camGoal: { pos: [24, 10, 16], tgt: [24, 1, -2] },
-  },
-  {
-    id: 'INC-1045', camera: 'CAM_ALPHA', type: 'Facial Recognition Match', time: '1 hr ago',
-    score: 81, severity: 'critical', tier: 'FRS MATCH', target: 'FRS-0092',
-    factors: ['restricted_zone', 'toward_border', 'night_window', 'cross_cam_reid'],
-    narrative: 'Facial recognition on CAM_ALPHA matched a watchlist entry, confidence 93.1%, from the existing gate camera feed.',
-    camGoal: { pos: [-24, 10, 16], tgt: [-18, 1, 0] },
-  },
-];
+/* ============================================================
+   LIVE BACKEND WIRING — everything below reads real data from
+   backend/main.py. No hardcoded incidents/blocks anymore: if the backend
+   isn't running, the UI says so plainly instead of quietly showing fake
+   numbers.
+   ============================================================ */
+async function apiGet(path) {
+  try {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+async function apiPost(path, body) {
+  try {
+    const res = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+function timeAgo(isoString) {
+  const then = Date.parse(isoString || '');
+  if (Number.isNaN(then)) return '';
+  const diffSec = Math.max(0, Math.floor((Date.now() - then) / 1000));
+  if (diffSec < 60) return `${diffSec}s ago`;
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)} min ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} hr ago`;
+  return `${Math.floor(diffSec / 86400)}d ago`;
+}
+// Maps a backend threat_engine.py factor name back onto one of the 5 fixed
+// rule keys above, so the Threat Score Matrix pills light up correctly.
+function factorKeyForName(name) {
+  const n = (name || '').toLowerCase();
+  if (n.startsWith('restricted zone')) return 'restricted_zone';
+  if (n.startsWith('movement toward border')) return 'toward_border';
+  if (n.startsWith('loitering')) return 'loitering';
+  if (n.startsWith('cross-camera')) return 'cross_cam_reid';
+  if (n.startsWith('night window')) return 'night_window';
+  return null;
+}
 
-let selectedIncidentId = null;
-
-function renderFactors(activeKeys) {
+function renderFactorsFromBreakdown(scoreBreakdown) {
+  const activeKeys = new Set((scoreBreakdown || []).map(f => factorKeyForName(f.factor)).filter(Boolean));
   const wrap = $('#factor-list');
   if (!wrap) return;
   wrap.innerHTML = RULE_DEFS.map(f => {
-    const active = activeKeys.includes(f.key);
+    const active = activeKeys.has(f.key);
     return `<div class="factor-item${active ? '' : ' inactive'}">
       <span class="factor-name">${f.icon} ${f.label}</span>
       <span class="factor-pts">${active ? '+' : ''}${active ? f.pts : 0} pts</span>
@@ -1197,52 +1227,83 @@ function renderFactors(activeKeys) {
   }).join('');
 }
 
+function incidentTypeLabel(inc) {
+  const top = (inc.score_breakdown || [])[0];
+  return top ? top.factor : (inc.target_class || 'Incident');
+}
+
+let liveIncidents = null;   // null = not loaded yet (distinct from [] = loaded, zero incidents)
+let selectedIncidentId = null;
+
 function renderIncidentQueue() {
   const wrap = $('#incident-queue-list');
   if (!wrap) return;
-  wrap.innerHTML = INCIDENTS.map(inc => `
-    <div class="incident-row sev-${inc.severity}" data-id="${inc.id}">
-      <div class="incident-score">${inc.score}</div>
+  if (liveIncidents === null) {
+    wrap.innerHTML = `<div style="padding:14px;text-align:center;color:var(--text-dim);font-size:11.5px;">Connecting to backend…</div>`;
+    return;
+  }
+  if (!liveIncidents.length) {
+    wrap.innerHTML = `<div style="padding:14px;text-align:center;color:var(--text-dim);font-size:11.5px;">No active incidents yet.<br>Click <b>🎬 Simulate Handoff</b> above to create one.</div>`;
+    $('#incident-queue-count').textContent = `0 EVENTS · 24H`;
+    return;
+  }
+  wrap.innerHTML = liveIncidents.map(inc => `
+    <div class="incident-row sev-${(inc.severity || 'INFO').toLowerCase()}" data-id="${inc.incident_id}">
+      <div class="incident-score">${inc.threat_score}</div>
       <div class="incident-body">
-        <div class="incident-type">${inc.type}</div>
-        <div class="incident-meta">${inc.camera} · ${inc.time}</div>
+        <div class="incident-type">${incidentTypeLabel(inc)}</div>
+        <div class="incident-meta">${(inc.cameras_involved || []).join(' → ')} · ${timeAgo(inc.created_at)}</div>
       </div>
     </div>
   `).join('');
   $$('.incident-row', wrap).forEach(row => {
     row.addEventListener('click', () => selectIncident(row.dataset.id));
   });
-  $('#incident-queue-count').textContent = `${INCIDENTS.length} EVENTS · 24H`;
+  $('#incident-queue-count').textContent = `${liveIncidents.length} EVENTS · 24H`;
 }
 
 function selectIncident(id) {
-  const inc = INCIDENTS.find(i => i.id === id);
+  const inc = (liveIncidents || []).find(i => i.incident_id === id);
   if (!inc) return;
   selectedIncidentId = id;
 
   $$('.incident-row').forEach(r => r.classList.toggle('sel', r.dataset.id === id));
 
-  $('#threat-score-val').textContent = inc.score;
-  $('#target-id-val').textContent = inc.target;
-  $('#incident-narrative-text').textContent = inc.narrative;
-  renderFactors(inc.factors);
+  $('#threat-score-val').textContent = inc.threat_score;
+  $('#target-id-val').textContent = inc.incident_id;
+  $('#incident-narrative-text').textContent = inc.story_summary || '(no story summary recorded)';
+  renderFactorsFromBreakdown(inc.score_breakdown);
 
+  const sev = (inc.severity || 'INFO').toUpperCase();
   const tag = $('#threat-tier-tag');
-  tag.textContent = inc.tier;
-  tag.style.color = inc.severity === 'warning' ? '#02050e' : '#fff';
-  tag.style.background = inc.severity === 'critical' ? 'var(--crimson)'
-    : inc.severity === 'warning' ? 'var(--amber)' : 'var(--purple)';
+  tag.textContent = sev;
+  tag.style.color = sev === 'WARNING' ? '#02050e' : '#fff';
+  tag.style.background = sev === 'CRITICAL' ? 'var(--crimson)' : sev === 'WARNING' ? 'var(--amber)' : 'var(--purple)';
 
-  if (typeof THREE !== 'undefined' && inc.camGoal) {
-    TW.camGoal = { pos: new THREE.Vector3(...inc.camGoal.pos), tgt: new THREE.Vector3(...inc.camGoal.tgt) };
-  }
+  const hashEl = $('#quick-chain-hash');
+  if (hashEl) hashEl.textContent = inc.cryptographic_hash || 'PENDING — not yet CRITICAL';
+
   playBlip(600, 0.03);
 }
 
+async function refreshIncidents() {
+  const data = await apiGet('/incidents/correlated');
+  if (data === null) return;   // transient failure — keep showing the last good data
+  liveIncidents = data.slice().sort((a, b) => Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0));
+  renderIncidentQueue();
+  if (liveIncidents.find(i => i.incident_id === selectedIncidentId)) {
+    selectIncident(selectedIncidentId);
+  } else if (liveIncidents.length) {
+    selectIncident(liveIncidents[0].incident_id);
+  } else {
+    $('#threat-score-val').textContent = '—';
+    $('#target-id-val').textContent = '';
+    $('#incident-narrative-text').textContent = 'No active incidents. Click "Simulate Handoff" above to create one.';
+    renderFactorsFromBreakdown([]);
+  }
+}
+
 renderIncidentQueue();
-renderFactors(INCIDENTS[0].factors);
-// selectIncident() itself is called once the 3D twin (TW.camGoal) exists — see
-// the bottom of this script, right after initCCTV() sets up the CCTV feeds.
 
 /* ============================================================
    HIGH-FIDELITY 3D DIGITAL TWIN (Hardware-Grade Procedural Models)
@@ -2028,7 +2089,13 @@ function initCCTV(canvasId, mode = 'rgb') {
 }
 initCCTV('feed-canvas-a', 'rgb');
 initCCTV('feed-canvas-b', 'rgb');
-selectIncident(INCIDENTS[0].id);
+
+// Kick off live polling: incidents every 5s, edge/status every 8s — matches
+// how fast an operator would actually expect this screen to update.
+refreshIncidents();
+refreshEdgeStatus();
+setInterval(refreshIncidents, 5000);
+setInterval(refreshEdgeStatus, 8000);
 
 function setFeedMode(feed, mode, btn) {
   const parent = btn.parentElement;
@@ -2086,59 +2153,98 @@ function renderReIDGallery() {
   });
 }
 
-/* Blockchain Ledger */
-const BLOCKS = [
-  { id: 'GENESIS', label: 'Ledger Root Anchor', ts: '2026-09-04T00:00:00Z', hash: '8f12a9bc41d2003...', prev: '0000000000000000...' },
-  { id: 'INC-1041', label: 'Checkpost Alpha Breach', ts: '2026-09-04T09:40:30Z', hash: 'e3b0c44298fc1c1...', prev: '8f12a9bc41d2003...' },
-  { id: 'INC-1061', label: 'Alpha ➔ Bravo Re-ID Link', ts: '2026-09-04T09:40:46Z', hash: '9ed1ac75937d8c3...', prev: 'e3b0c44298fc1c1...' },
-];
-function renderVaultBlocks() {
+/* Blockchain Ledger — live from GET /audit/blockchain, refetched every time
+   the LEDGER tab is opened (see the nav router above). */
+async function renderVaultBlocks() {
   const wrap = $('#vault-block-list');
-  if (!wrap || wrap.children.length > 0) return;
-  BLOCKS.forEach((b, i) => {
-    const el = document.createElement('div');
-    el.className = 'block-card' + (i === 1 ? ' sel' : '');
-    el.innerHTML = `
+  if (!wrap) return;
+  const data = await apiGet('/audit/blockchain');
+  if (data === null) {
+    wrap.innerHTML = `<div style="padding:14px;color:var(--text-dim);font-size:11.5px;">Backend not reachable.</div>`;
+    return;
+  }
+  const blocks = data.blocks || [];
+  if (!blocks.length) {
+    wrap.innerHTML = `<div style="padding:14px;color:var(--text-dim);font-size:11.5px;">No blocks sealed yet — an incident has to reach CRITICAL before it's sealed. Try "Simulate Handoff" on the OPS tab.</div>`;
+    $('#vault-inspect-details').innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = blocks.map((b, i) => `
+    <div class="block-card" data-idx="${i}">
       <div style="display:flex;justify-content:space-between;color:#fff;font-weight:600;">
-        <span>BLOCK #${i} · ${b.id}</span>
+        <span>BLOCK #${b.block_index} · ${b.payload.incident_id}</span>
         <span style="color:var(--emerald);font-size:9.5px">SEALED</span>
       </div>
-      <div style="color:var(--text-dim);margin-top:4px">Hash: ${b.hash}</div>
-      <div style="color:var(--text-faint);margin-top:2px">${b.label}</div>
-    `;
+      <div style="color:var(--text-dim);margin-top:4px">Hash: ${b.current_hash.slice(0, 28)}...</div>
+      <div style="color:var(--text-faint);margin-top:2px">Score ${b.payload.threat_score} · ${(b.payload.camera_ids || []).join(', ')}</div>
+    </div>
+  `).join('');
+  $$('.block-card', wrap).forEach((el, i) => {
     el.addEventListener('click', () => {
       $$('.block-card').forEach(x => x.classList.remove('sel'));
       el.classList.add('sel');
-      $('#vault-inspect-title').textContent = `Block #${i} · ${b.id}`;
+      const b = blocks[i];
+      $('#vault-inspect-title').textContent = `Block #${b.block_index} · ${b.payload.incident_id}`;
       $('#vault-inspect-details').innerHTML = `
-        <b>Timestamp:</b> ${b.ts}<br>
-        <b>Current SHA-256:</b> <span style="color:var(--emerald)">${b.hash}</span><br>
-        <b>Previous Block Hash:</b> ${b.prev}<br>
-        <b>Payload Content:</b> ${b.label} · Operator Confirmed<br>
-        <b>Tamper Status:</b> <span style="color:var(--emerald)">✓ Chain 100% Intact</span>
+        <b>Timestamp:</b> ${b.timestamp}<br>
+        <b>Current SHA-256:</b> <span style="color:var(--emerald)">${b.current_hash}</span><br>
+        <b>Previous Block Hash:</b> ${b.previous_hash}<br>
+        <b>Threat Score:</b> ${b.payload.threat_score} (${(b.payload.rule_evidence || []).map(r => r.factor).join(', ') || '—'})<br>
+        <b>Cameras:</b> ${(b.payload.camera_ids || []).join(', ')}
       `;
     });
-    wrap.appendChild(el);
   });
-  wrap.children[1].click();
+  wrap.children[wrap.children.length - 1].click();   // most recent block, selected by default
 }
 
-$('#btn-audit-chain').addEventListener('click', () => {
-  toast('ok', 'Merkle Audit Passed', 'All evidence blocks verified untampered.');
+$('#btn-audit-chain').addEventListener('click', async () => {
+  const result = await apiGet('/audit/verify');
+  if (result === null) {
+    toast('crit', 'Backend Unreachable', 'Could not reach /audit/verify.');
+    return;
+  }
+  if (result.is_valid) {
+    toast('ok', 'Merkle Audit Passed', 'All evidence blocks verified untampered.');
+  } else {
+    toast('crit', 'TAMPER DETECTED', `Chain broken at block ${result.broken_index}: ${result.reason}`);
+  }
 });
 $('#btn-tamper-test').addEventListener('click', () => {
-  toast('crit', 'Tamper Detected', 'Byte mismatch at Block #1 — integrity break flagged.');
+  toast('warn', 'Pitch Prop Only', 'This button does not touch real data. Click "Verify Full Ledger" to check the actual chain state.');
 });
 
-/* Triage Buttons */
-$('#btn-triage-confirm').addEventListener('click', () => {
-  toast('ok', 'Threat Confirmed', 'Incident escalated to QRT muster point.');
+/* Triage Buttons — POST /incidents/{id}/acknowledge, a real saved decision. */
+$('#btn-triage-confirm').addEventListener('click', async () => {
+  if (!selectedIncidentId) { toast('warn', 'No Incident Selected', 'Pick one from Active Incidents first.'); return; }
+  const result = await apiPost(`/incidents/${selectedIncidentId}/acknowledge`, { status: 'CONFIRMED' });
+  if (result === null) { toast('crit', 'Backend Unreachable', 'Could not reach the acknowledge endpoint.'); return; }
+  toast('ok', 'Threat Confirmed', 'Saved to the database.');
   armSiren(true);
+  refreshIncidents();
 });
-$('#btn-triage-dismiss').addEventListener('click', () => {
-  toast('warn', 'False Positive Marked', 'Node sensitivity calibrated.');
+$('#btn-triage-dismiss').addEventListener('click', async () => {
+  if (!selectedIncidentId) { toast('warn', 'No Incident Selected', 'Pick one from Active Incidents first.'); return; }
+  const result = await apiPost(`/incidents/${selectedIncidentId}/acknowledge`, { status: 'DISMISSED_FP' });
+  if (result === null) { toast('crit', 'Backend Unreachable', 'Could not reach the acknowledge endpoint.'); return; }
+  toast('warn', 'Marked as False Positive', 'Saved to the database.');
   armSiren(false);
+  refreshIncidents();
 });
+
+/* Live demo trigger — pushes 2 real events through the real pipeline. */
+async function simulateHandoffLive() {
+  toast('warn', 'Simulating Handoff…', 'Pushing 2 events through detection → correlation → scoring → ledger.');
+  const result = await apiPost('/events/simulate-handoff');
+  if (result === null) {
+    toast('crit', 'Backend Unreachable', 'Could not reach /events/simulate-handoff — is run_ecosystem.py running?');
+    return;
+  }
+  const second = result.second_event || {};
+  toast(second.sealed_to_ledger ? 'crit' : 'ok', 'Handoff Simulated',
+    `Score ${second.threat_score ?? '?'} (${second.severity ?? '?'})${second.sealed_to_ledger ? ' — sealed to ledger' : ''}.`);
+  await refreshIncidents();
+  renderVaultBlocks();   // harmless to refresh even if the LEDGER tab isn't open right now
+}
 </script>
 </body>
 </html>
