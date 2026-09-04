@@ -827,19 +827,31 @@ $('#btn-sound').addEventListener('click', () => {
       const [a, b] = lines[i];
       const d = document.createElement('div');
       d.innerHTML = `<span class="dim">▹</span> ${a} … <span class="ok">${b}</span>`;
-      box.appendChild(d);
-      bar.style.transition = `width ${step}ms linear`;
-      bar.style.width = ((i + 1) / lines.length * 100) + '%';
-      i++; setTimeout(next, step);
-    } else setTimeout(finish, REDUCED ? 60 : 380);
+      if (box) box.appendChild(d);
+      if (bar) {
+        bar.style.transition = `width ${step}ms linear`;
+        bar.style.width = ((i + 1) / lines.length * 100) + '%';
+      }
+      i++;
+      setTimeout(next, step);
+    } else {
+      setTimeout(finish, 200);
+    }
   }
+
   function finish() {
-    $('#boot').classList.add('done');
-    setTimeout(() => { const b = $('#boot'); if (b) b.remove(); }, 550);
-    startClocks(); pollStatus();
+    const b = $('#boot');
+    if (b) {
+      b.classList.add('done');
+      setTimeout(() => b.remove(), 350);
+    }
+    startClocks();
+    pollStatus();
     toast('ok', 'Watchfloor online', 'All 6 edge nodes armed. Predictive handoff active.');
   }
-  window.addEventListener('keydown', function skip() { window.removeEventListener('keydown', skip); if ($('#boot')) finish(); }, { once: true });
+
+  window.addEventListener('keydown', function skip() { window.removeEventListener('keydown', skip); finish(); }, { once: true });
+  window.addEventListener('click', function skipClick() { window.removeEventListener('click', skipClick); finish(); }, { once: true });
   next();
 })();
 
