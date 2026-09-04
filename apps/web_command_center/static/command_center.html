@@ -686,14 +686,6 @@
 
 <div id="toasts" aria-live="polite"></div>
 
-<div id="boot">
-  <div class="b-crest">SENTINEL&nbsp;WATCHFLOOR</div>
-  <div class="b-sub">Intelligent Border Video Analytics · SSB</div>
-  <div id="boot-lines"></div>
-  <div id="boot-bar"><i></i></div>
-  <div class="skip-hint">press any key to skip</div>
-</div>
-
 <script>
 /* ============================================================
    0. UTIL + DATA LAYER
@@ -807,53 +799,13 @@ $('#btn-sound').addEventListener('click', () => {
 });
 
 /* ============================================================
-   2. BOOT
+   2. INSTANT INITIALIZATION
    ============================================================ */
-(function boot() {
-  const lines = [
-    ['edge · YOLOv8n weights', 'loaded 6.2 MB'],
-    ['edge · ByteTrack association', 'kalman + iou online'],
-    ['reid · ResNet18 512-d embeddings', 'τ = 0.70'],
-    ['geo · red zones + tripwires', '6 nodes armed'],
-    ['handoff · spatio-temporal ETA', 'window 6–14 s'],
-    ['custody · SHA-256 ledger', 'chain verified'],
-    ['gateway · FastAPI :8000 probe', 'demo fallback ready'],
-    ['watchfloor · render pipeline', 'WebGL context acquired'],
-  ];
-  const box = $('#boot-lines'), bar = $('#boot-bar i');
-  let i = 0; const step = REDUCED ? 40 : 210;
-  function next() {
-    if (i < lines.length) {
-      const [a, b] = lines[i];
-      const d = document.createElement('div');
-      d.innerHTML = `<span class="dim">▹</span> ${a} … <span class="ok">${b}</span>`;
-      if (box) box.appendChild(d);
-      if (bar) {
-        bar.style.transition = `width ${step}ms linear`;
-        bar.style.width = ((i + 1) / lines.length * 100) + '%';
-      }
-      i++;
-      setTimeout(next, step);
-    } else {
-      setTimeout(finish, 200);
-    }
-  }
-
-  function finish() {
-    const b = $('#boot');
-    if (b) {
-      b.classList.add('done');
-      setTimeout(() => b.remove(), 350);
-    }
-    startClocks();
-    pollStatus();
-    toast('ok', 'Watchfloor online', 'All 6 edge nodes armed. Predictive handoff active.');
-  }
-
-  window.addEventListener('keydown', function skip() { window.removeEventListener('keydown', skip); finish(); }, { once: true });
-  window.addEventListener('click', function skipClick() { window.removeEventListener('click', skipClick); finish(); }, { once: true });
-  next();
-})();
+startClocks();
+pollStatus();
+setTimeout(() => {
+  toast('ok', 'Watchfloor online', 'All 6 edge nodes armed. Predictive handoff active.');
+}, 200);
 
 function startClocks() {
   setInterval(() => { $('#v-clock').textContent = new Date().toTimeString().slice(0, 8) + ' IST'; }, 1000);
