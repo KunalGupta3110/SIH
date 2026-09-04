@@ -126,22 +126,17 @@ class CameraStreamProcessor:
             for t in tracks:
                 for z in self.zone_manager.get_zones(self.camera_id):
                     if z.contains_point(t.centroid):
-                        # Restricted breach
                         self.alert_status_text = f"BREACH: {t.class_name.upper()} #{t.track_id} IN {z.name}"
                         self.alert_banner_timer = 30
 
-                        if frame_idx % 45 == 0:
-                            play_alert("CRITICAL")
-                            trigger_physical_breach()
-
-                            # Save crop thumbnail
+                        # Rate-limit incident creation per track ID (once every 150 frames)
+                        if frame_idx % 150 == 0:
                             x1, y1, x2, y2 = [int(v) for v in t.bbox]
                             crop = frame[max(0, y1):min(frame.shape[0], y2), max(0, x1):min(frame.shape[1], x2)]
                             thumb_path = os.path.join(ROOT_DIR, "data", "thumbnails", f"evt_live_{self.camera_id}_{t.track_id}_{int(timestamp_ms)}.jpg")
                             if crop.size > 0:
                                 cv2.imwrite(thumb_path, crop)
 
-                            # Correlate into unified incident graph
                             correlate_border_event(
                                 camera_id=self.camera_id,
                                 global_target_id=f"TRG-{t.track_id:04d}",

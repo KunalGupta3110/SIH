@@ -80,14 +80,19 @@ def main():
     dash_proc = subprocess.Popen(["streamlit", "run", "apps/web_command_center/app.py", "--server.port", "8501", "--server.headless", "true"], cwd=ROOT_DIR)
     time.sleep(1.5)
 
+    import webbrowser
+    webbrowser.open("http://localhost:8000")
+
     print("\n" + "="*70)
     print(" ✅ ALL SERVICES ONLINE & OPERATIONAL!")
-    print(" 🌐 REST API Docs:           http://localhost:8000/docs")
-    print(" 📊 Web Command Center:       http://localhost:8501")
+    print(" 🛸 3D Sentinel Watchfloor:   http://localhost:8000  (Auto-Opened in Browser)")
+    print(" 📊 Streamlit Ops Dashboard:  http://localhost:8501")
+    print(" 🌐 REST API Swagger Docs:    http://localhost:8000/docs")
     print(" 📱 Mobile Admin App:         cd apps/mobile_admin && flutter run")
-    print(" 🎮 Run Threat Scenario 3:    python run.py --demo 3")
+    print(" 🎮 Run Threat Scenario 5:    python run.py --demo 5")
     print("="*70)
-    print("\nPress Ctrl+C to safely terminate all services.")
+    print("\n[NOTE] Visual 3D UI is live in your browser at http://localhost:8000.")
+    print("Press Ctrl+C to safely terminate all services.")
 
     try:
         api_proc.wait()
