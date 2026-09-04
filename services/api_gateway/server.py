@@ -233,8 +233,15 @@ def register_device_token(payload: Dict[str, Any]):
     return {"status": "registered", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
+from fastapi.responses import FileResponse
+
+STATIC_HTML = os.path.join(ROOT_DIR, "apps", "web_command_center", "static", "index.html")
+
 @app.get("/")
-def root():
+@app.get("/hud")
+def root_hud():
+    if os.path.exists(STATIC_HTML):
+        return FileResponse(STATIC_HTML)
     return {
         "platform": "Cyber Camera Surveillance Platform",
         "status": "OPERATIONAL",
