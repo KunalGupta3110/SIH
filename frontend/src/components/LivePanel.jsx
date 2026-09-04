@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import SectionHeader from "./SectionHeader.jsx";
+import api from "../lib/api.js";
 
 const NODES = [
   { id: "CAM_ALPHA", name: "Checkpost Alpha", sub: "North Entry Gate (Optical PTZ 4K)", tint: "amber" },
@@ -169,7 +170,7 @@ const REAL_CASES = [
   },
 ];
 
-export default function LivePanel() {
+export default function LivePanel({ onCaseTriggered }) {
   const [selectedCase, setSelectedCase] = useState(REAL_CASES[0]);
   const [running, setRunning] = useState(false);
 
@@ -177,6 +178,7 @@ export default function LivePanel() {
     setRunning(true);
     try {
       await api.simulateCase(c.id);
+      onCaseTriggered?.();
     } catch (e) {
       console.error(e);
     } finally {

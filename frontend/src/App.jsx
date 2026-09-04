@@ -70,7 +70,7 @@ export default function App() {
           onSilence={handleSilence}
         />
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          {section === "live" && <LivePanel />}
+          {section === "live" && <LivePanel onCaseTriggered={refetchIncidents} />}
           {section === "incidents" && (
             <IncidentsPanel incidents={incidents} error={incidentsError} onAcknowledge={refetchIncidents} />
           )}
