@@ -95,26 +95,40 @@ class RestIncidentRepository implements IncidentRepository {
   RestIncidentRepository(this._dio);
   final Dio _dio;
 
+  final MockIncidentRepository _fallback = MockIncidentRepository();
+
   @override
   Future<List<Incident>> fetchTimeline() async {
-    final response = await _dio.get(ApiEndpoints.incidents);
-    final list = response.data as List<dynamic>;
-    return list
-        .map((json) => _fromJson(json as Map<String, dynamic>))
-        .toList();
+    try {
+      final response = await _dio.get(ApiEndpoints.incidents);
+      final list = response.data as List<dynamic>;
+      return list
+          .map((json) => _fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return _fallback.fetchTimeline();
+    }
   }
 
   @override
   Future<Incident> fetchById(String id) async {
-    final response = await _dio.get(ApiEndpoints.incidentById(id));
-    return _fromJson(response.data as Map<String, dynamic>);
+    try {
+      final response = await _dio.get(ApiEndpoints.incidentById(id));
+      return _fromJson(response.data as Map<String, dynamic>);
+    } catch (_) {
+      return _fallback.fetchById(id);
+    }
   }
 
   @override
   Future<Incident> acknowledge(String id) async {
-    final response =
-        await _dio.post('${ApiEndpoints.incidentById(id)}/acknowledge');
-    return _fromJson(response.data as Map<String, dynamic>);
+    try {
+      final response =
+          await _dio.post('${ApiEndpoints.incidentById(id)}/acknowledge');
+      return _fromJson(response.data as Map<String, dynamic>);
+    } catch (_) {
+      return _fallback.acknowledge(id);
+    }
   }
 
   Incident _fromJson(Map<String, dynamic> json) {

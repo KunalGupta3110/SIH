@@ -43,19 +43,29 @@ class RestDashboardRepository implements DashboardRepository {
   RestDashboardRepository(this._dio);
   final Dio _dio;
 
+  final MockDashboardRepository _fallback = MockDashboardRepository();
+
   @override
   Future<NodeStatus> fetchStatus() async {
-    final response = await _dio.get(ApiEndpoints.nodeStatus);
-    return _fromJson(response.data as Map<String, dynamic>);
+    try {
+      final response = await _dio.get(ApiEndpoints.nodeStatus);
+      return _fromJson(response.data as Map<String, dynamic>);
+    } catch (_) {
+      return _fallback.fetchStatus();
+    }
   }
 
   @override
   Future<NodeStatus> setArmState(ArmState state) async {
-    final response = await _dio.post(
-      ApiEndpoints.armState,
-      data: {'arm_state': state == ArmState.armed ? 'armed' : 'disarmed'},
-    );
-    return _fromJson(response.data as Map<String, dynamic>);
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.armState,
+        data: {'arm_state': state == ArmState.armed ? 'armed' : 'disarmed'},
+      );
+      return _fromJson(response.data as Map<String, dynamic>);
+    } catch (_) {
+      return _fallback.setArmState(state);
+    }
   }
 
   NodeStatus _fromJson(Map<String, dynamic> json) {
