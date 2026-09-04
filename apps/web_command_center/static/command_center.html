@@ -201,10 +201,11 @@
   #view-ops .board { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.82fr); gap: 10px; }
   .col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 
-  #twin-panel .panel-body { padding: 0; position: relative; flex: 1; }
-  #twin-stage { position: absolute; inset: 0; overflow: hidden; border-radius: 0 0 var(--radius) var(--radius); cursor: grab; }
+  #twin-panel { min-height: 560px; display: flex; flex-direction: column; }
+  #twin-panel .panel-body { padding: 0; position: relative; flex: 1; min-height: 520px; height: 100%; }
+  #twin-stage { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 520px; overflow: hidden; border-radius: 0 0 var(--radius) var(--radius); cursor: grab; }
   #twin-stage:active { cursor: grabbing; }
-  #twin-stage canvas { display: block; }
+  #twin-stage canvas { display: block; width: 100% !important; height: 100% !important; }
   .twin-label {
     position: absolute; transform: translate(-50%, -50%); font-family: var(--font-mono); font-size: 9.5px;
     letter-spacing: 0.08em; padding: 2px 6px; border-radius: 3px; background: rgba(6, 9, 16, 0.82);
@@ -1010,10 +1011,17 @@ const TW = { layers: {}, night: false, camGoal: null };
   labelDefs.forEach(d => { const el = document.createElement('div'); el.className = 'twin-label ' + d.cls; el.textContent = d.text; stage.appendChild(el); d.el = el; });
 
   function resize() {
-    const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
-    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    const w = stage.clientWidth || stage.offsetWidth || 560;
+    const h = stage.clientHeight || stage.offsetHeight || 520;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
   }
-  new ResizeObserver(resize).observe(stage); resize();
+  new ResizeObserver(resize).observe(stage);
+  setTimeout(resize, 80);
+  setTimeout(resize, 300);
+  resize();
 
   /* raycast inspect */
   const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
