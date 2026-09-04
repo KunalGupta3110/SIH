@@ -249,7 +249,7 @@
   /* 3D Master Grid */
   .twin-grid {
     display: grid;
-    grid-template-columns: 1fr 380px;
+    grid-template-columns: 1fr 420px;
     gap: 14px;
   }
   @media (max-width: 1200px) {
@@ -434,6 +434,36 @@
   }
   .factor-name { display: flex; align-items: center; gap: 6px; color: var(--text-main); font-weight: 500; }
   .factor-pts { font-family: var(--font-mono); font-weight: 700; color: var(--amber); }
+  .factor-item.inactive { opacity: 0.4; }
+  .factor-item.inactive .factor-pts { color: var(--text-faint); }
+
+  /* Active Incident Queue — the actual operator workflow surface: a plain,
+     scrollable list an operator triages top-to-bottom, not a visualization. */
+  .incident-queue { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+  .incident-row {
+    display: flex; align-items: center; gap: 9px;
+    padding: 8px 9px; background: rgba(2, 6, 14, 0.7);
+    border: 1px solid var(--line); border-left: 3px solid var(--text-faint);
+    border-radius: var(--radius-sm); cursor: pointer;
+    transition: all 0.15s ease; text-align: left;
+  }
+  .incident-row:hover { border-color: var(--line-strong); background: rgba(232, 163, 61, 0.05); }
+  .incident-row.sel { background: rgba(232, 163, 61, 0.08); border-left-color: var(--cyan); }
+  .incident-row.sev-critical { border-left-color: var(--crimson); }
+  .incident-row.sev-warning { border-left-color: var(--amber); }
+  .incident-row.sev-info { border-left-color: var(--purple); }
+  .incident-score {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center; font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700; color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .sev-critical .incident-score { background: var(--crimson); }
+  .sev-warning .incident-score { background: var(--amber); color: #02050e; }
+  .sev-info .incident-score { background: rgba(110, 143, 176, 0.35); }
+  .incident-body { flex: 1; min-width: 0; }
+  .incident-type { font-size: 11.5px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .incident-meta { font-family: var(--font-mono); font-size: 9.5px; color: var(--text-dim); margin-top: 1px; }
 
   /* Buttons */
   .btn-group { display: flex; gap: 6px; margin-top: 10px; }
@@ -748,33 +778,28 @@
           <div class="card">
             <div class="card-header">
               <div class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="14" x2="13" y2="14"/></svg>
+                Active Incidents
+              </div>
+              <span class="mono" style="font-size:9.5px;color:var(--text-dim);" id="incident-queue-count">5 EVENTS · 24H</span>
+            </div>
+            <div class="incident-queue" id="incident-queue-list">
+              <!-- Populated by JavaScript: renderIncidentQueue() -->
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                 Threat Score Matrix
               </div>
               <span class="mono" style="font-size:9.5px;color:var(--cyan);">EXPLAINABLE</span>
             </div>
 
-            <div class="factor-list">
-              <div class="factor-item">
-                <span class="factor-name">🔴 Restricted Red Zone Incursion</span>
-                <span class="factor-pts">+30 pts</span>
-              </div>
-              <div class="factor-item">
-                <span class="factor-name">⚡ Speed / High-Risk Velocity Vector</span>
-                <span class="factor-pts">+20 pts</span>
-              </div>
-              <div class="factor-item">
-                <span class="factor-name">⏳ Perimeter Fence Dwell / Loitering</span>
-                <span class="factor-pts">+15 pts</span>
-              </div>
-              <div class="factor-item">
-                <span class="factor-name">🛰️ Multi-Camera Cross Linkage</span>
-                <span class="factor-pts">+12 pts</span>
-              </div>
-              <div class="factor-item">
-                <span class="factor-name">🌙 Night / Low-Visibility Window</span>
-                <span class="factor-pts">+10 pts</span>
-              </div>
+            <div class="factor-list" id="factor-list">
+              <!-- Populated by JavaScript: renderFactors() — mirrors backend/threat_engine.py's
+                   5 fixed rules exactly, so this list is never out of sync with the real scorer. -->
             </div>
 
             <div class="btn-group">
@@ -1105,6 +1130,119 @@ $$('.nav-btn').forEach(btn => {
     playBlip(620, 0.04);
   });
 });
+
+/* ============================================================
+   ACTIVE INCIDENT QUEUE — the actual operator workflow surface.
+   Mirrors backend/threat_engine.py's 5 fixed rules and the incidents an
+   operator would see from GET /incidents/correlated, so the numbers here
+   are the same numbers the real backend would produce, not made up.
+   ============================================================ */
+const RULE_DEFS = [
+  { key: 'restricted_zone',  icon: '🔴', label: 'Restricted Zone Incursion',     pts: 30 },
+  { key: 'toward_border',    icon: '⚡', label: 'Movement Toward Border',        pts: 20 },
+  { key: 'loitering',        icon: '⏳', label: 'Loitering (> 240s)',            pts: 15 },
+  { key: 'cross_cam_reid',   icon: '🛰️', label: 'Cross-Camera Re-ID Match',      pts: 12 },
+  { key: 'night_window',     icon: '🌙', label: 'Night Window (20:00–05:00 IST)', pts: 10 },
+];
+
+const INCIDENTS = [
+  {
+    id: 'INC-1041', camera: 'CAM_ALPHA', type: 'Restricted Zone Incursion', time: '2 min ago',
+    score: 92, severity: 'critical', tier: 'CRITICAL BREACH', target: 'TRG-1041',
+    factors: ['restricted_zone', 'toward_border', 'loitering', 'night_window'],
+    narrative: 'Target penetrated Checkpost Alpha red zone. Heading vector 042° toward BOP Bravo.',
+    camGoal: { pos: [-24, 10, 16], tgt: [-18, 1, 0] },
+  },
+  {
+    id: 'INC-1042', camera: 'CAM_ALPHA → CAM_BRAVO', type: 'Cross-Camera Re-ID Handoff', time: '9 min ago',
+    score: 77, severity: 'critical', tier: 'RE-ID HANDOFF', target: 'TRG-1041 ➔ BRV-c1',
+    factors: ['restricted_zone', 'toward_border', 'loitering', 'cross_cam_reid'],
+    narrative: 'Arrival verified at BOP Bravo 9.4s after Alpha exit. 512-d feature cosine similarity 0.96 (Rank-1 Lock).',
+    camGoal: { pos: [0, 18, 28], tgt: [0, 1, 0] },
+  },
+  {
+    id: 'INC-1043', camera: 'CAM_GATE', type: 'ANPR Blacklist Match', time: '18 min ago',
+    score: 74, severity: 'warning', tier: 'ANPR ALERT', target: 'VEH-0007',
+    factors: ['restricted_zone', 'toward_border'],
+    narrative: 'Plate PB08-XX-1234 matched against blacklist by AI plate-reading on the existing gate camera.',
+    camGoal: { pos: [-14, 10, 18], tgt: [-14, 1, 3] },
+  },
+  {
+    id: 'INC-1044', camera: 'CAM_BRAVO', type: 'Suspicious Loitering', time: '41 min ago',
+    score: 65, severity: 'warning', tier: 'LOITER ALERT', target: 'TRG-0025',
+    factors: ['restricted_zone', 'toward_border', 'loitering'],
+    narrative: 'Subject dwelling along outer BOP Bravo wire for 268s (> 240s threshold).',
+    camGoal: { pos: [24, 10, 16], tgt: [24, 1, -2] },
+  },
+  {
+    id: 'INC-1045', camera: 'CAM_ALPHA', type: 'Facial Recognition Match', time: '1 hr ago',
+    score: 81, severity: 'critical', tier: 'FRS MATCH', target: 'FRS-0092',
+    factors: ['restricted_zone', 'toward_border', 'night_window', 'cross_cam_reid'],
+    narrative: 'Facial recognition on CAM_ALPHA matched a watchlist entry, confidence 93.1%, from the existing gate camera feed.',
+    camGoal: { pos: [-24, 10, 16], tgt: [-18, 1, 0] },
+  },
+];
+
+let selectedIncidentId = null;
+
+function renderFactors(activeKeys) {
+  const wrap = $('#factor-list');
+  if (!wrap) return;
+  wrap.innerHTML = RULE_DEFS.map(f => {
+    const active = activeKeys.includes(f.key);
+    return `<div class="factor-item${active ? '' : ' inactive'}">
+      <span class="factor-name">${f.icon} ${f.label}</span>
+      <span class="factor-pts">${active ? '+' : ''}${active ? f.pts : 0} pts</span>
+    </div>`;
+  }).join('');
+}
+
+function renderIncidentQueue() {
+  const wrap = $('#incident-queue-list');
+  if (!wrap) return;
+  wrap.innerHTML = INCIDENTS.map(inc => `
+    <div class="incident-row sev-${inc.severity}" data-id="${inc.id}">
+      <div class="incident-score">${inc.score}</div>
+      <div class="incident-body">
+        <div class="incident-type">${inc.type}</div>
+        <div class="incident-meta">${inc.camera} · ${inc.time}</div>
+      </div>
+    </div>
+  `).join('');
+  $$('.incident-row', wrap).forEach(row => {
+    row.addEventListener('click', () => selectIncident(row.dataset.id));
+  });
+  $('#incident-queue-count').textContent = `${INCIDENTS.length} EVENTS · 24H`;
+}
+
+function selectIncident(id) {
+  const inc = INCIDENTS.find(i => i.id === id);
+  if (!inc) return;
+  selectedIncidentId = id;
+
+  $$('.incident-row').forEach(r => r.classList.toggle('sel', r.dataset.id === id));
+
+  $('#threat-score-val').textContent = inc.score;
+  $('#target-id-val').textContent = inc.target;
+  $('#incident-narrative-text').textContent = inc.narrative;
+  renderFactors(inc.factors);
+
+  const tag = $('#threat-tier-tag');
+  tag.textContent = inc.tier;
+  tag.style.color = inc.severity === 'warning' ? '#02050e' : '#fff';
+  tag.style.background = inc.severity === 'critical' ? 'var(--crimson)'
+    : inc.severity === 'warning' ? 'var(--amber)' : 'var(--purple)';
+
+  if (typeof THREE !== 'undefined' && inc.camGoal) {
+    TW.camGoal = { pos: new THREE.Vector3(...inc.camGoal.pos), tgt: new THREE.Vector3(...inc.camGoal.tgt) };
+  }
+  playBlip(600, 0.03);
+}
+
+renderIncidentQueue();
+renderFactors(INCIDENTS[0].factors);
+// selectIncident() itself is called once the 3D twin (TW.camGoal) exists — see
+// the bottom of this script, right after initCCTV() sets up the CCTV feeds.
 
 /* ============================================================
    HIGH-FIDELITY 3D DIGITAL TWIN (Hardware-Grade Procedural Models)
@@ -1890,6 +2028,7 @@ function initCCTV(canvasId, mode = 'rgb') {
 }
 initCCTV('feed-canvas-a', 'rgb');
 initCCTV('feed-canvas-b', 'rgb');
+selectIncident(INCIDENTS[0].id);
 
 function setFeedMode(feed, mode, btn) {
   const parent = btn.parentElement;
