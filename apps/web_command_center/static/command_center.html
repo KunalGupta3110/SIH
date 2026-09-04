@@ -701,8 +701,9 @@
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const API_BASE = 'http://localhost:8000';
+const API_BASE = (window.location.port === '8000' || window.location.port === '8080') 
+  ? window.location.origin 
+  : 'http://localhost:8000';
 
 function toast(kind, head, msg, ttl = 4200) {
   const el = document.createElement('div');
@@ -1737,13 +1738,19 @@ function drawMerkle() {
 VIEW.builders.ledger = function () {
   $('#lf-verify').addEventListener('click', async () => {
     $('#lf-verify').disabled = true;
-    await verifyWalk($('#lf-list'), $('#lf-tag'), ok => ok
-      ? toast('ok', 'Chain verified', LEDGER.blocks.length + ' blocks · SHA-256 integrity 100%.')
-      : toast('crit', 'Integrity failure', 'Tampered block detected — downstream evidence inadmissible.'));
+    const auditRes = await API.get('/audit/blockchain', null);
+    await verifyWalk($('#lf-list'), $('#lf-tag'), ok => {
+      if (ok && (!auditRes || auditRes.is_valid !== false)) {
+        const blkCount = auditRes ? auditRes.blocks_audited : LEDGER.blocks.length;
+        toast('ok', 'Merkle chain verified', `${blkCount} blocks · SHA-256 integrity 100% untampered.`);
+      } else {
+        toast('crit', 'Integrity failure', 'Tampered block detected — downstream evidence inadmissible.');
+      }
+    });
     $('#lf-verify').disabled = false;
   });
   $('#lf-tamper').addEventListener('click', toggleTamper);
-  $('#lf-export').addEventListener('click', () => toast('ok', 'Audit trail exported', `${LEDGER.blocks.length} blocks → sentinel_audit_${Date.now()}.jsonl (operator console download).`));
+  $('#lf-export').addEventListener('click', () => toast('ok', 'Audit trail exported', `${LEDGER.blocks.length} blocks -> sentinel_audit_${Date.now()}.jsonl (operator console download).`));
   LEDGER_VIEW.refresh();
 };
 
