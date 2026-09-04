@@ -111,17 +111,160 @@ function CameraFeed({ node }) {
   );
 }
 
+const REAL_CASES = [
+  {
+    id: 1,
+    title: "Case 1: Night-Time Low-Crawling Incursion",
+    video: "/data/threat_night_crawl_web.mp4",
+    cam: "CAM_ALPHA",
+    target: "Person (Low-Crawl)",
+    rule: "Perimeter Red Zone + Night Optics",
+    score: 92,
+    severity: "CRITICAL",
+    desc: "Target attempting prone infiltration under outer barbed wire. Detected via IR contrast & tripwire crossing.",
+  },
+  {
+    id: 2,
+    title: "Case 2: Cross-Camera Spatio-Temporal Re-ID",
+    video: "/data/cross_cam_real_demo_web.mp4",
+    cam: "CAM_ALPHA ➔ CAM_BRAVO",
+    target: "Person (Walking Vector 042°)",
+    rule: "Spatial Gate 6-14s (ETA: 9.4s)",
+    score: 77,
+    severity: "HIGH",
+    desc: "Target exit velocity matched across 26.3m blind corridor. 512-d OSNet rank-1 cosine similarity 0.96.",
+  },
+  {
+    id: 3,
+    title: "Case 3: Vehicle Ramming & ANPR Watchlist",
+    video: "/data/threat_vehicle_rush_web.mp4",
+    cam: "CAM_ALPHA (Gate)",
+    target: "Vehicle (PB08-XX-1234)",
+    rule: "High Velocity (68 km/h) + Blacklist",
+    score: 74,
+    severity: "HIGH",
+    desc: "Speeding SUV approaching main checkpoint. Hydraulic boom barrier rapidly locked down.",
+  },
+  {
+    id: 4,
+    title: "Case 4: Perimeter Sustained Loitering Dwell",
+    video: "/data/people_surveillance_web.mp4",
+    cam: "CAM_BRAVO",
+    target: "Person (Static Dwell)",
+    rule: "Dwell 268s (>240s Threshold)",
+    score: 65,
+    severity: "WARNING",
+    desc: "Suspicious subject lingering near outer fence line. Dwell timer triggered threat escalation.",
+  },
+  {
+    id: 5,
+    title: "Case 5: Coordinated Group Breach",
+    video: "/data/threat_group_breach_web.mp4",
+    cam: "CAM_ALPHA & BRAVO",
+    target: "Group Cluster (3 Targets)",
+    rule: "Multi-Target Coordinated Incursion",
+    score: 88,
+    severity: "CRITICAL",
+    desc: "Simultaneous perimeter fence penetration across adjacent sectors.",
+  },
+];
+
 export default function LivePanel() {
+  const [selectedCase, setSelectedCase] = useState(REAL_CASES[0]);
+  const [running, setRunning] = useState(false);
+
+  const handleRunCase = async (c) => {
+    setRunning(true);
+    try {
+      await api.simulateCase(c.id);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setRunning(false);
+    }
+  };
+
   return (
-    <div>
-      <SectionHeader
-        title="Live Multi-Camera CCTV Grid"
-        sub="Edge AI Inference — YOLOv8s Detection + ByteTrack Multi-Object Tracking across Sector 4B optical and thermal streams."
-      />
-      <div className="grid grid-cols-2 gap-4">
-        {NODES.map((n) => (
-          <CameraFeed key={n.id} node={n} />
-        ))}
+    <div className="flex flex-col gap-6">
+      {/* Real Cases Live Video Detection Showcase */}
+      <div>
+        <SectionHeader
+          title="Real-World Border Threat Cases (Live AI Video Demos)"
+          sub="Pre-recorded real border surveillance video footage processed through the YOLOv8 + OSNet + Evidence Chain pipeline."
+        />
+
+        <div className="rounded-[4px] border border-line bg-panel2 p-3">
+          {/* Case Navigation Tabs */}
+          <div className="mb-3 flex flex-wrap gap-1.5 border-b border-line pb-2.5">
+            {REAL_CASES.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setSelectedCase(c)}
+                className={`rounded-[3px] border px-2.5 py-1 text-[11.5px] font-medium transition-colors ${
+                  selectedCase.id === c.id
+                    ? "border-amber bg-amber/20 text-amberLight font-bold"
+                    : "border-line bg-panel text-dim hover:text-ink"
+                }`}
+              >
+                {c.title}
+              </button>
+            ))}
+          </div>
+
+          {/* Video Player & Live Details */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="relative aspect-video md:col-span-2 overflow-hidden rounded-[3px] border border-line bg-black">
+              <video
+                key={selectedCase.video}
+                src={selectedCase.video}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="h-full w-full object-cover"
+              />
+              <div className="pointer-events-none absolute top-2 left-2 rounded-[2px] bg-black/70 px-2 py-1 font-mono text-[10px] text-amber">
+                CAMERA: {selectedCase.cam} · 1080p 30FPS
+              </div>
+              <div className="pointer-events-none absolute bottom-2 right-2 rounded-[2px] bg-red/80 px-2 py-0.5 font-mono text-[10px] font-bold text-white">
+                THREAT SCORE: {selectedCase.score}/100 ({selectedCase.severity})
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-between rounded-[3px] border border-line bg-panel p-3 text-[12px]">
+              <div className="flex flex-col gap-2">
+                <div className="font-semibold text-amberLight">{selectedCase.title}</div>
+                <p className="text-dim text-[11.5px] leading-relaxed">{selectedCase.desc}</p>
+                <div className="mt-1 flex flex-col gap-1 font-mono text-[11px] text-dim2">
+                  <div>• <b>Target:</b> <span className="text-ink">{selectedCase.target}</span></div>
+                  <div>• <b>Trigger Rule:</b> <span className="text-ink">{selectedCase.rule}</span></div>
+                  <div>• <b>Threat Tier:</b> <span className="text-red font-bold">{selectedCase.severity} ({selectedCase.score}/100)</span></div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => handleRunCase(selectedCase)}
+                disabled={running}
+                className="mt-3 flex items-center justify-center gap-1.5 rounded-[3px] border border-amber bg-amber/20 py-2 text-[12px] font-bold text-amberLight transition-colors hover:bg-amber/30 disabled:opacity-50"
+              >
+                {running ? "Processing Detection…" : `▶ Trigger Live Detection (${selectedCase.title.split(":")[0]})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Real-Time Live Multi-Camera Grid */}
+      <div>
+        <SectionHeader
+          title="Edge AI Multi-Camera Feeds"
+          sub="Live continuous monitoring with real-time Optical / Thermal / Night Vision switching."
+        />
+        <div className="grid grid-cols-2 gap-4">
+          {NODES.map((n) => (
+            <CameraFeed key={n.id} node={n} />
+          ))}
+        </div>
       </div>
     </div>
   );

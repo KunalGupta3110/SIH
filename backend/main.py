@@ -62,9 +62,13 @@ app.add_middleware(
 
 FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
 STATIC_DIR = ROOT_DIR / "apps" / "web_command_center" / "static"
+DATA_DIR = ROOT_DIR / "data"
 
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+if DATA_DIR.exists():
+    app.mount("/data", StaticFiles(directory=str(DATA_DIR)), name="data_videos")
 
 if FRONTEND_DIST.exists() and (FRONTEND_DIST / "assets").exists():
     app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST / "assets")), name="react_assets")
@@ -353,6 +357,104 @@ def simulate_handoff():
     result_a = _ingest_event(first_event)
     result_b = _ingest_event(second_event)
     return {"first_event": result_a, "second_event": result_b}
+
+
+@app.post("/events/simulate-case/{case_id}")
+@app.post("/v1/events/simulate-case/{case_id}")
+def simulate_case(case_id: int):
+    """
+    Simulates one of 5 real-world tactical border threat cases:
+    1: Night Crawl Breach (CAM_ALPHA, Red Zone, Night Optics, Score: 92/100)
+    2: Cross-Cam Re-ID Handoff (CAM_ALPHA -> CAM_BRAVO, Score: 77/100)
+    3: Vehicle Ramming & ANPR (CAM_ALPHA, Speed 68 km/h, Plate PB08-XX-1234, Score: 74/100)
+    4: Perimeter Loitering Dwell (CAM_BRAVO, 268s Dwell, Score: 65/100)
+    5: Coordinated Multi-Target Group Breach (CAM_ALPHA & BRAVO, Score: 88/100)
+    """
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
+    suffix = now.strftime("%Y%m%dT%H%M%S%f")
+
+    if case_id == 1:
+        evt = EventIn(
+            event_id=f"CASE1-{suffix}",
+            camera_id="CAM_ALPHA",
+            track_id=1041,
+            alert_type="PERIMETER_BREACH",
+            zone_id="alpha_red_zone",
+            zone_name="Checkpost Alpha Red Zone",
+            details="Night-time low-crawling infiltrator crossed perimeter tripwire.",
+            timestamp_iso=now.isoformat(),
+            in_restricted_zone=True,
+            moving_toward_border=True,
+        )
+        res = _ingest_event(evt)
+        return {"case_id": 1, "name": "Night Crawl Incursion", "result": res}
+
+    elif case_id == 2:
+        return simulate_handoff()
+
+    elif case_id == 3:
+        evt = EventIn(
+            event_id=f"CASE3-{suffix}",
+            camera_id="CAM_ALPHA",
+            track_id=7002,
+            class_name="vehicle",
+            alert_type="ANPR_WATCHLIST_HIT",
+            zone_id="alpha_gate_zone",
+            zone_name="Main Entry Gate & Boom Barrier",
+            details="Blacklisted vehicle PB08-XX-1234 approaching barrier at 68 km/h.",
+            timestamp_iso=now.isoformat(),
+            in_restricted_zone=True,
+            moving_toward_border=True,
+        )
+        res = _ingest_event(evt)
+        return {"case_id": 3, "name": "Vehicle Ramming & ANPR", "result": res}
+
+    elif case_id == 4:
+        evt = EventIn(
+            event_id=f"CASE4-{suffix}",
+            camera_id="CAM_BRAVO",
+            track_id=2025,
+            alert_type="LOITERING_DWELL",
+            zone_id="bravo_fence_zone",
+            zone_name="BOP Bravo Outer Fence Line",
+            details="Target dwelling along outer perimeter wire for 268s (>240s threshold).",
+            timestamp_iso=now.isoformat(),
+            in_restricted_zone=False,
+            loitering_seconds=268,
+        )
+        res = _ingest_event(evt)
+        return {"case_id": 4, "name": "Perimeter Loitering Dwell", "result": res}
+
+    else:
+        evt1 = EventIn(
+            event_id=f"CASE5-A-{suffix}",
+            camera_id="CAM_ALPHA",
+            track_id=3001,
+            alert_type="GROUP_INCURSION",
+            zone_id="alpha_red_zone",
+            zone_name="Checkpost Alpha Perimeter",
+            details="Coordinated multi-person group breach (Cluster A).",
+            timestamp_iso=now.isoformat(),
+            in_restricted_zone=True,
+            moving_toward_border=True,
+        )
+        evt2 = EventIn(
+            event_id=f"CASE5-B-{suffix}",
+            camera_id="CAM_BRAVO",
+            track_id=3002,
+            alert_type="GROUP_INCURSION",
+            zone_id="bravo_fence_zone",
+            zone_name="BOP Bravo Perimeter",
+            details="Coordinated multi-person group breach (Cluster B).",
+            timestamp_iso=(now + timedelta(seconds=4)).isoformat(),
+            in_restricted_zone=True,
+            cross_camera_reid_match=True,
+            moving_toward_border=True,
+        )
+        res1 = _ingest_event(evt1)
+        res2 = _ingest_event(evt2)
+        return {"case_id": 5, "name": "Coordinated Group Breach", "result_a": res1, "result_b": res2}
 
 
 # ---------------------------------------------------------------------------

@@ -35,6 +35,7 @@ export const api = {
   verifyBlockchain: () => request("/audit/verify"),
 
   simulateHandoff: () => request("/events/simulate-handoff", { method: "POST" }),
+  simulateCase: (caseId) => request(`/events/simulate-case/${caseId}`, { method: "POST" }),
   silenceSiren: () => request("/siren/silence", { method: "POST" }),
 };
 
