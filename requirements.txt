@@ -12,10 +12,14 @@ scipy>=1.10.0
 pillow>=10.0.0
 imageio-ffmpeg>=0.4.9
 
-# Backend API
+# Backend API (backend/ — IBVAP Sentinel core: database, threat engine,
+# correlation, evidence ledger, hardware bridge, notifications)
 fastapi>=0.110.0
 uvicorn>=0.28.0
 pydantic>=2.6.0
+pyserial>=3.5      # boom-barrier / siren controller; backend runs in SIMULATION MODE without it
+pytest>=8.0.0       # tests/test_sentinel.py
+httpx>=0.27.0       # required by FastAPI's TestClient
 
 # Command Dashboard
 streamlit>=1.32.0

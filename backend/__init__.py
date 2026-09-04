@@ -1,2 +1,2 @@
-# Backend Module Placeholder
-# FastAPI main.py will be implemented in Day 8-9.
+# IBVAP Sentinel backend package.
+# See backend/main.py for the FastAPI app and endpoint list.
