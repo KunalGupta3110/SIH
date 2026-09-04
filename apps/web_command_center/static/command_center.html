@@ -647,19 +647,19 @@
       </div>
       <div class="scenario-buttons">
         <button class="scen-btn" onclick="triggerScenario(1)">
-          <span class="badge-num">1</span> Night Breach
+          <span class="badge-num">1</span> Night Movement
         </button>
         <button class="scen-btn" onclick="triggerScenario(2)">
           <span class="badge-num">2</span> Cross-Cam Re-ID
         </button>
         <button class="scen-btn" onclick="triggerScenario(3)">
-          <span class="badge-num">3</span> Vehicle Ramming
+          <span class="badge-num">3</span> ANPR Vehicle Check
         </button>
         <button class="scen-btn" onclick="triggerScenario(4)">
-          <span class="badge-num">4</span> Loitering Dwell
+          <span class="badge-num">4</span> Suspicious Loitering
         </button>
         <button class="scen-btn" onclick="triggerScenario(5)">
-          <span class="badge-num">5</span> UAV Thermal Recon
+          <span class="badge-num">5</span> Facial Recognition
         </button>
       </div>
     </section>
@@ -679,7 +679,6 @@
               <button class="preset-btn active" data-cam="default">Overview</button>
               <button class="preset-btn" data-cam="alpha">Tower Alpha</button>
               <button class="preset-btn" data-cam="bravo">Tower Bravo</button>
-              <button class="preset-btn" data-cam="drone">UAV FPV</button>
               <button class="preset-btn" data-cam="target">Target Lock</button>
             </div>
           </div>
@@ -689,14 +688,14 @@
               <div class="hud-top">
                 <div class="hud-telemetry">
                   <div>LAT/LONG: <b>32.1914° N, 74.8920° E</b></div>
-                  <div>FPS: <b id="hud-fps-val">60.0</b> · ASSETS: <b>18 HARDWARE NODES</b></div>
-                  <div>OPTICS: <b>GEN-3 THERMAL / PTZ 4K</b></div>
+                  <div>FPS: <b id="hud-fps-val">60.0</b> · CAMERAS: <b>6 EXISTING IP CCTV</b></div>
+                  <div>SOURCE: <b>STANDARD IP CCTV · AI-ENHANCED</b></div>
                 </div>
 
                 <div class="hud-vision-filters">
-                  <button class="filter-btn active" onclick="setVisionShader('standard')">CYBER</button>
-                  <button class="filter-btn" onclick="setVisionShader('thermal')">FLIR THERMAL</button>
-                  <button class="filter-btn" onclick="setVisionShader('nvg')">NVG GEN-3</button>
+                  <button class="filter-btn active" onclick="setVisionShader('standard')">STANDARD</button>
+                  <button class="filter-btn" onclick="setVisionShader('thermal')">LOW-LIGHT AI</button>
+                  <button class="filter-btn" onclick="setVisionShader('nvg')">NIGHT AI MODE</button>
                 </div>
               </div>
 
@@ -717,7 +716,7 @@
                   </div>
                 </div>
 
-                <div class="radar-minimap" title="Sector Radar Minimap">
+                <div class="radar-minimap" title="Sector Position Map">
                   <div class="radar-sweep"></div>
                   <div class="radar-ring"></div>
                   <div class="radar-crosshair-h"></div>
@@ -731,12 +730,12 @@
             <!-- Inspector Modal -->
             <div class="inspector-hud" id="inspector-modal">
               <div class="inspector-header">
-                <span class="inspector-title" id="inspect-name">LATTICE TOWER ALPHA</span>
+                <span class="inspector-title" id="inspect-name">CCTV TOWER ALPHA</span>
                 <button class="inspector-close" onclick="closeInspector()">✕</button>
               </div>
-              <div class="inspector-row"><span>Type:</span> <b id="inspect-type">Braced Truss Tower</b></div>
-              <div class="inspector-row"><span>Optical Range:</span> <b id="inspect-range">250m Optical / 400m IR</b></div>
-              <div class="inspector-row"><span>AI Sensors:</span> <b id="inspect-sensors">PTZ FLIR + Radar Dish</b></div>
+              <div class="inspector-row"><span>Type:</span> <b id="inspect-type">Existing CCTV Mounting Post</b></div>
+              <div class="inspector-row"><span>Optical Range:</span> <b id="inspect-range">250m Optical, IR-Enhanced</b></div>
+              <div class="inspector-row"><span>AI Sensors:</span> <b id="inspect-sensors">IP Camera + AI Video Analytics</b></div>
               <div class="inspector-row"><span>Status:</span> <b id="inspect-status" style="color:var(--emerald);">ONLINE · TRACKING</b></div>
               <div class="inspector-row"><span>Telemetry:</span> <b id="inspect-telem">32.1914°N / 74.8920°E</b></div>
               <button class="btn btn-primary" style="width:100%;margin-top:7px;font-size:10.5px;" onclick="focusInspectedObject()">Focus Camera</button>
@@ -838,11 +837,11 @@
             </div>
           </div>
           <div class="feed-footer">
-            <span style="font-size:10.5px;color:var(--text-dim);">Optical PTZ 4K</span>
+            <span style="font-size:10.5px;color:var(--text-dim);">Existing IP Camera Feed</span>
             <div class="filter-pills">
-              <button class="filter-pill active" onclick="setFeedMode('a', 'rgb', this)">RGB</button>
-              <button class="filter-pill" onclick="setFeedMode('a', 'thermal', this)">THERMAL</button>
-              <button class="filter-pill" onclick="setFeedMode('a', 'night', this)">NIGHT</button>
+              <button class="filter-pill active" onclick="setFeedMode('a', 'rgb', this)">STANDARD</button>
+              <button class="filter-pill" onclick="setFeedMode('a', 'thermal', this)">LOW-LIGHT</button>
+              <button class="filter-pill" onclick="setFeedMode('a', 'night', this)">NIGHT AI</button>
             </div>
           </div>
         </div>
@@ -860,11 +859,11 @@
             </div>
           </div>
           <div class="feed-footer">
-            <span style="font-size:10.5px;color:var(--text-dim);">Optical PTZ 4K</span>
+            <span style="font-size:10.5px;color:var(--text-dim);">Existing IP Camera Feed</span>
             <div class="filter-pills">
-              <button class="filter-pill active" onclick="setFeedMode('b', 'rgb', this)">RGB</button>
-              <button class="filter-pill" onclick="setFeedMode('b', 'thermal', this)">THERMAL</button>
-              <button class="filter-pill" onclick="setFeedMode('b', 'night', this)">NIGHT</button>
+              <button class="filter-pill active" onclick="setFeedMode('b', 'rgb', this)">STANDARD</button>
+              <button class="filter-pill" onclick="setFeedMode('b', 'thermal', this)">LOW-LIGHT</button>
+              <button class="filter-pill" onclick="setFeedMode('b', 'night', this)">NIGHT AI</button>
             </div>
           </div>
         </div>
@@ -1313,16 +1312,16 @@ let scene, camera, renderer, controls, pickables = [];
     glass.position.y = 10.9;
     tGroup.add(glass);
 
-    // Rotating Searchlight / Radar Head
+    // Rotating PTZ Camera + Searchlight Head
     const headPivot = new THREE.Group();
     headPivot.position.y = 12.0;
 
-    const radarDish = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.8, 0.1, 0.25, 12, 1, false, 0, Math.PI),
+    const ptzCam = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.22, 0.22, 0.55, 10),
       new THREE.MeshStandardMaterial({ color: tint, metalness: 0.8 })
     );
-    radarDish.rotation.z = Math.PI / 2;
-    headPivot.add(radarDish);
+    ptzCam.rotation.z = Math.PI / 2;
+    headPivot.add(ptzCam);
 
     // Visible Volumetric Sweeping Searchlight Cone
     const lightCone = new THREE.Mesh(
@@ -1339,9 +1338,9 @@ let scene, camera, renderer, controls, pickables = [];
     tGroup.position.set(x, 0, z);
     tGroup.userData = {
       name,
-      type: 'Braced Lattice Watchtower',
-      range: '250m Optical / 400m Thermal',
-      sensors: '4K PTZ + Doppler Radar + Searchlight',
+      type: 'Existing CCTV Watchtower',
+      range: '250m Optical, IR-Enhanced',
+      sensors: 'IP Camera + AI Video Analytics + Searchlight',
       status: 'ONLINE · MONITORING'
     };
 
@@ -1513,48 +1512,6 @@ let scene, camera, renderer, controls, pickables = [];
   torso.userData = intruderGroup.userData;
   torso._parentGroup = intruderGroup;
 
-  /* 6. QUADCOPTER RECON UAV SILHOUETTE */
-  const droneGroup = new THREE.Group();
-  const droneBody = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.22, 1.1), new THREE.MeshStandardMaterial({ color: 0x6e8fb0, emissive: 0x6e8fb0, emissiveIntensity: 0.4 }));
-  droneGroup.add(droneBody);
-
-  // Underslung Gimbal Camera Pod
-  const gimbal = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), new THREE.MeshStandardMaterial({ color: 0x111827 }));
-  gimbal.position.y = -0.22;
-  droneGroup.add(gimbal);
-
-  // 4 Rotor Arms + Transparent Motion-Blurred Rotor Discs
-  const rotorDiscGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.02, 16);
-  const rotorDiscMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45 });
-  [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]].forEach(([px, pz]) => {
-    const disc = new THREE.Mesh(rotorDiscGeo, rotorDiscMat);
-    disc.position.set(px, 0.14, pz);
-    droneGroup.add(disc);
-    TW.propsSpin.push(disc);
-  });
-
-  // Downward LiDAR / Thermal Scanning Cone
-  const droneBeam = new THREE.Mesh(
-    new THREE.ConeGeometry(4.5, 14, 20, 1, true),
-    new THREE.MeshBasicMaterial({ color: 0x6e8fb0, wireframe: true, transparent: true, opacity: 0.16 })
-  );
-  droneBeam.position.y = -7;
-  droneBeam.rotation.x = Math.PI;
-  droneGroup.add(droneBeam);
-
-  droneGroup.position.set(0, 14, 0);
-  droneGroup.userData = {
-    name: 'Tactical Recon Drone (UAV-01)',
-    type: 'Autonomous Airborne FLIR',
-    range: 'Altitude: 14m · GPS Lock',
-    sensors: 'Thermal FLIR + Laser Rangefinder',
-    status: 'SECTOR PATROL · ACTIVE'
-  };
-  scene.add(droneGroup);
-  pickables.push(droneBody);
-  droneBody.userData = droneGroup.userData;
-  droneBody._parentGroup = droneGroup;
-
   /* Raycaster Inspector */
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
@@ -1605,13 +1562,6 @@ let scene, camera, renderer, controls, pickables = [];
     // Rotate Tower Heads / Searchlights
     if (towerAlpha._headPivot) towerAlpha._headPivot.rotation.y = Math.sin(t * 0.5) * 0.6;
     if (towerBravo._headPivot) towerBravo._headPivot.rotation.y = -Math.sin(t * 0.5) * 0.6;
-
-    // Spin UAV Rotor Discs
-    TW.propsSpin.forEach(d => d.rotation.y += 0.3);
-
-    // UAV Autonomous Patrol Flight
-    droneGroup.position.set(Math.cos(t * 0.4) * 18, 14 + Math.sin(t * 0.8) * 0.5, Math.sin(t * 0.4) * 12);
-    droneGroup.rotation.y = -t * 0.4;
 
     // Patrol Jeep Drive & Wheel Spin
     patrolJeep.position.x = -40 + ((t * 6) % 80);
@@ -1671,7 +1621,6 @@ let scene, camera, renderer, controls, pickables = [];
       const cam = btn.dataset.cam;
       if (cam === 'alpha') TW.camGoal = { pos: new THREE.Vector3(-24, 12, 16), tgt: new THREE.Vector3(-24, 4, -4) };
       else if (cam === 'bravo') TW.camGoal = { pos: new THREE.Vector3(24, 12, 16), tgt: new THREE.Vector3(24, 4, -4) };
-      else if (cam === 'drone') TW.camGoal = { pos: new THREE.Vector3(0, 42, 2), tgt: new THREE.Vector3(0, 0, 0) };
       else if (cam === 'target') TW.camGoal = { pos: new THREE.Vector3(intruderGroup.position.x, 6, 10), tgt: intruderGroup.position };
       else TW.camGoal = { pos: new THREE.Vector3(0, 32, 48), tgt: new THREE.Vector3(0, 0, 0) };
       playBlip(600, 0.03);
@@ -1717,15 +1666,15 @@ function setVisionShader(mode) {
   if (mode === 'thermal') {
     scene.background = new THREE.Color(0x060214);
     scene.fog.color = new THREE.Color(0x060214);
-    toast('ok', 'FLIR Thermal Active', 'Infrared false-color spectrum enabled.');
+    toast('ok', 'Low-Light AI Enhance Active', 'Software low-light rendering applied to existing camera feed.');
   } else if (mode === 'nvg') {
     scene.background = new THREE.Color(0x02160a);
     scene.fog.color = new THREE.Color(0x02160a);
-    toast('ok', 'NVG Gen-3 Active', 'Green phosphor light amplification matrix.');
+    toast('ok', 'Night AI Mode Active', 'AI-enhanced night visibility on standard IP camera feed.');
   } else {
     scene.background = new THREE.Color(0x02050e);
     scene.fog.color = new THREE.Color(0x02050e);
-    toast('ok', 'Cyber Standard Active', 'Standard tactical composite layer.');
+    toast('ok', 'Standard View Active', 'Default daytime camera composite.');
   }
 }
 
@@ -1790,17 +1739,17 @@ async function triggerScenario(id) {
     await wait(1500);
   }
   else if (id === 3) {
-    $('#threat-tier-tag').textContent = 'ANPR LOCKDOWN';
+    $('#threat-tier-tag').textContent = 'ANPR ALERT';
     $('#threat-tier-tag').style.background = 'var(--amber)';
     $('#threat-tier-tag').style.color = '#02050e';
     $('#threat-score-val').textContent = '74 / 100';
     $('#target-id-val').textContent = 'VEH-0007';
-    $('#incident-narrative-text').innerHTML = '<b>🚗 RAMMING THREAT:</b> Plate <code>PB08-XX-1234</code> on blacklist. Speed 68 km/h. Hydraulic barrier locking down!';
+    $('#incident-narrative-text').innerHTML = '<b>🚗 ANPR MATCH:</b> Plate <code>PB08-XX-1234</code> matched against blacklist by AI plate-reading on the existing gate camera. Barrier lock signal sent.';
 
     TW.camGoal = { pos: new THREE.Vector3(-14, 10, 18), tgt: new THREE.Vector3(-14, 1, 3) };
     TW.boomGoal = -0.5;
     armSiren(true);
-    toast('crit', 'Scenario 3: ANPR Hit', 'Vehicle speed 68 km/h. Boom barrier rapidly locked.');
+    toast('crit', 'Scenario 3: ANPR Hit', 'Blacklisted plate detected. Gate barrier lock signal sent.');
     await wait(3600);
   }
   else if (id === 4) {
@@ -1816,17 +1765,15 @@ async function triggerScenario(id) {
     await wait(3000);
   }
   else if (id === 5) {
-    $('#threat-tier-tag').textContent = 'UAV THERMAL';
+    $('#threat-tier-tag').textContent = 'FRS MATCH';
     $('#threat-tier-tag').style.background = 'var(--emerald)';
     $('#threat-tier-tag').style.color = '#02050e';
-    $('#threat-score-val').textContent = '84 / 100';
-    $('#target-id-val').textContent = 'UAV-01';
-    $('#incident-narrative-text').innerHTML = '<b>🛰️ AIRBORNE RECON:</b> Drone thermal FLIR acquired heat cluster. GPS Coordinates locked: <code>N32.1914 E74.8920</code>.';
+    $('#threat-score-val').textContent = '81 / 100';
+    $('#target-id-val').textContent = 'FRS-0092';
+    $('#incident-narrative-text').innerHTML = '<b>🧑‍💻 FACE MATCH:</b> Facial recognition on CAM_ALPHA matched a watchlist entry, confidence <b>93.1%</b>, from the existing gate camera feed.';
 
-    TW.camGoal = { pos: new THREE.Vector3(0, 44, 2), tgt: new THREE.Vector3(0, 0, 0) };
-    initCCTV('feed-canvas-a', 'thermal');
-    initCCTV('feed-canvas-b', 'thermal');
-    toast('crit', 'Scenario 5: Thermal Recon', 'GPS Lock N32.1914 E74.8920 transmitted.');
+    TW.camGoal = { pos: new THREE.Vector3(-24, 10, 16), tgt: new THREE.Vector3(-18, 1, 0) };
+    toast('crit', 'Scenario 5: Facial Recognition', 'Watchlist match, confidence 93.1%, flagged for review.');
     await wait(3200);
   }
 
