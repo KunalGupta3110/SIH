@@ -70,6 +70,7 @@ if FRONTEND_DIST.exists() and (FRONTEND_DIST / "assets").exists():
 
 
 @app.get("/", include_in_schema=False)
+@app.get("/console", include_in_schema=False)
 @app.get("/twin", include_in_schema=False)
 @app.get("/3d", include_in_schema=False)
 def serve_frontend_root():

@@ -1,4 +1,6 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useCallback, useState } from "react";
+import LandingPage from "./components/LandingPage.jsx";
 import NavRail from "./components/NavRail.jsx";
 import TopBar from "./components/TopBar.jsx";
 import LivePanel from "./components/LivePanel.jsx";
@@ -11,7 +13,7 @@ import ApiTestbenchPanel from "./components/ApiTestbenchPanel.jsx";
 import { usePoll } from "./lib/usePoll.js";
 import api from "./lib/api.js";
 
-export default function App() {
+function TacticalConsole() {
   const [section, setSection] = useState("live");
   const [armPending, setArmPending] = useState(false);
   const [simulating, setSimulating] = useState(false);
@@ -84,6 +86,18 @@ export default function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/console" element={<TacticalConsole />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
