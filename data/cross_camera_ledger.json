@@ -1,0 +1,1709 @@
+{
+  "targets": [
+    {
+      "global_id": "TRG-0001",
+      "class_name": "person",
+      "first_seen_ms": 2033.3333333333333,
+      "last_seen_ms": 6300.0,
+      "first_seen_cam": "CAM_ALPHA",
+      "last_seen_cam": "CAM_BRAVO",
+      "total_detections": 176,
+      "cameras_visited": [
+        "CAM_ALPHA",
+        "CAM_BRAVO"
+      ],
+      "movement_trail": [
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2033.3333333333333,
+          "centroid": [
+            441.48248291015625,
+            518.960205078125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2033.3333333333333,
+          "centroid": [
+            441.48248291015625,
+            518.960205078125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2066.666666666667,
+          "centroid": [
+            443.3179931640625,
+            515.9949951171875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2066.666666666667,
+          "centroid": [
+            443.3179931640625,
+            515.9949951171875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2100.0,
+          "centroid": [
+            444.3026123046875,
+            513.4509887695312
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2100.0,
+          "centroid": [
+            444.3026123046875,
+            513.4509887695312
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2133.3333333333335,
+          "centroid": [
+            445.8277587890625,
+            511.8177490234375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2133.3333333333335,
+          "centroid": [
+            445.8277587890625,
+            511.8177490234375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2200.0,
+          "centroid": [
+            447.1820068359375,
+            507.2607421875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2200.0,
+          "centroid": [
+            447.1820068359375,
+            507.2607421875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2300.0,
+          "centroid": [
+            448.96380615234375,
+            500.741943359375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2300.0,
+          "centroid": [
+            448.96380615234375,
+            500.741943359375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2333.3333333333335,
+          "centroid": [
+            449.98291015625,
+            498.5770263671875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2333.3333333333335,
+          "centroid": [
+            449.98291015625,
+            498.5770263671875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2366.6666666666665,
+          "centroid": [
+            450.829833984375,
+            496.86810302734375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2366.6666666666665,
+          "centroid": [
+            450.829833984375,
+            496.86810302734375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2400.0,
+          "centroid": [
+            450.3036804199219,
+            494.3664245605469
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2400.0,
+          "centroid": [
+            450.3036804199219,
+            494.3664245605469
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2433.333333333333,
+          "centroid": [
+            450.66094970703125,
+            492.64898681640625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2433.333333333333,
+          "centroid": [
+            450.66094970703125,
+            492.64898681640625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2466.666666666667,
+          "centroid": [
+            451.71624755859375,
+            490.0090026855469
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2466.666666666667,
+          "centroid": [
+            451.71624755859375,
+            490.0090026855469
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2500.0,
+          "centroid": [
+            452.41571044921875,
+            487.74658203125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2500.0,
+          "centroid": [
+            452.41571044921875,
+            487.74658203125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2533.333333333333,
+          "centroid": [
+            453.51544189453125,
+            486.0987548828125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2533.333333333333,
+          "centroid": [
+            453.51544189453125,
+            486.0987548828125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2566.666666666667,
+          "centroid": [
+            454.79412841796875,
+            484.755859375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2566.666666666667,
+          "centroid": [
+            454.79412841796875,
+            484.755859375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2600.0,
+          "centroid": [
+            455.9798583984375,
+            482.0211181640625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2600.0,
+          "centroid": [
+            455.9798583984375,
+            482.0211181640625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2733.3333333333335,
+          "centroid": [
+            457.7446594238281,
+            472.41949462890625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2733.3333333333335,
+          "centroid": [
+            457.7446594238281,
+            472.41949462890625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2766.6666666666665,
+          "centroid": [
+            458.22900390625,
+            471.4600830078125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2766.6666666666665,
+          "centroid": [
+            458.22900390625,
+            471.4600830078125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2800.0,
+          "centroid": [
+            459.36773681640625,
+            470.55828857421875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2800.0,
+          "centroid": [
+            459.36773681640625,
+            470.55828857421875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2833.3333333333335,
+          "centroid": [
+            459.6419677734375,
+            467.8789978027344
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2833.3333333333335,
+          "centroid": [
+            459.6419677734375,
+            467.8789978027344
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2866.6666666666665,
+          "centroid": [
+            459.60406494140625,
+            464.7764892578125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2866.6666666666665,
+          "centroid": [
+            459.60406494140625,
+            464.7764892578125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2900.0,
+          "centroid": [
+            460.87005615234375,
+            463.0436706542969
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2900.0,
+          "centroid": [
+            460.87005615234375,
+            463.0436706542969
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2933.333333333333,
+          "centroid": [
+            462.39422607421875,
+            460.83807373046875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2933.333333333333,
+          "centroid": [
+            462.39422607421875,
+            460.83807373046875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 2966.666666666667,
+          "centroid": [
+            463.29522705078125,
+            458.0208740234375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 2966.666666666667,
+          "centroid": [
+            463.29522705078125,
+            458.0208740234375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3100.0,
+          "centroid": [
+            465.91693115234375,
+            449.69317626953125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3100.0,
+          "centroid": [
+            465.91693115234375,
+            449.69317626953125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3133.3333333333335,
+          "centroid": [
+            466.9355163574219,
+            447.84832763671875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3133.3333333333335,
+          "centroid": [
+            466.9355163574219,
+            447.84832763671875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3166.6666666666665,
+          "centroid": [
+            466.8920593261719,
+            445.4908447265625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3166.6666666666665,
+          "centroid": [
+            466.8920593261719,
+            445.4908447265625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3200.0,
+          "centroid": [
+            467.82147216796875,
+            442.6856689453125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3200.0,
+          "centroid": [
+            467.82147216796875,
+            442.6856689453125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3233.3333333333335,
+          "centroid": [
+            468.87176513671875,
+            440.7833251953125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3233.3333333333335,
+          "centroid": [
+            468.87176513671875,
+            440.7833251953125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3266.6666666666665,
+          "centroid": [
+            469.80517578125,
+            439.2452392578125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3266.6666666666665,
+          "centroid": [
+            469.80517578125,
+            439.2452392578125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3300.0,
+          "centroid": [
+            470.72601318359375,
+            437.88055419921875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3300.0,
+          "centroid": [
+            470.72601318359375,
+            437.88055419921875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3333.3333333333335,
+          "centroid": [
+            470.30938720703125,
+            433.8838806152344
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3333.3333333333335,
+          "centroid": [
+            470.30938720703125,
+            433.8838806152344
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3366.6666666666665,
+          "centroid": [
+            470.8568115234375,
+            431.794189453125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3366.6666666666665,
+          "centroid": [
+            470.8568115234375,
+            431.794189453125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3466.666666666667,
+          "centroid": [
+            473.3487243652344,
+            424.71142578125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3466.666666666667,
+          "centroid": [
+            473.3487243652344,
+            424.71142578125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3500.0,
+          "centroid": [
+            474.55120849609375,
+            422.25506591796875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3500.0,
+          "centroid": [
+            474.55120849609375,
+            422.25506591796875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3533.333333333333,
+          "centroid": [
+            475.62493896484375,
+            420.50811767578125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3533.333333333333,
+          "centroid": [
+            475.62493896484375,
+            420.50811767578125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3566.666666666667,
+          "centroid": [
+            475.28594970703125,
+            418.54437255859375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3566.666666666667,
+          "centroid": [
+            475.28594970703125,
+            418.54437255859375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3600.0,
+          "centroid": [
+            476.68310546875,
+            417.1325378417969
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3600.0,
+          "centroid": [
+            476.68310546875,
+            417.1325378417969
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3633.3333333333335,
+          "centroid": [
+            477.60919189453125,
+            415.18658447265625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3633.3333333333335,
+          "centroid": [
+            477.60919189453125,
+            415.18658447265625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3700.0,
+          "centroid": [
+            478.56451416015625,
+            410.59613037109375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3700.0,
+          "centroid": [
+            478.56451416015625,
+            410.59613037109375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3733.3333333333335,
+          "centroid": [
+            479.3724365234375,
+            409.0382995605469
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3733.3333333333335,
+          "centroid": [
+            479.3724365234375,
+            409.0382995605469
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3766.6666666666665,
+          "centroid": [
+            480.5531005859375,
+            406.41705322265625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3766.6666666666665,
+          "centroid": [
+            480.5531005859375,
+            406.41705322265625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 3800.0,
+          "centroid": [
+            481.14508056640625,
+            403.48114013671875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 3800.0,
+          "centroid": [
+            481.14508056640625,
+            403.48114013671875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4000.0,
+          "centroid": [
+            486.0667419433594,
+            391.40692138671875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4000.0,
+          "centroid": [
+            486.0667419433594,
+            391.40692138671875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4033.333333333333,
+          "centroid": [
+            485.6183166503906,
+            389.340087890625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4033.333333333333,
+          "centroid": [
+            485.6183166503906,
+            389.340087890625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4066.6666666666665,
+          "centroid": [
+            486.42205810546875,
+            386.9930419921875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4066.6666666666665,
+          "centroid": [
+            486.42205810546875,
+            386.9930419921875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4100.0,
+          "centroid": [
+            487.374755859375,
+            384.9383544921875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4100.0,
+          "centroid": [
+            487.374755859375,
+            384.9383544921875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4133.333333333334,
+          "centroid": [
+            487.51458740234375,
+            383.46966552734375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4133.333333333334,
+          "centroid": [
+            487.51458740234375,
+            383.46966552734375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4166.666666666667,
+          "centroid": [
+            487.85394287109375,
+            381.9023742675781
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4166.666666666667,
+          "centroid": [
+            487.85394287109375,
+            381.9023742675781
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4200.0,
+          "centroid": [
+            489.009033203125,
+            380.50933837890625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4200.0,
+          "centroid": [
+            489.009033203125,
+            380.50933837890625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4233.333333333333,
+          "centroid": [
+            490.4888916015625,
+            377.9173583984375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4233.333333333333,
+          "centroid": [
+            490.4888916015625,
+            377.9173583984375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4300.0,
+          "centroid": [
+            491.34808349609375,
+            372.609375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4300.0,
+          "centroid": [
+            491.34808349609375,
+            372.609375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4333.333333333333,
+          "centroid": [
+            492.54608154296875,
+            369.97869873046875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4333.333333333333,
+          "centroid": [
+            492.54608154296875,
+            369.97869873046875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4433.333333333334,
+          "centroid": [
+            495.5728759765625,
+            364.70184326171875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4433.333333333334,
+          "centroid": [
+            495.5728759765625,
+            364.70184326171875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4466.666666666667,
+          "centroid": [
+            495.6432800292969,
+            361.1839599609375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4466.666666666667,
+          "centroid": [
+            495.6432800292969,
+            361.1839599609375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4500.0,
+          "centroid": [
+            495.8992919921875,
+            359.71087646484375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4500.0,
+          "centroid": [
+            495.8992919921875,
+            359.71087646484375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4533.333333333333,
+          "centroid": [
+            496.9833984375,
+            357.64471435546875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4533.333333333333,
+          "centroid": [
+            496.9833984375,
+            357.64471435546875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4566.666666666666,
+          "centroid": [
+            497.52142333984375,
+            355.37847900390625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4566.666666666666,
+          "centroid": [
+            497.52142333984375,
+            355.37847900390625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4600.0,
+          "centroid": [
+            497.76416015625,
+            353.7109375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4600.0,
+          "centroid": [
+            497.76416015625,
+            353.7109375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4633.333333333334,
+          "centroid": [
+            498.4506530761719,
+            351.5106201171875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4633.333333333334,
+          "centroid": [
+            498.4506530761719,
+            351.5106201171875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4666.666666666667,
+          "centroid": [
+            499.9635009765625,
+            349.7027587890625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4666.666666666667,
+          "centroid": [
+            499.9635009765625,
+            349.7027587890625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4700.0,
+          "centroid": [
+            500.9927673339844,
+            346.63824462890625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4700.0,
+          "centroid": [
+            500.9927673339844,
+            346.63824462890625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4733.333333333333,
+          "centroid": [
+            501.1881408691406,
+            344.568115234375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4733.333333333333,
+          "centroid": [
+            501.1881408691406,
+            344.568115234375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4833.333333333333,
+          "centroid": [
+            503.48858642578125,
+            338.15087890625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4833.333333333333,
+          "centroid": [
+            503.48858642578125,
+            338.15087890625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4866.666666666666,
+          "centroid": [
+            503.337158203125,
+            336.45269775390625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4866.666666666666,
+          "centroid": [
+            503.337158203125,
+            336.45269775390625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4900.0,
+          "centroid": [
+            504.4328308105469,
+            335.5388488769531
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4900.0,
+          "centroid": [
+            504.4328308105469,
+            335.5388488769531
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4933.333333333334,
+          "centroid": [
+            505.21429443359375,
+            332.38482666015625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4933.333333333334,
+          "centroid": [
+            505.21429443359375,
+            332.38482666015625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 4966.666666666667,
+          "centroid": [
+            505.1041259765625,
+            329.80743408203125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 4966.666666666667,
+          "centroid": [
+            505.1041259765625,
+            329.80743408203125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5000.0,
+          "centroid": [
+            506.20416259765625,
+            327.96649169921875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5000.0,
+          "centroid": [
+            506.20416259765625,
+            327.96649169921875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5033.333333333333,
+          "centroid": [
+            507.3063049316406,
+            326.180908203125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5033.333333333333,
+          "centroid": [
+            507.3063049316406,
+            326.180908203125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5066.666666666666,
+          "centroid": [
+            507.2213134765625,
+            323.17449951171875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5066.666666666666,
+          "centroid": [
+            507.2213134765625,
+            323.17449951171875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5333.333333333333,
+          "centroid": [
+            513.2747802734375,
+            304.91143798828125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5333.333333333333,
+          "centroid": [
+            513.2747802734375,
+            304.91143798828125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5366.666666666666,
+          "centroid": [
+            513.9098510742188,
+            302.4784851074219
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5366.666666666666,
+          "centroid": [
+            513.9098510742188,
+            302.4784851074219
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5400.0,
+          "centroid": [
+            514.7484130859375,
+            301.20361328125
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5400.0,
+          "centroid": [
+            514.7484130859375,
+            301.20361328125
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5433.333333333334,
+          "centroid": [
+            515.4169921875,
+            297.6625671386719
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5433.333333333334,
+          "centroid": [
+            515.4169921875,
+            297.6625671386719
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5566.666666666666,
+          "centroid": [
+            518.9729614257812,
+            290.631103515625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5566.666666666666,
+          "centroid": [
+            518.9729614257812,
+            290.631103515625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5600.0,
+          "centroid": [
+            520.1519165039062,
+            288.05877685546875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5600.0,
+          "centroid": [
+            520.1519165039062,
+            288.05877685546875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5666.666666666667,
+          "centroid": [
+            520.9080810546875,
+            282.7060241699219
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5666.666666666667,
+          "centroid": [
+            520.9080810546875,
+            282.7060241699219
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5700.0,
+          "centroid": [
+            521.26318359375,
+            280.734375
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5700.0,
+          "centroid": [
+            521.26318359375,
+            280.734375
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5733.333333333333,
+          "centroid": [
+            522.0492553710938,
+            279.0456848144531
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5733.333333333333,
+          "centroid": [
+            522.0492553710938,
+            279.0456848144531
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5766.666666666667,
+          "centroid": [
+            522.0267944335938,
+            277.38092041015625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5766.666666666667,
+          "centroid": [
+            522.0267944335938,
+            277.38092041015625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5800.0,
+          "centroid": [
+            523.0045166015625,
+            274.8725891113281
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5800.0,
+          "centroid": [
+            523.0045166015625,
+            274.8725891113281
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 5833.333333333333,
+          "centroid": [
+            524.5494384765625,
+            272.8836364746094
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 5833.333333333333,
+          "centroid": [
+            524.5494384765625,
+            272.8836364746094
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 6033.333333333333,
+          "centroid": [
+            528.8177490234375,
+            262.10369873046875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 6033.333333333333,
+          "centroid": [
+            528.8177490234375,
+            262.10369873046875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 6100.0,
+          "centroid": [
+            530.305419921875,
+            257.21099853515625
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 6100.0,
+          "centroid": [
+            530.305419921875,
+            257.21099853515625
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 6133.333333333334,
+          "centroid": [
+            531.6773681640625,
+            254.69642639160156
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 6133.333333333334,
+          "centroid": [
+            531.6773681640625,
+            254.69642639160156
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 6166.666666666667,
+          "centroid": [
+            532.277099609375,
+            251.95135498046875
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 6166.666666666667,
+          "centroid": [
+            532.277099609375,
+            251.95135498046875
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 6266.666666666667,
+          "centroid": [
+            533.6376953125,
+            247.02804565429688
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 6266.666666666667,
+          "centroid": [
+            533.6376953125,
+            247.02804565429688
+          ]
+        },
+        {
+          "camera_id": "CAM_ALPHA",
+          "timestamp_ms": 6300.0,
+          "centroid": [
+            534.45751953125,
+            244.03616333007812
+          ]
+        },
+        {
+          "camera_id": "CAM_BRAVO",
+          "timestamp_ms": 6300.0,
+          "centroid": [
+            534.45751953125,
+            244.03616333007812
+          ]
+        }
+      ]
+    }
+  ],
+  "recent_evaluations": [
+    {
+      "timestamp_ms": 5733.333333333333,
+      "query_cam": "CAM_ALPHA",
+      "query_track_id": 1,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.929,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 5733.333333333333,
+      "query_cam": "CAM_BRAVO",
+      "query_track_id": 2,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.954,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 5766.666666666667,
+      "query_cam": "CAM_ALPHA",
+      "query_track_id": 1,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.954,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 5766.666666666667,
+      "query_cam": "CAM_BRAVO",
+      "query_track_id": 2,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.97,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 5800.0,
+      "query_cam": "CAM_ALPHA",
+      "query_track_id": 1,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.966,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 5800.0,
+      "query_cam": "CAM_BRAVO",
+      "query_track_id": 2,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.978,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 5833.333333333333,
+      "query_cam": "CAM_ALPHA",
+      "query_track_id": 1,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.98,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 5833.333333333333,
+      "query_cam": "CAM_BRAVO",
+      "query_track_id": 2,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.987,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6033.333333333333,
+      "query_cam": "CAM_ALPHA",
+      "query_track_id": 1,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.902,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.2
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6033.333333333333,
+      "query_cam": "CAM_BRAVO",
+      "query_track_id": 2,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.937,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6100.0,
+      "query_cam": "CAM_ALPHA",
+      "query_track_id": 1,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.937,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.1
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6100.0,
+      "query_cam": "CAM_BRAVO",
+      "query_track_id": 2,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.959,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6133.333333333334,
+      "query_cam": "CAM_ALPHA",
+      "query_track_id": 1,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.958,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6133.333333333334,
+      "query_cam": "CAM_BRAVO",
+      "query_track_id": 2,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.973,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6166.666666666667,
+      "query_cam": "CAM_ALPHA",
+      "query_track_id": 1,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.958,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6166.666666666667,
+      "query_cam": "CAM_BRAVO",
+      "query_track_id": 2,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.973,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6266.666666666667,
+      "query_cam": "CAM_ALPHA",
+      "query_track_id": 1,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.984,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.1
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6266.666666666667,
+      "query_cam": "CAM_BRAVO",
+      "query_track_id": 2,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.99,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6300.0,
+      "query_cam": "CAM_ALPHA",
+      "query_track_id": 1,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.948,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    },
+    {
+      "timestamp_ms": 6300.0,
+      "query_cam": "CAM_BRAVO",
+      "query_track_id": 2,
+      "candidates": [
+        {
+          "candidate_global_id": "TRG-0001",
+          "cosine_similarity": 0.967,
+          "threshold": 0.7,
+          "accepted": true,
+          "temporal_gap_s": 0.0
+        }
+      ]
+    }
+  ]
+}

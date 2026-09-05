@@ -1,0 +1,1958 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IBVAP Sentinel — Tactical Command Console</title>
+<meta name="description" content="Autonomous Border Video Analytics Platform with High-Fidelity 3D Digital Twin, Cross-Camera Re-ID, Multi-Feed CCTV Wall, and SHA-256 Blockchain Ledger." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,500;0,600;0,700;1,600;1,700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<style>
+  :root {
+    --bg-dark:       #02050d;
+    --bg-surface:    #060c18;
+    --bg-card:       rgba(9, 17, 30, 0.88);
+    --bg-card-hover: rgba(15, 27, 48, 0.95);
+    --line:          rgba(0, 240, 255, 0.16);
+    --line-strong:   rgba(0, 240, 255, 0.42);
+    
+    --cyan:          #00f0ff;
+    --cyan-glow:     rgba(0, 240, 255, 0.35);
+    --emerald:       #00ff9d;
+    --emerald-glow:  rgba(0, 255, 157, 0.35);
+    --amber:         #ffb703;
+    --amber-glow:    rgba(255, 183, 3, 0.35);
+    --crimson:       #ff0055;
+    --crimson-glow:  rgba(255, 0, 85, 0.5);
+    --purple:        #a855f7;
+    --purple-glow:   rgba(168, 85, 247, 0.35);
+
+    --text-main:     #e2e8f0;
+    --text-dim:      #94a3b8;
+    --text-faint:    #475569;
+
+    --font-heading:  "Chakra Petch", sans-serif;
+    --font-body:     "Plus Jakarta Sans", system-ui, sans-serif;
+    --font-mono:     "IBM Plex Mono", monospace;
+
+    --radius-sm:     4px;
+    --radius-md:     8px;
+    --radius-lg:     14px;
+    --shadow-card:   0 12px 40px rgba(0, 0, 0, 0.7);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+
+  body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Parallax Background Glow Layer */
+  .bg-parallax-grid {
+    position: fixed; inset: -40px; z-index: -1; pointer-events: none;
+    background-image: 
+      radial-gradient(circle at 12% 18%, rgba(0, 240, 255, 0.06) 0%, transparent 45%),
+      radial-gradient(circle at 88% 82%, rgba(255, 0, 85, 0.05) 0%, transparent 45%),
+      linear-gradient(to right, rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 700; letter-spacing: 0.04em; }
+  .mono { font-family: var(--font-mono); }
+
+  /* App Shell & Orchestrated Entry Reveal */
+  .app-shell {
+    display: flex; flex-direction: column; min-height: 100vh;
+  }
+  .reveal-item {
+    opacity: 0; transform: translateY(10px);
+    animation: panelReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .reveal-delay-1 { animation-delay: 0.05s; }
+  .reveal-delay-2 { animation-delay: 0.12s; }
+  .reveal-delay-3 { animation-delay: 0.18s; }
+  .reveal-delay-4 { animation-delay: 0.25s; }
+
+  @keyframes panelReveal {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-item { opacity: 1 !important; transform: none !important; animation: none !important; }
+    .bg-parallax-grid { transform: none !important; }
+  }
+
+  /* Header */
+  .top-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px;
+    background: rgba(4, 9, 18, 0.94);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 1000;
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-logo {
+    width: 40px; height: 40px; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(6, 12, 24, 0.95));
+    border: 1px solid var(--cyan);
+    display: grid; place-items: center;
+    box-shadow: 0 0 16px var(--cyan-glow);
+    position: relative;
+  }
+  .brand-logo svg { width: 22px; height: 22px; stroke: var(--cyan); }
+  .brand-logo::after {
+    content: ""; position: absolute; top: -3px; right: -3px; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--emerald); box-shadow: 0 0 8px var(--emerald);
+    animation: pulse-ring 2s infinite;
+  }
+  @keyframes pulse-ring { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.3); } }
+
+  .brand-title h1 {
+    font-size: 17px; line-height: 1.1; color: #fff; letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .brand-title h1 .sub-tag {
+    font-size: 10.5px; color: var(--cyan); font-weight: 600; padding: 1px 6px;
+    border-radius: 3px; background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.25);
+  }
+  .brand-title p { font-size: 10.5px; color: var(--text-dim); font-family: var(--font-mono); letter-spacing: 0.05em; margin-top: 2px; }
+
+  /* Navigation Rail with Sliding Underline */
+  .nav-tabs {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(2, 6, 14, 0.88);
+    padding: 3px; border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    position: relative;
+  }
+  .nav-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: var(--radius-sm);
+    font-family: var(--font-heading); font-size: 12.5px; font-weight: 600;
+    color: var(--text-dim); background: transparent; border: none;
+    cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative; z-index: 2;
+  }
+  .nav-btn svg { width: 15px; height: 15px; stroke: currentColor; }
+  .nav-btn:hover { color: #fff; background: rgba(0, 240, 255, 0.06); }
+  .nav-btn.active {
+    color: #02050d; background: var(--cyan);
+    box-shadow: 0 0 16px var(--cyan-glow); font-weight: 700;
+  }
+  .nav-btn.active svg { stroke: #02050d; }
+
+  /* Status Badge & Audio Header Controls */
+  .system-status { display: flex; align-items: center; gap: 10px; }
+  .status-badge {
+    display: flex; align-items: center; gap: 7px;
+    padding: 5px 12px; border-radius: 20px;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    background: rgba(0, 255, 157, 0.1); border: 1px solid rgba(0, 255, 157, 0.35);
+    color: var(--emerald); transition: all 0.3s ease;
+  }
+  .status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+  .status-badge.alert {
+    background: rgba(255, 0, 85, 0.2); border-color: var(--crimson);
+    color: var(--crimson); animation: pulse-alert 0.8s infinite;
+  }
+  @keyframes pulse-alert { 50% { box-shadow: 0 0 14px var(--crimson); } }
+
+  .header-actions { display: flex; align-items: center; gap: 6px; }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: var(--radius-sm);
+    background: var(--bg-surface); border: 1px solid var(--line);
+    color: var(--text-dim); display: grid; place-items: center;
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .icon-btn:hover { color: var(--cyan); border-color: var(--cyan); background: rgba(0, 240, 255, 0.08); }
+  .icon-btn:active { transform: scale(0.94); }
+  .icon-btn.active {
+    color: var(--crimson); border-color: var(--crimson);
+    background: rgba(255, 0, 85, 0.25); animation: klaxon-strobe 0.8s infinite;
+  }
+  @keyframes klaxon-strobe { 50% { background: rgba(255, 0, 85, 0.5); } }
+
+  /* Main Container */
+  .main-content {
+    flex: 1; padding: 14px 18px; max-width: 1720px; margin: 0 auto; width: 100%;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+
+  /* Scenario Launch Strip */
+  .scenario-strip {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    box-shadow: var(--shadow-card);
+  }
+  .scenario-label {
+    display: flex; align-items: center; gap: 8px; font-family: var(--font-heading);
+    font-size: 12px; font-weight: 700; color: var(--cyan); text-transform: uppercase;
+    letter-spacing: 0.08em; white-space: nowrap;
+  }
+  .scenario-buttons { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex: 1; justify-content: flex-end; }
+  .scen-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 12px; border-radius: var(--radius-sm);
+    background: rgba(12, 22, 38, 0.9); border: 1px solid var(--line);
+    color: var(--text-main); font-family: var(--font-heading); font-size: 11.5px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .scen-btn .badge-num {
+    background: rgba(0, 240, 255, 0.15); color: var(--cyan);
+    padding: 1px 5px; border-radius: 3px; font-family: var(--font-mono); font-size: 10px;
+  }
+  .scen-btn:hover {
+    border-color: var(--cyan); background: rgba(0, 240, 255, 0.1);
+    transform: translateY(-1px);
+  }
+  .scen-btn:active { transform: translateY(1px); }
+  .scen-btn.active {
+    background: linear-gradient(135deg, rgba(255, 0, 85, 0.3), rgba(12, 22, 38, 0.95));
+    border-color: var(--crimson); color: #fff; box-shadow: 0 0 14px var(--crimson-glow);
+  }
+  .scen-btn.active .badge-num { background: var(--crimson); color: #fff; }
+
+  /* 3D Master Grid */
+  .twin-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 14px;
+  }
+  @media (max-width: 1200px) {
+    .twin-grid { grid-template-columns: 1fr; }
+  }
+
+  /* 3D Canvas Card */
+  .canvas-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-card);
+    position: relative;
+    min-height: 590px;
+  }
+  .canvas-card.alert-border {
+    border-color: var(--crimson);
+    animation: border-alarm 0.9s infinite alternate;
+  }
+  @keyframes border-alarm {
+    from { box-shadow: 0 0 15px rgba(255, 0, 85, 0.2); }
+    to { box-shadow: 0 0 30px rgba(255, 0, 85, 0.6); }
+  }
+
+  .canvas-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px;
+    background: rgba(4, 9, 18, 0.92);
+    border-bottom: 1px solid var(--line);
+    z-index: 10;
+  }
+  .canvas-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; }
+  .canvas-title svg { width: 15px; height: 15px; stroke: var(--cyan); }
+
+  /* Camera Presets */
+  .cam-presets { display: flex; align-items: center; gap: 5px; }
+  .preset-btn {
+    padding: 4px 9px; border-radius: var(--radius-sm);
+    background: rgba(12, 22, 38, 0.8); border: 1px solid var(--line);
+    color: var(--text-dim); font-family: var(--font-mono); font-size: 10.5px;
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .preset-btn:hover { color: #fff; border-color: var(--cyan); }
+  .preset-btn:active { transform: scale(0.96); }
+  .preset-btn.active { background: var(--cyan); color: #02050d; font-weight: 700; border-color: var(--cyan); }
+
+  /* 3D Viewport */
+  .canvas-viewport {
+    flex: 1; width: 100%; height: 100%; min-height: 530px;
+    position: relative; background: #020612; cursor: grab;
+  }
+  .canvas-viewport:active { cursor: grabbing; }
+
+  /* HUD Overlays */
+  .hud-overlay {
+    position: absolute; inset: 0; pointer-events: none; z-index: 5;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 14px;
+  }
+  .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .hud-telemetry {
+    background: rgba(2, 6, 14, 0.85); border: 1px solid var(--line);
+    padding: 7px 11px; border-radius: var(--radius-sm);
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--cyan);
+    backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 2px;
+  }
+  .hud-vision-filters {
+    display: flex; gap: 4px; pointer-events: auto;
+    background: rgba(2, 6, 14, 0.88); padding: 3px; border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+  }
+  .filter-btn {
+    padding: 3px 8px; font-family: var(--font-mono); font-size: 10px;
+    border-radius: 3px; border: 1px solid transparent; background: transparent;
+    color: var(--text-dim); cursor: pointer; transition: all 0.15s ease;
+  }
+  .filter-btn:hover { color: #fff; background: rgba(0, 240, 255, 0.1); }
+  .filter-btn.active { background: rgba(0, 240, 255, 0.2); border-color: var(--cyan); color: var(--cyan); font-weight: 600; }
+
+  .hud-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+  .hud-threat-banner {
+    background: rgba(6, 13, 24, 0.92); border: 1px solid var(--line);
+    padding: 9px 13px; border-radius: var(--radius-sm);
+    display: flex; align-items: center; gap: 12px; backdrop-filter: blur(12px);
+    pointer-events: auto; max-width: 480px;
+  }
+  .threat-gauge {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 62px; height: 62px; border-radius: 50%;
+    background: conic-gradient(var(--crimson) 0% 77%, rgba(255, 255, 255, 0.08) 77% 100%);
+    position: relative; box-shadow: 0 0 14px var(--crimson-glow); flex-shrink: 0;
+  }
+  .threat-gauge::before {
+    content: ""; position: absolute; inset: 5px; border-radius: 50%;
+    background: #040914;
+  }
+  .threat-gauge-val {
+    position: relative; z-index: 2; font-family: var(--font-heading);
+    font-size: 16px; font-weight: 700; color: #fff; line-height: 1;
+  }
+  .threat-gauge-lbl {
+    position: relative; z-index: 2; font-family: var(--font-mono);
+    font-size: 7.5px; color: var(--text-dim); letter-spacing: 0.08em;
+  }
+
+  /* 3D Radar Minimap */
+  .radar-minimap {
+    width: 110px; height: 110px; border-radius: 50%;
+    background: rgba(2, 6, 14, 0.9); border: 1px solid var(--line-strong);
+    position: relative; overflow: hidden; backdrop-filter: blur(8px);
+    box-shadow: 0 0 16px rgba(0, 240, 255, 0.15); pointer-events: auto;
+  }
+  .radar-sweep {
+    position: absolute; inset: 0;
+    background: conic-gradient(from 0deg, rgba(0, 240, 255, 0.35) 0deg, transparent 60deg, transparent 360deg);
+    border-radius: 50%; animation: radar-spin 3s linear infinite;
+  }
+  @keyframes radar-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .radar-ring {
+    position: absolute; inset: 18px; border-radius: 50%;
+    border: 1px dashed rgba(0, 240, 255, 0.25);
+  }
+  .radar-crosshair-h { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(0, 240, 255, 0.2); }
+  .radar-crosshair-v { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(0, 240, 255, 0.2); }
+  .radar-blip {
+    position: absolute; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--crimson); box-shadow: 0 0 6px var(--crimson);
+    transform: translate(-50%, -50%);
+  }
+
+  /* 3D Object Inspector Modal */
+  .inspector-hud {
+    position: absolute; top: 50px; right: 14px; width: 270px;
+    background: rgba(4, 9, 18, 0.96); border: 1px solid var(--cyan);
+    border-radius: var(--radius-sm); padding: 12px;
+    box-shadow: 0 8px 30px rgba(0, 240, 255, 0.25);
+    backdrop-filter: blur(16px); z-index: 20; pointer-events: auto;
+    display: none; animation: fadeIn 0.15s ease;
+  }
+  .inspector-hud.open { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  .inspector-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 6px;
+  }
+  .inspector-title { font-family: var(--font-heading); font-size: 12px; font-weight: 700; color: var(--cyan); }
+  .inspector-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 15px; }
+  .inspector-close:hover { color: #fff; }
+  .inspector-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; font-family: var(--font-mono); }
+  .inspector-row span { color: var(--text-dim); }
+  .inspector-row b { color: #fff; font-weight: 500; }
+
+  /* Side Panel & Cards */
+  .side-panel { display: flex; flex-direction: column; gap: 12px; }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    box-shadow: var(--shadow-card);
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+  }
+  .card-title {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-heading); font-size: 12.5px; font-weight: 700; color: #fff;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .card-title svg { width: 15px; height: 15px; stroke: var(--cyan); }
+
+  /* Threat Matrix Factors */
+  .factor-list { display: flex; flex-direction: column; gap: 6px; }
+  .factor-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 9px; background: rgba(2, 6, 14, 0.7);
+    border: 1px solid rgba(0, 240, 255, 0.08); border-radius: var(--radius-sm);
+    font-size: 11px;
+  }
+  .factor-name { display: flex; align-items: center; gap: 6px; color: var(--text-main); font-weight: 500; }
+  .factor-pts { font-family: var(--font-mono); font-weight: 700; color: var(--amber); }
+
+  /* Buttons */
+  .btn-group { display: flex; gap: 6px; margin-top: 10px; }
+  .btn {
+    flex: 1; padding: 7px 11px; border-radius: var(--radius-sm);
+    font-family: var(--font-heading); font-size: 11.5px; font-weight: 700;
+    cursor: pointer; transition: all 0.15s ease; border: none;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--cyan); color: #02050d; box-shadow: 0 0 10px var(--cyan-glow); }
+  .btn-primary:hover { background: #38bdf8; }
+  .btn-danger { background: var(--crimson); color: #fff; box-shadow: 0 0 10px var(--crimson-glow); }
+  .btn-danger:hover { background: #e11d48; }
+  .btn-secondary { background: rgba(12, 22, 38, 0.9); border: 1px solid var(--line); color: var(--text-dim); }
+  .btn-secondary:hover { color: #fff; border-color: var(--cyan); }
+
+  /* CCTV Wall Tab View */
+  .cctv-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 14px;
+  }
+  .cctv-feed-card {
+    background: var(--bg-card); border: 1px solid var(--line);
+    border-radius: var(--radius-md); overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .feed-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 11px; background: rgba(4, 9, 18, 0.92);
+    border-bottom: 1px solid var(--line); font-family: var(--font-mono); font-size: 10.5px;
+  }
+  .feed-canvas-wrap {
+    position: relative; width: 100%; aspect-ratio: 16/9; background: #02050d;
+  }
+  .feed-canvas-wrap canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .feed-overlay-hud {
+    position: absolute; inset: 0; pointer-events: none;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 8px; font-family: var(--font-mono); font-size: 9.5px; color: var(--cyan);
+  }
+  .feed-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 11px; background: rgba(2, 6, 14, 0.85); border-top: 1px solid var(--line);
+  }
+  .filter-pills { display: flex; gap: 4px; }
+  .filter-pill {
+    padding: 2px 6px; border-radius: 3px; border: 1px solid var(--line);
+    background: transparent; color: var(--text-dim); font-size: 9.5px;
+    font-family: var(--font-mono); cursor: pointer;
+  }
+  .filter-pill.active { background: var(--cyan); color: #02050d; font-weight: 700; border-color: var(--cyan); }
+
+  /* Replay View */
+  .timeline-bar-wrap {
+    background: rgba(2, 6, 14, 0.85); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: 12px; margin-top: 10px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .timeline-track {
+    width: 100%; height: 8px; border-radius: 4px; background: #0a1424;
+    position: relative; cursor: pointer;
+  }
+  .timeline-fill { height: 100%; border-radius: 4px; background: var(--cyan); width: 45%; }
+  .timeline-marker {
+    position: absolute; top: -4px; width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; box-shadow: 0 0 8px var(--cyan); transform: translateX(-50%);
+  }
+
+  /* Re-ID Tab View */
+  .reid-workbench {
+    display: grid; grid-template-columns: 260px 1fr; gap: 14px;
+  }
+  .probe-card {
+    background: var(--bg-card); border: 1px solid var(--line);
+    border-radius: var(--radius-md); padding: 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .probe-img-wrap {
+    width: 100%; aspect-ratio: 3/4; background: #060d1a;
+    border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .probe-img-wrap canvas { width: 100%; height: 100%; display: block; }
+  .gallery-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px;
+  }
+  .gallery-card {
+    background: rgba(6, 12, 24, 0.9); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: 9px;
+    display: flex; flex-direction: column; gap: 5px; transition: all 0.2s ease;
+  }
+  .gallery-card.match {
+    border-color: var(--emerald); box-shadow: 0 0 14px var(--emerald-glow);
+    background: rgba(0, 255, 157, 0.06);
+  }
+  .gallery-crop { width: 100%; aspect-ratio: 3/4; background: #02050d; border-radius: 3px; }
+  .sim-meter { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+  .sim-meter i { display: block; height: 100%; background: var(--cyan); }
+  .gallery-card.match .sim-meter i { background: var(--emerald); }
+
+  /* Blockchain Vault */
+  .vault-layout { display: grid; grid-template-columns: 340px 1fr; gap: 14px; }
+  .block-list { display: flex; flex-direction: column; gap: 7px; max-height: 500px; overflow-y: auto; }
+  .block-card {
+    background: rgba(6, 12, 24, 0.85); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: 9px 11px;
+    font-family: var(--font-mono); font-size: 10.5px; cursor: pointer;
+  }
+  .block-card:hover { border-color: var(--cyan); background: rgba(0, 240, 255, 0.05); }
+  .block-card.sel { border-color: var(--emerald); background: rgba(0, 255, 157, 0.08); }
+
+  /* Calibration View */
+  .calib-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+  .slider-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-family: var(--font-mono); font-size: 11px; }
+  .slider-row input[type=range] { width: 100%; accent-color: var(--cyan); }
+
+  /* Toast Notifications */
+  .toast-container {
+    position: fixed; bottom: 18px; right: 18px; z-index: 9999;
+    display: flex; flex-direction: column; gap: 7px; pointer-events: none;
+  }
+  .toast-msg {
+    background: rgba(4, 9, 18, 0.95); border: 1px solid var(--cyan);
+    border-radius: var(--radius-sm); padding: 9px 13px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+    font-family: var(--font-mono); font-size: 11px; color: #fff;
+    display: flex; align-items: center; gap: 9px; min-width: 270px;
+    animation: slideIn 0.2s ease;
+  }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .toast-msg.warn { border-color: var(--amber); }
+  .toast-msg.crit { border-color: var(--crimson); box-shadow: 0 0 18px var(--crimson-glow); }
+  .toast-msg.ok { border-color: var(--emerald); }
+</style>
+</head>
+
+<body>
+<div class="bg-parallax-grid" id="parallax-bg"></div>
+
+<div class="app-shell">
+
+  <!-- Top Tactical Command Header -->
+  <header class="top-header reveal-item reveal-delay-1">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <div class="brand-title">
+        <h1>IBVAP SENTINEL <span class="sub-tag">WATCHFLOOR</span></h1>
+        <p>INTELLIGENT BORDER VIDEO ANALYTICS PLATFORM · SECTOR 4B</p>
+      </div>
+    </div>
+
+    <!-- 6 Primary Views (OPS / WALL / REPLAY / RE-ID / LEDGER / CALIB) -->
+    <nav class="nav-tabs">
+      <button class="nav-btn active" data-view="ops">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        OPS
+      </button>
+      <button class="nav-btn" data-view="wall">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        WALL
+      </button>
+      <button class="nav-btn" data-view="replay">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        REPLAY
+      </button>
+      <button class="nav-btn" data-view="reid">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M17 11v6"/><path d="M14 14h6"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/></svg>
+        RE-ID
+      </button>
+      <button class="nav-btn" data-view="ledger">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        LEDGER
+      </button>
+      <button class="nav-btn" data-view="calib">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/></svg>
+        CALIB
+      </button>
+    </nav>
+
+    <!-- System Status & Siren Controls -->
+    <div class="system-status">
+      <div class="status-badge" id="main-status-badge">
+        <span class="dot"></span>
+        <span id="main-status-text">SECTOR NORMAL · DEFCON 5</span>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="btn-sound-toggle" title="Toggle Acoustic Feedback">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-siren-toggle" title="Emergency Siren Alarm Toggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="main-content">
+
+    <!-- Scenario Strip -->
+    <section class="scenario-strip reveal-item reveal-delay-2">
+      <div class="scenario-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Tactical Scenarios:
+      </div>
+      <div class="scenario-buttons">
+        <button class="scen-btn" onclick="triggerScenario(1)">
+          <span class="badge-num">1</span> Night Breach
+        </button>
+        <button class="scen-btn" onclick="triggerScenario(2)">
+          <span class="badge-num">2</span> Cross-Cam Re-ID
+        </button>
+        <button class="scen-btn" onclick="triggerScenario(3)">
+          <span class="badge-num">3</span> Vehicle Ramming
+        </button>
+        <button class="scen-btn" onclick="triggerScenario(4)">
+          <span class="badge-num">4</span> Loitering Dwell
+        </button>
+        <button class="scen-btn" onclick="triggerScenario(5)">
+          <span class="badge-num">5</span> UAV Thermal Recon
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEW 1: OPS (3D DIGITAL TWIN + INCIDENT RECONSTRUCTION) -->
+    <div id="page-ops" class="tab-page reveal-item reveal-delay-3">
+      <div class="twin-grid">
+        
+        <!-- 3D Canvas Viewport -->
+        <div class="canvas-card" id="twin-main-card">
+          <div class="canvas-header">
+            <div class="canvas-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+              Sector 4B · Checkpost Alpha to BOP Bravo Tactical Twin
+            </div>
+            <div class="cam-presets">
+              <button class="preset-btn active" data-cam="default">Overview</button>
+              <button class="preset-btn" data-cam="alpha">Tower Alpha</button>
+              <button class="preset-btn" data-cam="bravo">Tower Bravo</button>
+              <button class="preset-btn" data-cam="drone">UAV FPV</button>
+              <button class="preset-btn" data-cam="target">Target Lock</button>
+            </div>
+          </div>
+
+          <div class="canvas-viewport" id="twin-canvas-wrap">
+            <div class="hud-overlay">
+              <div class="hud-top">
+                <div class="hud-telemetry">
+                  <div>LAT/LONG: <b>32.1914° N, 74.8920° E</b></div>
+                  <div>FPS: <b id="hud-fps-val">60.0</b> · ASSETS: <b>18 HARDWARE NODES</b></div>
+                  <div>OPTICS: <b>GEN-3 THERMAL / PTZ 4K</b></div>
+                </div>
+
+                <div class="hud-vision-filters">
+                  <button class="filter-btn active" onclick="setVisionShader('standard')">CYBER</button>
+                  <button class="filter-btn" onclick="setVisionShader('thermal')">FLIR THERMAL</button>
+                  <button class="filter-btn" onclick="setVisionShader('nvg')">NVG GEN-3</button>
+                </div>
+              </div>
+
+              <div class="hud-bottom">
+                <div class="hud-threat-banner">
+                  <div class="threat-gauge">
+                    <span class="threat-gauge-val" id="threat-score-val">77</span>
+                    <span class="threat-gauge-lbl">THREAT</span>
+                  </div>
+                  <div>
+                    <div style="display:flex;align-items:center;gap:7px;">
+                      <span id="threat-tier-tag" style="background:var(--crimson);color:#fff;padding:2px 7px;border-radius:3px;font-family:var(--font-mono);font-size:9.5px;font-weight:700;">CRITICAL BREACH</span>
+                      <span class="mono" style="font-size:11.5px;color:var(--text-dim);" id="target-id-val">TRG-1041</span>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-main);margin-top:3px;" id="incident-narrative-text">
+                      Target penetrated Checkpost Alpha red zone. Heading vector 042° toward BOP Bravo.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="radar-minimap" title="Sector Radar Minimap">
+                  <div class="radar-sweep"></div>
+                  <div class="radar-ring"></div>
+                  <div class="radar-crosshair-h"></div>
+                  <div class="radar-crosshair-v"></div>
+                  <div class="radar-blip" id="radar-blip-target" style="top:45%;left:35%;"></div>
+                  <div class="radar-blip" style="top:50%;left:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Inspector Modal -->
+            <div class="inspector-hud" id="inspector-modal">
+              <div class="inspector-header">
+                <span class="inspector-title" id="inspect-name">LATTICE TOWER ALPHA</span>
+                <button class="inspector-close" onclick="closeInspector()">✕</button>
+              </div>
+              <div class="inspector-row"><span>Type:</span> <b id="inspect-type">Braced Truss Tower</b></div>
+              <div class="inspector-row"><span>Optical Range:</span> <b id="inspect-range">250m Optical / 400m IR</b></div>
+              <div class="inspector-row"><span>AI Sensors:</span> <b id="inspect-sensors">PTZ FLIR + Radar Dish</b></div>
+              <div class="inspector-row"><span>Status:</span> <b id="inspect-status" style="color:var(--emerald);">ONLINE · TRACKING</b></div>
+              <div class="inspector-row"><span>Telemetry:</span> <b id="inspect-telem">32.1914°N / 74.8920°E</b></div>
+              <button class="btn btn-primary" style="width:100%;margin-top:7px;font-size:10.5px;" onclick="focusInspectedObject()">Focus Camera</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side Panel -->
+        <aside class="side-panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Threat Score Matrix
+              </div>
+              <span class="mono" style="font-size:9.5px;color:var(--cyan);">EXPLAINABLE</span>
+            </div>
+
+            <div class="factor-list">
+              <div class="factor-item">
+                <span class="factor-name">🔴 Restricted Red Zone Incursion</span>
+                <span class="factor-pts">+30 pts</span>
+              </div>
+              <div class="factor-item">
+                <span class="factor-name">⚡ Speed / High-Risk Velocity Vector</span>
+                <span class="factor-pts">+20 pts</span>
+              </div>
+              <div class="factor-item">
+                <span class="factor-name">⏳ Perimeter Fence Dwell / Loitering</span>
+                <span class="factor-pts">+15 pts</span>
+              </div>
+              <div class="factor-item">
+                <span class="factor-name">🛰️ Multi-Camera Cross Linkage</span>
+                <span class="factor-pts">+12 pts</span>
+              </div>
+              <div class="factor-item">
+                <span class="factor-name">🌙 Night / Low-Visibility Window</span>
+                <span class="factor-pts">+10 pts</span>
+              </div>
+            </div>
+
+            <div class="btn-group">
+              <button class="btn btn-danger" id="btn-triage-confirm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>
+                Confirm Threat
+              </button>
+              <button class="btn btn-secondary" id="btn-triage-dismiss">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Dismiss / Calibrate
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Spatio-Temporal Handoff
+              </div>
+              <span class="mono" style="font-size:9.5px;color:var(--emerald);">ETA: 9.4s</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--text-dim);line-height:1.6;">
+              <div>• Exit Speed: <b style="color:#fff;">2.8 m/s</b> along Vector 042°</div>
+              <div>• Blind Corridor Distance: <b style="color:#fff;">26.3 Meters</b></div>
+              <div>• Search Gate: <b style="color:var(--cyan);">6.0s – 14.0s</b> (Zero False Alerts)</div>
+              <div>• Re-ID Match: <b style="color:var(--emerald);">512-d OSNet Cosine 0.96</b></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Evidence Ledger Status
+              </div>
+              <span class="mono" style="font-size:9.5px;color:var(--emerald);">✓ SEALED</span>
+            </div>
+            <div class="mono" style="font-size:10.5px;color:var(--text-dim);word-break:break-all;">
+              SHA-256: <span style="color:var(--emerald);" id="quick-chain-hash">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- VIEW 2: WALL (CCTV MULTI-FEED MATRIX) -->
+    <div id="page-wall" class="tab-page" hidden>
+      <div class="cctv-grid">
+        <div class="cctv-feed-card">
+          <div class="feed-header">
+            <span>CAM_ALPHA · 32.1914°N</span>
+            <span style="color:var(--crimson);font-weight:700;">LIVE · 30 FPS</span>
+          </div>
+          <div class="feed-canvas-wrap">
+            <canvas id="feed-canvas-a" width="480" height="270"></canvas>
+            <div class="feed-overlay-hud">
+              <div>[YOLOv8s] PERSON #1041 (95.4%)</div>
+              <div>BBOX: [X:142, Y:88, W:64, H:140]</div>
+            </div>
+          </div>
+          <div class="feed-footer">
+            <span style="font-size:10.5px;color:var(--text-dim);">Optical PTZ 4K</span>
+            <div class="filter-pills">
+              <button class="filter-pill active" onclick="setFeedMode('a', 'rgb', this)">RGB</button>
+              <button class="filter-pill" onclick="setFeedMode('a', 'thermal', this)">THERMAL</button>
+              <button class="filter-pill" onclick="setFeedMode('a', 'night', this)">NIGHT</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cctv-feed-card">
+          <div class="feed-header">
+            <span>CAM_BRAVO · 32.1922°N</span>
+            <span style="color:var(--emerald);font-weight:700;">AWAITING HANDOFF</span>
+          </div>
+          <div class="feed-canvas-wrap">
+            <canvas id="feed-canvas-b" width="480" height="270"></canvas>
+            <div class="feed-overlay-hud">
+              <div>[SPATIAL GATE] WINDOW: 6-14s</div>
+              <div>STATUS: SEARCH RESTRICTED TO SECTOR B</div>
+            </div>
+          </div>
+          <div class="feed-footer">
+            <span style="font-size:10.5px;color:var(--text-dim);">Optical PTZ 4K</span>
+            <div class="filter-pills">
+              <button class="filter-pill active" onclick="setFeedMode('b', 'rgb', this)">RGB</button>
+              <button class="filter-pill" onclick="setFeedMode('b', 'thermal', this)">THERMAL</button>
+              <button class="filter-pill" onclick="setFeedMode('b', 'night', this)">NIGHT</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: REPLAY (INCIDENT TIMELINE) -->
+    <div id="page-replay" class="tab-page" hidden>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Incident Timeline Playback & Keyframe Scrubber</div>
+          <span class="mono" style="font-size:10px;color:var(--cyan);">INC-1041 · 09:40:30 UTC</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-dim);">
+          Scrub through synchronized multi-camera event keyframes to audit trajectory reconstruction.
+        </div>
+        <div class="timeline-bar-wrap">
+          <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);">
+            <span>09:40:00 (Pre-breach)</span>
+            <span style="color:var(--crimson);font-weight:700;">09:40:30 (Alpha Breach)</span>
+            <span style="color:var(--emerald);font-weight:700;">09:40:40 (Bravo Re-ID)</span>
+            <span>09:41:00 (QRT Intercept)</span>
+          </div>
+          <div class="timeline-track">
+            <div class="timeline-fill"></div>
+            <div class="timeline-marker" style="left:45%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: RE-ID WORKBENCH -->
+    <div id="page-reid" class="tab-page" hidden>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Cross-Camera Re-ID Feature Comparator (512-d OSNet Embedding Space)</div>
+        <p style="font-size:11.5px;color:var(--text-dim);margin-top:3px;">
+          Eliminates gallery drift by restricting cosine matching exclusively to targets arriving within the <b>6–14s Spatio-Temporal Window</b>.
+        </p>
+      </div>
+
+      <div class="reid-workbench">
+        <div class="probe-card">
+          <div class="mono" style="font-size:11.5px;color:var(--cyan);font-weight:700;">PROBE: CAM_ALPHA</div>
+          <div class="probe-img-wrap">
+            <canvas id="reid-query-canvas" width="200" height="260"></canvas>
+          </div>
+          <div class="mono" style="font-size:10.5px;color:var(--text-dim);text-align:center;">
+            Captured: 09:40:30<br>
+            Vector: 042° · 2.8 m/s
+          </div>
+        </div>
+
+        <div class="gallery-grid" id="reid-gallery-container">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 5: LEDGER (BLOCKCHAIN VAULT) -->
+    <div id="page-ledger" class="tab-page" hidden>
+      <div class="vault-layout">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Cryptographic Blocks</div>
+            <span class="mono" style="font-size:9.5px;color:var(--emerald);">MERKLE ANCHOR</span>
+          </div>
+          <div class="block-list" id="vault-block-list">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
+
+        <div class="card" id="vault-inspect-panel">
+          <div class="card-header">
+            <div class="card-title" id="vault-inspect-title">Block #1 · INC-1041</div>
+            <button class="btn btn-secondary" style="font-size:10.5px;padding:4px 9px;" id="btn-audit-chain">Verify Full Ledger</button>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);line-height:1.7;" id="vault-inspect-details">
+            <!-- Populated by JavaScript -->
+          </div>
+          <div style="margin-top:14px;">
+            <button class="btn btn-danger" style="font-size:10.5px;" id="btn-tamper-test">
+              Inject Tamper Test (Simulate Attack)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 6: CALIB (ALERT CALIBRATION) -->
+    <div id="page-calib" class="tab-page" hidden>
+      <div class="calib-grid">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:10px;">Per-Camera Sensitivity Calibration</div>
+          <div class="slider-row">
+            <span>CAM_ALPHA Sensitivity Threshold: <b id="val-sens-a">0.75</b></span>
+            <input type="range" min="0.5" max="0.95" step="0.05" value="0.75" oninput="$('#val-sens-a').textContent=this.value">
+          </div>
+          <div class="slider-row">
+            <span>CAM_BRAVO Sensitivity Threshold: <b id="val-sens-b">0.80</b></span>
+            <input type="range" min="0.5" max="0.95" step="0.05" value="0.80" oninput="$('#val-sens-b').textContent=this.value">
+          </div>
+          <div class="slider-row">
+            <span>Loitering Dwell Trigger (Seconds): <b id="val-dwell">240s</b></span>
+            <input type="range" min="60" max="600" step="30" value="240" oninput="$('#val-dwell').textContent=this.value+'s'">
+          </div>
+          <button class="btn btn-primary" style="margin-top:8px;" onclick="toast('ok', 'Calibration Applied', 'Per-node sensor filter matrices updated.')">Save Configuration</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Master Interactive Script -->
+<script>
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* Background Parallax */
+window.addEventListener('mousemove', e => {
+  const bg = $('#parallax-bg');
+  if (!bg) return;
+  const dx = (e.clientX / window.innerWidth - 0.5) * 16;
+  const dy = (e.clientY / window.innerHeight - 0.5) * 16;
+  bg.style.transform = `translate(${dx}px, ${dy}px)`;
+});
+
+function toast(type, title, msg) {
+  const c = $('#toast-container');
+  if (!c) return;
+  const t = document.createElement('div');
+  t.className = `toast-msg ${type}`;
+  t.innerHTML = `<div><b>${title}</b><div style="font-size:9.5px;color:var(--text-dim);margin-top:2px;">${msg}</div></div>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 250); }, 3200);
+}
+
+function switchTab(viewName) {
+  const btn = $(`.nav-btn[data-view="${viewName}"]`);
+  if (btn) btn.click();
+}
+
+/* Audio Synthesizer */
+let audioCtx = null, soundEnabled = true, sirenActive = false, sirenOsc = null;
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playBlip(freq = 880, dur = 0.05) {
+  if (!soundEnabled) return;
+  initAudio();
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  } catch (e) {}
+}
+
+function armSiren(state) {
+  sirenActive = state;
+  const btn = $('#btn-siren-toggle');
+  if (btn) btn.classList.toggle('active', state);
+
+  if (state) {
+    $('#main-status-badge').className = 'status-badge alert';
+    $('#main-status-text').textContent = 'DEFCON 1 · PERIMETER ALARM';
+    if (!soundEnabled) return;
+    initAudio();
+    try {
+      if (!sirenOsc) {
+        sirenOsc = audioCtx.createOscillator();
+        const lfo = audioCtx.createOscillator();
+        const lfoGain = audioCtx.createGain();
+        const mainGain = audioCtx.createGain();
+
+        sirenOsc.frequency.value = 750;
+        lfo.frequency.value = 2.2;
+        lfoGain.gain.value = 220;
+
+        lfo.connect(sirenOsc.frequency);
+        sirenOsc.connect(mainGain);
+        mainGain.gain.value = 0.12;
+        mainGain.connect(audioCtx.destination);
+
+        sirenOsc.start(); lfo.start();
+        sirenOsc._nodes = [sirenOsc, lfo, mainGain];
+      }
+    } catch (e) {}
+  } else {
+    $('#main-status-badge').className = 'status-badge';
+    $('#main-status-text').textContent = 'SECTOR NORMAL · DEFCON 5';
+    if (sirenOsc && sirenOsc._nodes) {
+      try { sirenOsc._nodes.forEach(n => n.stop && n.stop()); } catch (e) {}
+      sirenOsc = null;
+    }
+  }
+}
+
+$('#btn-sound-toggle').addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  $('#btn-sound-toggle').style.color = soundEnabled ? 'var(--cyan)' : 'var(--text-faint)';
+  toast('ok', soundEnabled ? 'Audio Enabled' : 'Audio Muted', 'Tactical acoustic feedback updated.');
+});
+
+$('#btn-siren-toggle').addEventListener('click', () => {
+  armSiren(!sirenActive);
+  if (sirenActive) toast('crit', 'Siren Strobe Armed', 'High-decibel klaxon active across border sector.');
+  else toast('ok', 'Siren Silenced', 'Alarms restored to nominal monitoring.');
+});
+
+/* Navigation Router */
+$$('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const viewName = btn.dataset.view;
+    $$('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    $$('.tab-page').forEach(p => p.hidden = true);
+    const targetPage = $(`#page-${viewName}`);
+    if (targetPage) {
+      targetPage.hidden = false;
+      targetPage.classList.remove('reveal-item');
+      void targetPage.offsetWidth; // trigger reflow
+      targetPage.classList.add('reveal-item');
+    }
+
+    if (viewName === 'reid') renderReIDGallery();
+    if (viewName === 'ledger') renderVaultBlocks();
+
+    playBlip(620, 0.04);
+  });
+});
+
+/* ============================================================
+   HIGH-FIDELITY 3D DIGITAL TWIN (Hardware-Grade Procedural Models)
+   ============================================================ */
+const TW = {
+  camGoal: null,
+  boomGoal: -0.5,
+  focusedObj: null,
+  visionMode: 'standard',
+  propsSpin: [],
+  searchlights: [],
+  jeepWheels: [],
+  suvWheels: []
+};
+
+const SIM = {
+  scenario: 0,
+  running: false,
+  targetProgress: 0
+};
+
+let scene, camera, renderer, controls, pickables = [];
+
+(function init3DWorld() {
+  const container = $('#twin-canvas-wrap');
+  if (!container || typeof THREE === 'undefined') return;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x02050e);
+  scene.fog = new THREE.FogExp2(0x02050e, 0.012);
+
+  const w = container.clientWidth || 800;
+  const h = container.clientHeight || 560;
+  camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 800);
+  camera.position.set(0, 32, 48);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(w, h);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  container.appendChild(renderer.domElement);
+
+  const OrbitClass = THREE.OrbitControls || window.OrbitControls;
+  controls = OrbitClass ? new OrbitClass(camera, renderer.domElement) : { update: () => {}, target: new THREE.Vector3() };
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.maxPolarAngle = Math.PI / 2 - 0.04;
+
+  /* Lighting */
+  const ambLight = new THREE.AmbientLight(0x38557a, 0.65);
+  scene.add(ambLight);
+
+  const dirLight = new THREE.DirectionalLight(0xdcf8ff, 0.85);
+  dirLight.position.set(25, 55, 25);
+  dirLight.castShadow = true;
+  scene.add(dirLight);
+
+  /* Terrain & Ridge */
+  const terGeo = new THREE.PlaneGeometry(160, 120, 40, 40);
+  const terMat = new THREE.MeshStandardMaterial({ color: 0x07111e, roughness: 0.9, metalness: 0.1 });
+  const terrain = new THREE.Mesh(terGeo, terMat);
+  terrain.rotation.x = -Math.PI / 2;
+  terrain.receiveShadow = true;
+  scene.add(terrain);
+
+  const gridHelper = new THREE.GridHelper(160, 40, 0x00f0ff, 0x0c2035);
+  gridHelper.position.y = 0.02;
+  scene.add(gridHelper);
+
+  /* Instanced Low-Poly Rocks & Scrub Vegetation */
+  const rockGeo = new THREE.DodecahedronGeometry(0.5, 0);
+  const rockMat = new THREE.MeshStandardMaterial({ color: 0x1a2638, roughness: 0.8 });
+  const rockMesh = new THREE.InstancedMesh(rockGeo, rockMat, 24);
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < 24; i++) {
+    const rx = (Math.random() - 0.5) * 140;
+    const rz = (Math.random() - 0.5) * 80;
+    if (Math.abs(rz - 6) < 6) continue; // keep off road
+    const scale = 0.6 + Math.random() * 1.2;
+    dummy.position.set(rx, scale * 0.3, rz);
+    dummy.rotation.set(Math.random(), Math.random(), Math.random());
+    dummy.scale.set(scale, scale, scale);
+    dummy.updateMatrix();
+    rockMesh.setMatrixAt(i, dummy.matrix);
+  }
+  scene.add(rockMesh);
+
+  /* Road with Tyre-Track Ruts */
+  const roadMat = new THREE.MeshStandardMaterial({ color: 0x0d1624, roughness: 0.85 });
+  const road = new THREE.Mesh(new THREE.PlaneGeometry(160, 6), roadMat);
+  road.rotation.x = -Math.PI / 2;
+  road.position.set(0, 0.03, 6);
+  road.receiveShadow = true;
+  scene.add(road);
+
+  // Tyre track ruts
+  [-1.2, 1.2].forEach(offset => {
+    const rut = new THREE.Mesh(
+      new THREE.PlaneGeometry(160, 0.4),
+      new THREE.MeshBasicMaterial({ color: 0x080f1a, transparent: true, opacity: 0.6 })
+    );
+    rut.rotation.x = -Math.PI / 2;
+    rut.position.set(0, 0.035, 6 + offset);
+    scene.add(rut);
+  });
+
+  // Road centerlines
+  for (let x = -75; x <= 75; x += 6) {
+    const stripe = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.2), new THREE.MeshBasicMaterial({ color: 0xffb703 }));
+    stripe.rotation.x = -Math.PI / 2;
+    stripe.position.set(x, 0.04, 6);
+    scene.add(stripe);
+  }
+
+  /* Shimmering Red Geofence */
+  const geoBox = new THREE.Mesh(
+    new THREE.BoxGeometry(40, 3.2, 8),
+    new THREE.MeshBasicMaterial({ color: 0xff0055, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
+  );
+  geoBox.position.set(0, 1.6, 0);
+  scene.add(geoBox);
+
+  const geoEdge = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(40, 3.2, 8)),
+    new THREE.LineBasicMaterial({ color: 0xff0055, transparent: true, opacity: 0.65 })
+  );
+  geoEdge.position.set(0, 1.6, 0);
+  scene.add(geoEdge);
+
+  /* Barbed-Wire Perimeter Fence */
+  const fenceGroup = new THREE.Group();
+  for (let x = -65; x <= 65; x += 3.5) {
+    // Tapered post
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.1, 2.6, 6), new THREE.MeshStandardMaterial({ color: 0x18304e }));
+    post.position.set(x, 1.3, -4);
+    fenceGroup.add(post);
+
+    // Hazard LED
+    const led = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
+    led.position.set(x, 2.6, -4);
+    fenceGroup.add(led);
+  }
+  [0.6, 1.3, 2.0].forEach(y => {
+    const wire = new THREE.Mesh(
+      new THREE.BoxGeometry(134, 0.03, 0.03),
+      new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.4 })
+    );
+    wire.position.set(0, y, -4);
+    fenceGroup.add(wire);
+  });
+  scene.add(fenceGroup);
+
+  /* 1. REAL HARDWARE BRACED LATTICE WATCHTOWERS */
+  function buildLatticeTower(x, z, name, tint = 0x00f0ff) {
+    const tGroup = new THREE.Group();
+    const legMat = new THREE.MeshStandardMaterial({ color: 0x16253b, metalness: 0.7, roughness: 0.3 });
+
+    // 4 Corner Truss Legs
+    [[-1.1, -1.1], [1.1, -1.1], [-1.1, 1.1], [1.1, 1.1]].forEach(([dx, dz]) => {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.15, 9.5, 6), legMat);
+      leg.position.set(dx, 4.75, dz);
+      tGroup.add(leg);
+    });
+
+    // Cross-bracing lines
+    const trussMat = new THREE.LineBasicMaterial({ color: 0x22416b });
+    const trussGeo = new THREE.BufferGeometry();
+    const pts = [
+      new THREE.Vector3(-1.1, 0, -1.1), new THREE.Vector3(1.1, 4.75, -1.1),
+      new THREE.Vector3(1.1, 0, -1.1), new THREE.Vector3(-1.1, 4.75, -1.1),
+      new THREE.Vector3(-1.1, 4.75, -1.1), new THREE.Vector3(1.1, 9.5, -1.1),
+      new THREE.Vector3(1.1, 4.75, -1.1), new THREE.Vector3(-1.1, 9.5, -1.1),
+      new THREE.Vector3(-1.1, 0, 1.1), new THREE.Vector3(1.1, 4.75, 1.1),
+      new THREE.Vector3(1.1, 0, 1.1), new THREE.Vector3(-1.1, 4.75, 1.1),
+    ];
+    trussGeo.setFromPoints(pts);
+    tGroup.add(new THREE.LineSegments(trussGeo, trussMat));
+
+    // Access ladder
+    for (let ly = 0.5; ly <= 9.5; ly += 0.6) {
+      const rung = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.04, 0.04), legMat);
+      rung.position.set(1.1, ly, 0);
+      tGroup.add(rung);
+    }
+
+    // Catwalk Platform with Railings
+    const platform = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.25, 3.6), new THREE.MeshStandardMaterial({ color: 0x0e1928 }));
+    platform.position.y = 9.6;
+    tGroup.add(platform);
+
+    // Octagonal / Chamfered Observation Cabin
+    const cabin = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.6, 1.8, 2.0, 8),
+      new THREE.MeshStandardMaterial({ color: 0x091424, metalness: 0.5, roughness: 0.3 })
+    );
+    cabin.position.y = 10.7;
+    tGroup.add(cabin);
+
+    // 360 Glass Window Band
+    const glass = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.65, 1.65, 0.65, 8),
+      new THREE.MeshStandardMaterial({ color: tint, emissive: tint, emissiveIntensity: 0.45, transparent: true, opacity: 0.7 })
+    );
+    glass.position.y = 10.9;
+    tGroup.add(glass);
+
+    // Rotating Searchlight / Radar Head
+    const headPivot = new THREE.Group();
+    headPivot.position.y = 12.0;
+
+    const radarDish = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.8, 0.1, 0.25, 12, 1, false, 0, Math.PI),
+      new THREE.MeshStandardMaterial({ color: tint, metalness: 0.8 })
+    );
+    radarDish.rotation.z = Math.PI / 2;
+    headPivot.add(radarDish);
+
+    // Visible Volumetric Sweeping Searchlight Cone
+    const lightCone = new THREE.Mesh(
+      new THREE.ConeGeometry(5.5, 16, 16, 1, true),
+      new THREE.MeshBasicMaterial({ color: tint, wireframe: true, transparent: true, opacity: 0.16 })
+    );
+    lightCone.position.set(0, -7.5, 3);
+    lightCone.rotation.x = Math.PI / 2.6;
+    headPivot.add(lightCone);
+
+    tGroup.add(headPivot);
+    tGroup._headPivot = headPivot;
+
+    tGroup.position.set(x, 0, z);
+    tGroup.userData = {
+      name,
+      type: 'Braced Lattice Watchtower',
+      range: '250m Optical / 400m Thermal',
+      sensors: '4K PTZ + Doppler Radar + Searchlight',
+      status: 'ONLINE · MONITORING'
+    };
+
+    scene.add(tGroup);
+    pickables.push(cabin);
+    cabin.userData = tGroup.userData;
+    cabin._parentGroup = tGroup;
+
+    return tGroup;
+  }
+
+  const towerAlpha = buildLatticeTower(-24, -4, 'Checkpost Alpha Tower', 0x00f0ff);
+  const towerBravo = buildLatticeTower(24, -4, 'BOP Bravo Tower', 0x00ff9d);
+
+  /* 2. CHECKPOINT HQ & MOTORIZED HYDRAULIC BOOM BARRIER */
+  const checkpointHQ = new THREE.Group();
+  const hqBuilding = new THREE.Mesh(
+    new THREE.BoxGeometry(4.2, 3.2, 3.8),
+    new THREE.MeshStandardMaterial({ color: 0x121e33, metalness: 0.4, roughness: 0.4 })
+  );
+  hqBuilding.position.set(-14, 1.6, 2.5);
+  checkpointHQ.add(hqBuilding);
+
+  // Sandbag fortifications
+  for (let sy = 0.2; sy <= 0.8; sy += 0.3) {
+    for (let sx = -16.5; sx <= -11.5; sx += 0.9) {
+      const bag = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.25, 0.4), new THREE.MeshStandardMaterial({ color: 0x5a4a32, roughness: 0.9 }));
+      bag.position.set(sx, sy, 4.8);
+      checkpointHQ.add(bag);
+    }
+  }
+
+  // Motorized Barrier Arm
+  const barrierPivot = new THREE.Group();
+  barrierPivot.position.set(-14, 1.4, 3.0);
+  const barrierArm = new THREE.Mesh(
+    new THREE.BoxGeometry(8.5, 0.2, 0.2),
+    new THREE.MeshStandardMaterial({ color: 0xffb703, emissive: 0xffb703, emissiveIntensity: 0.4 })
+  );
+  barrierArm.position.x = 4.25;
+  barrierPivot.add(barrierArm);
+  checkpointHQ.add(barrierPivot);
+  barrierPivot.rotation.y = -0.5;
+  scene.add(checkpointHQ);
+
+  /* 3. REALISTIC 4x4 PATROL JEEP */
+  const patrolJeep = new THREE.Group();
+  const pjChassis = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.8, 1.6), new THREE.MeshStandardMaterial({ color: 0x1a3324, metalness: 0.5 }));
+  pjChassis.position.y = 0.65;
+  patrolJeep.add(pjChassis);
+
+  const pjCabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.7, 1.4), new THREE.MeshStandardMaterial({ color: 0x0f1f16 }));
+  pjCabin.position.set(-0.3, 1.4, 0);
+  patrolJeep.add(pjCabin);
+
+  // Windshield
+  const pjWindshield = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.6), new THREE.MeshStandardMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.6 }));
+  pjWindshield.position.set(0.61, 1.4, 0);
+  pjWindshield.rotation.y = Math.PI / 2;
+  patrolJeep.add(pjWindshield);
+
+  // 4 Rotating Wheels
+  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+  [[-1.1, -0.9], [1.1, -0.9], [-1.1, 0.9], [1.1, 0.9]].forEach(([wx, wz]) => {
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.3, 12), wheelMat);
+    w.rotation.x = Math.PI / 2;
+    w.position.set(wx, 0.4, wz);
+    patrolJeep.add(w);
+    TW.jeepWheels.push(w);
+  });
+  patrolJeep.position.set(12, 0, 6);
+  scene.add(patrolJeep);
+
+  /* 4. SPEEDING INTERDICTION SUV (Scenario 3) */
+  const suvVehicle = new THREE.Group();
+  const suvBody = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.1, 1.9), new THREE.MeshStandardMaterial({ color: 0x731122, metalness: 0.6 }));
+  suvBody.position.y = 0.85;
+  suvVehicle.add(suvBody);
+
+  const suvTop = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.8, 1.6), new THREE.MeshStandardMaterial({ color: 0x0a0e17 }));
+  suvTop.position.set(-0.3, 1.7, 0);
+  suvVehicle.add(suvTop);
+
+  // Headlight light beams
+  [-0.6, 0.6].forEach(dz => {
+    const beam = new THREE.Mesh(new THREE.ConeGeometry(1.2, 8, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff3b0, transparent: true, opacity: 0.25 }));
+    beam.position.set(6.0, 0.8, dz);
+    beam.rotation.z = -Math.PI / 2;
+    suvVehicle.add(beam);
+  });
+
+  [[-1.3, -1.0], [1.3, -1.0], [-1.3, 1.0], [1.3, 1.0]].forEach(([wx, wz]) => {
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.32, 12), wheelMat);
+    w.rotation.x = Math.PI / 2;
+    w.position.set(wx, 0.45, wz);
+    suvVehicle.add(w);
+    TW.suvWheels.push(w);
+  });
+  suvVehicle.position.set(-50, 0, 6);
+  suvVehicle.userData = {
+    name: 'Interdiction SUV (PB08-XX-1234)',
+    type: 'High-Speed Vehicle Target',
+    range: 'Speed: 68 km/h',
+    sensors: 'ANPR Blacklisted',
+    status: 'FLAGGED · RAMMING ALERT'
+  };
+  scene.add(suvVehicle);
+  pickables.push(suvBody);
+  suvBody.userData = suvVehicle.userData;
+  suvBody._parentGroup = suvVehicle;
+
+  /* 5. LOW-POLY ARTICULATED HUMANOID TARGET */
+  const intruderGroup = new THREE.Group();
+  
+  // Tapered Torso & Tactical Vest
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.35), new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0xff0055, emissiveIntensity: 0.4 }));
+  torso.position.y = 1.25;
+  intruderGroup.add(torso);
+
+  // Hips
+  const hips = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.25, 0.3), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+  hips.position.y = 0.8;
+  intruderGroup.add(hips);
+
+  // Helmet Head with NVG
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 10), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+  head.position.y = 1.85;
+  intruderGroup.add(head);
+
+  const nvg = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.08, 0.12), new THREE.MeshBasicMaterial({ color: 0x00ff9d }));
+  nvg.position.set(0, 1.85, 0.22);
+  intruderGroup.add(nvg);
+
+  // Articulated Legs & Arms
+  const legGeo = new THREE.BoxGeometry(0.18, 0.7, 0.18);
+  const leftLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({ color: 0x1f2937 }));
+  leftLeg.position.set(-0.18, 0.35, 0);
+  intruderGroup.add(leftLeg);
+
+  const rightLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({ color: 0x1f2937 }));
+  rightLeg.position.set(0.18, 0.35, 0);
+  intruderGroup.add(rightLeg);
+
+  const armGeo = new THREE.BoxGeometry(0.14, 0.65, 0.14);
+  const leftArm = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: 0x374151 }));
+  leftArm.position.set(-0.38, 1.15, 0);
+  intruderGroup.add(leftArm);
+
+  const rightArm = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: 0x374151 }));
+  rightArm.position.set(0.38, 1.15, 0);
+  intruderGroup.add(rightArm);
+
+  // Danger Aura Ring
+  const dangerHalo = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.1, 24), new THREE.MeshBasicMaterial({ color: 0xff0055, side: THREE.DoubleSide }));
+  dangerHalo.rotation.x = -Math.PI / 2;
+  dangerHalo.position.y = 0.04;
+  intruderGroup.add(dangerHalo);
+
+  intruderGroup.position.set(-20, 0, 1);
+  intruderGroup.userData = {
+    name: 'Infiltrator Target (TRG-1041)',
+    type: 'Hostile Perimeter Incursion',
+    range: 'Heading: 042° · 2.8 m/s',
+    sensors: 'YOLOv8s Confidence: 95.4%',
+    status: 'ACTIVE BREACH · RED ZONE'
+  };
+  scene.add(intruderGroup);
+  pickables.push(torso);
+  torso.userData = intruderGroup.userData;
+  torso._parentGroup = intruderGroup;
+
+  /* 6. QUADCOPTER RECON UAV SILHOUETTE */
+  const droneGroup = new THREE.Group();
+  const droneBody = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.22, 1.1), new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 0.4 }));
+  droneGroup.add(droneBody);
+
+  // Underslung Gimbal Camera Pod
+  const gimbal = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), new THREE.MeshStandardMaterial({ color: 0x111827 }));
+  gimbal.position.y = -0.22;
+  droneGroup.add(gimbal);
+
+  // 4 Rotor Arms + Transparent Motion-Blurred Rotor Discs
+  const rotorDiscGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.02, 16);
+  const rotorDiscMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45 });
+  [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]].forEach(([px, pz]) => {
+    const disc = new THREE.Mesh(rotorDiscGeo, rotorDiscMat);
+    disc.position.set(px, 0.14, pz);
+    droneGroup.add(disc);
+    TW.propsSpin.push(disc);
+  });
+
+  // Downward LiDAR / Thermal Scanning Cone
+  const droneBeam = new THREE.Mesh(
+    new THREE.ConeGeometry(4.5, 14, 20, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true, transparent: true, opacity: 0.16 })
+  );
+  droneBeam.position.y = -7;
+  droneBeam.rotation.x = Math.PI;
+  droneGroup.add(droneBeam);
+
+  droneGroup.position.set(0, 14, 0);
+  droneGroup.userData = {
+    name: 'Tactical Recon Drone (UAV-01)',
+    type: 'Autonomous Airborne FLIR',
+    range: 'Altitude: 14m · GPS Lock',
+    sensors: 'Thermal FLIR + Laser Rangefinder',
+    status: 'SECTOR PATROL · ACTIVE'
+  };
+  scene.add(droneGroup);
+  pickables.push(droneBody);
+  droneBody.userData = droneGroup.userData;
+  droneBody._parentGroup = droneGroup;
+
+  /* Raycaster Inspector */
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+
+  container.addEventListener('click', e => {
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObjects(pickables);
+    if (hits.length > 0) {
+      const obj = hits[0].object;
+      if (obj.userData && obj.userData.name) {
+        showInspector(obj.userData, obj._parentGroup || obj);
+        playBlip(780, 0.05);
+      }
+    }
+  });
+
+  /* Animation Frame Loop */
+  const clock = new THREE.Clock();
+  let frameCount = 0, lastFpsTime = performance.now();
+
+  function renderLoop() {
+    requestAnimationFrame(renderLoop);
+    const t = clock.getElapsedTime();
+
+    frameCount++;
+    if (performance.now() - lastFpsTime >= 1000) {
+      $('#hud-fps-val').textContent = (frameCount).toFixed(1);
+      frameCount = 0;
+      lastFpsTime = performance.now();
+    }
+
+    controls.update();
+
+    // Smooth Camera Transition
+    if (TW.camGoal) {
+      camera.position.lerp(TW.camGoal.pos, 0.05);
+      controls.target.lerp(TW.camGoal.tgt, 0.05);
+      if (camera.position.distanceTo(TW.camGoal.pos) < 0.2) TW.camGoal = null;
+    }
+
+    // Boom barrier servo
+    barrierPivot.rotation.y += (TW.boomGoal - barrierPivot.rotation.y) * 0.08;
+
+    // Rotate Tower Heads / Searchlights
+    if (towerAlpha._headPivot) towerAlpha._headPivot.rotation.y = Math.sin(t * 0.5) * 0.6;
+    if (towerBravo._headPivot) towerBravo._headPivot.rotation.y = -Math.sin(t * 0.5) * 0.6;
+
+    // Spin UAV Rotor Discs
+    TW.propsSpin.forEach(d => d.rotation.y += 0.3);
+
+    // UAV Autonomous Patrol Flight
+    droneGroup.position.set(Math.cos(t * 0.4) * 18, 14 + Math.sin(t * 0.8) * 0.5, Math.sin(t * 0.4) * 12);
+    droneGroup.rotation.y = -t * 0.4;
+
+    // Patrol Jeep Drive & Wheel Spin
+    patrolJeep.position.x = -40 + ((t * 6) % 80);
+    TW.jeepWheels.forEach(w => w.rotation.z -= 0.1);
+
+    // Vehicle Ramming Motion (Scenario 3)
+    if (SIM.scenario === 3 && SIM.running) {
+      suvVehicle.position.x += ((-13.5) - suvVehicle.position.x) * 0.04;
+      TW.suvWheels.forEach(w => w.rotation.z -= 0.15);
+    } else if (!SIM.running) {
+      suvVehicle.position.x = -50;
+    }
+
+    // Humanoid Target Walk Gait (Leg swing & arm counter-swing)
+    if (SIM.scenario === 2 && SIM.running) {
+      const p = clamp(SIM.targetProgress, 0, 1);
+      intruderGroup.position.x = -20 + p * 42;
+      leftLeg.rotation.x = Math.sin(t * 9) * 0.45;
+      rightLeg.rotation.x = -Math.sin(t * 9) * 0.45;
+      leftArm.rotation.x = -Math.sin(t * 9) * 0.4;
+      rightArm.rotation.x = Math.sin(t * 9) * 0.4;
+    } else if (SIM.scenario === 1 && SIM.running) {
+      intruderGroup.position.x = -20 + clamp(SIM.targetProgress, 0, 1) * 16;
+      leftLeg.rotation.x = Math.sin(t * 9) * 0.45;
+      rightLeg.rotation.x = -Math.sin(t * 9) * 0.45;
+      leftArm.rotation.x = -Math.sin(t * 9) * 0.4;
+      rightArm.rotation.x = Math.sin(t * 9) * 0.4;
+    } else {
+      intruderGroup.position.x = -20 + Math.sin(t * 0.6) * 3;
+      leftLeg.rotation.x = 0; rightLeg.rotation.x = 0;
+      leftArm.rotation.x = 0; rightArm.rotation.x = 0;
+    }
+
+    // Radar Minimap Blip
+    const blip = $('#radar-blip-target');
+    if (blip) {
+      const bx = 50 + (intruderGroup.position.x / 140) * 80;
+      const by = 50 + (intruderGroup.position.z / 100) * 80;
+      blip.style.left = `${bx}%`;
+      blip.style.top = `${by}%`;
+    }
+
+    // Shimmering Geofence Incursion Strobe
+    const inRedZone = intruderGroup.position.x > -18 && intruderGroup.position.x < 18;
+    geoBox.material.opacity = inRedZone ? 0.14 + Math.abs(Math.sin(t * 6)) * 0.25 : 0.12;
+    geoEdge.material.opacity = inRedZone ? 0.65 + Math.abs(Math.sin(t * 6)) * 0.35 : 0.5;
+
+    renderer.render(scene, camera);
+  }
+  renderLoop();
+
+  /* Viewfinder Presets */
+  $$('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cam = btn.dataset.cam;
+      if (cam === 'alpha') TW.camGoal = { pos: new THREE.Vector3(-24, 12, 16), tgt: new THREE.Vector3(-24, 4, -4) };
+      else if (cam === 'bravo') TW.camGoal = { pos: new THREE.Vector3(24, 12, 16), tgt: new THREE.Vector3(24, 4, -4) };
+      else if (cam === 'drone') TW.camGoal = { pos: new THREE.Vector3(0, 42, 2), tgt: new THREE.Vector3(0, 0, 0) };
+      else if (cam === 'target') TW.camGoal = { pos: new THREE.Vector3(intruderGroup.position.x, 6, 10), tgt: intruderGroup.position };
+      else TW.camGoal = { pos: new THREE.Vector3(0, 32, 48), tgt: new THREE.Vector3(0, 0, 0) };
+      playBlip(600, 0.03);
+    });
+  });
+
+  window.addEventListener('resize', () => {
+    const nw = container.clientWidth, nh = container.clientHeight;
+    if (!nw || !nh) return;
+    camera.aspect = nw / nh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nw, nh);
+  });
+})();
+
+/* Inspector Actions */
+function showInspector(data, group) {
+  TW.focusedObj = group;
+  $('#inspect-name').textContent = data.name;
+  $('#inspect-type').textContent = data.type;
+  $('#inspect-range').textContent = data.range;
+  $('#inspect-sensors').textContent = data.sensors;
+  $('#inspect-status').textContent = data.status;
+  $('#inspector-modal').classList.add('open');
+}
+
+function closeInspector() {
+  $('#inspector-modal').classList.remove('open');
+}
+
+function focusInspectedObject() {
+  if (!TW.focusedObj) return;
+  const p = TW.focusedObj.position;
+  TW.camGoal = { pos: new THREE.Vector3(p.x, p.y + 8, p.z + 14), tgt: p };
+  closeInspector();
+}
+
+function setVisionShader(mode) {
+  $$('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  TW.visionMode = mode;
+
+  if (mode === 'thermal') {
+    scene.background = new THREE.Color(0x060214);
+    scene.fog.color = new THREE.Color(0x060214);
+    toast('ok', 'FLIR Thermal Active', 'Infrared false-color spectrum enabled.');
+  } else if (mode === 'nvg') {
+    scene.background = new THREE.Color(0x02160a);
+    scene.fog.color = new THREE.Color(0x02160a);
+    toast('ok', 'NVG Gen-3 Active', 'Green phosphor light amplification matrix.');
+  } else {
+    scene.background = new THREE.Color(0x02050e);
+    scene.fog.color = new THREE.Color(0x02050e);
+    toast('ok', 'Cyber Standard Active', 'Standard tactical composite layer.');
+  }
+}
+
+/* 5 Scenarios */
+async function triggerScenario(id) {
+  if (SIM.running) return;
+  SIM.running = true;
+  SIM.scenario = id;
+  SIM.targetProgress = 0;
+
+  switchTab('ops');
+  $$('.scen-btn').forEach(b => b.classList.remove('active'));
+  const btn = $(`.scen-btn:nth-child(${id})`);
+  if (btn) btn.classList.add('active');
+
+  const card = $('#twin-main-card');
+  card.classList.add('alert-border');
+
+  if (id === 1) {
+    $('#threat-tier-tag').textContent = 'CRITICAL BREACH';
+    $('#threat-tier-tag').style.background = 'var(--crimson)';
+    $('#threat-score-val').textContent = '92 / 100';
+    $('#target-id-val').textContent = 'TRG-1041';
+    $('#incident-narrative-text').innerHTML = '<b>🚨 BREACH IN PROGRESS:</b> Infiltrator crossed Checkpost Alpha fence line into Red Hazard Zone. Threat score <b>92/100</b>.';
+
+    TW.camGoal = { pos: new THREE.Vector3(-24, 10, 16), tgt: new THREE.Vector3(-18, 1, 0) };
+    armSiren(true);
+    toast('crit', 'Scenario 1: Breach Alert', 'Checkpost Alpha incursion sealed into Blockchain Block #1.');
+
+    const start = performance.now(), dur = 3200;
+    await new Promise(res => {
+      (function tick() {
+        const e = (performance.now() - start) / dur;
+        SIM.targetProgress = clamp(e, 0, 1);
+        if (e >= 1) return res();
+        requestAnimationFrame(tick);
+      })();
+    });
+  }
+  else if (id === 2) {
+    $('#threat-tier-tag').textContent = 'RE-ID HANDOFF';
+    $('#threat-tier-tag').style.background = 'var(--purple)';
+    $('#threat-score-val').textContent = '77 / 100';
+    $('#target-id-val').textContent = 'TRG-1041 ➔ BRV-c1';
+    $('#incident-narrative-text').innerHTML = '<b>🛰️ RE-ID IN PROGRESS:</b> Target traversed blind spot. Spatial Gate 6–14s ETA Window matching against BOP Bravo...';
+
+    TW.camGoal = { pos: new THREE.Vector3(0, 18, 28), tgt: new THREE.Vector3(0, 1, 0) };
+    toast('warn', 'Scenario 2: Predictive Re-ID', 'Predictive handoff tracking target across 26m blind corridor.');
+
+    const start = performance.now(), dur = 4200;
+    await new Promise(res => {
+      (function tick() {
+        const e = (performance.now() - start) / dur;
+        SIM.targetProgress = clamp(e, 0, 1);
+        if (e >= 1) return res();
+        requestAnimationFrame(tick);
+      })();
+    });
+
+    $('#incident-narrative-text').innerHTML = '<b>✓ RE-ID CONFIRMED:</b> Arrival verified at BOP Bravo (9.4s). 512-d feature cosine similarity <b>0.96</b> (Rank-1 Lock).';
+    toast('ok', 'Re-ID Match Verified', 'Cosine 0.96 locks candidate identity.');
+    await wait(1500);
+  }
+  else if (id === 3) {
+    $('#threat-tier-tag').textContent = 'ANPR LOCKDOWN';
+    $('#threat-tier-tag').style.background = 'var(--amber)';
+    $('#threat-tier-tag').style.color = '#02050e';
+    $('#threat-score-val').textContent = '74 / 100';
+    $('#target-id-val').textContent = 'VEH-0007';
+    $('#incident-narrative-text').innerHTML = '<b>🚗 RAMMING THREAT:</b> Plate <code>PB08-XX-1234</code> on blacklist. Speed 68 km/h. Hydraulic barrier locking down!';
+
+    TW.camGoal = { pos: new THREE.Vector3(-14, 10, 18), tgt: new THREE.Vector3(-14, 1, 3) };
+    TW.boomGoal = -0.5;
+    armSiren(true);
+    toast('crit', 'Scenario 3: ANPR Hit', 'Vehicle speed 68 km/h. Boom barrier rapidly locked.');
+    await wait(3600);
+  }
+  else if (id === 4) {
+    $('#threat-tier-tag').textContent = 'LOITER ALERT';
+    $('#threat-tier-tag').style.background = '#0284c7';
+    $('#threat-tier-tag').style.color = '#fff';
+    $('#threat-score-val').textContent = '65 / 100';
+    $('#target-id-val').textContent = 'TRG-0025';
+    $('#incident-narrative-text').innerHTML = '<b>⏳ LOITER DWELL:</b> Subject dwelling along outer BOP Bravo wire for 268s (>240s threshold). Threat +15 pts.';
+
+    TW.camGoal = { pos: new THREE.Vector3(24, 10, 16), tgt: new THREE.Vector3(24, 1, -2) };
+    toast('warn', 'Scenario 4: Loiter Dwell', 'Sustained presence along outer perimeter.');
+    await wait(3000);
+  }
+  else if (id === 5) {
+    $('#threat-tier-tag').textContent = 'UAV THERMAL';
+    $('#threat-tier-tag').style.background = 'var(--emerald)';
+    $('#threat-tier-tag').style.color = '#02050e';
+    $('#threat-score-val').textContent = '84 / 100';
+    $('#target-id-val').textContent = 'UAV-01';
+    $('#incident-narrative-text').innerHTML = '<b>🛰️ AIRBORNE RECON:</b> Drone thermal FLIR acquired heat cluster. GPS Coordinates locked: <code>N32.1914 E74.8920</code>.';
+
+    TW.camGoal = { pos: new THREE.Vector3(0, 44, 2), tgt: new THREE.Vector3(0, 0, 0) };
+    initCCTV('feed-canvas-a', 'thermal');
+    initCCTV('feed-canvas-b', 'thermal');
+    toast('crit', 'Scenario 5: Thermal Recon', 'GPS Lock N32.1914 E74.8920 transmitted.');
+    await wait(3200);
+  }
+
+  card.classList.remove('alert-border');
+  SIM.running = false;
+}
+
+/* CCTV Feeds */
+function initCCTV(canvasId, mode = 'rgb') {
+  const cv = document.getElementById(canvasId);
+  if (!cv) return;
+  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+
+  function draw() {
+    if (mode === 'thermal') {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#0a0a28'); g.addColorStop(0.5, '#581c87'); g.addColorStop(1, '#020617');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath(); ctx.arc(W * 0.45, H * 0.55, 24, 0, 7); ctx.fill();
+    } else if (mode === 'night') {
+      ctx.fillStyle = '#02180c'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#00ff9d';
+      ctx.fillRect(W * 0.42, H * 0.45, 22, 52);
+    } else {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#091322'); g.addColorStop(0.6, '#0d1f35'); g.addColorStop(1, '#050c18');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.85)';
+      ctx.fillRect(W * 0.42, H * 0.45, 22, 52);
+    }
+
+    ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(W * 0.38, H * 0.38, 38, 70);
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+initCCTV('feed-canvas-a', 'rgb');
+initCCTV('feed-canvas-b', 'rgb');
+
+function setFeedMode(feed, mode, btn) {
+  const parent = btn.parentElement;
+  $$('.filter-pill', parent).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  initCCTV(`feed-canvas-${feed}`, mode);
+  playBlip(680, 0.03);
+}
+
+/* Re-ID Gallery */
+function renderReIDGallery() {
+  const cv = $('#reid-query-canvas');
+  if (cv) {
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#070f1e'; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.fillStyle = '#00f0ff'; ctx.fillRect(cv.width * 0.3, cv.height * 0.3, cv.width * 0.4, cv.height * 0.5);
+  }
+
+  const cands = [
+    { id: 'BRV-c1', cos: 0.96, match: true },
+    { id: 'BRV-c2', cos: 0.71, match: false },
+    { id: 'BRV-c3', cos: 0.63, match: false },
+    { id: 'BRV-c4', cos: 0.54, match: false },
+  ];
+  const wrap = $('#reid-gallery-container');
+  if (!wrap || wrap.children.length > 0) return;
+
+  cands.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'gallery-card' + (c.match ? ' match' : '');
+    card.innerHTML = `
+      <canvas class="gallery-crop" width="140" height="180"></canvas>
+      <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10.5px;">
+        <span>${c.id}</span><b style="color:${c.match ? 'var(--emerald)' : 'var(--text-dim)'}">${c.cos.toFixed(2)}</b>
+      </div>
+      <div class="sim-meter"><i style="width:${c.cos * 100}%"></i></div>
+      <div style="font-size:9.5px;color:var(--text-dim);font-family:var(--font-mono)">${c.match ? '✓ RANK-1 LOCK (MATCH)' : 'Below Threshold (0.80)'}</div>
+    `;
+    wrap.appendChild(card);
+    const cctx = card.querySelector('canvas').getContext('2d');
+    cctx.fillStyle = '#070f1e'; cctx.fillRect(0, 0, 140, 180);
+    cctx.fillStyle = c.match ? '#00ff9d' : '#334155'; cctx.fillRect(45, 40, 50, 80);
+  });
+}
+
+/* Blockchain Ledger */
+const BLOCKS = [
+  { id: 'GENESIS', label: 'Ledger Root Anchor', ts: '2026-09-04T00:00:00Z', hash: '8f12a9bc41d2003...', prev: '0000000000000000...' },
+  { id: 'INC-1041', label: 'Checkpost Alpha Breach', ts: '2026-09-04T09:40:30Z', hash: 'e3b0c44298fc1c1...', prev: '8f12a9bc41d2003...' },
+  { id: 'INC-1061', label: 'Alpha ➔ Bravo Re-ID Link', ts: '2026-09-04T09:40:46Z', hash: '9ed1ac75937d8c3...', prev: 'e3b0c44298fc1c1...' },
+];
+function renderVaultBlocks() {
+  const wrap = $('#vault-block-list');
+  if (!wrap || wrap.children.length > 0) return;
+  BLOCKS.forEach((b, i) => {
+    const el = document.createElement('div');
+    el.className = 'block-card' + (i === 1 ? ' sel' : '');
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;color:#fff;font-weight:600;">
+        <span>BLOCK #${i} · ${b.id}</span>
+        <span style="color:var(--emerald);font-size:9.5px">SEALED</span>
+      </div>
+      <div style="color:var(--text-dim);margin-top:4px">Hash: ${b.hash}</div>
+      <div style="color:var(--text-faint);margin-top:2px">${b.label}</div>
+    `;
+    el.addEventListener('click', () => {
+      $$('.block-card').forEach(x => x.classList.remove('sel'));
+      el.classList.add('sel');
+      $('#vault-inspect-title').textContent = `Block #${i} · ${b.id}`;
+      $('#vault-inspect-details').innerHTML = `
+        <b>Timestamp:</b> ${b.ts}<br>
+        <b>Current SHA-256:</b> <span style="color:var(--emerald)">${b.hash}</span><br>
+        <b>Previous Block Hash:</b> ${b.prev}<br>
+        <b>Payload Content:</b> ${b.label} · Operator Confirmed<br>
+        <b>Tamper Status:</b> <span style="color:var(--emerald)">✓ Chain 100% Intact</span>
+      `;
+    });
+    wrap.appendChild(el);
+  });
+  wrap.children[1].click();
+}
+
+$('#btn-audit-chain').addEventListener('click', () => {
+  toast('ok', 'Merkle Audit Passed', 'All evidence blocks verified untampered.');
+});
+$('#btn-tamper-test').addEventListener('click', () => {
+  toast('crit', 'Tamper Detected', 'Byte mismatch at Block #1 — integrity break flagged.');
+});
+
+/* Triage Buttons */
+$('#btn-triage-confirm').addEventListener('click', () => {
+  toast('ok', 'Threat Confirmed', 'Incident escalated to QRT muster point.');
+  armSiren(true);
+});
+$('#btn-triage-dismiss').addEventListener('click', () => {
+  toast('warn', 'False Positive Marked', 'Node sensitivity calibrated.');
+  armSiren(false);
+});
+</script>
+</body>
+</html>

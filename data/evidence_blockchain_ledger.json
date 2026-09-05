@@ -1,0 +1,45 @@
+[
+  {
+    "block_index": 0,
+    "timestamp_iso": "2026-09-01T00:00:00Z",
+    "incident_id": "GENESIS_BLOCK",
+    "threat_score": 0,
+    "camera_ids": [
+      "SYSTEM_CORE"
+    ],
+    "rule_evidence": "Genesis anchor initialized for IBVAP Sentinel Evidence Ledger.",
+    "thumbnail_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "data_payload_hash": "21e5f42a2cfe61aa9f885e6bd7aec4b7b6720a18ecb6f7c513ac40ec18fd36b9",
+    "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "current_hash": "031640c0d37db2011b9b940cfc4b7891fa133b664d550e20601f016d9a13904e"
+  },
+  {
+    "block_index": 1,
+    "timestamp_iso": "2026-09-04T12:21:18.162991+00:00",
+    "incident_id": "INC-1041",
+    "threat_score": 92,
+    "camera_ids": [
+      "CAM_ALPHA",
+      "CAM_BRAVO"
+    ],
+    "rule_evidence": "Hostile incursion correlated across 2 nodes",
+    "thumbnail_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "data_payload_hash": "e3c1e545ff5c80d9d0901a05bd69adc048e8a9a7e3f2ee40fa928b4d574b183f",
+    "previous_hash": "031640c0d37db2011b9b940cfc4b7891fa133b664d550e20601f016d9a13904e",
+    "current_hash": "509748845b3983c5e7a1286ad7ae5f5525f798d324ca0108ba09594002556c4b"
+  },
+  {
+    "block_index": 2,
+    "timestamp_iso": "2026-09-04T12:21:18.163521+00:00",
+    "incident_id": "INC-1042",
+    "threat_score": 65,
+    "camera_ids": [
+      "CAM_ALPHA"
+    ],
+    "rule_evidence": "Vehicle approaching checkpoint vector",
+    "thumbnail_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "data_payload_hash": "9d6015ed0a5bf0fa85ab6bab7a4d5c129d37d7175cfc1c876c9fc42874f7d68e",
+    "previous_hash": "509748845b3983c5e7a1286ad7ae5f5525f798d324ca0108ba09594002556c4b",
+    "current_hash": "8c2dc53936f9771965102218aa9b2ee66a2972cd4d06e5ff803c824bee046cc9"
+  }
+]

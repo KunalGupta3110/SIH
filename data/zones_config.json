@@ -1,0 +1,176 @@
+{
+  "cam_01": [
+    {
+      "zone_id": "tw_fence_line",
+      "name": "Border Outer Perimeter Fence Line",
+      "zone_type": "tripwire",
+      "points": [
+        [
+          128,
+          396
+        ],
+        [
+          1152,
+          396
+        ]
+      ],
+      "restricted_classes": [],
+      "severity": "CRITICAL",
+      "loitering_time_sec": 5.0,
+      "allowed_direction": null
+    },
+    {
+      "zone_id": "zone_no_go_red",
+      "name": "Red Zone (Strictly Prohibited)",
+      "zone_type": "restricted_polygon",
+      "points": [
+        [
+          256,
+          72
+        ],
+        [
+          1024,
+          72
+        ],
+        [
+          960,
+          324
+        ],
+        [
+          320,
+          324
+        ]
+      ],
+      "restricted_classes": [],
+      "severity": "CRITICAL",
+      "loitering_time_sec": 3.0,
+      "allowed_direction": null
+    },
+    {
+      "zone_id": "zone_buffer_caution",
+      "name": "Buffer Approach Zone",
+      "zone_type": "caution_zone",
+      "points": [
+        [
+          64,
+          432
+        ],
+        [
+          1216,
+          432
+        ],
+        [
+          1152,
+          648
+        ],
+        [
+          128,
+          648
+        ]
+      ],
+      "restricted_classes": [],
+      "severity": "WARNING",
+      "loitering_time_sec": 4.0,
+      "allowed_direction": null
+    },
+    {
+      "zone_id": "zone_cam_01_1",
+      "name": "Zone 1 (RESTRICTED_POLYGON)",
+      "zone_type": "restricted_polygon",
+      "points": [
+        [
+          43,
+          89
+        ],
+        [
+          192,
+          92
+        ],
+        [
+          195,
+          96
+        ],
+        [
+          196,
+          190
+        ],
+        [
+          50,
+          197
+        ],
+        [
+          45,
+          92
+        ]
+      ],
+      "severity": "CRITICAL",
+      "loitering_time_sec": 4.0
+    },
+    {
+      "zone_id": "zone_cam_01_2",
+      "name": "Zone 2 (RESTRICTED_POLYGON)",
+      "zone_type": "restricted_polygon",
+      "points": [
+        [
+          59,
+          270
+        ],
+        [
+          236,
+          260
+        ],
+        [
+          225,
+          329
+        ],
+        [
+          70,
+          358
+        ],
+        [
+          64,
+          271
+        ]
+      ],
+      "severity": "CRITICAL",
+      "loitering_time_sec": 4.0
+    },
+    {
+      "zone_id": "zone_cam_01_1",
+      "name": "Zone 1 (RESTRICTED_POLYGON)",
+      "zone_type": "restricted_polygon",
+      "points": [
+        [
+          400,
+          640
+        ],
+        [
+          401,
+          661
+        ],
+        [
+          397,
+          604
+        ],
+        [
+          427,
+          597
+        ],
+        [
+          436,
+          642
+        ],
+        [
+          432,
+          656
+        ],
+        [
+          406,
+          659
+        ]
+      ],
+      "severity": "CRITICAL",
+      "loitering_time_sec": 4.0
+    }
+  ]
+}

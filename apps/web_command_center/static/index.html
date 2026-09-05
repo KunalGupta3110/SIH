@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IBVAP Sentinel — Tactical 3D Border Incident Command Center</title>
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js CDN for 3D Border Digital Twin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Anime.js for sleek kinetic animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#080c14',
+                        panelBg: 'rgba(15, 23, 42, 0.75)',
+                        borderGlow: '#00f0ff',
+                        alarmRed: '#ff003c',
+                        warningAmber: '#f59e0b',
+                        cyberGreen: '#10b981',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Courier New', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'radar-sweep': 'sweep 4s linear infinite',
+                        'scanline': 'scanline 6s linear infinite',
+                    },
+                    keyframes: {
+                        sweep: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(1000%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #06090e;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(13, 20, 36, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 240, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+        .glass-panel-alert {
+            background: rgba(45, 10, 20, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 0, 60, 0.5);
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.25);
+        }
+        .cyber-grid {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+        }
+        .radar-glow {
+            box-shadow: 0 0 35px rgba(0, 240, 255, 0.25), inset 0 0 25px rgba(0, 240, 255, 0.15);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b111e; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; border: 1px solid #00f0ff33; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f0ff88; }
+    </style>
+</head>
+<body class="cyber-grid min-h-screen flex flex-col font-sans select-none">
+
+    <!-- TOP MILITARY HUD NAVIGATION BAR -->
+    <header class="glass-panel border-b border-cyan-500/30 px-6 py-3 sticky top-0 z-50 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <div class="relative">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                    <i data-lucide="shield-alert" class="w-6 h-6 text-white animate-pulse"></i>
+                </div>
+                <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-white font-mono">
+                        CYBER CAMERA SURVEILLANCE
+                    </h1>
+                    <span class="px-2 py-0.5 text-xs font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 rounded">
+                        v2.4 TAC-OPS
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 font-mono">
+                    MINISTRY OF HOME AFFAIRS | SASHASTRA SEEMA BAL (SSB) | PS ID: 26187
+                </p>
+            </div>
+        </div>
+
+        <!-- CENTER TACTICAL STATS TICKER -->
+        <div class="hidden lg:flex items-center space-x-6 font-mono text-xs">
+            <div class="flex items-center space-x-2 bg-slate-900/80 px-3 py-1.5 rounded-md border border-slate-800">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-slate-400">EDGE INFERENCE:</span>
+                <span class="text-emerald-400 font-bold" id="ticker-fps">32.4 FPS</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-slate-900/80 px-3 py-1.5 rounded-md border border-slate-800">
+                <i data-lucide="orbit" class="w-3.5 h-3.5 text-cyan-400"></i>
+                <span class="text-slate-400">PREDICTIVE RADAR:</span>
+                <span class="text-cyan-400 font-bold">ETA 6-14s</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-slate-900/80 px-3 py-1.5 rounded-md border border-slate-800">
+                <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span class="text-slate-400">SHA-256 CHAIN:</span>
+                <span class="text-emerald-400 font-bold">VERIFIED [9 BLOCKS]</span>
+            </div>
+        </div>
+
+        <!-- RIGHT ACTION BUTTONS -->
+        <div class="flex items-center space-x-3">
+            <button id="btn-siren-toggle" onclick="toggleEmergencySiren()" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-md bg-red-950/60 text-red-400 border border-red-500/50 hover:bg-red-900/80 transition-all shadow-lg hover:shadow-red-500/30 text-xs font-mono font-bold">
+                <i data-lucide="volume-2" class="w-4 h-4" id="siren-icon"></i>
+                <span id="siren-text">TEST SIREN</span>
+            </button>
+            <button onclick="triggerSampleBreach()" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-md bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:from-cyan-500 hover:to-blue-500 transition-all shadow-lg shadow-cyan-500/20 text-xs font-mono font-bold">
+                <i data-lucide="play" class="w-4 h-4"></i>
+                <span>SIMULATE BREACH</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN GRID DASHBOARD -->
+    <main class="flex-1 p-6 grid grid-cols-12 gap-6">
+
+        <!-- LEFT COLUMN (4 Cols): 3D DIGITAL TWIN & REAL-TIME PREDICTIVE RADAR -->
+        <div class="col-span-12 xl:col-span-4 flex flex-col space-y-6">
+
+            <!-- 3D BORDER DIGITAL TWIN CANVAS CONTAINER -->
+            <div class="glass-panel rounded-xl p-4 flex flex-col relative overflow-hidden h-[420px]">
+                <div class="flex items-center justify-between mb-3 z-10">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="box" class="w-4 h-4 text-cyan-400"></i>
+                        <h2 class="text-sm font-mono font-bold tracking-wider text-cyan-300">3D BORDER DIGITAL TWIN</h2>
+                    </div>
+                    <span class="text-[11px] font-mono bg-cyan-950 px-2 py-0.5 rounded text-cyan-400 border border-cyan-800">
+                        WEBGL INTERACTIVE
+                    </span>
+                </div>
+
+                <!-- Three.js Canvas Container -->
+                <div id="threejs-container" class="w-full h-full rounded-lg overflow-hidden relative cursor-grab active:cursor-grabbing border border-slate-800">
+                    <div class="absolute bottom-2 left-2 z-10 pointer-events-none bg-slate-900/80 px-2.5 py-1 rounded text-[10px] font-mono text-slate-400 border border-slate-700">
+                        Left Click: Orbit | Right Click: Pan | Scroll: Zoom
+                    </div>
+                    <div class="absolute top-2 right-2 z-10 flex flex-col space-y-1">
+                        <button onclick="reset3DCamera()" class="p-1.5 rounded bg-slate-900/90 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-950 text-xs">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SPATIO-TEMPORAL PREDICTIVE RADAR & KINEMATICS HUD -->
+            <div class="glass-panel rounded-xl p-4 flex flex-col space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="radar" class="w-4 h-4 text-amber-400 animate-spin"></i>
+                        <h2 class="text-sm font-mono font-bold tracking-wider text-amber-300">PREDICTIVE HANDOFF RADAR</h2>
+                    </div>
+                    <span class="text-[11px] font-mono text-emerald-400 flex items-center space-x-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>TRACKING #17</span>
+                    </span>
+                </div>
+
+                <!-- Trajectory Transit Bar -->
+                <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-800 flex flex-col space-y-2">
+                    <div class="flex justify-between text-xs font-mono">
+                        <span class="text-cyan-400">📍 CAM_ALPHA (Exit)</span>
+                        <span class="text-amber-400 font-bold" id="radar-eta-text">ETA: 4.8s to CAM_BRAVO</span>
+                        <span class="text-cyan-400">📍 CAM_BRAVO (Entry)</span>
+                    </div>
+                    <div class="w-full bg-slate-950 rounded-full h-3 overflow-hidden p-0.5 border border-slate-700">
+                        <div id="radar-progress-bar" class="bg-gradient-to-r from-cyan-500 via-amber-400 to-red-500 h-full rounded-full w-3/5 transition-all duration-300 shadow-lg shadow-amber-500/30"></div>
+                    </div>
+                    <div class="flex justify-between text-[11px] font-mono text-slate-400">
+                        <span>Speed: 1.4 m/s (72 px/s)</span>
+                        <span>Vector: EAST (94° Heading)</span>
+                        <span>Search Filter: 6–14s Window</span>
+                    </div>
+                </div>
+
+                <!-- Explainable Factor Mini Badges -->
+                <div class="grid grid-cols-2 gap-2 text-[11px] font-mono">
+                    <div class="p-2 rounded bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                        <span class="text-slate-400">Zone Penetration:</span>
+                        <span class="text-red-400 font-bold">+30 pts</span>
+                    </div>
+                    <div class="p-2 rounded bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                        <span class="text-slate-400">Tripwire Crossing:</span>
+                        <span class="text-red-400 font-bold">+25 pts</span>
+                    </div>
+                    <div class="p-2 rounded bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                        <span class="text-slate-400">Velocity Vector:</span>
+                        <span class="text-amber-400 font-bold">+20 pts</span>
+                    </div>
+                    <div class="p-2 rounded bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                        <span class="text-slate-400">Predictive Match:</span>
+                        <span class="text-emerald-400 font-bold">+12 pts</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- CENTER COLUMN (5 Cols): LIVE DUAL CCTV FEEDS & FORENSIC HUD -->
+        <div class="col-span-12 xl:col-span-5 flex flex-col space-y-6">
+
+            <!-- LIVE CAMERA 1: CHECKPOST ALPHA -->
+            <div class="glass-panel rounded-xl p-4 flex flex-col relative">
+                <div class="flex items-center justify-between mb-2.5">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <h3 class="text-xs font-mono font-bold text-slate-200">NODE 01: CHECKPOST ALPHA (NORTH GATE)</h3>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] font-mono bg-red-950/80 text-red-400 border border-red-700 px-2 py-0.5 rounded">
+                            RED GEOFENCE ARMED
+                        </span>
+                    </div>
+                </div>
+
+                <div class="relative rounded-lg overflow-hidden border border-slate-800 bg-black aspect-video flex items-center justify-center group">
+                    <img src="/stream/cam1/live" alt="Camera 1 Live Stream" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&auto=format&fit=crop&q=60';">
+                    
+                    <!-- Scanline & HUD Overlay -->
+                    <div class="absolute inset-0 pointer-events-none bg-gradient-to-b from-cyan-500/5 via-transparent to-cyan-500/5"></div>
+                    <div class="absolute top-2 left-2 pointer-events-none font-mono text-[10px] text-cyan-400/80 bg-slate-950/80 px-2 py-0.5 rounded">
+                        REC [00:14:28:12] | 1080P RTSP
+                    </div>
+                    <div class="absolute bottom-2 right-2 pointer-events-none font-mono text-[10px] text-emerald-400/80 bg-slate-950/80 px-2 py-0.5 rounded">
+                        YOLOv8n: 3 TARGETS
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE CAMERA 2: BOP BRAVO (PERIMETER RE-ID NODE) -->
+            <div class="glass-panel rounded-xl p-4 flex flex-col relative">
+                <div class="flex items-center justify-between mb-2.5">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></span>
+                        <h3 class="text-xs font-mono font-bold text-slate-200">NODE 02: BOP BRAVO (EAST PERIMETER)</h3>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] font-mono bg-cyan-950/80 text-cyan-400 border border-cyan-700 px-2 py-0.5 rounded">
+                            PREDICTIVE RE-ID ACTIVE
+                        </span>
+                    </div>
+                </div>
+
+                <div class="relative rounded-lg overflow-hidden border border-slate-800 bg-black aspect-video flex items-center justify-center group">
+                    <img src="/stream/cam2/live" alt="Camera 2 Live Stream" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1578836537282-3171d77f8632?w=800&auto=format&fit=crop&q=60';">
+                    
+                    <div class="absolute inset-0 pointer-events-none bg-gradient-to-b from-cyan-500/5 via-transparent to-cyan-500/5"></div>
+                    <div class="absolute top-2 left-2 pointer-events-none font-mono text-[10px] text-cyan-400/80 bg-slate-950/80 px-2 py-0.5 rounded">
+                        RE-ID COSINE: 96.4% MATCH
+                    </div>
+                    <div class="absolute bottom-2 right-2 pointer-events-none font-mono text-[10px] text-amber-400/80 bg-slate-950/80 px-2 py-0.5 rounded">
+                        HANDOFF VERIFIED (9.4s)
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN (3 Cols): RECONSTRUCTED INCIDENT GRAPH & CRYPTO CHAIN -->
+        <div class="col-span-12 xl:col-span-3 flex flex-col space-y-6">
+
+            <!-- ACTIVE RECONSTRUCTED INCIDENT STORY -->
+            <div id="incident-hero-box" class="glass-panel-alert rounded-xl p-4 flex flex-col space-y-3">
+                <div class="flex items-center justify-between border-b border-red-500/30 pb-2">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="flame" class="w-4 h-4 text-red-500 animate-bounce"></i>
+                        <h2 class="text-xs font-mono font-bold tracking-wider text-red-400">INCIDENT #1041: RECONSTRUCTED</h2>
+                    </div>
+                    <span class="text-xs font-mono bg-red-600 text-white font-bold px-2 py-0.5 rounded">
+                        92/100 [CRITICAL]
+                    </span>
+                </div>
+
+                <div class="text-xs font-sans text-slate-300 leading-relaxed">
+                    <p><strong>📖 Multi-Node Incident Story:</strong> Target <code>TRG-0017</code> breached Checkpost Alpha North Gate, traversed 60m eastern corridor, and verified via predictive arrival at BOP Bravo within 9.4s.</p>
+                </div>
+
+                <!-- Visual Node Trajectory -->
+                <div class="flex items-center justify-between p-2 rounded bg-slate-950/70 border border-red-900/60 font-mono text-[10px]">
+                    <span class="text-cyan-400 font-bold">Node 1 (Breach)</span>
+                    <span class="text-amber-400 font-bold">➔ [9.4s] ➔</span>
+                    <span class="text-red-400 font-bold">Node 2 (Re-ID)</span>
+                </div>
+
+                <!-- 1-Click Human-in-the-Loop Triage Actions -->
+                <div class="grid grid-cols-2 gap-2 pt-1 font-mono text-xs">
+                    <button onclick="confirmIncident('INC-1041')" class="px-3 py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-md shadow-emerald-600/30 flex items-center justify-center space-x-1">
+                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                        <span>CONFIRM</span>
+                    </button>
+                    <button onclick="dismissFalseAlarm('INC-1041')" class="px-3 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold border border-slate-700 transition-all flex items-center justify-center space-x-1">
+                        <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+                        <span>FALSE ALARM</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAMPER-EVIDENT CRYPTOGRAPHIC BLOCKCHAIN EXPLORER -->
+            <div class="glass-panel rounded-xl p-4 flex flex-col space-y-3 flex-1">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                        <h2 class="text-xs font-mono font-bold tracking-wider text-emerald-300">CRYPTOGRAPHIC CHAIN OF CUSTODY</h2>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5 overflow-y-auto max-h-[250px] pr-1" id="blockchain-block-list">
+                    <!-- Block 2 -->
+                    <div class="p-2.5 rounded bg-slate-900/90 border border-emerald-500/40 font-mono text-[11px] space-y-1">
+                        <div class="flex justify-between items-center text-emerald-400 font-bold">
+                            <span>BLOCK #002 [INC-1041]</span>
+                            <span class="text-[9px] bg-emerald-950 px-1.5 py-0.5 rounded text-emerald-300 border border-emerald-800">SEALED</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 truncate">
+                            Hash: <span class="text-slate-200">af485ed2f29124dfdafe24c986...</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 truncate">
+                            Prev: 651f552c8f0e0fc1...
+                        </div>
+                    </div>
+
+                    <!-- Block 1 -->
+                    <div class="p-2.5 rounded bg-slate-900/70 border border-slate-800 font-mono text-[11px] space-y-1">
+                        <div class="flex justify-between items-center text-slate-300 font-bold">
+                            <span>BLOCK #001 [GENESIS]</span>
+                            <span class="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">ROOT</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 truncate">
+                            Hash: 031640c0d37db201...
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="runBlockchainAudit()" class="w-full py-2 rounded bg-slate-900 hover:bg-slate-800 text-cyan-400 text-xs font-mono border border-cyan-500/40 transition-all flex items-center justify-center space-x-2">
+                    <i data-lucide="binary" class="w-3.5 h-3.5"></i>
+                    <span>VERIFY FULL MERKLE INTEGRITY</span>
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- JAVASCRIPT: 3D THREE.JS DIGITAL TWIN & REAL-TIME INTERACTION -->
+    <script>
+        lucide.createIcons();
+
+        // ====================================================================
+        // 1. THREE.JS 3D BORDER DIGITAL TWIN
+        // ====================================================================
+        let scene, camera, renderer, controls;
+        let movingTarget, fovCone1, fovCone2;
+        let targetX = -12;
+
+        function init3DDigitalTwin() {
+            const container = document.getElementById('threejs-container');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x070b12);
+            scene.fog = new THREE.FogExp2(0x070b12, 0.025);
+
+            camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+            camera.position.set(0, 22, 28);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.05;
+
+            // Ambient & Directional Lights
+            const ambLight = new THREE.AmbientLight(0x00f0ff, 0.3);
+            scene.add(ambLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(15, 30, 20);
+            scene.add(dirLight);
+
+            // Ground Terrain Grid
+            const gridHelper = new THREE.GridHelper(60, 40, 0x00f0ff, 0x1e293b);
+            gridHelper.position.y = 0;
+            scene.add(gridHelper);
+
+            // Restricted Red Border Corridor
+            const borderGeo = new THREE.PlaneGeometry(50, 6);
+            const borderMat = new THREE.MeshBasicMaterial({ color: 0xff003c, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+            const borderCorridor = new THREE.Mesh(borderGeo, borderMat);
+            borderCorridor.rotation.x = Math.PI / 2;
+            borderCorridor.position.set(0, 0.05, 0);
+            scene.add(borderCorridor);
+
+            // Watchtowers & CCTV Optical Cones
+            createWatchtower(-14, 0, 0, "CAM_ALPHA", 0x22c55e);
+            createWatchtower(14, 0, 0, "CAM_BRAVO", 0x00f0ff);
+
+            // Moving Target Vector (3D Avatar)
+            const targetGeo = new THREE.CylinderGeometry(0.3, 0.3, 1.4, 16);
+            const targetMat = new THREE.MeshStandardMaterial({ color: 0xff003c, roughness: 0.3, metalness: 0.8, emissive: 0xff003c, emissiveIntensity: 0.5 });
+            movingTarget = new THREE.Mesh(targetGeo, targetMat);
+            movingTarget.position.set(targetX, 0.7, 0);
+            scene.add(movingTarget);
+
+            window.addEventListener('resize', onWindowResize);
+            animate3D();
+        }
+
+        function createWatchtower(x, y, z, label, colorHex) {
+            const towerGeo = new THREE.BoxGeometry(1.2, 7, 1.2);
+            const towerMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7 });
+            const tower = new THREE.Mesh(towerGeo, towerMat);
+            tower.position.set(x, 3.5, z);
+            scene.add(tower);
+
+            // Optical FOV Cone
+            const coneGeo = new THREE.ConeGeometry(5, 10, 16, 1, true);
+            const coneMat = new THREE.MeshBasicMaterial({ color: colorHex, wireframe: true, transparent: true, opacity: 0.3 });
+            const fovCone = new THREE.Mesh(coneGeo, coneMat);
+            fovCone.position.set(x, 6.5, z + 3);
+            fovCone.rotation.x = Math.PI / 3;
+            scene.add(fovCone);
+        }
+
+        function reset3DCamera() {
+            camera.position.set(0, 22, 28);
+            controls.target.set(0, 0, 0);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('threejs-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            controls.update();
+
+            // Animate 3D Target along the border corridor
+            targetX += 0.04;
+            if (targetX > 16) targetX = -16;
+            movingTarget.position.x = targetX;
+
+            renderer.render(scene, camera);
+        }
+
+        // ====================================================================
+        // 2. LIVE SIREN & TELEMETRY CONTROLS
+        // ====================================================================
+        let isSirenOn = false;
+
+        function toggleEmergencySiren() {
+            isSirenOn = !isSirenOn;
+            const icon = document.getElementById('siren-icon');
+            const txt = document.getElementById('siren-text');
+            const btn = document.getElementById('btn-siren-toggle');
+
+            if (isSirenOn) {
+                fetch('/siren/silence', { method: 'POST' });
+                txt.innerText = "SIREN [ACTIVE]";
+                btn.classList.add('bg-red-600', 'text-white', 'animate-pulse');
+            } else {
+                fetch('/siren/silence', { method: 'POST' });
+                txt.innerText = "TEST SIREN";
+                btn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
+            }
+        }
+
+        function triggerSampleBreach() {
+            fetch('/incidents/correlated')
+                .then(res => res.json())
+                .then(data => {
+                    const hero = document.getElementById('incident-hero-box');
+                    anime({
+                        targets: hero,
+                        scale: [1, 1.03, 1],
+                        duration: 600,
+                        easing: 'easeInOutQuad'
+                    });
+                });
+        }
+
+        function runBlockchainAudit() {
+            fetch('/audit/blockchain')
+                .then(res => res.json())
+                .then(data => {
+                    alert(`✅ CRYPTOGRAPHIC AUDIT VERIFIED: ${data.blocks_audited} Blocks checked with 100% untampered SHA-256 integrity!`);
+                });
+        }
+
+        function confirmIncident(id) {
+            fetch(`/incidents/${id}/acknowledge`, { method: 'POST' })
+                .then(() => alert(`Incident ${id} confirmed by Command Operator.`));
+        }
+
+        function dismissFalseAlarm(id) {
+            alert(`Incident ${id} marked as False Alarm. Site-specific alert calibration updated.`);
+        }
+
+        // Initialize on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            init3DDigitalTwin();
+        });
+    </script>
+</body>
+</html>

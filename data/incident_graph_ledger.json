@@ -1,0 +1,2029 @@
+[
+  {
+    "incident_id": "INC-1041",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0006",
+    "global_target_id": "TRG-0006",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T11:56:54.355952+00:00",
+    "last_update_iso": "2026-09-04T11:57:20.117332+00:00",
+    "cameras_involved": [
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:56:54.355952+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:20.117332+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "042f305675825f9f47d2446d00a67729b45decc16dc019c6c9f4a1bd7e03b76c",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0033 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1042",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0005",
+    "global_target_id": "TRG-0005",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T11:56:54.860132+00:00",
+    "last_update_iso": "2026-09-04T11:57:35.205531+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:56:54.860132+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:56:57.699108+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:29.156137+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:35.205531+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "bdded2827dbfce1660a6c97368b85e1ee9a044ae7dbd72908f946e640d0d3ab5",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0040 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1043",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0008",
+    "global_target_id": "TRG-0008",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T11:56:54.875590+00:00",
+    "last_update_iso": "2026-09-04T11:57:00.710854+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:56:54.875590+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:56:57.728602+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:00.710854+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "2effe31a70585c1f824f523a58847788464a4427c79874a3cb3cedc512a45921",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0008 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1044",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0010",
+    "global_target_id": "TRG-0010",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T11:56:54.890536+00:00",
+    "last_update_iso": "2026-09-04T11:56:54.890536+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:56:54.890536+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "65676231b21852b45329e550ce7c4aa722f82f0390f6fb5fbd606302ba1697fd",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Target TRG-0010 detected at CAM_ALPHA triggering ZONE_INTRUSION."
+  },
+  {
+    "incident_id": "INC-1045",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0007",
+    "global_target_id": "TRG-0007",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T11:56:57.712213+00:00",
+    "last_update_iso": "2026-09-04T11:57:38.567885+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:56:57.712213+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:38.567885+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "d1f4d44e41f2fff4bcdd3f59b453cb7899993103be6533ecdf50492ed2cb6a91",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0049 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1046",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0037",
+    "global_target_id": "TRG-0037",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T11:57:24.712434+00:00",
+    "last_update_iso": "2026-09-04T11:57:24.712434+00:00",
+    "cameras_involved": [
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:24.712434+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "30000722a1c52ff9c11cba80a4526c6ea3d09b72046e5fea9dd9411aeffb85e3",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Target TRG-0037 detected at CAM_BRAVO triggering ZONE_INTRUSION."
+  },
+  {
+    "incident_id": "INC-1047",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0013",
+    "global_target_id": "TRG-0013",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:39:48.864666+00:00",
+    "last_update_iso": "2026-09-04T11:57:00.687562+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:39:48.864666+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:44:18.786039+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:56:48.237044+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:00.687562+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "87e420f778b9660f2f5adeb410b1c85bfae6a2512009c66c65e2d23f985a55f9",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0013 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1048",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0015",
+    "global_target_id": "TRG-0015",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:39:52.932917+00:00",
+    "last_update_iso": "2026-09-04T11:57:03.821598+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:39:52.932917+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:44:21.945089+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:56:52.968143+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:03.821598+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "f90b58543798baa3fcf408ae44273706e748666751dc7d00c84c7a04ed50acfa",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0015 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1049",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0020",
+    "global_target_id": "TRG-0020",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:39:52.948190+00:00",
+    "last_update_iso": "2026-09-04T11:57:12.470425+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:39:52.948190+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:01.232387+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:05.843058+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:44:21.959656+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:56:52.990117+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:01.219758+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:05.035533+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:03.836336+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 9,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:09.450518+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 10,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:12.470425+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "3c7b40d636b855aa7b91710e615ec27d4b3c0c0ada87bef4e972fce6dce59964",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0020 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1050",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0016",
+    "global_target_id": "TRG-0016",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:39:52.960717+00:00",
+    "last_update_iso": "2026-09-04T11:57:03.851415+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:39:52.960717+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:44:21.974849+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:56:53.009903+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:03.851415+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "3206c4563425dce71d7337901a29b621a6a412d13517c7004fc4f57a6b23c140",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0016 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1051",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0017",
+    "global_target_id": "TRG-0017",
+    "target_class": "person",
+    "threat_score": 92,
+    "severity": "CRITICAL",
+    "confidence_pct": 95.2,
+    "start_time_iso": "2026-09-04T09:39:53.177095+00:00",
+    "last_update_iso": "2026-09-04T12:19:03.728935+00:00",
+    "cameras_involved": [
+      "CAM_BRAVO",
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:39:53.177095+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:44:22.315126+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:56:52.592989+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:04.114758+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T12:19:01.018977+00:00",
+        "rule_detail": "Target crossed North Gate Red Zone moving East towards perimeter fence."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "CROSS_CAMERA_MATCH",
+        "timestamp_iso": "2026-09-04T12:19:03.728935+00:00",
+        "rule_detail": "Target arrival verified via Predictive Handoff in 9.4s with 96.4% appearance similarity."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 85.0 px/s."
+      },
+      {
+        "factor": "Static Loitering Dwell Time",
+        "points": 15,
+        "evidence": "Target stationary in caution corridor for 4.2s (threshold 3.0s)."
+      },
+      {
+        "factor": "Predictive Multi-Camera Continuity",
+        "points": 12,
+        "evidence": "Target successfully linked across nodes via spatio-temporal transit prediction."
+      }
+    ],
+    "cryptographic_block_hash": "d34299c456b257bf5463358dfe53e6a7f0592569b599a19918c139b6943b9075",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0017 traversed 2 camera nodes (CAM_BRAVO -> CAM_ALPHA) with sustained threat level CRITICAL."
+  },
+  {
+    "incident_id": "INC-1052",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0009",
+    "global_target_id": "TRG-0009",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:39:56.749143+00:00",
+    "last_update_iso": "2026-09-04T11:57:15.289925+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:39:56.749143+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:01.248928+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:10.109063+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:44:25.216917+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:56:57.357954+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:01.244796+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:08.854671+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:06.631583+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 9,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:09.471586+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 10,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:15.289925+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "d9456b02ee99e423961ccf1104df91b6330eeea5686ed66092b2d1ae959d8c37",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0009 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1053",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0023",
+    "global_target_id": "TRG-0023",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:01.265031+00:00",
+    "last_update_iso": "2026-09-04T11:57:15.341758+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:01.265031+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:05.877319+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:10.164390+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:01.264186+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:05.086958+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:08.924817+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:09.488422+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:12.502135+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 9,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:15.341758+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "e04e5fa61206605b54ca4b277103b166eb1db4475d2f66ea4deb99417ec3e9c0",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0023 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1054",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0024",
+    "global_target_id": "TRG-0024",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:01.279082+00:00",
+    "last_update_iso": "2026-09-04T11:57:15.328246+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:01.279082+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:05.859253+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:10.145584+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:01.286195+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:05.051869+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:08.898358+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:09.504001+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:12.486477+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 9,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:15.328246+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "fc62bd93b774079f404d8d6b99cead5da5de13894b3aee059cea00f38c8853f3",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0024 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1055",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0025",
+    "global_target_id": "TRG-0025",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:03.389306+00:00",
+    "last_update_iso": "2026-09-04T11:57:10.975495+00:00",
+    "cameras_involved": [
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:03.389306+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:02.422397+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:10.975495+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "eeba861fcf1f035ec22eb65ae0fd62bd02d121ed74d18afff6d38d232f6f59fd",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0025 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1056",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0026",
+    "global_target_id": "TRG-0026",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:03.404966+00:00",
+    "last_update_iso": "2026-09-04T11:57:10.995729+00:00",
+    "cameras_involved": [
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:03.404966+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:02.444529+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:10.995729+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "c041a1b855266c311cfe92839d6900fc80a0886a67e044d3c891abbcf23ed39d",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0026 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1057",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0027",
+    "global_target_id": "TRG-0027",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:03.422189+00:00",
+    "last_update_iso": "2026-09-04T11:57:11.011143+00:00",
+    "cameras_involved": [
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:03.422189+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:02.460217+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:11.011143+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "deda7ec705f4a772f0a5617d376cd4318aa807987cd61818b94373331ede3104",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0027 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1058",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0029",
+    "global_target_id": "TRG-0029",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:10.126830+00:00",
+    "last_update_iso": "2026-09-04T11:57:15.311292+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:10.126830+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:08.877730+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:15.311292+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "ffd3ff0ef021c8f0de4ea30305b3a0b59dfd9f42ea23adbd28ee60f5e41f519b",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0029 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1059",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0030",
+    "global_target_id": "TRG-0030",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:23.959968+00:00",
+    "last_update_iso": "2026-09-04T11:57:23.442913+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:23.959968+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:30.716217+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:15.396299+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:18.641013+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:20.747824+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:23.442913+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "5af6035ffae3bde879b3ddf2a196ab66c8bac520487f4d3e7f2fcd524b2b4d47",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0030 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1060",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0031",
+    "global_target_id": "TRG-0031",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:23.982661+00:00",
+    "last_update_iso": "2026-09-04T11:57:38.588027+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:23.982661+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:53.279368+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:15.412825+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:31.955412+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:35.545457+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:20.769171+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:35.160767+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:38.588027+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "dbad71d2a1a96e0658a485f10fed2c59d3375d911f46fab127c475fc8c8985e4",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0031 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1061",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0032",
+    "global_target_id": "TRG-0032",
+    "target_class": "person",
+    "threat_score": 77,
+    "severity": "CRITICAL",
+    "confidence_pct": 91.9,
+    "start_time_iso": "2026-09-04T09:40:30.740980+00:00",
+    "last_update_iso": "2026-09-04T11:57:26.327766+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA",
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:30.740980+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:37.059912+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:13.920618+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:23.460264+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:26.327766+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      },
+      {
+        "factor": "Predictive Multi-Camera Continuity",
+        "points": 12,
+        "evidence": "Target successfully linked across nodes via spatio-temporal transit prediction."
+      }
+    ],
+    "cryptographic_block_hash": "83131cc44ea542ffb5aa72266a0a984536276dd2a15525f235f28cc24c2de01c",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0032 traversed 2 camera nodes (CAM_ALPHA -> CAM_BRAVO) with sustained threat level CRITICAL."
+  },
+  {
+    "incident_id": "INC-1062",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0035",
+    "global_target_id": "TRG-0035",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:33.116154+00:00",
+    "last_update_iso": "2026-09-04T09:57:19.272079+00:00",
+    "cameras_involved": [
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:33.116154+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:19.272079+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "47688d8f378e3ffedecba1c17b9d29a2e53305fd6852e3af2cc4e3f2fad73975",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0035 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1063",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0034",
+    "global_target_id": "TRG-0034",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:37.085066+00:00",
+    "last_update_iso": "2026-09-04T11:57:38.642559+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:37.085066+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:45.301492+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:53.351389+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:21.923398+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:25.169374+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:32.039865+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:35.605690+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:26.347011+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 9,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:29.139317+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 10,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:35.230222+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 11,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:38.642559+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "bfe962f6fd95ca4b6969696994834d6cdf64d59de3cf3e37fb338e3f60a24f85",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0034 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1064",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0042",
+    "global_target_id": "TRG-0042",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:49.185229+00:00",
+    "last_update_iso": "2026-09-04T11:57:38.543921+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:49.185229+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:53.392417+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:28.478219+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:32.085977+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:35.481163+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:31.939532+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:35.268133+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:38.543921+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "ac661e9c6429e0e65c39616cfd31765e3a25d1d29a0607ec2053c8a8f2034734",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0042 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1065",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0045",
+    "global_target_id": "TRG-0045",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:51.880860+00:00",
+    "last_update_iso": "2026-09-04T11:57:34.134546+00:00",
+    "cameras_involved": [
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:51.880860+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:34.134546+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "6580db44ef7252748a7e0c95915638145662af89d0124a8f545cacbc4cbe5f65",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0045 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1066",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0046",
+    "global_target_id": "TRG-0046",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:51.899089+00:00",
+    "last_update_iso": "2026-09-04T11:57:34.152724+00:00",
+    "cameras_involved": [
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:51.899089+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:34.152724+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "353eeb1c2a9d629c72312ee409ad834a389ea6cb8de17059c55681789c16bc1c",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0046 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1067",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0038",
+    "global_target_id": "TRG-0038",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:53.298469+00:00",
+    "last_update_iso": "2026-09-04T11:57:35.185342+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:53.298469+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:31.973295+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:35.185342+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "4a3e8c0cd67ce1998c1f83ebcf8364dd981e2955a9df70cf7e4eb7bccd1679ba",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0038 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1068",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0047",
+    "global_target_id": "TRG-0047",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:53.370590+00:00",
+    "last_update_iso": "2026-09-04T11:57:38.519709+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:53.370590+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:32.062749+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:35.453768+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:35.250319+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:38.519709+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "2c9097c1af82a6b7a23cf674f15edfa2a85f2c3d0488846fff31031048f8d650",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0047 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  },
+  {
+    "incident_id": "INC-1069",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0041",
+    "global_target_id": "TRG-0041",
+    "target_class": "person",
+    "threat_score": 65,
+    "severity": "WARNING",
+    "confidence_pct": 89.3,
+    "start_time_iso": "2026-09-04T09:40:53.409852+00:00",
+    "last_update_iso": "2026-09-04T11:57:38.613826+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:40:53.409852+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:32.103910+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T09:57:35.574155+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:35.286357+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-04T11:57:38.613826+00:00",
+        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      }
+    ],
+    "cryptographic_block_hash": "ee735cad1ad6d795fd3d6dfe666689b288d9a4a76ba0f47f61497e8bd5e60164",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0041 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+  }
+]
