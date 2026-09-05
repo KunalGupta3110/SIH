@@ -11,13 +11,11 @@ function useClock() {
 }
 
 const SECTION_LINKS = [
-  { id: "pipeline", label: "00 PIPELINE" },
   { id: "overview", label: "01 OVERVIEW" },
-  { id: "handoff", label: "02 PREDICTIVE HANDOFF" },
-  { id: "surveillance", label: "03 SCENARIO LAB" },
-  { id: "incidents", label: "04 RECONSTRUCTION" },
-  { id: "map", label: "05 BORDER MAP" },
-  { id: "custody", label: "06 EVIDENCE VAULT" },
+  { id: "surveillance", label: "02 SURVEILLANCE LAB" },
+  { id: "incidents", label: "03 RECONSTRUCTION & HANDOFF" },
+  { id: "map", label: "04 BORDER MAP" },
+  { id: "custody", label: "05 EVIDENCE VAULT" },
 ];
 
 export default function StickyTopBar({

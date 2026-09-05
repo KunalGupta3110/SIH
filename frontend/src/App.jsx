@@ -1,8 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import StickyTopBar from "./components/StickyTopBar.jsx";
-import SystemPipelineRibbon from "./components/SystemPipelineRibbon.jsx";
 import ExecutiveCommandOverview from "./components/ExecutiveCommandOverview.jsx";
-import PredictiveHandoffCard from "./components/PredictiveHandoffCard.jsx";
 import LiveSurveillanceSection from "./components/LiveSurveillanceSection.jsx";
 import TrackBoard from "./components/TrackBoard.jsx";
 import MapPanel from "./components/MapPanel.jsx";
@@ -15,7 +13,6 @@ import { ArrowUp, ShieldCheck, Cpu } from "lucide-react";
 export default function App() {
   const [selectedMapId, setSelectedMapId] = useState(null);
   const [populatingDemo, setPopulatingDemo] = useState(false);
-  const [activePipelineStage, setActivePipelineStage] = useState(4); // Stage 05: Predictive Handoff
 
   // Real backend polling
   const { data: edgeStatus } = usePoll(() => api.getEdgeStatus(), 5000);
@@ -63,7 +60,6 @@ export default function App() {
   const handlePopulateDemo = useCallback(async () => {
     if (populatingDemo) return;
     setPopulatingDemo(true);
-    setActivePipelineStage(4);
     try {
       for (const caseId of [1, 2, 3, 4, 5]) {
         await api.simulateCase(caseId);
@@ -84,7 +80,6 @@ export default function App() {
     refetchIncidents();
     refetchCameras();
     refetchBlockchain();
-    setActivePipelineStage(4);
   }, [refetchIncidents, refetchCameras, refetchBlockchain]);
 
   const handleRefreshAll = useCallback(() => {
@@ -114,18 +109,9 @@ export default function App() {
         populatingDemo={populatingDemo}
       />
 
-      {/* ── MAIN CONTINUOUS SCROLL CONTAINER ─────────────────────────── */}
-      <main className="mx-auto max-w-7xl px-6 py-8 space-y-16">
-        {/* ── SECTION 0: 9-STAGE ARCHITECTURAL PIPELINE VISUALIZER ──── */}
-        <section id="pipeline" className="scroll-mt-20">
-          <SystemPipelineRibbon
-            activeStageIndex={activePipelineStage}
-            onSelectStage={(idx) => setActivePipelineStage(idx)}
-            onRunDemo={handleRefreshAll}
-          />
-        </section>
-
-        {/* ── SECTION 1: EXECUTIVE COMMAND & SITUATIONAL OVERVIEW ───── */}
+      {/* ── MAIN CONTINUOUS SCROLL CONTAINER (5 CLEAN SECTIONS) ───────── */}
+      <main className="mx-auto max-w-7xl px-6 py-8 space-y-14">
+        {/* ── SECTION 1: COMMAND & SITUATIONAL OVERVIEW ─────────────── */}
         <section id="overview" className="scroll-mt-20">
           <ExecutiveCommandOverview
             edgeStatus={edgeStatus}
@@ -135,15 +121,7 @@ export default function App() {
           />
         </section>
 
-        {/* ── SECTION 2: FIRST-CLASS PREDICTIVE CAMERA HANDOFF ──────── */}
-        <section id="handoff" className="scroll-mt-20">
-          <PredictiveHandoffCard
-            onHandoffSimulated={handleRefreshAll}
-            onResetDemo={handleResetDemo}
-          />
-        </section>
-
-        {/* ── SECTION 3: REAL-LIFE SURVEILLANCE & SCENARIO LAB ──────── */}
+        {/* ── SECTION 2: SURVEILLANCE SCENARIOS & FOOTAGE SEARCH ────── */}
         <section id="surveillance" className="scroll-mt-20">
           <LiveSurveillanceSection
             cameraHealth={cameraHealth}
@@ -152,7 +130,7 @@ export default function App() {
           />
         </section>
 
-        {/* ── SECTION 4: INCIDENT CORRELATION & RECONSTRUCTION ──────── */}
+        {/* ── SECTION 3: UNIFIED INCIDENT RECONSTRUCTION & HANDOFF ──── */}
         <section id="incidents" className="scroll-mt-20">
           <TrackBoard
             incidents={incidents}
@@ -161,8 +139,8 @@ export default function App() {
           />
         </section>
 
-        {/* ── SECTION 5: 2D TACTICAL BORDER MAP ─────────────────────── */}
-        <section id="map" className="scroll-mt-20 flex flex-col gap-5">
+        {/* ── SECTION 4: 2D TACTICAL BORDER MAP ─────────────────────── */}
+        <section id="map" className="scroll-mt-20 flex flex-col gap-4">
           <SectionHeader
             title="Tactical Border Sector 2D Schematic"
             sub="Flat 2D spatial overview of the 100m restricted red zone, zero line, patrol road, camera telemetry pins, and active target vectors."
@@ -175,7 +153,7 @@ export default function App() {
           />
         </section>
 
-        {/* ── SECTION 6: FORENSIC EVIDENCE VAULT & SECTION 65B ──────── */}
+        {/* ── SECTION 5: FORENSIC EVIDENCE VAULT & SECTION 65B ──────── */}
         <section id="custody" className="scroll-mt-20">
           <ChainOfCustody
             blockchain={blockchain}
