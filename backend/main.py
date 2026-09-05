@@ -60,11 +60,7 @@ app.add_middleware(
 )
 
 FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
-STATIC_DIR = ROOT_DIR / "apps" / "web_command_center" / "static"
 DATA_DIR = ROOT_DIR / "data"
-
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 if DATA_DIR.exists():
     app.mount("/data", StaticFiles(directory=str(DATA_DIR)), name="data_videos")
@@ -74,22 +70,12 @@ if FRONTEND_DIST.exists() and (FRONTEND_DIST / "assets").exists():
 
 
 @app.get("/", include_in_schema=False)
+@app.get("/twin", include_in_schema=False)
+@app.get("/3d", include_in_schema=False)
 def serve_frontend_root():
     if FRONTEND_DIST.exists() and (FRONTEND_DIST / "index.html").exists():
         return FileResponse(str(FRONTEND_DIST / "index.html"))
-    html_file = STATIC_DIR / "command_center.html"
-    if html_file.exists():
-        return FileResponse(str(html_file))
     return {"message": "IBVAP Sentinel Backend Active", "docs": "/docs"}
-
-
-@app.get("/twin", include_in_schema=False)
-@app.get("/3d", include_in_schema=False)
-def serve_3d_twin():
-    html_file = STATIC_DIR / "command_center.html"
-    if html_file.exists():
-        return FileResponse(str(html_file))
-    raise HTTPException(status_code=404, detail="3D Twin console not found")
 
 
 CAMERA_COUNT = 6
