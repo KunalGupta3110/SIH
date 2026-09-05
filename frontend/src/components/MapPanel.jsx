@@ -348,6 +348,8 @@ export default function MapPanel({
           const isSelected = selectedId === camId;
           const isHovered = hoveredEntity === camId;
           const isBreached = activeIncident?.cameras_involved?.includes(camId);
+          const isSource = camId === "CAM_ALPHA" && isBreached;
+          const isPredicted = camId === "CAM_BRAVO" && isBreached;
 
           return (
             <g
@@ -369,17 +371,25 @@ export default function MapPanel({
                 </circle>
               )}
 
+              {/* Predicted Destination Pulse Ring */}
+              {isPredicted && (
+                <circle r="24" fill="none" stroke="#38bdf8" strokeWidth="1.5" opacity="0.8">
+                  <animate attributeName="r" values="16;32;16" dur="2.4s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.9;0.1;0.9" dur="2.4s" repeatCount="indefinite" />
+                </circle>
+              )}
+
               {/* Optical Housing Disc */}
               <circle
                 r="11"
                 fill={isBreached ? "#1c0b0f" : "#061322"}
-                stroke={isBreached ? "#ef4444" : isSelected ? "#38bdf8" : "#0284c7"}
-                strokeWidth={isBreached || isSelected ? "2" : "1.2"}
-                filter={isBreached ? "url(#glow-red)" : isSelected ? "url(#glow-cyan)" : undefined}
+                stroke={isPredicted ? "#38bdf8" : isBreached ? "#ef4444" : isSelected ? "#38bdf8" : "#0284c7"}
+                strokeWidth={isBreached || isSelected || isPredicted ? "2" : "1.2"}
+                filter={isPredicted ? "url(#glow-cyan)" : isBreached ? "url(#glow-red)" : isSelected ? "url(#glow-cyan)" : undefined}
               />
 
               {/* Lens Aperture dot */}
-              <circle r="4" fill={isBreached ? "#ef4444" : "#38bdf8"} />
+              <circle r="4" fill={isPredicted ? "#38bdf8" : isBreached ? "#ef4444" : "#38bdf8"} />
 
               {/* Active Beacon status indicator */}
               <circle cx="7" cy="-7" r="3" fill="#10b981" />
@@ -387,27 +397,31 @@ export default function MapPanel({
                 <animate attributeName="r" values="3;7;3" dur="2s" repeatCount="indefinite" />
               </circle>
 
-              {/* Camera Tag Below Mast (y = 28) - Never overlaps target or line! */}
+              {/* Camera Tag Below Mast */}
               <g transform="translate(0, 30)">
                 <rect
-                  x="-42"
+                  x={isPredicted ? "-65" : isSource ? "-62" : "-42"}
                   y="-8"
-                  width="84"
-                  height="17"
+                  width={isPredicted ? "130" : isSource ? "124" : "84"}
+                  height="18"
                   rx="3"
-                  fill={isBreached ? "#1e0b0e" : isSelected ? "#071c30" : "#040c16"}
-                  stroke={isBreached ? "#ef4444" : isSelected ? "#38bdf8" : "#1e3a5f"}
+                  fill={isPredicted ? "#061c2e" : isBreached ? "#1e0b0e" : isSelected ? "#071c30" : "#040c16"}
+                  stroke={isPredicted ? "#38bdf8" : isBreached ? "#ef4444" : isSelected ? "#38bdf8" : "#1e3a5f"}
                   strokeWidth="1"
                 />
                 <text
                   x="0"
-                  y="4"
-                  fill={isBreached ? "#f87171" : isSelected ? "#38bdf8" : "#cbd5e1"}
+                  y="4.5"
+                  fill={isPredicted ? "#38bdf8" : isBreached ? "#f87171" : isSelected ? "#38bdf8" : "#cbd5e1"}
                   fontSize="9.5"
                   fontWeight="bold"
                   textAnchor="middle"
                 >
-                  {camId}
+                  {isPredicted
+                    ? `${camId} · PREDICTED (8.5s)`
+                    : isSource
+                    ? `${camId} · INGRESS SOURCE`
+                    : camId}
                 </text>
               </g>
             </g>

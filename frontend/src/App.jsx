@@ -1,6 +1,8 @@
 import { useState, useMemo, useCallback } from "react";
 import StickyTopBar from "./components/StickyTopBar.jsx";
+import SystemPipelineRibbon from "./components/SystemPipelineRibbon.jsx";
 import ExecutiveCommandOverview from "./components/ExecutiveCommandOverview.jsx";
+import PredictiveHandoffCard from "./components/PredictiveHandoffCard.jsx";
 import LiveSurveillanceSection from "./components/LiveSurveillanceSection.jsx";
 import TrackBoard from "./components/TrackBoard.jsx";
 import MapPanel from "./components/MapPanel.jsx";
@@ -13,6 +15,7 @@ import { ArrowUp, ShieldCheck, Cpu } from "lucide-react";
 export default function App() {
   const [selectedMapId, setSelectedMapId] = useState(null);
   const [populatingDemo, setPopulatingDemo] = useState(false);
+  const [activePipelineStage, setActivePipelineStage] = useState(4); // Stage 05: Predictive Handoff
 
   // Real backend polling
   const { data: edgeStatus } = usePoll(() => api.getEdgeStatus(), 5000);
@@ -25,7 +28,10 @@ export default function App() {
     error: incidentsError,
     refetch: refetchIncidents,
   } = usePollWithRefetch(() => api.getIncidents(50), 4000);
-  const { data: blockchain, error: blockchainError } = usePoll(() => api.getBlockchain(), 6000);
+  const { data: blockchain, error: blockchainError, refetch: refetchBlockchain } = usePollWithRefetch(
+    () => api.getBlockchain(),
+    6000
+  );
 
   const cameraHealth = cameraHealthRaw?.cameras || [];
   const incidents = incidentsRaw || [];
@@ -57,27 +63,35 @@ export default function App() {
   const handlePopulateDemo = useCallback(async () => {
     if (populatingDemo) return;
     setPopulatingDemo(true);
+    setActivePipelineStage(4);
     try {
-      // Fires the backend's real 5 distinct scenario cases in sequence
-      // (night crawl breach, predictive handoff, vehicle ramming, perimeter
-      // loitering, coordinated group breach).
       for (const caseId of [1, 2, 3, 4, 5]) {
         await api.simulateCase(caseId);
-        await new Promise((r) => setTimeout(r, 1100));
+        await new Promise((r) => setTimeout(r, 900));
       }
       refetchIncidents();
       refetchCameras();
+      refetchBlockchain();
     } catch (err) {
       console.error("Populate demo scenarios failed:", err);
     } finally {
       setPopulatingDemo(false);
     }
-  }, [populatingDemo, refetchIncidents, refetchCameras]);
+  }, [populatingDemo, refetchIncidents, refetchCameras, refetchBlockchain]);
+
+  const handleResetDemo = useCallback(() => {
+    api.resetDemo();
+    refetchIncidents();
+    refetchCameras();
+    refetchBlockchain();
+    setActivePipelineStage(4);
+  }, [refetchIncidents, refetchCameras, refetchBlockchain]);
 
   const handleRefreshAll = useCallback(() => {
     refetchIncidents();
     refetchCameras();
-  }, [refetchIncidents, refetchCameras]);
+    refetchBlockchain();
+  }, [refetchIncidents, refetchCameras, refetchBlockchain]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -96,11 +110,21 @@ export default function App() {
         hasCriticalAlert={hasCriticalAlert}
         onSilence={handleSilence}
         onPopulateDemo={handlePopulateDemo}
+        onResetDemo={handleResetDemo}
         populatingDemo={populatingDemo}
       />
 
       {/* ── MAIN CONTINUOUS SCROLL CONTAINER ─────────────────────────── */}
       <main className="mx-auto max-w-7xl px-6 py-8 space-y-16">
+        {/* ── SECTION 0: 9-STAGE ARCHITECTURAL PIPELINE VISUALIZER ──── */}
+        <section id="pipeline" className="scroll-mt-20">
+          <SystemPipelineRibbon
+            activeStageIndex={activePipelineStage}
+            onSelectStage={(idx) => setActivePipelineStage(idx)}
+            onRunDemo={handleRefreshAll}
+          />
+        </section>
+
         {/* ── SECTION 1: EXECUTIVE COMMAND & SITUATIONAL OVERVIEW ───── */}
         <section id="overview" className="scroll-mt-20">
           <ExecutiveCommandOverview
@@ -111,7 +135,15 @@ export default function App() {
           />
         </section>
 
-        {/* ── SECTION 2: REAL-LIFE SURVEILLANCE & SCENARIO LAB ──────── */}
+        {/* ── SECTION 2: FIRST-CLASS PREDICTIVE CAMERA HANDOFF ──────── */}
+        <section id="handoff" className="scroll-mt-20">
+          <PredictiveHandoffCard
+            onHandoffSimulated={handleRefreshAll}
+            onResetDemo={handleResetDemo}
+          />
+        </section>
+
+        {/* ── SECTION 3: REAL-LIFE SURVEILLANCE & SCENARIO LAB ──────── */}
         <section id="surveillance" className="scroll-mt-20">
           <LiveSurveillanceSection
             cameraHealth={cameraHealth}
@@ -120,7 +152,7 @@ export default function App() {
           />
         </section>
 
-        {/* ── SECTION 3: INCIDENT TRIAGE & RECONSTRUCTION ───────────── */}
+        {/* ── SECTION 4: INCIDENT CORRELATION & RECONSTRUCTION ──────── */}
         <section id="incidents" className="scroll-mt-20">
           <TrackBoard
             incidents={incidents}

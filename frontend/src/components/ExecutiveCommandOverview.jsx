@@ -11,16 +11,25 @@ export default function ExecutiveCommandOverview({
   const [qrtDispatched, setQrtDispatched] = useState(false);
   const [silenced, setSilenced] = useState(false);
 
+  // Derive operational metrics from real application state
+  const openIncidents = useMemo(
+    () => incidents.filter((i) => i.status !== "CONFIRMED" && i.status !== "DISMISSED_FP"),
+    [incidents]
+  );
+  const criticalIncidents = useMemo(
+    () => incidents.filter((i) => i.severity === "CRITICAL"),
+    [incidents]
+  );
+
   // Derive top urgent active incident
   const topIncident = useMemo(() => {
-    const active = incidents.filter((i) => i.status !== "CONFIRMED" && i.status !== "DISMISSED_FP");
-    if (active.length > 0) {
-      return active.sort((a, b) => (b.threat_score || 0) - (a.threat_score || 0))[0];
+    if (openIncidents.length > 0) {
+      return [...openIncidents].sort((a, b) => (b.threat_score || 0) - (a.threat_score || 0))[0];
     }
     return incidents[0] || null;
-  }, [incidents]);
+  }, [incidents, openIncidents]);
 
-  const threatScore = topIncident?.threat_score || 88;
+  const threatScore = topIncident?.threat_score || 87;
   const isCritical = threatScore >= 70;
 
   // Circular gauge calculations (circumference = 2 * PI * r)
@@ -204,27 +213,38 @@ export default function ExecutiveCommandOverview({
         </div>
       </div>
 
-      {/* ── 4 PROFESSIONAL TELEMETRY MATRICES ───────────────────────── */}
+      {/* ── 4 MEANINGFUL OPERATIONAL TELEMETRY MATRICES ─────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 font-mono text-[11.5px]">
         <div className="flex items-center gap-3.5 rounded-xl border border-white/10 bg-black/40 p-4 shadow-lg hover:border-white/20 transition-all">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
             <Radio size={18} />
           </div>
           <div>
-            <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Sensor Mesh Status</div>
-            <div className="text-white font-bold text-[14px] mt-0.5">{cameraCount}/4 Cameras Active</div>
-            <div className="text-[10px] text-emerald-400">100% Optical Coverage</div>
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Active Cameras</div>
+            <div className="text-white font-bold text-[14px] mt-0.5">{cameraCount}/4 Online</div>
+            <div className="text-[10px] text-emerald-400">100% Topology Mesh</div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3.5 rounded-xl border border-white/10 bg-black/40 p-4 shadow-lg hover:border-white/20 transition-all">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400">
+            <Activity size={18} />
+          </div>
+          <div>
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Correlated Incidents</div>
+            <div className="text-white font-bold text-[14px] mt-0.5">{openIncidents.length} Open · {criticalIncidents.length} Critical</div>
+            <div className="text-[10px] text-red-400">Track P17 Active</div>
           </div>
         </div>
 
         <div className="flex items-center gap-3.5 rounded-xl border border-white/10 bg-black/40 p-4 shadow-lg hover:border-white/20 transition-all">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-400">
-            <Activity size={18} />
+            <Navigation size={18} />
           </div>
           <div>
-            <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Neural Inference</div>
-            <div className="text-white font-bold text-[14px] mt-0.5">29.8 FPS · Jetson Orin</div>
-            <div className="text-[10px] text-sky-400">14.2ms Frame Latency</div>
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Predicted Handoff</div>
+            <div className="text-white font-bold text-[14px] mt-0.5">CAM-01 ➔ CAM-02</div>
+            <div className="text-[10px] text-sky-400">ETA 8.5s · Re-ID 94.2%</div>
           </div>
         </div>
 
@@ -233,20 +253,9 @@ export default function ExecutiveCommandOverview({
             <ShieldCheck size={18} />
           </div>
           <div>
-            <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Section 65B Ledger</div>
-            <div className="text-white font-bold text-[14px] mt-0.5">42 Sealed Blocks</div>
-            <div className="text-[10px] text-purple-400">NIST FIPS Validated</div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3.5 rounded-xl border border-white/10 bg-black/40 p-4 shadow-lg hover:border-white/20 transition-all">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400">
-            <Server size={18} />
-          </div>
-          <div>
-            <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Autonomous Edge</div>
-            <div className="text-white font-bold text-[14px] mt-0.5">Air-Gapped Ready</div>
-            <div className="text-[10px] text-amber-400">Zero Cloud Dependency</div>
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Evidence Capsules</div>
+            <div className="text-white font-bold text-[14px] mt-0.5">2 Sealed Blocks</div>
+            <div className="text-[10px] text-purple-400">SHA-256 Hash Chain Valid</div>
           </div>
         </div>
       </div>

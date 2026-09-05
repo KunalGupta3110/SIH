@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Shield, Bell, BellOff, Wifi, WifiOff, PlaySquare, CheckCircle2 } from "lucide-react";
+import { Shield, Bell, BellOff, Wifi, WifiOff, PlaySquare, CheckCircle2, RotateCcw } from "lucide-react";
 
 function useClock() {
   const [t, setT] = useState(new Date());
@@ -11,11 +11,13 @@ function useClock() {
 }
 
 const SECTION_LINKS = [
+  { id: "pipeline", label: "00 PIPELINE" },
   { id: "overview", label: "01 OVERVIEW" },
-  { id: "surveillance", label: "02 REAL SCENARIOS & SEARCH" },
-  { id: "incidents", label: "03 INCIDENT TRIAGE" },
-  { id: "map", label: "04 BORDER MAP" },
-  { id: "custody", label: "05 EVIDENCE VAULT" },
+  { id: "handoff", label: "02 PREDICTIVE HANDOFF" },
+  { id: "surveillance", label: "03 SCENARIO LAB" },
+  { id: "incidents", label: "04 RECONSTRUCTION" },
+  { id: "map", label: "05 BORDER MAP" },
+  { id: "custody", label: "06 EVIDENCE VAULT" },
 ];
 
 export default function StickyTopBar({
@@ -25,6 +27,7 @@ export default function StickyTopBar({
   hasCriticalAlert = false,
   onSilence,
   onPopulateDemo,
+  onResetDemo,
   populatingDemo = false,
 }) {
   const clock = useClock();
@@ -103,6 +106,12 @@ export default function StickyTopBar({
             <span className="font-semibold text-[10.5px]">{online ? "LINK NOMINAL" : "LINK OFFLINE"}</span>
           </div>
 
+          {/* Honest Simulation Badge */}
+          <div className="hidden sm:flex items-center gap-1.5 rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-amber-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span className="font-semibold text-[10px]">◇ SIMULATION MODE</span>
+          </div>
+
           {/* Counts */}
           <div className="hidden sm:flex items-center gap-2 text-slate-400 text-[10.5px]">
             <span className="text-slate-200 font-semibold">{cameraCount}</span> SENSORS
@@ -113,18 +122,31 @@ export default function StickyTopBar({
             TRACKS
           </div>
 
-          {/* Demo Scenario Seeder */}
-          {onPopulateDemo && (
-            <button
-              onClick={onPopulateDemo}
-              disabled={populatingDemo}
-              title="Seed 5 real distinct test scenarios via backend simulate-case"
-              className="hidden md:flex items-center gap-1.5 rounded border border-white/10 bg-black/40 px-2.5 py-1 text-[10.5px] text-slate-300 hover:border-white/25 hover:text-white transition-all disabled:opacity-50"
-            >
-              <PlaySquare size={11} className="text-sky-400" />
-              <span>{populatingDemo ? "SEEDING..." : "SEED DEMO"}</span>
-            </button>
-          )}
+          {/* Demo Scenario Seeder & Reset Buttons */}
+          <div className="hidden md:flex items-center gap-1.5">
+            {onPopulateDemo && (
+              <button
+                onClick={onPopulateDemo}
+                disabled={populatingDemo}
+                title="Seed 5 real distinct test scenarios via backend simulate-case"
+                className="flex items-center gap-1.5 rounded border border-white/10 bg-black/40 px-2.5 py-1 text-[10.5px] text-slate-300 hover:border-white/25 hover:text-white transition-all disabled:opacity-50"
+              >
+                <PlaySquare size={11} className="text-sky-400" />
+                <span>{populatingDemo ? "SEEDING..." : "SEED DEMO"}</span>
+              </button>
+            )}
+
+            {onResetDemo && (
+              <button
+                onClick={onResetDemo}
+                title="Reset simulation state to baseline"
+                className="flex items-center gap-1 rounded border border-white/10 bg-black/40 px-2 py-1 text-[10.5px] text-slate-400 hover:text-white hover:border-white/25 transition-all"
+              >
+                <RotateCcw size={11} />
+                <span>RESET</span>
+              </button>
+            )}
+          </div>
 
           {/* PROMINENT SIREN / ALARM CONTROL */}
           <button

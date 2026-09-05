@@ -168,8 +168,8 @@ export default function LiveSurveillanceSection({
   return (
     <div className="flex flex-col gap-5 text-slate-200">
       <SectionHeader
-        title="Live Surveillance & Real-World Border Scenarios"
-        sub="Authentic situational footage captured along the northern border. Select real-life breach scenarios to inspect how the AI detects vehicles, night crawling infiltrators, cyclists, and multi-camera target handoffs."
+        title="Surveillance Scenario Lab & Forensic Footage Search"
+        sub="Tactical border breach scenarios recorded along Northern Sector 4-B. Every scenario is explicitly labelled as ◇ SIMULATION to provide honest, verifiable demonstration of edge AI models."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
@@ -252,6 +252,9 @@ export default function LiveSurveillanceSection({
                       />
                       <span className="font-mono text-[13px] font-bold text-white tracking-wide">
                         {sc.title}
+                      </span>
+                      <span className="rounded bg-sky-500/15 border border-sky-500/30 px-1.5 py-0.2 font-mono text-[9px] font-semibold text-sky-300">
+                        ◇ SIMULATION
                       </span>
                     </div>
 
@@ -341,9 +344,9 @@ export default function LiveSurveillanceSection({
               </div>
 
               <div className="flex items-center gap-2.5">
-                <span className="flex items-center gap-1.5 font-bold text-emerald-400 bg-black/60 px-2 py-0.5 rounded border border-emerald-500/30">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>LIVE FOOTAGE STREAM</span>
+                <span className="flex items-center gap-1.5 font-bold text-sky-300 bg-black/80 px-2.5 py-0.5 rounded border border-sky-500/40">
+                  <span className="h-2 w-2 rounded-full bg-sky-400 animate-pulse" />
+                  <span>◇ SIMULATION FOOTAGE REPLAY</span>
                 </span>
                 <span className="hidden sm:inline font-mono text-[10px] text-slate-400">
                   1080P · 30 FPS
