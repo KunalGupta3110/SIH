@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { Wifi, WifiOff, Play, Volume2, Activity } from "lucide-react";
-import api from "../lib/api.js";
+import { Shield, Radar, Layers, TrendingUp, ClipboardList, Link2, Wifi, WifiOff, Volume2 } from "lucide-react";
+
+export const MODES = [
+  { key: "cop", icon: Radar, label: "Common Operating Picture" },
+  { key: "entities", icon: Layers, label: "Entities & Sensors" },
+  { key: "tracks", icon: TrendingUp, label: "Track Board" },
+  { key: "tasking", icon: ClipboardList, label: "Tasking Queue" },
+  { key: "chain", icon: Link2, label: "Chain of Custody" },
+];
 
 function useClock() {
   const [t, setT] = useState(new Date());
@@ -11,160 +18,64 @@ function useClock() {
   return t;
 }
 
-export default function TopBar({ edgeStatus, edgeError, onSimulate, simulating, onSilence }) {
+/**
+ * Thin top segmented toolbar — replaces the old full-height sidebar. Only
+ * the active mode shows a label; the rest are icon-only, same behavior as
+ * the approved reference mockup.
+ */
+export default function TopBar({ mode, setMode, edgeStatus, cameraCount, activeTrackCount, onSilence }) {
   const clock = useClock();
   const timeStr = useMemo(() => clock.toLocaleTimeString("en-IN", { hour12: false }), [clock]);
 
-  const [netStatus, setNetStatus] = useState({ simulated_down: false, queued_events_count: 0 });
-  const [camsHealth, setCamsHealth] = useState([]);
-  const [showHealthMenu, setShowHealthMenu] = useState(false);
-  const [togglingNet, setTogglingNet] = useState(false);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const net = await api.getNetworkStatus();
-        if (net) setNetStatus(net);
-        const cams = await api.getCameraHealth();
-        if (cams?.cameras) setCamsHealth(cams.cameras);
-      } catch (e) {
-        // quiet
-      }
-    };
-    fetchStats();
-    const interval = setInterval(fetchStats, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleToggleNetwork = async () => {
-    setTogglingNet(true);
-    try {
-      const res = await api.toggleNetwork();
-      if (res) setNetStatus(res);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setTogglingNet(false);
-    }
-  };
-
-  const handleFaultToggle = async (camId, currentStatus) => {
-    try {
-      if (currentStatus === "FAULT") {
-        await api.clearCameraFault(camId);
-      } else {
-        await api.simulateCameraFault(camId);
-      }
-      const cams = await api.getCameraHealth();
-      if (cams?.cameras) setCamsHealth(cams.cameras);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const isSimulatedOffline = netStatus.simulated_down;
-  const faultCount = camsHealth.filter((c) => c.status === "FAULT").length;
+  const online = edgeStatus?.connection === "online";
 
   return (
-    <div className="flex flex-wrap items-center justify-between border-b border-line bg-panel2 px-5 py-2.5 gap-2">
-      <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-dim">
-        {/* Network State & Toggle */}
-        <button
-          onClick={handleToggleNetwork}
-          disabled={togglingNet}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] border font-mono text-[11px] transition-all ${
-            isSimulatedOffline
-              ? "border-red/60 bg-red/20 text-red font-bold animate-pulse"
-              : "border-green/40 bg-green/10 text-green"
-          }`}
-          title="Click to simulate connection loss & reconnect-and-sync queue buffering"
-        >
-          {isSimulatedOffline ? <WifiOff size={12} /> : <Wifi size={12} />}
-          {isSimulatedOffline
-            ? `SIM OFFLINE (BUFFERING: ${netStatus.queued_events_count || 0})`
-            : "NETWORK: ONLINE (SYNCED)"}
-        </button>
-
-        {/* Camera Health Status Badge */}
-        <div className="relative">
-          <button
-            onClick={() => setShowHealthMenu(!showHealthMenu)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] border font-mono text-[11px] transition-all ${
-              faultCount > 0
-                ? "border-amber/60 bg-amber/20 text-amber font-bold"
-                : "border-line2 bg-panel text-dim hover:text-ink"
-            }`}
-          >
-            <Activity size={12} className={faultCount > 0 ? "text-amber" : "text-green"} />
-            <span>
-              CAM HEALTH: {camsHealth.length - faultCount}/{camsHealth.length || 4} ACTIVE
-              {faultCount > 0 && ` (${faultCount} FAULT)`}
-            </span>
-          </button>
-
-          {showHealthMenu && (
-            <div className="absolute left-0 top-8 z-50 w-72 rounded-[4px] border border-line bg-panel p-3 shadow-xl">
-              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-dim">
-                Tactical Node Heartbeats
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {camsHealth.map((cam) => (
-                  <div
-                    key={cam.camera_id}
-                    className="flex items-center justify-between rounded-[3px] bg-panel2 p-1.5 text-[11px]"
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-bold text-ink">{cam.camera_id}</span>
-                      <span className="text-[9.5px] text-dim2">
-                        {cam.status} · {cam.seconds_since_heartbeat}s ago
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => handleFaultToggle(cam.camera_id, cam.status)}
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
-                        cam.status === "FAULT"
-                          ? "border-green/40 bg-green/20 text-green"
-                          : "border-amber/40 bg-amber/20 text-amber hover:bg-amber/30"
-                      }`}
-                    >
-                      {cam.status === "FAULT" ? "Clear Fault" : "Simulate Fault"}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+    <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-3 bg-gradient-to-b from-black/70 to-transparent">
+      <div className="flex items-center gap-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded border border-sky-500/40 bg-sky-500/10">
+          <Shield size={15} className="text-sky-400" />
         </div>
-
-        {edgeStatus && (
-          <>
-            <span>EVENTS (24H): {edgeStatus.events_last_24h}</span>
-            <span>UNREVIEWED: {edgeStatus.unreviewed_events}</span>
-            {edgeStatus.hardware_simulation_mode && (
-              <span className="text-amber">SIMULATION MODE</span>
-            )}
-          </>
-        )}
+        <div>
+          <div className="text-[13px] font-semibold text-white tracking-wide">IBVAP SENTINEL</div>
+          <div className="font-mono text-[9.5px] text-slate-500">SIH-26187 · SECTOR 4B · COP</div>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button
-          onClick={onSimulate}
-          disabled={simulating}
-          className="flex items-center gap-1.5 rounded-[3px] border border-amber/40 bg-amber/10 px-3 py-1.5 text-[11.5px] font-medium text-amberLight transition-colors hover:bg-amber/20 disabled:opacity-50"
-          title="Pushes a real CAM_ALPHA -> CAM_BRAVO handoff through topological transit window"
-        >
-          <Play size={12} />
-          {simulating ? "Simulating…" : "Simulate Handoff"}
-        </button>
+      {/* mode switcher — segmented, not a full sidebar */}
+      <div className="flex items-center gap-0.5 rounded-lg border border-white/10 bg-black/50 p-1 backdrop-blur-md">
+        {MODES.map((m) => {
+          const Icon = m.icon;
+          const active = mode === m.key;
+          return (
+            <button
+              key={m.key}
+              onClick={() => setMode(m.key)}
+              title={m.label}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11.5px] font-medium transition-colors ${
+                active ? "bg-sky-500/20 text-sky-300" : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Icon size={13} />
+              {active && m.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center gap-4 font-mono text-[10.5px] text-slate-400">
+        <span className={`flex items-center gap-1.5 ${online ? "text-emerald-400" : "text-red-400"}`}>
+          {online ? <Wifi size={12} /> : <WifiOff size={12} />}
+          {online ? "LINK NOMINAL" : "LINK DEGRADED"}
+        </span>
+        <span>{cameraCount} SENSORS · {activeTrackCount} ACTIVE TRACK{activeTrackCount === 1 ? "" : "S"}</span>
         <button
           onClick={onSilence}
-          className="flex items-center gap-1.5 rounded-[3px] border border-line2 bg-panel px-3 py-1.5 text-[11.5px] font-medium text-dim transition-colors hover:text-ink2"
+          title="Silence siren"
+          className="flex items-center gap-1 rounded border border-white/10 px-1.5 py-1 text-slate-400 hover:text-white hover:border-white/25"
         >
-          <Volume2 size={12} />
-          Silence Siren
+          <Volume2 size={11} />
         </button>
-        <div className="ml-2 font-mono text-[12px] tracking-wider text-dim">{timeStr} IST</div>
+        <span className="text-white">{timeStr} IST</span>
       </div>
     </div>
   );

@@ -1,7 +1,12 @@
-// Thin wrapper around backend/main.py (served on http://localhost:8000)
+// Thin wrapper around backend/main.py.
 // Supports all live endpoints with fallback for static/offline preview.
-
-const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+//
+// BASE defaults to the page's own origin (not a hardcoded "localhost:8000")
+// so this works whether the console is opened as localhost, 127.0.0.1, a
+// LAN IP, or a different port — backend/main.py serves this same build at
+// /console, so same-origin is always correct unless VITE_API_BASE says
+// otherwise (e.g. `npm run dev` pointed at a separately-running backend).
+const BASE = import.meta.env.VITE_API_BASE || window.location.origin;
 
 let mockArmState = "armed";
 let mockNetworkDown = false;
