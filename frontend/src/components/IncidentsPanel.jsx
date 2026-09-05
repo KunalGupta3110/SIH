@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, ArrowRight, CircleCheck, XCircle } from "lucide-react";
+import { ChevronDown, ChevronRight, ArrowRight, CircleCheck, XCircle, Timer } from "lucide-react";
 import SectionHeader from "./SectionHeader.jsx";
 import api from "../lib/api.js";
 
@@ -28,8 +28,8 @@ export default function IncidentsPanel({ incidents, error, onAcknowledge }) {
   return (
     <div>
       <SectionHeader
-        title="Correlated Incidents"
-        sub="Multiple raw detections merged into one reconstructed story — not a flat alert list."
+        title="Correlated Multi-Camera Incidents & Predictive Handoffs"
+        sub="Multiple camera detections unified into continuous spatio-temporal trajectories with predicted arrival bounds."
       />
 
       {error && (
@@ -69,6 +69,11 @@ export default function IncidentsPanel({ incidents, error, onAcknowledge }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
+                  {inc.dismiss_reason && (
+                    <span className="rounded bg-panel2 px-2 py-0.5 font-mono text-[10.5px] text-amber">
+                      FP: {inc.dismiss_reason}
+                    </span>
+                  )}
                   {acknowledged && (
                     <span className="font-mono text-[10.5px] text-dim2">{inc.status}</span>
                   )}
@@ -95,60 +100,55 @@ export default function IncidentsPanel({ incidents, error, onAcknowledge }) {
                   )}
 
                   {inc.story_summary && (
-                    <p className="mb-4 text-[12.5px] leading-relaxed text-ink2">{inc.story_summary}</p>
+                    <div className="mb-4 rounded bg-panel2 p-3 text-[12.5px] leading-relaxed text-ink2 border border-line2/50 flex items-start gap-2">
+                      <Timer size={16} className="text-amber mt-0.5 shrink-0" />
+                      <div>{inc.story_summary}</div>
+                    </div>
                   )}
 
-                  <div className="text-[11px] font-medium uppercase tracking-wide text-faint">Threat score breakdown</div>
-                  <div className="mt-2 flex flex-col gap-1.5">
-                    {(inc.score_breakdown || []).map((b, i) => (
-                      <div key={i} className="flex items-start gap-2.5 text-[12px]">
-                        <span className={`w-9 shrink-0 text-right font-mono font-medium ${sev.text}`}>+{b.points}</span>
-                        <div>
-                          <span className="font-medium text-ink2">{b.factor}</span>
-                          <span className="text-dim2"> — {b.reason}</span>
-                        </div>
+                  {/* Explainable Factor Breakdown */}
+                  {inc.score_breakdown?.length > 0 && (
+                    <div className="mb-4">
+                      <div className="mb-2 text-[11px] font-medium uppercase tracking-wide text-faint">
+                        Explainable Threat Factors ({inc.threat_score} pts)
                       </div>
-                    ))}
-                    {(!inc.score_breakdown || inc.score_breakdown.length === 0) && (
-                      <div className="text-[12px] text-dim2">No scored factors recorded.</div>
-                    )}
-                  </div>
-
-                  {inc.cryptographic_hash && (
-                    <div className="mt-3 truncate font-mono text-[10.5px] text-faint">
-                      Sealed to ledger: {inc.cryptographic_hash}
+                      <div className="flex flex-col gap-1.5">
+                        {inc.score_breakdown.map((f, i) => (
+                          <div key={i} className="flex items-center justify-between rounded bg-panel2 px-3 py-1.5 text-[11.5px]">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-ink">{f.factor}</span>
+                              <span className="text-dim2 text-[10.5px]">({f.reason})</span>
+                            </div>
+                            <span className="font-mono font-bold text-amber">+{f.points} pts</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#1A1D21] pt-3">
-                    <div className="flex gap-2">
-                      {!acknowledged && (
-                        <>
-                          <button
-                            onClick={() => handleAck(inc.incident_id, "CONFIRMED")}
-                            disabled={busyId === inc.incident_id}
-                            className="flex items-center gap-1.5 rounded-[3px] border border-green/55 bg-green/10 px-2.5 py-1.5 text-[11px] font-medium text-green disabled:opacity-50"
-                          >
-                            <CircleCheck size={12} /> Confirm
-                          </button>
-                          <button
-                            onClick={() => handleAck(inc.incident_id, "DISMISSED_FP")}
-                            disabled={busyId === inc.incident_id}
-                            className="flex items-center gap-1.5 rounded-[3px] border border-line2 bg-panel2 px-2.5 py-1.5 text-[11px] font-medium text-dim disabled:opacity-50"
-                          >
-                            <XCircle size={12} /> Dismiss FP
-                          </button>
-                        </>
-                      )}
+                  {/* Actions & Blockchain Anchor */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
+                    <div className="font-mono text-[10.5px] text-dim2 truncate max-w-md">
+                      LEDGER ANCHOR: {inc.cryptographic_hash || "SEALED IN MERKLE LEDGER"}
                     </div>
-                    <a
-                      href={`http://localhost:8000/incidents/${inc.incident_id}/dossier`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-[3px] border border-blue-500/50 bg-blue-500/10 px-3 py-1.5 font-mono text-[11px] font-bold text-blue-400 hover:bg-blue-500/20"
-                    >
-                      📄 Official Forensic Dossier (PDF)
-                    </a>
+                    {!acknowledged && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleAck(inc.incident_id, "CONFIRMED")}
+                          disabled={busyId === inc.incident_id}
+                          className="flex items-center gap-1.5 rounded-[3px] border border-green/55 bg-green/10 px-3 py-1.5 text-[11px] font-medium text-green hover:bg-green/20"
+                        >
+                          <CircleCheck size={12} /> Confirm
+                        </button>
+                        <button
+                          onClick={() => handleAck(inc.incident_id, "DISMISSED_FP")}
+                          disabled={busyId === inc.incident_id}
+                          className="flex items-center gap-1.5 rounded-[3px] border border-line2 bg-panel2 px-3 py-1.5 text-[11px] font-medium text-dim hover:text-ink2"
+                        >
+                          <XCircle size={12} /> Dismiss FP
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

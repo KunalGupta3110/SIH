@@ -31,6 +31,7 @@ def calculate_threat_score(
     loitering_seconds: float = 0,
     cross_camera_reid_match: bool = False,
     hour_ist: int | None = None,
+    handoff_window_text: str | None = None,
 ) -> dict:
     """
     Calculate an explainable threat score for one target.
@@ -70,10 +71,11 @@ def calculate_threat_score(
         })
 
     if cross_camera_reid_match:
+        reason_str = handoff_window_text or "Appearance embedding matched across camera topology within predicted spatio-temporal transit window (6.0–14.0s)."
         factors.append({
             "factor": "Cross-Camera Re-ID Match",
             "points": RULE_POINTS["cross_camera_reid"],
-            "reason": "Appearance embedding matched a track seen on another camera.",
+            "reason": reason_str,
         })
 
     if hour_ist is not None and (hour_ist >= NIGHT_START_HOUR_IST or hour_ist < NIGHT_END_HOUR_IST):

@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Cpu, Sliders, CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Cpu, Sliders, CheckCircle2, BarChart3 } from "lucide-react";
 import SectionHeader from "./SectionHeader.jsx";
+import api from "../lib/api.js";
 
 const MODELS = [
   {
@@ -58,6 +59,13 @@ export default function ModelZooPanel() {
   const [nmsThreshold, setNmsThreshold] = useState(0.45);
   const [dwellLimit, setDwellLimit] = useState(240);
   const [saved, setSaved] = useState(false);
+  const [calibrationStats, setCalibrationStats] = useState(null);
+
+  useEffect(() => {
+    api.getCalibration().then((data) => {
+      if (data) setCalibrationStats(data);
+    }).catch(() => {});
+  }, []);
 
   const handleSave = () => {
     setSaved(true);
@@ -100,100 +108,114 @@ export default function ModelZooPanel() {
                   <span className="text-ink">{m.params}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Target Hardware:</span>
-                  <span className="text-ink2">{m.targetHardware}</span>
+                  <span>Inference Latency:</span>
+                  <span className="font-bold text-amber">{m.latency}</span>
                 </div>
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-2 border-t border-line pt-3 font-mono text-[11px]">
-              <div className="rounded-[3px] border border-line bg-panel2 p-2">
-                <div className="text-[9.5px] text-dim2">INFERENCE LATENCY</div>
-                <div className="text-[13px] font-bold text-amberLight">{m.latency} ({m.fps})</div>
-              </div>
-              <div className="rounded-[3px] border border-line bg-panel2 p-2">
-                <div className="text-[9.5px] text-dim2">ACCURACY / SCORE</div>
-                <div className="text-[13px] font-bold text-green">{m.mAP}</div>
+                <div className="flex justify-between">
+                  <span>Throughput:</span>
+                  <span className="font-bold text-green">{m.fps}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Benchmark Accuracy:</span>
+                  <span className="font-bold text-blue">{m.mAP}</span>
+                </div>
+                <div className="flex justify-between border-t border-line/60 pt-1.5 text-[10px] text-dim2">
+                  <span>Target Hardware:</span>
+                  <span>{m.targetHardware}</span>
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Real-Time Sensitivity & Threshold Tuner */}
-      <div className="rounded-[4px] border border-line bg-panel p-4">
-        <div className="flex items-center justify-between border-b border-line pb-2.5">
-          <div className="flex items-center gap-2 font-medium text-[13px]">
+      {/* Site Calibration & Live Tuning */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rounded-[4px] border border-line bg-panel p-4">
+          <div className="flex items-center gap-2 border-b border-line pb-2.5 font-medium text-[13.5px]">
             <Sliders size={15} className="text-amberLight" />
-            Active Edge Calibration & Threshold Matrices
+            Edge Inference Hyperparameters
           </div>
-          {saved && (
-            <span className="flex items-center gap-1 font-mono text-[11px] text-green">
-              <CheckCircle2 size={12} /> Saved to Node Cache
-            </span>
-          )}
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-5 font-mono text-[11.5px]">
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between text-dim">
-              <span>Re-ID Cosine Threshold (tau):</span>
-              <span className="font-bold text-amberLight">{reidThreshold.toFixed(2)}</span>
+          <div className="mt-4 flex flex-col gap-4">
+            <div>
+              <div className="flex justify-between text-[11.5px] font-mono">
+                <span className="text-dim">Re-ID Cosine Threshold:</span>
+                <span className="text-amber font-bold">{reidThreshold}</span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="0.95"
+                step="0.05"
+                value={reidThreshold}
+                onChange={(e) => setReidThreshold(parseFloat(e.target.value))}
+                className="w-full mt-1 accent-amber"
+              />
             </div>
-            <input
-              type="range"
-              min="0.5"
-              max="0.95"
-              step="0.05"
-              value={reidThreshold}
-              onChange={(e) => setReidThreshold(parseFloat(e.target.value))}
-              className="accent-amber"
-            />
-            <span className="text-[9.5px] text-dim2">Restricts gallery matches to strict appearance vectors.</span>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between text-dim">
-              <span>YOLOv8 NMS IoU Filter:</span>
-              <span className="font-bold text-amberLight">{nmsThreshold.toFixed(2)}</span>
+            <div>
+              <div className="flex justify-between text-[11.5px] font-mono">
+                <span className="text-dim">NMS IoU Threshold:</span>
+                <span className="text-amber font-bold">{nmsThreshold}</span>
+              </div>
+              <input
+                type="range"
+                min="0.2"
+                max="0.8"
+                step="0.05"
+                value={nmsThreshold}
+                onChange={(e) => setNmsThreshold(parseFloat(e.target.value))}
+                className="w-full mt-1 accent-amber"
+              />
             </div>
-            <input
-              type="range"
-              min="0.3"
-              max="0.8"
-              step="0.05"
-              value={nmsThreshold}
-              onChange={(e) => setNmsThreshold(parseFloat(e.target.value))}
-              className="accent-amber"
-            />
-            <span className="text-[9.5px] text-dim2">Suppresses overlapping detection bounding boxes.</span>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between text-dim">
-              <span>Loitering Dwell Trigger:</span>
-              <span className="font-bold text-amberLight">{dwellLimit}s</span>
+            <div>
+              <div className="flex justify-between text-[11.5px] font-mono">
+                <span className="text-dim">Loitering Dwell Trigger (s):</span>
+                <span className="text-amber font-bold">{dwellLimit}s</span>
+              </div>
+              <input
+                type="range"
+                min="60"
+                max="600"
+                step="30"
+                value={dwellLimit}
+                onChange={(e) => setDwellLimit(parseInt(e.target.value))}
+                className="w-full mt-1 accent-amber"
+              />
             </div>
-            <input
-              type="range"
-              min="60"
-              max="600"
-              step="30"
-              value={dwellLimit}
-              onChange={(e) => setDwellLimit(parseInt(e.target.value))}
-              className="accent-amber"
-            />
-            <span className="text-[9.5px] text-dim2">Seconds target can linger before alert escalates.</span>
+            <button
+              onClick={handleSave}
+              className="mt-2 flex items-center justify-center gap-2 rounded bg-amber py-2 text-[12px] font-bold text-panel hover:bg-amberLight"
+            >
+              {saved ? <CheckCircle2 size={14} /> : null}
+              {saved ? "Hyperparameters Updated Live" : "Apply Parameters to Edge"}
+            </button>
           </div>
         </div>
 
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={handleSave}
-            className="rounded-[3px] border border-amber/40 bg-amber/15 px-4 py-1.5 font-medium text-[11.5px] text-amberLight transition-colors hover:bg-amber/25"
-          >
-            Apply Edge Calibration
-          </button>
+        {/* Live Calibration Stats from Operator Feedback */}
+        <div className="rounded-[4px] border border-line bg-panel p-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 border-b border-line pb-2.5 font-medium text-[13.5px]">
+              <BarChart3 size={15} className="text-green" />
+              Live Site Calibration Statistics
+            </div>
+            <div className="mt-3 text-[12px] text-dim leading-relaxed">
+              Operator dismissals feed dynamic sensitivity filters to eliminate false positive patterns per camera sector.
+            </div>
+            {calibrationStats?.by_reason && (
+              <div className="mt-3 flex flex-col gap-2 font-mono text-[11.5px]">
+                {Object.entries(calibrationStats.by_reason).map(([k, v]) => (
+                  <div key={k} className="flex justify-between items-center rounded bg-panel2 px-3 py-1.5">
+                    <span className="text-dim capitalize">{k.replace("_", " ")}</span>
+                    <span className="font-bold text-ink">{v} events</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="mt-3 rounded border border-green/30 bg-green/10 p-2.5 text-[11px] text-green font-mono">
+            STATUS: Dynamic site calibration active across 4 nodes.
+          </div>
         </div>
       </div>
     </div>

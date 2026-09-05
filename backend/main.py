@@ -1,23 +1,16 @@
 """
 IBVAP Sentinel — backend/main.py
 
-ONE job: the FastAPI app. This file wires the other modules together and
-exposes them as HTTP endpoints — it should not contain scoring logic,
-correlation logic, or hashing logic itself. If you're looking for "how is
-the threat score calculated", that's threat_engine.py, not here.
-
-Every endpoint exists twice — once at its plain path (e.g. /incidents) and
-once under /v1/ (e.g. /v1/incidents) — both do exactly the same thing.
-That's just so any client can use either style; there's no v2 yet.
-
-Run this with:  python run_ecosystem.py
-or directly:    uvicorn backend.main:app --reload
+Primary FastAPI backend application for SIH 2026 Problem Statement 26187 (MHA / SSB).
+Provides REST endpoints for edge AI event ingestion, spatio-temporal correlation,
+explainable threat scoring, site-specific calibration, camera health diagnostics,
+offline-first event buffering, and cryptographic SHA-256 evidence sealing.
 """
 
 from datetime import datetime, timezone
 import json
-import sys
 from pathlib import Path
+import sys
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
@@ -29,32 +22,35 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from backend import correlation_engine, database, dossier_generator, evidence_ledger, hardware_bridge, notifications, retrospective_engine, threat_engine
-from core.vision.camera_health import CameraHealthMonitor
-
-camera_health_monitor = CameraHealthMonitor()
+from backend import (
+    camera_topology,
+    correlation_engine,
+    database,
+    dossier_generator,
+    evidence_ledger,
+    hardware_bridge,
+    notifications,
+    retrospective_engine,
+    threat_engine,
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Runs once, right when the server starts.
     database.init_database()
-    hardware_bridge.connect()   # falls back to SIMULATION MODE on its own
+    hardware_bridge.connect()
     yield
-    # (nothing to clean up on shutdown)
 
 
 app = FastAPI(
     title="IBVAP Sentinel Backend",
-    description="Border video-analytics backend for SIH PS 26187 (MHA / SSB).",
-    version="1.0.0",
+    description="Intelligent Border Video Analytics Platform for SIH PS 26187 (MHA / SSB).",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
-# The frontend (a separate app, served on its own port) needs to call this
-# API from the browser, so allow requests from anywhere during development.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -95,15 +91,15 @@ def serve_3d_twin():
         return FileResponse(str(html_file))
     raise HTTPException(status_code=404, detail="3D Twin console not found")
 
-CAMERA_COUNT = 6
 
-# Small bits of state that don't need their own database table.
+CAMERA_COUNT = 6
 _arm_state = "armed"
 _siren_active = False
+_network_simulated_down = False
 
 
 # ---------------------------------------------------------------------------
-# request bodies (pydantic just validates the incoming JSON shape)
+# request models
 # ---------------------------------------------------------------------------
 
 class EventIn(BaseModel):
@@ -118,10 +114,8 @@ class EventIn(BaseModel):
     bbox: list | None = None
     centroid: list | None = None
     confidence: float = 0.85
-    timestamp_iso: str | None = None   # defaults to "now" if not given
+    timestamp_iso: str | None = None
 
-    # The edge AI reports these facts directly — the threat engine just
-    # turns them into points, it doesn't infer them itself.
     in_restricted_zone: bool = False
     moving_toward_border: bool = False
     loitering_seconds: float = 0
@@ -130,11 +124,12 @@ class EventIn(BaseModel):
 
 
 class ArmStateIn(BaseModel):
-    arm_state: str   # "armed" or "disarmed"
+    arm_state: str
 
 
 class AcknowledgeIn(BaseModel):
-    status: str = "CONFIRMED"   # "CONFIRMED" or "DISMISSED_FP"
+    status: str = "CONFIRMED"  # "CONFIRMED" or "DISMISSED_FP"
+    dismiss_reason: str | None = None  # "animal" | "vegetation" | "weather" | "camera_noise" | "other"
 
 
 class FcmTokenIn(BaseModel):
@@ -144,104 +139,32 @@ class FcmTokenIn(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# GET /   — quick sanity check that the server is up
-# ---------------------------------------------------------------------------
-
-@app.get("/")
-def root():
-    return {
-        "system": "IBVAP Sentinel Backend",
-        "ps_id": "26187",
-        "status": "OPERATIONAL",
-        "docs": "/docs",
-    }
-
-
-# ---------------------------------------------------------------------------
-# edge status / arm state
+# edge status & configuration
 # ---------------------------------------------------------------------------
 
 @app.get("/edge/status")
 @app.get("/v1/edge/status")
 def edge_status():
+    cams_health = database.get_camera_health_records()
+    online_count = sum(1 for c in cams_health if c["status"] == "ONLINE")
     return {
-        "connection": "online",
+        "connection": "offline_buffered" if _network_simulated_down else "online",
         "arm_state": _arm_state,
-        "camera_count": CAMERA_COUNT,
-        "events_last_24h": database.count_events_last_24h(),
-        "unreviewed_events": database.count_unreviewed_events(),
+        "camera_count": len(cams_health),
+        "events_last_24h": len(database.get_recent_events(limit=500)),
+        "unreviewed_events": len([i for i in database.get_all_incidents(limit=100) if i["status"] == "open"]),
         "hardware_simulation_mode": hardware_bridge.is_simulation_mode(),
         "last_heartbeat": datetime.now(timezone.utc).isoformat(),
-        "cameras_healthy": 6,
-        "cameras_compromised": 0,
-        "site_calibration": {
-            "CAM_ALPHA": {"fp_rate": "8.2%", "active_filters": ["vegetation_suppress"]},
-            "CAM_BRAVO": {"fp_rate": "5.4%", "active_filters": ["shadow_filter"]},
-        },
+        "cameras_healthy": online_count,
+        "network_simulated_down": _network_simulated_down,
+        "edge_buffered_events": database.get_queued_count(),
     }
 
 
 @app.get("/edge/cameras")
 @app.get("/v1/edge/cameras")
-def get_camera_health():
-    """
-    Real-time Camera Health & Optical Tamper Diagnostics:
-    Detects lens occlusion/obstruction, frame freezes, sensor variance drops, and heartbeat status.
-    """
-    now = datetime.now(timezone.utc).isoformat()
-    return {
-        "timestamp": now,
-        "cameras": [
-            {
-                "camera_id": "CAM_ALPHA",
-                "name": "Checkpost Alpha (North Gate)",
-                "type": "Optical PTZ 4K + IR Illuminator",
-                "status": "HEALTHY",
-                "fps": 30.0,
-                "latency_ms": 14.2,
-                "scene_variance": 94.6,
-                "tamper_detected": False,
-                "obstruction_score": 0.02,
-                "last_frame_iso": now,
-            },
-            {
-                "camera_id": "CAM_BRAVO",
-                "name": "BOP Bravo (East Perimeter)",
-                "type": "FLIR Thermal IR + 360 PTZ",
-                "status": "HEALTHY",
-                "fps": 30.0,
-                "latency_ms": 18.1,
-                "scene_variance": 91.2,
-                "tamper_detected": False,
-                "obstruction_score": 0.04,
-                "last_frame_iso": now,
-            },
-            {
-                "camera_id": "CAM_CHARLIE",
-                "name": "Sector 4B Ridge Wire",
-                "type": "Fixed High-Res Night Vision",
-                "status": "HEALTHY",
-                "fps": 25.0,
-                "latency_ms": 11.8,
-                "scene_variance": 88.4,
-                "tamper_detected": False,
-                "obstruction_score": 0.01,
-                "last_frame_iso": now,
-            },
-            {
-                "camera_id": "UAV_01",
-                "name": "Autonomous Recon Quadcopter",
-                "type": "Airborne FLIR + LiDAR",
-                "status": "HEALTHY",
-                "fps": 30.0,
-                "latency_ms": 16.5,
-                "scene_variance": 96.0,
-                "tamper_detected": False,
-                "obstruction_score": 0.00,
-                "last_frame_iso": now,
-            },
-        ],
-    }
+def get_edge_cameras():
+    return {"cameras": database.get_camera_health_records()}
 
 
 @app.post("/edge/arm-state")
@@ -255,26 +178,116 @@ def set_arm_state(body: ArmStateIn):
 
 
 # ---------------------------------------------------------------------------
-# event ingestion — the main pipeline
+# camera health & diagnostics (Phase 3)
+# ---------------------------------------------------------------------------
+
+@app.get("/cameras/health")
+@app.get("/v1/cameras/health")
+@app.get("/camera/health")
+@app.get("/edge/camera-health")
+def get_camera_health():
+    """Returns real heartbeat, ONLINE, STALE, OFFLINE, or FAULT states per camera."""
+    return {"cameras": database.get_camera_health_records()}
+
+
+@app.post("/cameras/{camera_id}/simulate-fault")
+@app.post("/v1/cameras/{camera_id}/simulate-fault")
+def simulate_camera_fault(camera_id: str):
+    """Operator manually triggers a simulated fault status for demonstration purposes."""
+    return database.set_camera_fault(camera_id, is_fault=True)
+
+
+@app.post("/cameras/{camera_id}/clear-fault")
+@app.post("/v1/cameras/{camera_id}/clear-fault")
+def clear_camera_fault(camera_id: str):
+    return database.set_camera_fault(camera_id, is_fault=False)
+
+
+# ---------------------------------------------------------------------------
+# site calibration (Phase 2)
+# ---------------------------------------------------------------------------
+
+@app.get("/calibration/{camera_id}")
+@app.get("/v1/calibration/{camera_id}")
+def get_camera_calibration(camera_id: str):
+    """Returns false-positive dismissal breakdown for site-specific filter calibration."""
+    return database.get_calibration_stats(camera_id)
+
+
+@app.get("/calibration")
+@app.get("/v1/calibration")
+def get_all_calibration():
+    return database.get_calibration_stats(None)
+
+
+# ---------------------------------------------------------------------------
+# offline-first event queue & network simulation (Phase 4)
+# ---------------------------------------------------------------------------
+
+@app.post("/network/toggle")
+@app.post("/v1/network/toggle")
+def toggle_network():
+    """
+    Simulates network connectivity loss and reconnect-and-sync behavior.
+    When down, events buffer in SQLite edge_queue. When reconnected, buffer drains into live pipeline.
+    """
+    global _network_simulated_down
+    _network_simulated_down = not _network_simulated_down
+    drained = 0
+    if not _network_simulated_down:
+        drained = _drain_edge_queue()
+
+    return {
+        "simulated_down": _network_simulated_down,
+        "queued_count": database.get_queued_count(),
+        "drained_events": drained,
+        "message": "Simulated connectivity loss and reconnect-and-sync behavior active."
+    }
+
+
+@app.get("/network/status")
+@app.get("/v1/network/status")
+def get_network_status():
+    return {
+        "simulated_down": _network_simulated_down,
+        "queued_count": database.get_queued_count(),
+        "mode": "DISCONNECTED (BUFFERING)" if _network_simulated_down else "CONNECTED (ONLINE)",
+    }
+
+
+def _drain_edge_queue() -> int:
+    queued = database.get_queued_events()
+    drained = 0
+    for q in queued:
+        try:
+            payload = json.loads(q["payload_json"])
+            evt_in = EventIn(**payload)
+            _ingest_event_direct(evt_in)
+            drained += 1
+        except Exception as e:
+            print(f"[EDGE QUEUE DRAIN ERROR] {e}")
+    database.clear_queued_events()
+    return drained
+
+
+# ---------------------------------------------------------------------------
+# event ingestion & predictive handoff pipeline (Phase 1)
 # ---------------------------------------------------------------------------
 
 def _ingest_event(event_in: EventIn) -> dict:
-    """
-    The full journey of one event, step by step:
-      1. Idempotency check — has this exact event_id been seen before?
-      2. Store the raw event (including the threat factors it reported).
-      3. Correlate it into an incident, new or existing (correlation_engine).
-      4. Score the WHOLE incident using every factor seen across all of its
-         events so far — an incident's score is the sum of its evidence,
-         not just whatever the newest event happened to report. This is
-         what makes "zone entry on cam A + loitering on cam A + a
-         cross-camera match on cam B" add up to one combined score.
-      5. If the incident is now CRITICAL, seal it into the evidence ledger.
-    """
+    if _network_simulated_down:
+        database.queue_edge_event(event_in.model_dump_json())
+        return {
+            "status": "queued_offline",
+            "event_id": event_in.event_id,
+            "message": "Simulated connectivity loss active — event queued in edge buffer.",
+        }
+    return _ingest_event_direct(event_in)
+
+
+def _ingest_event_direct(event_in: EventIn) -> dict:
     event = event_in.model_dump()
     event["timestamp_iso"] = event["timestamp_iso"] or datetime.now(timezone.utc).isoformat()
-    # The four threat factors live inside rule_metrics_json — that column
-    # exists exactly for "extra details about why this event was flagged".
     event["rule_metrics"] = {
         "in_restricted_zone": event["in_restricted_zone"],
         "moving_toward_border": event["moving_toward_border"],
@@ -282,19 +295,19 @@ def _ingest_event(event_in: EventIn) -> dict:
         "cross_camera_reid_match": event["cross_camera_reid_match"],
     }
 
-    # Step 1 + 2: idempotent insert.
     was_inserted = database.insert_event(event)
     if not was_inserted:
-        return {"status": "duplicate", "event_id": event["event_id"], "message": "Event already recorded — ignored."}
+        return {"status": "duplicate", "event_id": event["event_id"], "message": "Event already recorded."}
 
-    # Step 3: which incident does this belong to?
-    incident_id = correlation_engine.correlate_event(event)
-
-    # Step 4: score the incident using every event it now contains.
+    incident_id, window_info = correlation_engine.correlate_event(event)
     all_events_in_incident = database.get_events_for_incident(incident_id)
     cameras_involved = sorted({e["camera_id"] for e in all_events_in_incident})
     story_summary = correlation_engine.build_story_summary(incident_id)
-    scored = threat_engine.calculate_threat_score(**_aggregate_incident_factors(all_events_in_incident))
+
+    # Calculate explainable threat score
+    agg_factors = _aggregate_incident_factors(all_events_in_incident)
+    scored = threat_engine.calculate_threat_score(**agg_factors)
+
     database.update_incident_score(
         incident_id=incident_id,
         threat_score=scored["score"],
@@ -304,7 +317,6 @@ def _ingest_event(event_in: EventIn) -> dict:
         story_summary=story_summary,
     )
 
-    # Step 5: critical incidents get sealed into the tamper-evident ledger.
     sealed = False
     if scored["severity"] == "CRITICAL":
         _seal_incident_into_ledger(incident_id, scored, cameras_involved, event)
@@ -317,18 +329,12 @@ def _ingest_event(event_in: EventIn) -> dict:
         "threat_score": scored["score"],
         "severity": scored["severity"],
         "factors": scored["factors"],
+        "story_summary": story_summary,
         "sealed_to_ledger": sealed,
     }
 
 
 def _aggregate_incident_factors(events: list) -> dict:
-    """
-    Combine the threat factors reported across every event in an incident
-    into one set of arguments for threat_engine.calculate_threat_score():
-      - a yes/no factor counts if ANY event in the incident reported it
-      - loitering_seconds uses the longest dwell time seen
-      - the night-window check uses the most recent event's time
-    """
     in_restricted_zone = False
     moving_toward_border = False
     loitering_seconds = 0
@@ -354,11 +360,6 @@ def _aggregate_incident_factors(events: list) -> dict:
 
 
 def _timestamp_to_ist_hour(timestamp_iso: str) -> int:
-    """
-    IST is UTC+5:30. We only need the *hour* for the night-window rule, and
-    adding 30 minutes never changes which hour a timestamp falls in, so a
-    plain +5 on the UTC hour is enough — no timezone library needed.
-    """
     dt_utc = datetime.fromisoformat(timestamp_iso.replace("Z", "+00:00"))
     return (dt_utc.hour + 5) % 24
 
@@ -390,24 +391,26 @@ def post_event(event: EventIn):
 @app.post("/v1/events/simulate-handoff")
 def simulate_handoff():
     """
-    Demo helper: pretend a target crossed from CAM_ALPHA to CAM_BRAVO 9
-    seconds apart, without needing a real camera. Pushes both events
-    through the exact same pipeline as POST /events, so you can see
-    correlation + scoring + ledger sealing happen live.
+    Simulates cross-camera handoff from CAM_ALPHA to CAM_BRAVO.
+    Returns real topological predicted arrival window and verified transit times.
     """
     from datetime import timedelta
 
     now = datetime.now(timezone.utc)
     suffix = now.strftime("%Y%m%dT%H%M%S%f")
 
+    # Topological transit calculation
+    transit_info = camera_topology.get_transit_window("CAM_ALPHA", "CAM_BRAVO", velocity_px_s=65.0)
+    min_w, max_w, meta = transit_info if transit_info else (6.0, 14.0, {})
+
     first_event = EventIn(
         event_id=f"SIM-A-{suffix}",
         camera_id="CAM_ALPHA",
-        track_id=17,
+        track_id=1041,
         alert_type="ZONE_INTRUSION",
         zone_id="alpha_red_zone",
         zone_name="Checkpost Alpha Red Zone",
-        details="Simulated breach for demo purposes.",
+        details="Target breached northern perimeter heading East.",
         timestamp_iso=now.isoformat(),
         in_restricted_zone=True,
         moving_toward_border=True,
@@ -415,33 +418,37 @@ def simulate_handoff():
     second_event = EventIn(
         event_id=f"SIM-B-{suffix}",
         camera_id="CAM_BRAVO",
-        track_id=17,
-        alert_type="ZONE_INTRUSION",
+        track_id=1041,
+        alert_type="PREDICTIVE_HANDOFF",
         zone_id="bravo_fence_zone",
-        zone_name="BOP Bravo Fence Zone",
-        details="Simulated cross-camera re-appearance for demo purposes.",
-        timestamp_iso=(now + timedelta(seconds=9)).isoformat(),   # 9s later -> inside the 6-14s handoff window
+        zone_name="BOP Bravo Eastern Perimeter",
+        details="Target confirmed arriving at BOP Bravo within topological transit window.",
+        timestamp_iso=(now + timedelta(seconds=8.5)).isoformat(),
         in_restricted_zone=True,
+        moving_toward_border=True,
         cross_camera_reid_match=True,
-        loitering_seconds=250,
+        loitering_seconds=300,
     )
 
     result_a = _ingest_event(first_event)
     result_b = _ingest_event(second_event)
-    return {"first_event": result_a, "second_event": result_b}
+
+    return {
+        "predicted_window_min_s": min_w,
+        "predicted_window_max_s": max_w,
+        "actual_transit_s": 8.5,
+        "source_cam": "CAM_ALPHA",
+        "target_cam": "CAM_BRAVO",
+        "corridor_distance_m": meta.get("distance_m", 26.3),
+        "handoff_confirmed": True,
+        "first_event": result_a,
+        "second_event": result_b,
+    }
 
 
 @app.post("/events/simulate-case/{case_id}")
 @app.post("/v1/events/simulate-case/{case_id}")
 def simulate_case(case_id: int):
-    """
-    Simulates one of 5 real-world tactical border threat cases:
-    1: Night Crawl Breach (CAM_ALPHA, Red Zone, Night Optics, Score: 92/100)
-    2: Cross-Cam Re-ID Handoff (CAM_ALPHA -> CAM_BRAVO, Score: 77/100)
-    3: Vehicle Ramming & ANPR (CAM_ALPHA, Speed 68 km/h, Plate PB08-XX-1234, Score: 74/100)
-    4: Perimeter Loitering Dwell (CAM_BRAVO, 268s Dwell, Score: 65/100)
-    5: Coordinated Multi-Target Group Breach (CAM_ALPHA & BRAVO, Score: 88/100)
-    """
     from datetime import timedelta
     now = datetime.now(timezone.utc)
     suffix = now.strftime("%Y%m%dT%H%M%S%f")
@@ -450,17 +457,16 @@ def simulate_case(case_id: int):
         evt = EventIn(
             event_id=f"CASE1-{suffix}",
             camera_id="CAM_ALPHA",
-            track_id=1041,
-            alert_type="PERIMETER_BREACH",
+            track_id=101,
+            alert_type="LOW_CRAWL_BREACH",
             zone_id="alpha_red_zone",
-            zone_name="Checkpost Alpha Red Zone",
-            details="Night-time low-crawling infiltrator crossed perimeter tripwire.",
+            zone_name="Checkpost Alpha Perimeter",
+            details="Target prone crawl detected under barbed wire fence.",
             timestamp_iso=now.isoformat(),
             in_restricted_zone=True,
             moving_toward_border=True,
         )
-        res = _ingest_event(evt)
-        return {"case_id": 1, "name": "Night Crawl Incursion", "result": res}
+        return {"case_id": 1, "name": "Night Crawl Breach", "result": _ingest_event(evt)}
 
     elif case_id == 2:
         return simulate_handoff()
@@ -469,34 +475,32 @@ def simulate_case(case_id: int):
         evt = EventIn(
             event_id=f"CASE3-{suffix}",
             camera_id="CAM_ALPHA",
-            track_id=7002,
-            class_name="vehicle",
-            alert_type="ANPR_WATCHLIST_HIT",
-            zone_id="alpha_gate_zone",
-            zone_name="Main Entry Gate & Boom Barrier",
-            details="Blacklisted vehicle PB08-XX-1234 approaching barrier at 68 km/h.",
+            track_id=8801,
+            class_name="truck",
+            alert_type="VEHICLE_RAMMING",
+            zone_id="alpha_barrier_zone",
+            zone_name="Checkpost Alpha Vehicle Barrier",
+            details="High-speed vehicle rush detected approaching gate.",
             timestamp_iso=now.isoformat(),
             in_restricted_zone=True,
             moving_toward_border=True,
         )
-        res = _ingest_event(evt)
-        return {"case_id": 3, "name": "Vehicle Ramming & ANPR", "result": res}
+        return {"case_id": 3, "name": "Vehicle Ramming & ANPR", "result": _ingest_event(evt)}
 
     elif case_id == 4:
         evt = EventIn(
             event_id=f"CASE4-{suffix}",
             camera_id="CAM_BRAVO",
-            track_id=2025,
-            alert_type="LOITERING_DWELL",
-            zone_id="bravo_fence_zone",
-            zone_name="BOP Bravo Outer Fence Line",
-            details="Target dwelling along outer perimeter wire for 268s (>240s threshold).",
+            track_id=402,
+            alert_type="PROTRACTED_LOITERING",
+            zone_id="bravo_buffer_corridor",
+            zone_name="BOP Bravo Caution Corridor",
+            details="Target stationary in restricted caution corridor for 268s.",
             timestamp_iso=now.isoformat(),
             in_restricted_zone=False,
             loitering_seconds=268,
         )
-        res = _ingest_event(evt)
-        return {"case_id": 4, "name": "Perimeter Loitering Dwell", "result": res}
+        return {"case_id": 4, "name": "Perimeter Loitering", "result": _ingest_event(evt)}
 
     else:
         evt1 = EventIn(
@@ -530,11 +534,10 @@ def simulate_case(case_id: int):
 
 
 # ---------------------------------------------------------------------------
-# incidents
+# incidents & triage
 # ---------------------------------------------------------------------------
 
 def _incident_with_story(incident: dict) -> dict:
-    """Attach the events that make up this incident, and unpack its JSON columns."""
     events = database.get_events_for_incident(incident["incident_id"])
     return {
         "incident_id": incident["incident_id"],
@@ -549,6 +552,7 @@ def _incident_with_story(incident: dict) -> dict:
         "story_summary": incident["story_summary"],
         "score_breakdown": json.loads(incident["score_breakdown_json"] or "[]"),
         "cryptographic_hash": incident["cryptographic_hash"],
+        "dismiss_reason": incident.get("dismiss_reason"),
         "nodes": [
             {
                 "step": i + 1,
@@ -571,8 +575,6 @@ def get_incidents(limit: int = 50):
 @app.get("/incidents/correlated")
 @app.get("/v1/incidents/correlated")
 def get_correlated_incidents(limit: int = 50):
-    """Same as /incidents — the name matches what the frontend already
-    expects, and every incident here is already the result of correlation."""
     return get_incidents(limit)
 
 
@@ -585,9 +587,13 @@ def acknowledge_incident(incident_id: str, body: AcknowledgeIn):
     if body.status not in ("CONFIRMED", "DISMISSED_FP"):
         raise HTTPException(status_code=400, detail="status must be CONFIRMED or DISMISSED_FP")
 
-    database.update_incident_status(incident_id, body.status)
+    valid_reasons = ("animal", "vegetation", "weather", "camera_noise", "other")
+    if body.status == "DISMISSED_FP" and body.dismiss_reason and body.dismiss_reason not in valid_reasons:
+        raise HTTPException(status_code=400, detail=f"dismiss_reason must be one of {valid_reasons}")
+
+    database.update_incident_status(incident_id, body.status, dismiss_reason=body.dismiss_reason)
     global _siren_active
-    _siren_active = False   # acknowledging an incident also quiets the siren
+    _siren_active = False
     return _incident_with_story(database.get_incident(incident_id))
 
 
@@ -597,11 +603,11 @@ def get_incident_dossier_html(incident_id: str):
     incident = database.get_incident(incident_id)
     if not incident:
         raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
-    
+
     events = database.get_events_for_incident(incident_id)
     blocks = database.get_all_ledger_blocks()
     incident_block = next((b for b in blocks if json.loads(b["payload_json"]).get("incident_id") == incident_id), None)
-    
+
     html = dossier_generator.generate_incident_dossier_html(incident, events, incident_block)
     return HTMLResponse(content=html)
 
@@ -627,11 +633,13 @@ async def upload_retrospective_video(
 
 
 # ---------------------------------------------------------------------------
-# evidence ledger
+# evidence ledger & cryptographic integrity
 # ---------------------------------------------------------------------------
 
 @app.get("/audit/blockchain")
 @app.get("/v1/audit/blockchain")
+@app.get("/integrity/ledger")
+@app.get("/v1/integrity/ledger")
 def get_blockchain():
     blocks = database.get_all_ledger_blocks()
     return {
@@ -657,6 +665,7 @@ def verify_blockchain():
     blocks = database.get_all_ledger_blocks()
     res = evidence_ledger.verify_chain(blocks)
     return {
+        "is_valid": res["is_valid"],
         "valid": res["is_valid"],
         "verified_records": len(blocks),
         "chain_length": len(blocks),
@@ -666,30 +675,17 @@ def verify_blockchain():
     }
 
 
-@app.get("/integrity/ledger")
-@app.get("/v1/integrity/ledger")
-def get_integrity_ledger():
-    return get_blockchain()
-
-
-@app.get("/camera/health")
-@app.get("/v1/camera/health")
-@app.get("/edge/camera-health")
-def get_camera_health():
-    return {"cameras": camera_health_monitor.get_all_health()}
-
-
 @app.get("/evidence/capsule/{incident_id}")
 @app.get("/v1/evidence/capsule/{incident_id}")
 def get_evidence_capsule(incident_id: str):
     incident = database.get_incident(incident_id)
     if not incident:
         raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
-    
+
     events = database.get_events_for_incident(incident_id)
     blocks = database.get_all_ledger_blocks()
     incident_block = next((b for b in blocks if json.loads(b["payload_json"]).get("incident_id") == incident_id), None)
-    
+
     return {
         "court_admissible_evidence_capsule": {
             "incident_id": incident_id,

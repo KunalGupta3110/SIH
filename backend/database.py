@@ -8,11 +8,6 @@ stores and fetches rows.
 The database lives at data/events.db. It's opened in WAL mode, which lets
 the FastAPI server read the database at the same time something else is
 writing to it, without locking up.
-
-Every function here takes plain Python values (strings, numbers, dicts) and
-returns plain Python values (dicts, lists of dicts) — never a database
-cursor or row object — so nothing outside this file needs to know anything
-about SQL.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -20,9 +15,6 @@ import json
 import os
 import sqlite3
 
-# Tests point this at a temporary file instead of the real database.
-# Everything else just calls the functions below and never touches this
-# directly.
 DB_PATH = os.path.join("data", "events.db")
 
 
@@ -82,7 +74,8 @@ def init_database() -> None:
             cameras_json TEXT DEFAULT '[]',
             story_summary TEXT DEFAULT '',
             score_breakdown_json TEXT DEFAULT '[]',
-            cryptographic_hash TEXT
+            cryptographic_hash TEXT,
+            dismiss_reason TEXT
         )
     """)
 
@@ -116,6 +109,43 @@ def init_database() -> None:
         )
     """)
 
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS camera_health (
+            camera_id TEXT PRIMARY KEY,
+            last_seen_at TEXT,
+            fault_status TEXT DEFAULT 'NORMAL',
+            name TEXT,
+            location TEXT
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS edge_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            payload_json TEXT,
+            queued_at TEXT
+        )
+    """)
+
+    # Migration safety: ensure dismiss_reason column exists on older databases
+    try:
+        cur.execute("ALTER TABLE incidents ADD COLUMN dismiss_reason TEXT")
+    except sqlite3.OperationalError:
+        pass  # column already exists
+
+    # Seed default camera records if empty
+    default_cams = [
+        ("CAM_ALPHA", "Checkpost Alpha Main Gate", "Sector 4 Northern Crossing (Optical PTZ 4K)"),
+        ("CAM_BRAVO", "BOP Bravo Outer Perimeter", "Eastern Fenced Corridor (FLIR Thermal LWIR)"),
+        ("CAM_CHARLIE", "Tower Charlie Thermal Pan", "Ridge Watchpoint 7 (Thermal IR)"),
+        ("CAM_DELTA", "Riverine Sentry Delta", "Creek Sector 2 (Day/Night Optical)"),
+    ]
+    for cid, cname, cloc in default_cams:
+        cur.execute("""
+            INSERT OR IGNORE INTO camera_health (camera_id, last_seen_at, fault_status, name, location)
+            VALUES (?, NULL, 'NORMAL', ?, ?)
+        """, (cid, cname, cloc))
+
     conn.commit()
     conn.close()
 
@@ -145,11 +175,14 @@ def event_exists(event_id: str) -> bool:
 def insert_event(event: dict) -> bool:
     """
     Store a new security event. Returns True if it was inserted, False if
-    an event with this event_id already existed (nothing is changed in
-    that case — this is what makes event ingestion idempotent).
+    an event with this event_id already existed (idempotent).
+    Also updates camera heartbeat timestamp for real camera health tracking.
     """
     if event_exists(event["event_id"]):
         return False
+
+    now_iso = event.get("timestamp_iso") or _now_iso()
+    cam_id = event.get("camera_id")
 
     conn = get_connection()
     conn.execute("""
@@ -161,9 +194,9 @@ def insert_event(event: dict) -> bool:
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         event["event_id"],
-        event.get("timestamp_iso") or _now_iso(),
+        now_iso,
         event.get("timestamp_ms"),
-        event.get("camera_id"),
+        cam_id,
         event.get("track_id"),
         event.get("class_name"),
         event.get("alert_type"),
@@ -180,6 +213,15 @@ def insert_event(event: dict) -> bool:
         None,
         event.get("thumbnail_path"),
     ))
+
+    # Update camera heartbeat in camera_health table
+    if cam_id:
+        conn.execute("""
+            INSERT INTO camera_health (camera_id, last_seen_at, fault_status, name, location)
+            VALUES (?, ?, 'NORMAL', ?, 'Border Sector')
+            ON CONFLICT(camera_id) DO UPDATE SET last_seen_at = excluded.last_seen_at
+        """, (cam_id, now_iso, f"Camera {cam_id}"))
+
     conn.commit()
     conn.close()
     return True
@@ -199,8 +241,7 @@ def get_recent_events(limit: int = 50, camera_id: str | None = None) -> list[dic
     conn = get_connection()
     if camera_id:
         rows = conn.execute(
-            "SELECT * FROM security_events WHERE camera_id = ? "
-            "ORDER BY timestamp_iso DESC LIMIT ?",
+            "SELECT * FROM security_events WHERE camera_id = ? ORDER BY timestamp_iso DESC LIMIT ?",
             (camera_id, limit),
         ).fetchall()
     else:
@@ -212,28 +253,8 @@ def get_recent_events(limit: int = 50, camera_id: str | None = None) -> list[dic
     return [dict(r) for r in rows]
 
 
-def count_events_last_24h() -> int:
-    since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
-    conn = get_connection()
-    row = conn.execute(
-        "SELECT COUNT(*) AS n FROM security_events WHERE timestamp_iso >= ?",
-        (since,),
-    ).fetchone()
-    conn.close()
-    return row["n"] if row else 0
-
-
-def count_unreviewed_events() -> int:
-    conn = get_connection()
-    row = conn.execute(
-        "SELECT COUNT(*) AS n FROM security_events WHERE operator_status = 'UNREVIEWED'"
-    ).fetchone()
-    conn.close()
-    return row["n"] if row else 0
-
-
 # ---------------------------------------------------------------------------
-# incidents + incident_events
+# incidents
 # ---------------------------------------------------------------------------
 
 def next_incident_id() -> str:
@@ -250,8 +271,9 @@ def insert_incident(incident: dict) -> None:
         INSERT INTO incidents (
             incident_id, created_at, closed_at, status, threat_score,
             confidence, primary_object_id, target_class, severity,
-            cameras_json, story_summary, score_breakdown_json, cryptographic_hash
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            cameras_json, story_summary, score_breakdown_json, cryptographic_hash,
+            dismiss_reason
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         incident["incident_id"],
         incident.get("created_at") or _now_iso(),
@@ -266,6 +288,7 @@ def insert_incident(incident: dict) -> None:
         incident.get("story_summary", ""),
         json.dumps(incident.get("score_breakdown") or []),
         incident.get("cryptographic_hash"),
+        incident.get("dismiss_reason"),
     ))
     conn.commit()
     conn.close()
@@ -293,8 +316,6 @@ def update_incident_score(
     incident_id: str, threat_score: int, severity: str,
     score_breakdown: list, cameras: list, story_summary: str,
 ) -> None:
-    """Called after every new event that joins this incident, so the
-    incident's score/story always reflect the latest evidence."""
     conn = get_connection()
     conn.execute("""
         UPDATE incidents
@@ -309,12 +330,12 @@ def update_incident_score(
     conn.close()
 
 
-def update_incident_status(incident_id: str, status: str) -> None:
-    """Operator marks an incident CONFIRMED or DISMISSED_FP."""
+def update_incident_status(incident_id: str, status: str, dismiss_reason: str | None = None) -> None:
+    """Operator marks an incident CONFIRMED or DISMISSED_FP with optional calibration reason."""
     conn = get_connection()
     conn.execute(
-        "UPDATE incidents SET status = ?, closed_at = ? WHERE incident_id = ?",
-        (status, _now_iso(), incident_id),
+        "UPDATE incidents SET status = ?, dismiss_reason = ?, closed_at = ? WHERE incident_id = ?",
+        (status, dismiss_reason, _now_iso(), incident_id),
     )
     conn.commit()
     conn.close()
@@ -342,7 +363,6 @@ def link_event_to_incident(incident_id: str, event_id: str, weight: float = 1.0)
 
 
 def get_incident_id_for_event(event_id: str) -> str | None:
-    """Which incident (if any) already contains this event."""
     conn = get_connection()
     row = conn.execute(
         "SELECT incident_id FROM incident_events WHERE event_id = ? LIMIT 1",
@@ -353,47 +373,179 @@ def get_incident_id_for_event(event_id: str) -> str | None:
 
 
 def get_events_for_incident(incident_id: str) -> list[dict]:
-    """All events that make up one incident's story, oldest first."""
     conn = get_connection()
     rows = conn.execute("""
-        SELECT security_events.* FROM security_events
-        JOIN incident_events ON incident_events.event_id = security_events.event_id
-        WHERE incident_events.incident_id = ?
-        ORDER BY security_events.timestamp_iso ASC
+        SELECT e.*
+        FROM security_events e
+        JOIN incident_events ie ON e.event_id = ie.event_id
+        WHERE ie.incident_id = ?
+        ORDER BY e.timestamp_iso ASC
     """, (incident_id,)).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
 
 # ---------------------------------------------------------------------------
-# audit_ledger
+# calibration statistics (Phase 2)
 # ---------------------------------------------------------------------------
 
-def insert_ledger_block(block: dict) -> int:
-    """Store one sealed evidence block. Returns its block_index."""
+def get_calibration_stats(camera_id: str | None = None) -> dict:
+    """
+    Counts false-positive dismissals by reason to tune site-specific detection thresholds.
+    """
     conn = get_connection()
-    cur = conn.execute("""
-        INSERT INTO audit_ledger (previous_hash, data_hash, current_hash, payload_json, timestamp)
-        VALUES (?, ?, ?, ?, ?)
-    """, (
-        block["previous_hash"], block["data_hash"], block["current_hash"],
-        block["payload_json"], block.get("timestamp") or _now_iso(),
-    ))
-    conn.commit()
-    block_index = cur.lastrowid
+    cur = conn.cursor()
+
+    if camera_id:
+        rows = cur.execute("""
+            SELECT i.dismiss_reason, COUNT(*) as count
+            FROM incidents i
+            JOIN incident_events ie ON i.incident_id = ie.incident_id
+            JOIN security_events se ON ie.event_id = se.event_id
+            WHERE i.status = 'DISMISSED_FP' AND se.camera_id = ? AND i.dismiss_reason IS NOT NULL
+            GROUP BY i.dismiss_reason
+        """, (camera_id,)).fetchall()
+        
+        total_row = cur.execute("""
+            SELECT COUNT(DISTINCT i.incident_id) as total
+            FROM incidents i
+            JOIN incident_events ie ON i.incident_id = ie.incident_id
+            JOIN security_events se ON ie.event_id = se.event_id
+            WHERE i.status = 'DISMISSED_FP' AND se.camera_id = ?
+        """, (camera_id,)).fetchone()
+    else:
+        rows = cur.execute("""
+            SELECT dismiss_reason, COUNT(*) as count
+            FROM incidents
+            WHERE status = 'DISMISSED_FP' AND dismiss_reason IS NOT NULL
+            GROUP BY dismiss_reason
+        """).fetchall()
+        total_row = cur.execute("SELECT COUNT(*) as total FROM incidents WHERE status = 'DISMISSED_FP'").fetchone()
+
     conn.close()
-    return block_index
+
+    by_reason = {r["dismiss_reason"]: r["count"] for r in rows}
+    total_dismissed = total_row["total"] if total_row else sum(by_reason.values())
+
+    return {
+        "camera_id": camera_id or "ALL_SITE_CAMERAS",
+        "total_dismissed": total_dismissed,
+        "by_reason": by_reason,
+    }
 
 
-def get_all_ledger_blocks() -> list[dict]:
-    """Every block, oldest first — the order the chain was built in."""
+# ---------------------------------------------------------------------------
+# camera health diagnostics (Phase 3)
+# ---------------------------------------------------------------------------
+
+def get_camera_health_records() -> list[dict]:
+    """
+    Computes ONLINE, STALE, OFFLINE, or FAULT states for each camera based on last_seen_at.
+      - ONLINE if seen within 60s
+      - STALE if 60s - 300s
+      - OFFLINE if >300s or never seen
+      - FAULT if manually triggered demo fault
+    """
     conn = get_connection()
-    rows = conn.execute(
-        "SELECT * FROM audit_ledger ORDER BY block_index ASC"
-    ).fetchall()
+    rows = conn.execute("SELECT * FROM camera_health ORDER BY camera_id ASC").fetchall()
+    conn.close()
+
+    now = datetime.now(timezone.utc)
+    results = []
+
+    for r in rows:
+        cam_id = r["camera_id"]
+        fault = r["fault_status"]
+        last_seen = r["last_seen_at"]
+
+        if fault == "FAULT":
+            status = "FAULT"
+            details = "Operator-triggered demo fault status"
+        elif last_seen:
+            try:
+                dt = datetime.fromisoformat(last_seen.replace("Z", "+00:00"))
+                elapsed = (now - dt).total_seconds()
+                if elapsed <= 60.0:
+                    status = "ONLINE"
+                    details = f"Active feed (last heartbeat {int(elapsed)}s ago)"
+                elif elapsed <= 300.0:
+                    status = "STALE"
+                    details = f"Warning: delayed heartbeat ({int(elapsed)}s ago)"
+                else:
+                    status = "OFFLINE"
+                    details = f"Stream offline (>300s since last frame)"
+            except Exception:
+                status = "OFFLINE"
+                details = "Timestamp parse error"
+        else:
+            status = "OFFLINE"
+            details = "No stream frames received yet"
+
+        results.append({
+            "camera_id": cam_id,
+            "name": r["name"] or f"Camera {cam_id}",
+            "location": r["location"] or "Border Sector",
+            "status": status,
+            "last_seen_at": last_seen,
+            "details": details,
+        })
+
+    return results
+
+
+def set_camera_fault(camera_id: str, is_fault: bool = True) -> dict:
+    conn = get_connection()
+    fault_val = "FAULT" if is_fault else "NORMAL"
+    conn.execute(
+        "UPDATE camera_health SET fault_status = ? WHERE camera_id = ?",
+        (fault_val, camera_id),
+    )
+    conn.commit()
+    conn.close()
+    return {"camera_id": camera_id, "fault_status": fault_val}
+
+
+# ---------------------------------------------------------------------------
+# edge offline queue (Phase 4)
+# ---------------------------------------------------------------------------
+
+def queue_edge_event(payload_json: str) -> int:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO edge_queue (payload_json, queued_at) VALUES (?, ?)",
+        (payload_json, _now_iso()),
+    )
+    conn.commit()
+    rowid = cur.lastrowid
+    conn.close()
+    return rowid
+
+
+def get_queued_events() -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute("SELECT * FROM edge_queue ORDER BY id ASC").fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
+
+def clear_queued_events() -> None:
+    conn = get_connection()
+    conn.execute("DELETE FROM edge_queue")
+    conn.commit()
+    conn.close()
+
+
+def get_queued_count() -> int:
+    conn = get_connection()
+    row = conn.execute("SELECT COUNT(*) as n FROM edge_queue").fetchone()
+    conn.close()
+    return row["n"] if row else 0
+
+
+# ---------------------------------------------------------------------------
+# audit ledger
+# ---------------------------------------------------------------------------
 
 def get_last_ledger_block() -> dict | None:
     conn = get_connection()
@@ -404,27 +556,26 @@ def get_last_ledger_block() -> dict | None:
     return _row_to_dict(row)
 
 
-# ---------------------------------------------------------------------------
-# fcm_tokens
-# ---------------------------------------------------------------------------
-
-def insert_fcm_token(token: str, device_id: str, platform: str) -> None:
-    """Save (or refresh) one device's push-notification token."""
+def insert_ledger_block(block: dict) -> None:
     conn = get_connection()
     conn.execute("""
-        INSERT INTO fcm_tokens (token, device_id, platform, registered_at)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(token) DO UPDATE SET
-            device_id = excluded.device_id,
-            platform = excluded.platform,
-            registered_at = excluded.registered_at
-    """, (token, device_id, platform, _now_iso()))
+        INSERT INTO audit_ledger (previous_hash, data_hash, current_hash, payload_json, timestamp)
+        VALUES (?, ?, ?, ?, ?)
+    """, (
+        block["previous_hash"],
+        block["data_hash"],
+        block["current_hash"],
+        block["payload_json"],
+        block.get("timestamp") or _now_iso(),
+    ))
     conn.commit()
     conn.close()
 
 
-def get_all_fcm_tokens() -> list[dict]:
+def get_all_ledger_blocks() -> list[dict]:
     conn = get_connection()
-    rows = conn.execute("SELECT * FROM fcm_tokens").fetchall()
+    rows = conn.execute(
+        "SELECT * FROM audit_ledger ORDER BY block_index ASC"
+    ).fetchall()
     conn.close()
     return [dict(r) for r in rows]

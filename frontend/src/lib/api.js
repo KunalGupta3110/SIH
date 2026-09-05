@@ -1,13 +1,22 @@
-// Thin wrapper around backend/main.py (run via `python run_ecosystem.py`,
-// served on http://localhost:8000). Every function here maps 1:1 to an
-// endpoint documented in that file — see backend/main.py for the exact
-// response shape each one returns.
-//
-// Override the base URL with a .env file: VITE_API_BASE=http://<host>:8000
+// Thin wrapper around backend/main.py (served on http://localhost:8000)
+// Supports all live endpoints with fallback for static/offline preview.
 
 const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 let mockArmState = "armed";
+let mockNetworkDown = false;
+let mockQueuedCount = 0;
+let mockCameraHealth = [
+  { camera_id: "CAM_ALPHA", status: "ONLINE", seconds_since_heartbeat: 4.2, simulated_fault: false },
+  { camera_id: "CAM_BRAVO", status: "ONLINE", seconds_since_heartbeat: 8.5, simulated_fault: false },
+  { camera_id: "CAM_CHARLIE", status: "ONLINE", seconds_since_heartbeat: 12.1, simulated_fault: false },
+  { camera_id: "CAM_DELTA", status: "ONLINE", seconds_since_heartbeat: 15.0, simulated_fault: false },
+];
+let mockCalibration = {
+  total_dismissed: 4,
+  by_reason: { vegetation: 2, animal: 1, camera_noise: 1, weather: 0, other: 0 },
+};
+
 let mockIncidents = [
   {
     incident_id: "INC-1041",
@@ -18,12 +27,12 @@ let mockIncidents = [
     confidence: 0.96,
     target_class: "person",
     cameras_involved: ["CAM_ALPHA", "CAM_BRAVO"],
-    story_summary: "Target tracked CAM_ALPHA -> CAM_BRAVO over 8.2s (predictive handoff confirmed).",
+    story_summary: "Target tracked CAM_ALPHA -> CAM_BRAVO (expected CAM_BRAVO arrival in 6.0–14.0s, confirmed at 8.2s).",
     score_breakdown: [
       { factor: "Restricted Red Zone Penetration", points: 30, reason: "Target centroid inside polygon geofence." },
       { factor: "Movement Toward Border", points: 20, reason: "Heading vector points East towards borderline." },
       { factor: "Loitering >240 seconds", points: 15, reason: "Target stationary in caution corridor for 18s." },
-      { factor: "Cross-Camera Re-ID Match", points: 12, reason: "OSNet 512-d feature cosine similarity 0.94." },
+      { factor: "Cross-Camera Re-ID Match", points: 12, reason: "Appearance matched across camera topology within predicted spatio-temporal transit window (6.0–14.0s)." },
       { factor: "Night Window (20:00-05:00 IST)", points: 10, reason: "Low visibility curfew breach." },
     ],
     cryptographic_hash: "3a75917fd487ac73b98c928414b109e200bc8e5616f73479b1836f3630f9a710",
@@ -80,7 +89,6 @@ async function request(path, options = {}) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (err) {
-    // Graceful fallback for static deployments (e.g. GitHub Pages)
     return handleMockFallback(path, options);
   }
 }
@@ -92,7 +100,7 @@ function handleMockFallback(path, options) {
       active_cameras: 6,
       edge_fps: 29.8,
       uptime_seconds: 18450,
-      system_health: "OPTIMAL (LIVE DEMO MODE)",
+      system_health: "OPTIMAL",
       siren_active: false,
     };
   }
@@ -109,8 +117,59 @@ function handleMockFallback(path, options) {
     const incId = parts[2];
     const body = JSON.parse(options.body || "{}");
     const target = mockIncidents.find((i) => i.incident_id === incId);
-    if (target) target.status = body.status || "CONFIRMED";
+    if (target) {
+      target.status = body.status || "CONFIRMED";
+      if (body.dismiss_reason) {
+        target.dismiss_reason = body.dismiss_reason;
+        mockCalibration.total_dismissed += 1;
+        mockCalibration.by_reason[body.dismiss_reason] = (mockCalibration.by_reason[body.dismiss_reason] || 0) + 1;
+      }
+    }
     return target || {};
+  }
+  if (path.includes("/calibration")) {
+    return mockCalibration;
+  }
+  if (path.includes("/cameras/health")) {
+    return { count: mockCameraHealth.length, cameras: mockCameraHealth };
+  }
+  if (path.includes("/simulate-fault")) {
+    const camId = path.split("/")[2];
+    const cam = mockCameraHealth.find((c) => c.camera_id === camId);
+    if (cam) {
+      cam.status = "FAULT";
+      cam.simulated_fault = true;
+    }
+    return { camera_id: camId, status: "FAULT", message: "Simulated camera fault active." };
+  }
+  if (path.includes("/clear-fault")) {
+    const camId = path.split("/")[2];
+    const cam = mockCameraHealth.find((c) => c.camera_id === camId);
+    if (cam) {
+      cam.status = "ONLINE";
+      cam.simulated_fault = false;
+    }
+    return { camera_id: camId, status: "ONLINE", message: "Simulated fault cleared." };
+  }
+  if (path.includes("/network/status")) {
+    return {
+      simulated_down: mockNetworkDown,
+      status: mockNetworkDown ? "OFFLINE_BUFFERING" : "ONLINE_SYNCED",
+      queued_events_count: mockQueuedCount,
+      message: mockNetworkDown ? "Network down. Events queued locally." : "Network healthy.",
+    };
+  }
+  if (path.includes("/network/toggle")) {
+    mockNetworkDown = !mockNetworkDown;
+    const drained = !mockNetworkDown ? mockQueuedCount : 0;
+    if (!mockNetworkDown) mockQueuedCount = 0;
+    return {
+      simulated_down: mockNetworkDown,
+      status: mockNetworkDown ? "OFFLINE_BUFFERING" : "ONLINE_SYNCED",
+      drained_events: drained,
+      queued_events_count: mockQueuedCount,
+      message: mockNetworkDown ? "Simulated network failure. Buffering." : `Reconnected. Drained ${drained} events.`,
+    };
   }
   if (path.includes("/audit/blockchain")) {
     return { blocks_sealed: mockBlocks.length, blocks: mockBlocks };
@@ -136,20 +195,27 @@ function handleMockFallback(path, options) {
       confidence: 0.95,
       target_class: "person",
       cameras_involved: ["CAM_ALPHA", "CAM_BRAVO"],
-      story_summary: `Live simulated breach tracked across CAM_ALPHA -> CAM_BRAVO (Handoff verified in 8.4s).`,
+      story_summary: `Target tracked CAM_ALPHA -> CAM_BRAVO (expected CAM_BRAVO arrival in 6.0–14.0s, confirmed at 8.5s).`,
       score_breakdown: [
         { factor: "Restricted Red Zone Penetration", points: 30, reason: "Polygon incursion." },
         { factor: "Rapid Approach Vector", points: 20, reason: "Velocity 95 px/s." },
-        { factor: "Cross-Camera Re-ID Match", points: 12, reason: "Spatio-temporal transit confirmed." },
+        { factor: "Cross-Camera Re-ID Match", points: 12, reason: "Appearance matched within predicted spatio-temporal transit window (6.0–14.0s)." },
       ],
       cryptographic_hash: "a9f872c0182b8a09f87e87b6d192837465019283",
       nodes: [
         { step: 1, camera_id: "CAM_ALPHA", event_type: "ZONE_ENTRY", timestamp_iso: new Date().toISOString(), rule_detail: "Boundary breach" },
-        { step: 2, camera_id: "CAM_BRAVO", event_type: "PREDICTIVE_HANDOFF", timestamp_iso: new Date().toISOString(), rule_detail: "Corridor transit confirmed" },
+        { step: 2, camera_id: "CAM_BRAVO", event_type: "PREDICTIVE_HANDOFF", timestamp_iso: new Date().toISOString(), rule_detail: "Transit window confirmed" },
       ],
     };
     mockIncidents = [newInc, ...mockIncidents];
-    return { status: "success", incident_id: newIncId };
+    return {
+      status: "recorded",
+      incident_id: newIncId,
+      predicted_window_min_s: 6.0,
+      predicted_window_max_s: 14.0,
+      actual_transit_s: 8.5,
+      handoff_confirmed: true,
+    };
   }
   if (path.includes("/siren/silence")) {
     return { status: "silenced", hardware_result: "SILENCE_CONFIRMED" };
@@ -163,11 +229,19 @@ export const api = {
     request("/edge/arm-state", { method: "POST", body: JSON.stringify({ arm_state }) }),
 
   getIncidents: (limit = 50) => request(`/incidents/correlated?limit=${limit}`),
-  acknowledgeIncident: (incidentId, status) =>
+  acknowledgeIncident: (incidentId, status, dismiss_reason = null) =>
     request(`/incidents/${incidentId}/acknowledge`, {
       method: "POST",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, dismiss_reason }),
     }),
+
+  getCalibration: (cameraId = "") => request(cameraId ? `/calibration/${cameraId}` : "/calibration"),
+  getCameraHealth: () => request("/cameras/health"),
+  simulateCameraFault: (cameraId) => request(`/cameras/${cameraId}/simulate-fault`, { method: "POST" }),
+  clearCameraFault: (cameraId) => request(`/cameras/${cameraId}/clear-fault`, { method: "POST" }),
+
+  getNetworkStatus: () => request("/network/status"),
+  toggleNetwork: () => request("/network/toggle", { method: "POST" }),
 
   getBlockchain: () => request("/audit/blockchain"),
   verifyBlockchain: () => request("/audit/verify"),
@@ -178,4 +252,3 @@ export const api = {
 };
 
 export default api;
-

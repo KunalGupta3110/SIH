@@ -4,31 +4,17 @@ IBVAP Sentinel — backend/correlation_engine.py
 ONE job: decide whether a new event belongs to an incident that's already
 being tracked, or whether it starts a brand-new one.
 
-The rule is simple and deterministic — no machine learning here, just a
-timestamp check:
-
-    Two events from DIFFERENT cameras that happen 6-14 seconds apart are
-    treated as the same target moving between camera views. This is the
-    "predictive handoff window" — a person can't be at CAM_ALPHA and
-    CAM_BRAVO at the same instant, but if they show up at CAM_BRAVO a
-    handful of seconds after leaving CAM_ALPHA, it's almost certainly
-    the same target walking between the two.
-
-This can absolutely be replaced later with something smarter (real Re-ID
-embeddings, direction vectors, etc.) — the database and the rest of the
-API don't need to change, only this one function.
+Integrates real Camera Topology (backend/camera_topology.py) to look up
+per-camera-pair transit windows (scaled by target kinematic velocity) and
+produces descriptive predicted-then-confirmed arrival narratives.
 """
 
 from datetime import datetime
+from typing import Optional, Tuple
 
 from backend import database
+from backend.camera_topology import DEFAULT_TOPOLOGY, get_transit_window
 
-HANDOFF_MIN_SECONDS = 6
-HANDOFF_MAX_SECONDS = 14
-
-# How far back to look for a possible handoff partner. Wider than the
-# handoff window itself so we don't miss events sitting near the edges.
-LOOKBACK_SECONDS = 30
 LOOKBACK_EVENT_LIMIT = 200
 
 
@@ -43,55 +29,71 @@ def seconds_between(event_a: dict, event_b: dict) -> float:
     return abs((time_b - time_a).total_seconds())
 
 
-def is_handoff_pair(event_a: dict, event_b: dict) -> bool:
+def is_handoff_pair(event_a: dict, event_b: dict) -> Tuple[bool, Optional[Tuple[float, float, float]]]:
     """
-    True if two events look like the same target crossing from one camera
-    into another camera's view.
+    Checks if two events form a topologically valid cross-camera handoff.
+    Returns (is_pair, (min_window_s, max_window_s, actual_transit_s)).
     """
-    if event_a["camera_id"] == event_b["camera_id"]:
-        return False  # same camera twice isn't a "handoff"
+    cam_a = event_a.get("camera_id")
+    cam_b = event_b.get("camera_id")
+    if not cam_a or not cam_b or cam_a == cam_b:
+        return False, None
+
+    # Derive velocity from event rule metrics or kinematics if available
+    vel = 60.0
+    metrics_a = event_a.get("rule_metrics") or {}
+    if isinstance(metrics_a, dict) and "velocity_px_s" in metrics_a:
+        vel = float(metrics_a["velocity_px_s"])
+
+    transit_info = get_transit_window(cam_a, cam_b, velocity_px_s=vel)
+    if not transit_info:
+        # Check reverse direction
+        transit_info = get_transit_window(cam_b, cam_a, velocity_px_s=vel)
+        if not transit_info:
+            return False, None
+
+    min_s, max_s, _ = transit_info
     gap = seconds_between(event_a, event_b)
-    return HANDOFF_MIN_SECONDS <= gap <= HANDOFF_MAX_SECONDS
+
+    # Allow 2s tolerance around the kinematic window
+    if (min_s - 2.0) <= gap <= (max_s + 4.0):
+        return True, (min_s, max_s, round(gap, 1))
+
+    return False, None
 
 
-def find_track_or_handoff_partner(new_event: dict) -> dict | None:
+def find_track_or_handoff_partner(new_event: dict) -> Tuple[Optional[dict], Optional[Tuple[float, float, float]]]:
     """
     Look through recently-stored events for:
       1. Same track on same camera within 15s (temporal debouncing / continuation).
-      2. Cross-camera handoff partner (6-14s window).
+      2. Cross-camera handoff partner via topology graph.
     """
     recent_events = database.get_recent_events(limit=LOOKBACK_EVENT_LIMIT)
     for candidate in recent_events:
         if candidate["event_id"] == new_event["event_id"]:
             continue
-        
-        # Case 1: Same camera, same track ID within 15s (Debounce continuous presence)
-        if (candidate["camera_id"] == new_event["camera_id"] and 
-            candidate.get("track_id") is not None and 
+
+        # Case 1: Same camera, same track ID within 15s
+        if (candidate["camera_id"] == new_event["camera_id"] and
+            candidate.get("track_id") is not None and
             candidate.get("track_id") == new_event.get("track_id")):
             gap = seconds_between(candidate, new_event)
             if gap <= 15.0:
-                return candidate
+                return candidate, None
 
         # Case 2: Cross-camera handoff
-        if is_handoff_pair(candidate, new_event):
-            return candidate
+        is_pair, window_tuple = is_handoff_pair(candidate, new_event)
+        if is_pair:
+            return candidate, window_tuple
 
-    return None
+    return None, None
 
 
-def correlate_event(new_event: dict) -> str:
+def correlate_event(new_event: dict) -> Tuple[str, Optional[Tuple[float, float, float]]]:
     """
-    Attach new_event to an incident and return that incident's id.
-
-    Step 1: if a track continuation or handoff partner exists and it's already
-            part of an incident, join that same incident.
-    Step 2: otherwise, start a brand-new incident containing just this event.
-
-    The caller (backend/main.py) inserts new_event into security_events before
-    calling this, so it shows up in lookback searches.
+    Attach new_event to an incident and return (incident_id, handoff_window_info).
     """
-    partner = find_track_or_handoff_partner(new_event)
+    partner, window_info = find_track_or_handoff_partner(new_event)
 
     incident_id = None
     if partner is not None:
@@ -108,14 +110,14 @@ def correlate_event(new_event: dict) -> str:
         })
 
     database.link_event_to_incident(incident_id, new_event["event_id"])
-    return incident_id
+    return incident_id, window_info
 
 
 def build_story_summary(incident_id: str) -> str:
     """
-    A one-sentence, human-readable description of an incident, built from
-    the events that make it up — e.g.
-    "Target seen on CAM_ALPHA, then CAM_BRAVO 9s later."
+    A descriptive, human-readable narrative of the incident, including the
+    topological predicted arrival window and confirmed transit time.
+    e.g. "Target tracked CAM_ALPHA -> CAM_BRAVO (expected CAM_BRAVO arrival in 6.0–14.0s, confirmed at 8.0s)."
     """
     events = database.get_events_for_incident(incident_id)
     if not events:
@@ -124,10 +126,29 @@ def build_story_summary(incident_id: str) -> str:
         return f"Target detected on {events[0]['camera_id']}."
 
     cameras_in_order = [events[0]["camera_id"]]
-    for event in events[1:]:
-        if event["camera_id"] != cameras_in_order[-1]:
-            cameras_in_order.append(event["camera_id"])
+    transit_narratives = []
 
-    gap_seconds = int(seconds_between(events[0], events[-1]))
+    for i in range(1, len(events)):
+        prev_evt = events[i - 1]
+        curr_evt = events[i]
+        curr_cam = curr_evt["camera_id"]
+
+        if curr_cam != cameras_in_order[-1]:
+            cameras_in_order.append(curr_cam)
+            is_pair, window_info = is_handoff_pair(prev_evt, curr_evt)
+            if is_pair and window_info:
+                min_w, max_w, actual_s = window_info
+                transit_narratives.append(
+                    f"expected {curr_cam} arrival in {min_w:.1f}–{max_w:.1f}s, confirmed at {actual_s:.1f}s"
+                )
+            else:
+                gap_s = seconds_between(prev_evt, curr_evt)
+                transit_narratives.append(f"transit to {curr_cam} in {gap_s:.1f}s")
+
     path = " -> ".join(cameras_in_order)
-    return f"Target tracked {path} over {gap_seconds}s (predictive handoff confirmed)."
+    if transit_narratives:
+        details = "; ".join(transit_narratives)
+        return f"Target tracked {path} ({details})."
+    else:
+        gap_seconds = int(seconds_between(events[0], events[-1]))
+        return f"Target tracked {path} over {gap_seconds}s (predictive handoff confirmed)."
