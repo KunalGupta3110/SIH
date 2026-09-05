@@ -7,6 +7,7 @@ import EvidencePanel from "./components/EvidencePanel.jsx";
 import TriagePanel from "./components/TriagePanel.jsx";
 import MapPanel from "./components/MapPanel.jsx";
 import ModelZooPanel from "./components/ModelZooPanel.jsx";
+import ApiTestbenchPanel from "./components/ApiTestbenchPanel.jsx";
 import { usePoll } from "./lib/usePoll.js";
 import api from "./lib/api.js";
 
@@ -19,7 +20,6 @@ export default function App() {
   const {
     data: incidents,
     error: incidentsError,
-    loading: incidentsLoading,
     refetch: refetchIncidents,
   } = usePollWithRefetch(() => api.getIncidents(50), 5000);
   const { data: blockchain, error: blockchainError } = usePoll(() => api.getBlockchain(), 5000);
@@ -80,15 +80,13 @@ export default function App() {
           )}
           {section === "map" && <MapPanel incidents={incidents} />}
           {section === "zoo" && <ModelZooPanel />}
+          {section === "api" && <ApiTestbenchPanel />}
         </div>
       </div>
     </div>
   );
 }
 
-// usePoll doesn't expose a manual refetch, but acknowledging/simulating
-// needs to refresh incidents immediately rather than waiting up to 5s —
-// this small wrapper adds that without changing the shared hook's API.
 function usePollWithRefetch(fetcher, intervalMs) {
   const [nonce, setNonce] = useState(0);
   const poll = usePoll(fetcher, intervalMs, [nonce]);

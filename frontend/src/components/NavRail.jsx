@@ -1,19 +1,20 @@
-import { Shield, Video, GitBranch, Link2, CheckSquare, Map as MapIcon, Bell, BellOff, Cpu } from "lucide-react";
+import { Shield, Video, GitBranch, Link2, CheckSquare, Map as MapIcon, Bell, BellOff, Cpu, Terminal } from "lucide-react";
 
 const NAV_ITEMS = [
-  { key: "live", label: "Live Ops", icon: Video },
-  { key: "incidents", label: "Incidents", icon: GitBranch },
-  { key: "evidence", label: "Evidence Chain", icon: Link2 },
+  { key: "live", label: "Live Video Ops", icon: Video },
+  { key: "incidents", label: "Correlated Incidents", icon: GitBranch },
+  { key: "evidence", label: "Evidence Ledger", icon: Link2 },
   { key: "triage", label: "Operator Triage", icon: CheckSquare },
-  { key: "map", label: "Tactical Map", icon: MapIcon },
+  { key: "map", label: "3D Tactical Twin", icon: MapIcon },
   { key: "zoo", label: "AI Model Zoo", icon: Cpu },
+  { key: "api", label: "API Testbench", icon: Terminal },
 ];
 
 export default function NavRail({ section, setSection, armState, onToggleArm, armPending }) {
   const armed = armState === "armed";
 
   return (
-    <aside className="flex w-[196px] shrink-0 flex-col border-r border-line bg-panel2">
+    <aside className="flex w-[210px] shrink-0 flex-col border-r border-line bg-panel2">
       <div className="flex items-center gap-2 border-b border-line px-4 py-4">
         <Shield size={18} className="text-amber" strokeWidth={1.75} />
         <div>
@@ -32,7 +33,7 @@ export default function NavRail({ section, setSection, armState, onToggleArm, ar
               onClick={() => setSection(item.key)}
               className={`flex items-center gap-2.5 rounded-[3px] border-l-2 px-2.5 py-2 text-left text-[12.5px] transition-colors ${
                 active
-                  ? "border-amber bg-amber/10 text-amberLight"
+                  ? "border-amber bg-amber/10 text-amberLight font-medium"
                   : "border-transparent text-dim hover:text-ink2"
               }`}
             >
@@ -49,8 +50,8 @@ export default function NavRail({ section, setSection, armState, onToggleArm, ar
           disabled={armPending}
           className={`flex w-full items-center justify-between rounded-[3px] border px-2.5 py-2 font-mono text-[11.5px] transition-opacity disabled:opacity-50 ${
             armed
-              ? "border-red/35 bg-red/10 text-red"
-              : "border-green/35 bg-green/10 text-green"
+              ? "border-red/35 bg-red/10 text-red font-bold"
+              : "border-green/35 bg-green/10 text-green font-bold"
           }`}
         >
           <span className="flex items-center gap-1.5">
