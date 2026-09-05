@@ -59,6 +59,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+LANDING_FILE = ROOT_DIR / "apps" / "web_command_center" / "static" / "landing.html"
 FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
 DATA_DIR = ROOT_DIR / "data"
 
@@ -70,13 +71,22 @@ if FRONTEND_DIST.exists() and (FRONTEND_DIST / "assets").exists():
 
 
 @app.get("/", include_in_schema=False)
-@app.get("/console", include_in_schema=False)
-@app.get("/twin", include_in_schema=False)
-@app.get("/3d", include_in_schema=False)
-def serve_frontend_root():
+def serve_landing_page():
+    if LANDING_FILE.exists():
+        return FileResponse(str(LANDING_FILE))
     if FRONTEND_DIST.exists() and (FRONTEND_DIST / "index.html").exists():
         return FileResponse(str(FRONTEND_DIST / "index.html"))
     return {"message": "IBVAP Sentinel Backend Active", "docs": "/docs"}
+
+
+@app.get("/console", include_in_schema=False)
+@app.get("/console/{full_path:path}", include_in_schema=False)
+@app.get("/twin", include_in_schema=False)
+@app.get("/3d", include_in_schema=False)
+def serve_console():
+    if FRONTEND_DIST.exists() and (FRONTEND_DIST / "index.html").exists():
+        return FileResponse(str(FRONTEND_DIST / "index.html"))
+    return {"message": "Operator Console build not found in frontend/dist. Run: cd frontend && npm run build"}
 
 
 CAMERA_COUNT = 6

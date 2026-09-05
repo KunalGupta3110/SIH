@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, ArrowRight, CircleCheck, XCircle, Timer } from "lucide-react";
+import { ChevronDown, ChevronRight, ArrowRight, CircleCheck, XCircle, FileText, Timer } from "lucide-react";
 import SectionHeader from "./SectionHeader.jsx";
 import api from "../lib/api.js";
 
@@ -126,11 +126,23 @@ export default function IncidentsPanel({ incidents, error, onAcknowledge }) {
                     </div>
                   )}
 
-                  {/* Actions & Blockchain Anchor */}
+                  {/* Actions & Dossier Export */}
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
-                    <div className="font-mono text-[10.5px] text-dim2 truncate max-w-md">
-                      LEDGER ANCHOR: {inc.cryptographic_hash || "SEALED IN MERKLE LEDGER"}
+                    <div className="flex items-center gap-3">
+                      <a
+                        href={`/incidents/${inc.incident_id}/dossier`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-line2 bg-panel2 text-[11px] text-dim hover:text-ink font-mono"
+                      >
+                        <FileText size={12} className="text-amber" />
+                        <span>View Forensic Dossier</span>
+                      </a>
+                      <div className="font-mono text-[10px] text-dim2 truncate max-w-xs">
+                        HASH: {inc.cryptographic_hash?.slice(0, 16)}...
+                      </div>
                     </div>
+
                     {!acknowledged && (
                       <div className="flex gap-2">
                         <button
