@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Shield, Radar, Layers, TrendingUp, ClipboardList, Link2, Wifi, WifiOff, Volume2 } from "lucide-react";
+import { Shield, Radar, Layers, TrendingUp, ClipboardList, Link2, Wifi, WifiOff, Volume2, PlaySquare } from "lucide-react";
 
 export const MODES = [
   { key: "cop", icon: Radar, label: "Common Operating Picture" },
@@ -23,7 +23,16 @@ function useClock() {
  * the active mode shows a label; the rest are icon-only, same behavior as
  * the approved reference mockup.
  */
-export default function TopBar({ mode, setMode, edgeStatus, cameraCount, activeTrackCount, onSilence }) {
+export default function TopBar({
+  mode,
+  setMode,
+  edgeStatus,
+  cameraCount,
+  activeTrackCount,
+  onSilence,
+  onPopulateDemo,
+  populatingDemo,
+}) {
   const clock = useClock();
   const timeStr = useMemo(() => clock.toLocaleTimeString("en-IN", { hour12: false }), [clock]);
 
@@ -68,6 +77,17 @@ export default function TopBar({ mode, setMode, edgeStatus, cameraCount, activeT
           {online ? "LINK NOMINAL" : "LINK DEGRADED"}
         </span>
         <span>{cameraCount} SENSORS · {activeTrackCount} ACTIVE TRACK{activeTrackCount === 1 ? "" : "S"}</span>
+        {onPopulateDemo && (
+          <button
+            onClick={onPopulateDemo}
+            disabled={populatingDemo}
+            title="Seed 5 real distinct scenario incidents via the backend's simulate-case endpoint"
+            className="flex items-center gap-1.5 rounded border border-white/10 px-2 py-1 text-slate-400 hover:text-white hover:border-white/25 disabled:opacity-50"
+          >
+            <PlaySquare size={11} />
+            {populatingDemo ? "SEEDING…" : "POPULATE DEMO SCENARIOS"}
+          </button>
+        )}
         <button
           onClick={onSilence}
           title="Silence siren"

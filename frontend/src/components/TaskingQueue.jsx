@@ -17,7 +17,7 @@ const DISMISS_REASONS = [
  * site calibration stats). "Simulate Handoff" lives here now — it's a way
  * to manufacture a task to demonstrate the queue, not a COP-map control.
  */
-export default function TriagePanel({ incidents, error, onAcknowledge }) {
+export default function TaskingQueue({ incidents, error, onAcknowledge }) {
   const [busyId, setBusyId] = useState(null);
   const [dismissingId, setDismissingId] = useState(null);
   const [selectedReason, setSelectedReason] = useState("vegetation");
@@ -92,7 +92,7 @@ export default function TriagePanel({ incidents, error, onAcknowledge }) {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-6 text-slate-200">
+    <div className="flex flex-col gap-5 text-slate-200">
       <div className="flex items-start justify-between gap-4">
         <SectionHeader
           title="Tasking Queue"
