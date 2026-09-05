@@ -1,138 +1,116 @@
-import { useCallback, useMemo, useState } from "react";
-import TopBar from "./components/TopBar.jsx";
-import MapPanel from "./components/MapPanel.jsx";
-import EntitiesPanel from "./components/EntitiesPanel.jsx";
-import EntityDetailPanel from "./components/EntityDetailPanel.jsx";
-import EventSeriesStrip from "./components/EventSeriesStrip.jsx";
-import IncidentsPanel from "./components/IncidentsPanel.jsx";
-import TriagePanel from "./components/TriagePanel.jsx";
-import EvidencePanel from "./components/EvidencePanel.jsx";
-import { usePoll } from "./lib/usePoll.js";
-import api from "./lib/api.js";
+import { lazy, Suspense } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { SystemProvider } from "./contexts/SystemContext.jsx";
+import TacticalShell from "./components/layout/TacticalShell.jsx";
+import LoadingState from "./components/ui/LoadingState.jsx";
 
-// IBVAP Sentinel Console — Common Operating Picture rebuild.
-//
-// The map is the default screen (mode === "cop"), not a tab you navigate
-// to. Everything else — the entities list, the selected track/sensor
-// detail, the event series — is a floating glass panel over that map.
-// The other 4 modes (Entities & Sensors / Track Board / Tasking Queue /
-// Chain of Custody) are dedicated full-page views for when an operator
-// wants the whole list rather than one selected thing.
-export default function App() {
-  const [mode, setMode] = useState("cop");
-  const [selectedId, setSelectedId] = useState(null);
+// ── Lazy-loaded pages ──
+const LiveOperations = lazy(() => import("./pages/LiveOperations.jsx"));
+const IncidentsPage = lazy(() => import("./pages/IncidentsPage.jsx"));
+const IncidentWorkspace = lazy(() => import("./pages/IncidentWorkspace.jsx"));
+const ReconstructionPage = lazy(() => import("./pages/ReconstructionPage.jsx"));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage.jsx"));
+const CameraHealthPage = lazy(() => import("./pages/CameraHealthPage.jsx"));
+const EvidenceVaultPage = lazy(() => import("./pages/EvidenceVaultPage.jsx"));
+const SystemSettingsPage = lazy(() => import("./pages/SystemSettingsPage.jsx"));
 
-  const { data: edgeStatus } = usePoll(() => api.getEdgeStatus(), 5000);
-  const { data: cameraHealthRaw } = usePoll(() => api.getCameraHealth(), 5000);
-  const {
-    data: incidentsRaw,
-    error: incidentsError,
-    refetch: refetchIncidents,
-  } = usePollWithRefetch(() => api.getIncidents(50), 5000);
-  const { data: blockchain, error: blockchainError } = usePoll(() => api.getBlockchain(), 5000);
-
-  const cameraHealth = cameraHealthRaw?.cameras || [];
-  const incidents = incidentsRaw || [];
-
-  const activeTrackCount = useMemo(
-    () => incidents.filter((i) => i.status !== "CONFIRMED" && i.status !== "DISMISSED_FP").length,
-    [incidents]
-  );
-
-  const selectedCamera = useMemo(
-    () => cameraHealth.find((c) => c.camera_id === selectedId) || null,
-    [cameraHealth, selectedId]
-  );
-  const selectedTrack = useMemo(
-    () => incidents.find((i) => i.incident_id === selectedId) || null,
-    [incidents, selectedId]
-  );
-
-  const handleSelect = useCallback((id) => {
-    setSelectedId((current) => (current === id ? null : id));
-  }, []);
-
-  const handleSilence = useCallback(() => {
-    api.silenceSiren().catch(console.error);
-  }, []);
-
+function PageLoader() {
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#060a10] text-slate-200" style={{ fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
-      <TopBar
-        mode={mode}
-        setMode={setMode}
-        edgeStatus={edgeStatus}
-        cameraCount={cameraHealth.length}
-        activeTrackCount={activeTrackCount}
-        onSilence={handleSilence}
-      />
-
-      {mode === "cop" && (
-        <>
-          <MapPanel
-            cameraHealth={cameraHealth}
-            incidents={incidents}
-            selectedId={selectedId}
-            onSelect={handleSelect}
-          />
-          <EntitiesPanel
-            cameraHealth={cameraHealth}
-            incidents={incidents}
-            selectedId={selectedId}
-            onSelect={handleSelect}
-            variant="floating"
-          />
-          {selectedCamera && (
-            <EntityDetailPanel kind="SENSOR" entity={selectedCamera} onClose={() => setSelectedId(null)} />
-          )}
-          {selectedTrack && (
-            <EntityDetailPanel
-              kind="TRACK"
-              entity={selectedTrack}
-              onClose={() => setSelectedId(null)}
-              onAcknowledged={refetchIncidents}
-            />
-          )}
-          <EventSeriesStrip incidents={incidents} />
-        </>
-      )}
-
-      {mode === "entities" && (
-        <div className="absolute inset-0 top-14 bg-[#060a10]">
-          <EntitiesPanel
-            cameraHealth={cameraHealth}
-            incidents={incidents}
-            selectedId={selectedId}
-            onSelect={handleSelect}
-            variant="full"
-          />
-        </div>
-      )}
-
-      {mode === "tracks" && (
-        <div className="absolute inset-0 top-14 bg-[#060a10]">
-          <IncidentsPanel incidents={incidents} error={incidentsError} onAcknowledge={refetchIncidents} />
-        </div>
-      )}
-
-      {mode === "tasking" && (
-        <div className="absolute inset-0 top-14 bg-[#060a10]">
-          <TriagePanel incidents={incidents} error={incidentsError} onAcknowledge={refetchIncidents} />
-        </div>
-      )}
-
-      {mode === "chain" && (
-        <div className="absolute inset-0 top-14 bg-[#060a10]">
-          <EvidencePanel blockchain={blockchain} error={blockchainError} />
-        </div>
-      )}
+    <div className="flex items-center justify-center h-full">
+      <LoadingState variant="full" />
     </div>
   );
 }
 
-function usePollWithRefetch(fetcher, intervalMs) {
-  const [nonce, setNonce] = useState(0);
-  const poll = usePoll(fetcher, intervalMs, [nonce]);
-  const refetch = useCallback(() => setNonce((n) => n + 1), []);
-  return { ...poll, refetch };
+export default function App() {
+  return (
+    <SystemProvider>
+      <Routes>
+        <Route element={<TacticalShell />}>
+          <Route
+            index
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <LiveOperations />
+              </Suspense>
+            }
+          />
+          <Route
+            path="map"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <LiveOperations fullMap />
+              </Suspense>
+            }
+          />
+          <Route
+            path="cameras"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <CameraHealthPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="incidents"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <IncidentsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="incidents/:incidentId"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <IncidentWorkspace />
+              </Suspense>
+            }
+          />
+          <Route
+            path="reconstruction"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <ReconstructionPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="reconstruction/:incidentId"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <ReconstructionPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="analytics"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <AnalyticsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="evidence"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <EvidenceVaultPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <SystemSettingsPage />
+              </Suspense>
+            }
+          />
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </SystemProvider>
+  );
 }
