@@ -27,11 +27,11 @@ export default function MapPanel({
   onSelect,
   className = "relative w-full h-[580px] rounded-2xl overflow-hidden border border-sky-500/30 bg-[#02060c] shadow-2xl",
 }) {
-  // Layer visibility toggles
-  const [showCones, setShowCones] = useState(true);
-  const [showRings, setShowRings] = useState(true);
+  // Layer visibility toggles (defaulted to clean tactical view; toggles on top right enable details on demand)
+  const [showCones, setShowCones] = useState(false);
+  const [showRings, setShowRings] = useState(false);
   const [showVectors, setShowVectors] = useState(true);
-  const [showRadarSweep, setShowRadarSweep] = useState(true);
+  const [showRadarSweep, setShowRadarSweep] = useState(false);
   const [hoveredEntity, setHoveredEntity] = useState(null);
 
   // Active / Primary Incident for map tracking (only top 1-2 to avoid visual clutter/collision)
@@ -178,7 +178,7 @@ export default function MapPanel({
           <rect x="40" y="190" width="1120" height="110" fill="rgba(239, 68, 68, 0.05)" />
           {/* Clear tactical label at the top margin of the zone, completely free of collisions */}
           <text x="48" y="210" fill="#f87171" fontSize="11" fontWeight="bold" letterSpacing="1.2">
-            RESTRICTED RED ZONE [100m DEFENSE TRIPWIRE] // IMMEDIATE QRT INTERCEPT
+            RESTRICTED AREA [100m DEFENSE ZONE] // IMMEDIATE RESPONSE TEAM
           </text>
         </g>
 
@@ -439,7 +439,7 @@ export default function MapPanel({
           <line x1="40" y1="470" x2="1160" y2="470" stroke="#475569" strokeWidth="0.8" />
           {/* Road Corridor text */}
           <text x="48" y="488" fill="#64748b" fontSize="10.5" fontWeight="bold">
-            TACTICAL BSF PATROL ROAD // SECTOR 4B MOBILITY CORRIDOR
+            TACTICAL BSF PATROL ROAD // PERIMETER MOBILITY CORRIDOR
           </text>
           <text x="1040" y="488" fill="#475569" fontSize="9.5">
             QRT SPEED CAP: 60 KM/H
@@ -451,13 +451,13 @@ export default function MapPanel({
       <div className="absolute top-3 left-4 flex flex-col gap-1 z-10 pointer-events-none">
         <div className="flex items-center gap-2">
           <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-          <span className="text-[12px] font-bold text-white tracking-wider">C4ISR SECTOR 4-B RADAR</span>
+          <span className="text-[12px] font-bold text-white tracking-wider">LIVE PERIMETER MAP</span>
           <span className="rounded border border-sky-500/40 bg-sky-500/10 px-1.5 py-0.2 text-[9.5px] text-sky-300">
-            NORTH PERIMETER
+            BORDER CAMERAS
           </span>
         </div>
-        <div className="text-[10px] text-slate-400">
-          LAT 32°04'12"N · LON 75°18'44"E · ELEVATION 248m MSL
+        <div className="text-[10px] text-slate-400 font-mono">
+          SECTOR MAP · 4 CAMERAS ONLINE
         </div>
       </div>
 
@@ -550,7 +550,7 @@ export default function MapPanel({
                 <div>SPEED: <span className="text-white font-bold">{selectedInfo.speed}</span></div>
               </div>
               <div className="text-[10.5px] text-slate-300 border-t border-white/5 pt-1 line-clamp-2">
-                {selectedInfo.summary || "Intruder detected penetrating outer zero-line tripwire, tracked across sector."}
+                {selectedInfo.summary || "A person crossed into a restricted area at Camera 1, moving east. The system predicted where they'd go next and found them again at Camera 2 just 8.5 seconds later."}
               </div>
             </div>
           )}

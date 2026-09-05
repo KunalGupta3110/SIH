@@ -1,0 +1,66 @@
+{
+  "status": "success",
+  "model_pipeline": "YOLOv8n + ByteTrack + Pretrained ResNet-18 (512-d)",
+  "camera_1": {
+    "id": "CAM_ALPHA",
+    "role": "Ingress Approach",
+    "frame_range": [
+      0,
+      110
+    ],
+    "video_path": "/data/reid_cam1_entry.mp4",
+    "crop_path": "/data/reid_cam1_crop.jpg",
+    "detection_box": [
+      411,
+      235,
+      1277,
+      565
+    ],
+    "yolo_conf": 0.8748326897621155,
+    "embedding_l2_norm": 0.9999999403953552
+  },
+  "blind_transit_corridor": {
+    "duration_frames": 40,
+    "duration_sec": 1.33,
+    "description": "Unmonitored transit corridor between Checkpost Alpha and BOP Bravo"
+  },
+  "camera_2": {
+    "id": "CAM_BRAVO",
+    "role": "Downstream Re-acquisition",
+    "frame_range": [
+      150,
+      257
+    ],
+    "video_path": "/data/reid_cam2_exit.mp4",
+    "crop_path": "/data/reid_cam2_crop.jpg",
+    "detection_box": [
+      423,
+      235,
+      1275,
+      563
+    ],
+    "yolo_conf": 0.9136841297149658,
+    "embedding_l2_norm": 0.9999999403953552
+  },
+  "reid_results": {
+    "metric": "Cosine Similarity",
+    "positive_similarity": 0.9671,
+    "positive_similarity_pct": 96.71,
+    "negative_control_similarity": 0.4318,
+    "negative_control_similarity_pct": 43.18,
+    "discrimination_margin_pct": 53.52,
+    "reid_matched": true,
+    "is_deterministic": true,
+    "embedding_sample_first_8": [
+      0.0553,
+      0.08013,
+      0.06422,
+      0.02517,
+      0.0765,
+      0.0232,
+      0.00542,
+      0.01615
+    ]
+  },
+  "timestamp_computed": "2026-09-05T15:26:37Z"
+}

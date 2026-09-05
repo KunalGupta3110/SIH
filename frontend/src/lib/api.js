@@ -132,13 +132,12 @@ const INITIAL_INCIDENTS = [
     confidence: 0.91,
     target_class: "person",
     cameras_involved: ["CAM_ALPHA", "CAM_BRAVO"],
-    story_summary: "Target penetrated restricted perimeter at forward sensor CAM_ALPHA heading East at 1.8 m/s. Sentinel computed transit corridor and re-acquired matching subject on CAM_BRAVO in 8.5s.",
+    story_summary: "A person crossed into a restricted area at Camera 1, moving east. The system predicted where they'd go next and found them again at Camera 2 just 8.5 seconds later.",
     score_breakdown: [
-      { factor: "Restricted Red Zone Breach", points: 30, reason: "Target centroid crossed 100m defense polygon." },
-      { factor: "Movement Toward Boundary", points: 20, reason: "Heading vector points East (078°) toward zero line." },
-      { factor: "Loitering Behaviour", points: 15, reason: "Target stationary in caution corridor for 18s." },
-      { factor: "Cross-Camera Re-ID Continuation", points: 12, reason: "Appearance matched across camera topology within predicted transit window (6.0–14.0s)." },
-      { factor: "Low-Visibility Night Window", points: 10, reason: "Curfew sector movement (03:14 IST)." },
+      { factor: "+30 — Entered a restricted zone", points: 30, reason: "Target entered restricted area." },
+      { factor: "+20 — Moving toward the border", points: 20, reason: "Heading east toward border." },
+      { factor: "+12 — Matched on a second camera", points: 12, reason: "Appearance matched on Camera 2 in 8.5 seconds." },
+      { factor: "+10 — Happened at night", points: 10, reason: "Incident occurred during nighttime." },
     ],
     cryptographic_hash: "37b290970c20f8ce9fa58db0cc57301cdfc788c073427b71ae8aa21d392d2bd3",
     nodes: [
@@ -147,7 +146,7 @@ const INITIAL_INCIDENTS = [
       { step: 3, camera_id: "CAM_BRAVO", event_type: "PREDICTIVE_HANDOFF", timestamp_iso: "18:42:08", rule_detail: "Cross-camera Re-ID match 94.2% within ETA window" },
       { step: 4, camera_id: "CAM_BRAVO", event_type: "BEHAVIOUR_ANALYSIS", timestamp_iso: "18:42:11", rule_detail: "Persistent movement vector toward zero line" },
       { step: 5, camera_id: "SYSTEM", event_type: "THREAT_EVALUATED", timestamp_iso: "18:42:15", rule_detail: "Threat score 87 / 100 · 5 correlated observations" },
-      { step: 6, camera_id: "SYSTEM", event_type: "EVIDENCE_SEALED", timestamp_iso: "18:42:16", rule_detail: "Evidence capsule sealed into SHA-256 ledger" },
+      { step: 6, camera_id: "SYSTEM", event_type: "EVIDENCE_SEALED", timestamp_iso: "18:42:16", rule_detail: "Evidence record verified and sealed" },
     ],
   },
   {
@@ -203,15 +202,27 @@ async function request(path, options = {}) {
   }
 }
 
+let mockSilencedIncidentIds = new Set();
+
 async function handleMockFallback(path, options) {
   if (path.includes("/edge/status")) {
+    const hasUnsilencedCritical = mockIncidents.some(
+      (inc) =>
+        inc.severity === "CRITICAL" &&
+        inc.status !== "CONFIRMED" &&
+        inc.status !== "DISMISSED_FP" &&
+        !mockSilencedIncidentIds.has(inc.incident_id)
+    );
     return {
       arm_state: mockArmState,
-      active_cameras: 4,
+      active_cameras: 6,
       edge_fps: 29.8,
       uptime_seconds: 18450,
       system_health: "OPTIMAL",
-      siren_active: false,
+      connection: "online",
+      online: true,
+      siren_active: hasUnsilencedCritical,
+      silenced_incident_count: mockSilencedIncidentIds.size,
     };
   }
   if (path.includes("/edge/arm-state")) {
@@ -298,11 +309,11 @@ async function handleMockFallback(path, options) {
       confidence: 0.94,
       target_class: "person",
       cameras_involved: ["CAM_ALPHA", "CAM_BRAVO"],
-      story_summary: "Target tracked CAM_ALPHA -> CAM_BRAVO (expected CAM_BRAVO arrival in 6.0–14.0s, confirmed at 8.5s).",
+      story_summary: "A person crossed into a restricted area at Camera 1, moving east. The system predicted where they'd go next and found them again at Camera 2 just 8.5 seconds later.",
       score_breakdown: [
-        { factor: "Restricted Red Zone Penetration", points: 30, reason: "Polygon incursion." },
-        { factor: "Movement Toward Boundary", points: 20, reason: "Heading vector points East (078°)." },
-        { factor: "Cross-Camera Re-ID Match", points: 12, reason: "Appearance matched within predicted spatio-temporal transit window (6.0–14.0s)." },
+        { factor: "+30 — Entered a restricted zone", points: 30, reason: "Entered restricted zone." },
+        { factor: "+20 — Moving toward the border", points: 20, reason: "Moving toward the border." },
+        { factor: "+12 — Matched on a second camera", points: 12, reason: "Matched on Camera 2 in 8.5 seconds." },
       ],
       cryptographic_hash: "37b290970c20f8ce9fa58db0cc57301cdfc788c073427b71ae8aa21d392d2bd3",
       nodes: [
@@ -320,8 +331,110 @@ async function handleMockFallback(path, options) {
       handoff_confirmed: true,
     };
   }
+  if (path.includes("/events/run-live-inference")) {
+    const newIncId = "INC-YOLO-01";
+    const newInc = {
+      incident_id: newIncId,
+      created_at: new Date().toISOString(),
+      status: "UNCONFIRMED",
+      threat_score: 86,
+      severity: "CRITICAL",
+      confidence: 0.873,
+      target_class: "car",
+      cameras_involved: ["CAM_ALPHA"],
+      inference_type: "GENUINE_YOLO_INFERENCE",
+      is_live_inference: true,
+      story_summary: "Live YOLOv8n model inference detected unauthorized vehicle ingress crossing Restricted Zone Alpha at frame 47 (t=1.57s). Model confidence: 87.3%.",
+      score_breakdown: [
+        { factor: "Restricted Zone Penetration", points: 30, reason: "Centroid crossed X<=1350 perimeter" },
+        { factor: "Live Model Confidence", points: 26, reason: "YOLOv8n peak vehicle detection confidence 87.3%" },
+        { factor: "Unregistered Ingress Corridor", points: 18, reason: "Approach vector along restricted barrier lane" },
+        { factor: "Daylight Visibility Contrast", points: 12, reason: "High IoU visual bounding confirmation" },
+      ],
+      cryptographic_hash: "a4f89d3167eb2156828c40ff11e8bc297394bb0494cf078601362e5b72e1281c",
+      nodes: [
+        { step: 1, camera_id: "CAM_ALPHA", event_type: "ZONE_ENTRY", timestamp_iso: "14:57:01", rule_detail: "Restricted zone ingress at frame 47 (t=1.57s)" },
+        { step: 2, camera_id: "CAM_ALPHA", event_type: "MODEL_INFERENCE", timestamp_iso: "14:57:02", rule_detail: "YOLOv8n bounding box confirmed (0.873 peak)" },
+      ],
+    };
+    if (!mockIncidents.some((i) => i.incident_id === newIncId)) {
+      mockIncidents = [newInc, ...mockIncidents];
+    }
+    return {
+      ok: true,
+      status: "success",
+      incident_id: newIncId,
+      inference_type: "GENUINE_YOLO_INFERENCE",
+      is_live_inference: true,
+      model_name: "YOLOv8n (ultralytics 8.4.138)",
+      total_frames: 258,
+      total_detections: 809,
+      trigger_frame: 47,
+      trigger_timestamp_sec: 1.57,
+      confidence: 0.873,
+      threat_score: 86,
+      severity: "CRITICAL",
+      incident: newInc,
+    };
+  }
+  if (path.includes("/events/run-real-reid") || path.includes("/events/real-reid-telemetry")) {
+    const newIncId = "INC-REID-01";
+    const newInc = {
+      incident_id: newIncId,
+      created_at: new Date().toISOString(),
+      status: "UNCONFIRMED",
+      threat_score: 91,
+      severity: "CRITICAL",
+      confidence: 0.9671,
+      target_class: "car",
+      cameras_involved: ["CAM_ALPHA", "CAM_BRAVO"],
+      inference_type: "GENUINE_REID_RESNET18_INFERENCE",
+      is_live_inference: true,
+      story_summary: "Genuine 2-camera cross-corridor Re-ID confirmed between Checkpost Alpha and BOP Bravo across a 1.33s blind corridor gap. ResNet-18 appearance cosine similarity: 96.71% (vs 43.18% negative control, +53.52% margin).",
+      score_breakdown: [
+        { factor: "Cross-Camera Appearance Match", points: 35, reason: "ResNet-18 512-d cosine similarity 96.71% across corridor gap" },
+        { factor: "Restricted Ingress Zone Breach", points: 30, reason: "Target breached restricted perimeter at CAM_ALPHA" },
+        { factor: "Spatio-Temporal Arrival Confirmed", points: 16, reason: "Re-acquired within predicted 1.33s transit interval at CAM_BRAVO" },
+        { factor: "Unbroken ByteTrack Linkage", points: 10, reason: "Track #1 maintained persistently across both view fields" },
+      ],
+      cryptographic_hash: "7e5b223c94d01bfa8291e604f32c748c909e4f55a18a5fbc40d2eb29b35e2197",
+      nodes: [
+        { step: 1, camera_id: "CAM_ALPHA", event_type: "ZONE_ENTRY", timestamp_iso: "15:26:01", rule_detail: "Ingress observed at Checkpost Alpha" },
+        { step: 2, camera_id: "CAM_ALPHA", event_type: "CORRIDOR_DEPARTURE", timestamp_iso: "15:26:03", rule_detail: "Target entered blind transit corridor" },
+        { step: 3, camera_id: "CAM_BRAVO", event_type: "CROSS_CAMERA_REID", timestamp_iso: "15:26:05", rule_detail: "ResNet-18 Re-ID match confirmed (96.71% cosine similarity)" },
+      ],
+    };
+    if (!mockIncidents.some((i) => i.incident_id === newIncId)) {
+      mockIncidents = [newInc, ...mockIncidents];
+    }
+    return {
+      ok: true,
+      status: "success",
+      incident_id: newIncId,
+      inference_type: "GENUINE_REID_RESNET18_INFERENCE",
+      is_live_inference: true,
+      model_pipeline: "YOLOv8n + ByteTrack + Pretrained ResNet-18 (512-d)",
+      cameras_involved: ["CAM_ALPHA", "CAM_BRAVO"],
+      target_class: "car",
+      confidence: 0.9671,
+      positive_similarity_pct: 96.71,
+      negative_control_similarity_pct: 43.18,
+      discrimination_margin_pct: 53.52,
+      threat_score: 91,
+      severity: "CRITICAL",
+      blind_corridor_gap_sec: 1.33,
+      story_summary: newInc.story_summary,
+      score_breakdown: newInc.score_breakdown,
+      incident: newInc,
+    };
+  }
   if (path.includes("/siren/silence")) {
-    return { status: "silenced", hardware_result: "SILENCE_CONFIRMED" };
+    mockIncidents.forEach((inc) => {
+      if (inc.severity === "CRITICAL" && inc.status !== "CONFIRMED" && inc.status !== "DISMISSED_FP") {
+        mockSilencedIncidentIds.add(inc.incident_id);
+      }
+    });
+    return { status: "silenced", hardware_result: "SILENCE_CONFIRMED", silenced_count: mockSilencedIncidentIds.size };
   }
   return {};
 }
@@ -429,6 +542,7 @@ export const api = {
    * Resets demo to deterministic clean state.
    */
   resetDemo: () => {
+    mockSilencedIncidentIds.clear();
     mockIncidents = [...INITIAL_INCIDENTS];
     mockBlocks = JSON.parse(JSON.stringify(INITIAL_BLOCKS));
     mockArmState = "armed";
@@ -440,6 +554,10 @@ export const api = {
   simulateHandoff: () => request("/events/simulate-handoff", { method: "POST" }),
   simulateCase: (caseId) => request(`/events/simulate-case/${caseId}`, { method: "POST" }),
   silenceSiren: () => request("/siren/silence", { method: "POST" }),
+  runLiveInference: () => request("/events/run-live-inference", { method: "POST" }),
+  getLiveDetections: () => request("/events/live-detections"),
+  runRealReidInference: () => request("/events/run-real-reid", { method: "POST" }),
+  getRealReidTelemetry: () => request("/events/real-reid-telemetry"),
 };
 
 export default api;

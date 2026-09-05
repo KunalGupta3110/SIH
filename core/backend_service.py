@@ -739,23 +739,25 @@ class SentinelBackend:
 
     def simulate_handoff(self) -> Dict[str, Any]:
         base = datetime.now(timezone.utc).replace(microsecond=0)
+        sim_track_id = (int(base.timestamp()) % 900) + 40
         first = {
             "event_id": f"EVT-SIM-{int(base.timestamp())}-A",
             "timestamp_iso": base.isoformat(),
             "camera_id": "CAM_ALPHA",
-            "track_id": 41,
+            "track_id": sim_track_id,
             "class_name": "person",
             "alert_type": "ZONE_INTRUSION",
             "details": "Target entered restricted zone near border approach.",
             "confidence": 0.91,
             "in_restricted_zone": True,
             "movement_toward_border": True,
+            "loitering_seconds": 300.0,
         }
         second = {
             "event_id": f"EVT-SIM-{int(base.timestamp())}-B",
             "timestamp_iso": (base + timedelta(seconds=9)).isoformat(),
             "camera_id": "CAM_BRAVO",
-            "track_id": 41,
+            "track_id": sim_track_id,
             "class_name": "person",
             "alert_type": "CROSS_CAMERA_MATCH",
             "details": "Same target reacquired by Re-ID inside 6-14 second handoff window.",
@@ -763,6 +765,7 @@ class SentinelBackend:
             "in_restricted_zone": True,
             "movement_toward_border": True,
             "cross_camera_reid_match": True,
+            "loitering_seconds": 300.0,
         }
         return {
             "events": [self.ingest_event(first), self.ingest_event(second)],

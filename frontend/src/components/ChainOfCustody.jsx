@@ -24,6 +24,7 @@ export default function ChainOfCustody({ blockchain, error }) {
   const [copiedHash, setCopiedHash] = useState(null);
   const [isTampered, setIsTampered] = useState(false);
   const [inspectBlockIndex, setInspectBlockIndex] = useState(null);
+  const [showCryptoDetails, setShowCryptoDetails] = useState(false);
 
   const blocks = blockchain?.blocks || [];
 
@@ -76,8 +77,8 @@ export default function ChainOfCustody({ blockchain, error }) {
   return (
     <div className="flex flex-col gap-5 text-slate-200">
       <SectionHeader
-        title="Court-Admissible Evidence Vault & Section 65B Custody"
-        sub="Cryptographic SHA-256 hash chaining secures immutable evidence trails. Any alteration to timestamps, telemetry, or bounding boxes mathematically breaks the chain."
+        title="Evidence"
+        sub="This record cannot be secretly changed. Once sealed, any alteration to footage or details breaks verification."
       />
 
       {error && (
@@ -86,60 +87,42 @@ export default function ChainOfCustody({ blockchain, error }) {
         </div>
       )}
 
-      {/* ── OFFICIAL SECTION 65B ELECTRONIC PROOF CERTIFICATE ───────── */}
+      {/* ── FORENSIC EVIDENCE VERIFICATION CARD ───────── */}
       <div className="rounded-2xl border border-sky-500/30 bg-gradient-to-r from-sky-950/30 via-black/80 to-[#040810] p-6 shadow-2xl">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 border-b border-white/10 pb-5">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-sky-500/40 bg-sky-500/10 text-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.2)]">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-sky-500/40 bg-sky-500/10 text-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.2)] mt-1">
               <Scale size={28} />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
-                  Section 65B(4) Compliant
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-slate-400 font-mono">
+                  {blocks.length} Evidence Records Sealed · {isTampered ? "⚠ Tamper Injected" : "✓ Verified & Secured"}
                 </span>
-                <span className="text-xs text-slate-400">Cryptographic Hash Chain · NIST FIPS 180-4</span>
               </div>
-              <h3 className="text-xl font-bold text-white tracking-tight mt-1">
-                Certificate of Tamper-Evident Forensic Custody
+              <h3 className="text-xl font-bold text-white tracking-tight">
+                Forensic Evidence Verification
               </h3>
-              <p className="text-xs text-slate-300 mt-0.5 max-w-2xl leading-relaxed">
-                Every sealed incident produces an immutable Evidence Capsule chained by:
-                <code className="mx-1.5 px-1.5 py-0.5 rounded bg-black/60 text-sky-300 font-mono text-[11px]">
-                  H_N = SHA-256(H_{"{N-1}"} + SHA-256(Canonical_JSON))
-                </code>
+              <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                This record cannot be secretly changed. Every alert generates an unalterable security record. Once sealed, any alteration permanently fails verification.
               </p>
+              <div className="pt-1">
+                <button
+                  onClick={() => setShowCryptoDetails(!showCryptoDetails)}
+                  className="text-xs font-semibold text-sky-300 hover:text-sky-200 flex items-center gap-1 transition-colors"
+                >
+                  <span>{showCryptoDetails ? "Hide technical details ▴" : "How this works (view hash chain and technical details) →"}</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Verification & Tamper Testing Deck */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            {!isTampered ? (
-              <button
-                onClick={handleTamperTest}
-                disabled={verifying}
-                title="Deliberately tamper with Block #1 to verify that single-bit corruption is detected"
-                className="flex items-center gap-1.5 rounded-xl border border-red-500/40 bg-red-950/30 px-4 py-2.5 text-xs font-semibold text-red-300 hover:bg-red-900/40 transition-all active:scale-95 disabled:opacity-50"
-              >
-                <AlertTriangle size={14} />
-                <span>Test Tamper Detection</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleRestoreLedger}
-                disabled={verifying}
-                title="Restore authentic blockchain blocks"
-                className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/40 px-4 py-2.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/40 transition-all active:scale-95 disabled:opacity-50"
-              >
-                <ShieldCheck size={14} />
-                <span>Restore Authentic Ledger</span>
-              </button>
-            )}
-
+          {/* Primary Action: Verify Evidence Button */}
+          <div className="flex items-center gap-2.5 shrink-0 self-start lg:self-center">
             <button
               onClick={handleVerify}
               disabled={verifying}
-              className="flex items-center gap-2 rounded-xl border border-sky-500/60 bg-sky-500/20 px-5 py-2.5 text-xs font-bold text-sky-200 hover:bg-sky-500/30 transition-all shadow-[0_0_20px_rgba(56,189,248,0.2)] disabled:opacity-50 active:scale-95"
+              className="flex items-center gap-2 rounded-xl border border-sky-500/60 bg-sky-500/20 px-6 py-3 text-xs font-bold text-sky-200 hover:bg-sky-500/30 transition-all shadow-[0_0_20px_rgba(56,189,248,0.25)] disabled:opacity-50 active:scale-95"
             >
               {verifying ? (
                 <>
@@ -148,7 +131,7 @@ export default function ChainOfCustody({ blockchain, error }) {
                 </>
               ) : (
                 <>
-                  <ShieldCheck size={15} />
+                  <ShieldCheck size={16} />
                   <span>Verify Evidence</span>
                 </>
               )}
@@ -156,7 +139,7 @@ export default function ChainOfCustody({ blockchain, error }) {
           </div>
         </div>
 
-        {/* ── VERIFICATION RESULT BANNER (PROVING REAL VERIFICATION) ─── */}
+        {/* ── VERIFICATION RESULT BANNER ─── */}
         {verifyResult && (
           <div
             className={`mt-4 rounded-xl p-4 text-xs border flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn ${
@@ -174,12 +157,12 @@ export default function ChainOfCustody({ blockchain, error }) {
               <div>
                 <div className="font-bold text-sm">
                   {verifyResult.is_valid
-                    ? "✓ INTEGRITY VERIFIED · ZERO TAMPERING DETECTED"
-                    : "⚠ INTEGRITY CHECK FAILED · HASH CHAIN SEVERED"}
+                    ? "✓ Verified & Secured · No tampering detected"
+                    : "⚠ Verification Failed · Alteration Detected"}
                 </div>
                 <div className="text-xs mt-1 opacity-90 leading-relaxed">
                   {verifyResult.is_valid
-                    ? `Mathematically verified ${verifyResult.verified_records || blocks.length} sequential blocks from genesis block. All SHA-256 payload digests and parent hashes match.`
+                    ? `Mathematically verified ${verifyResult.verified_records || blocks.length} sequential records from genesis. All SHA-256 digests and parent hashes match.`
                     : `${verifyResult.reason || "Block payload does not match stored cryptographic hash."}`}
                 </div>
               </div>
@@ -192,20 +175,77 @@ export default function ChainOfCustody({ blockchain, error }) {
                   : "bg-red-500/20 border-red-500/40 text-red-200"
               }`}
             >
-              {verifyResult.is_valid ? "COURT ADMISSIBLE" : "EVIDENCE INADMISSIBLE"}
+              {verifyResult.is_valid ? "Verified & Secured" : "Verification Failed"}
             </span>
           </div>
         )}
 
-        {/* ── IMMUTABLE EVIDENCE CAPSULES (SELF-CONTAINED PACKAGES) ──── */}
-        <div className="mt-6 flex flex-col gap-3.5">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <Archive size={14} className="text-sky-400" />
-              <span>Evidence Capsules ({blocks.length} Sealed Envelopes)</span>
-            </span>
-            <span className="font-mono text-[11px]">Genesis: {GENESIS_HASH.slice(0, 20)}...</span>
-          </div>
+        {/* ── EXPANDABLE: HOW CRYPTOGRAPHIC SEALING WORKS, TAMPER TEST & HASHES ── */}
+        {showCryptoDetails && (
+          <div className="mt-5 flex flex-col gap-5 animate-fadeIn">
+            <div className="rounded-xl border border-sky-500/30 bg-black/60 p-4 text-xs flex flex-col gap-3">
+              <div className="flex items-center justify-between text-slate-400 border-b border-white/10 pb-2">
+                <span className="font-bold text-sky-300 uppercase tracking-wider flex items-center gap-2">
+                  <Lock size={14} />
+                  NIST FIPS 180-4 Cryptographic Hash Chain Architecture
+                </span>
+                <span className="font-mono text-[11px]">SHA-256 Merkle Ledger · Section 65B(4)</span>
+              </div>
+
+              <div className="flex flex-col gap-2 text-slate-300 leading-relaxed">
+                <div>
+                  Evidence capsules are cryptographically chained using sequential parent-hash linkage:
+                  <code className="mx-2 px-2 py-1 rounded bg-black/80 text-sky-300 font-mono text-[11px] border border-white/10 inline-block my-1">
+                    H_N = SHA-256(H_{"{N-1}"} + SHA-256(Canonical_JSON))
+                  </code>
+                </div>
+                <p className="text-slate-400 text-xs">
+                  Each capsule canonicalizes sorted JSON keys before digest generation. Any post-incident database tampering, altered timestamps, or forged coordinates mathematically breaks parent hashes for all subsequent records.
+                </p>
+              </div>
+
+              {/* Interactive Tamper Testing Section */}
+              <div className="mt-2 pt-3 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-black/40 p-3 rounded-lg border border-white/5">
+                <div>
+                  <div className="font-semibold text-white text-xs">Interactive Tamper Detection Demonstration:</div>
+                  <div className="text-[11px] text-slate-400">
+                    {isTampered
+                      ? "Block #1 has been modified. Click 'Verify Evidence' to witness tamper rejection, then restore below."
+                      : "Deliberately corrupt Block #1 payload to verify that single-bit alteration causes immediate hash mismatch."}
+                  </div>
+                </div>
+
+                {!isTampered ? (
+                  <button
+                    onClick={handleTamperTest}
+                    disabled={verifying}
+                    className="flex items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-950/30 px-3.5 py-2 text-xs font-semibold text-red-300 hover:bg-red-900/40 transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                  >
+                    <AlertTriangle size={14} />
+                    <span>Test Tamper Detection</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleRestoreLedger}
+                    disabled={verifying}
+                    className="flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-950/40 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/40 transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                  >
+                    <ShieldCheck size={14} />
+                    <span>Restore Authentic Ledger</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* ── IMMUTABLE EVIDENCE CAPSULES (SELF-CONTAINED PACKAGES) ──── */}
+            <div className="flex flex-col gap-3.5">
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span className="font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                  <Archive size={14} className="text-sky-400" />
+                  <span>Evidence Capsules ({blocks.length} Sealed Envelopes)</span>
+                </span>
+                <span className="font-mono text-[11px]">Genesis: {GENESIS_HASH.slice(0, 20)}...</span>
+              </div>
 
           <div className="flex flex-col gap-3">
             {blocks.map((block) => {
@@ -318,6 +358,8 @@ export default function ChainOfCustody({ blockchain, error }) {
           </div>
         </div>
       </div>
-    </div>
+    )}
+  </div>
+</div>
   );
 }

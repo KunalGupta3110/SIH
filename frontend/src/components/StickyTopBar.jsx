@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Shield, Bell, BellOff, Wifi, WifiOff, PlaySquare, CheckCircle2, RotateCcw } from "lucide-react";
+import { Shield, Bell, BellOff, Wifi, PlaySquare, CheckCircle2, RotateCcw, Sliders } from "lucide-react";
 
 function useClock() {
   const [t, setT] = useState(new Date());
@@ -12,10 +12,10 @@ function useClock() {
 
 const SECTION_LINKS = [
   { id: "overview", label: "Overview" },
-  { id: "surveillance", label: "Surveillance Lab" },
-  { id: "incidents", label: "Reconstruction & Handoff" },
-  { id: "map", label: "Border Map" },
-  { id: "custody", label: "Evidence Vault" },
+  { id: "surveillance", label: "Example Alerts" },
+  { id: "incidents", label: "What Happened" },
+  { id: "map", label: "Map" },
+  { id: "custody", label: "Evidence" },
 ];
 
 export default function StickyTopBar({
@@ -35,6 +35,7 @@ export default function StickyTopBar({
 
   const [silencedFeedback, setSilencedFeedback] = useState(false);
   const [silencing, setSilencing] = useState(false);
+  const [showDemoMenu, setShowDemoMenu] = useState(false);
 
   const handleSilenceClick = async () => {
     setSilencing(true);
@@ -59,25 +60,15 @@ export default function StickyTopBar({
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#050b12]/95 backdrop-blur-md shadow-2xl transition-all">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5 gap-4">
-        {/* Brand */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-sky-500/40 bg-sky-500/10 shadow-[0_0_12px_rgba(56,189,248,0.2)]">
-            <Shield size={18} className="text-sky-400" />
+        {/* 1. Brand / Logo */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-sky-500/40 bg-sky-500/10 shadow-[0_0_12px_rgba(56,189,248,0.2)]">
+            <Shield size={16} className="text-sky-400" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[14px] font-bold tracking-tight text-white">IBVAP SENTINEL</span>
-              <span className="rounded bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-sky-300 border border-sky-500/30">
-                CONSOLE
-              </span>
-            </div>
-            <div className="text-[11px] text-slate-400 tracking-normal font-medium">
-              Sector 4-B · Gurdaspur Watchfloor
-            </div>
-          </div>
+          <span className="text-[14px] font-bold tracking-tight text-white">IBVAP SENTINEL</span>
         </div>
 
-        {/* Section Quick Jump Anchors */}
+        {/* 2. Section Navigation */}
         <nav className="hidden lg:flex items-center gap-1 text-xs">
           {SECTION_LINKS.map((link) => (
             <button
@@ -90,68 +81,76 @@ export default function StickyTopBar({
           ))}
         </nav>
 
-        {/* Controls & Telemetry */}
+        {/* Right Section: Status Pill, Alarm Control, Clock */}
         <div className="flex items-center gap-3 text-xs">
-          {/* Link Status */}
-          <div
-            className={`hidden sm:flex items-center gap-1.5 rounded-lg border px-2.5 py-1 ${
-              online
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                : "border-red-500/40 bg-red-500/15 text-red-300"
-            }`}
-          >
-            {online ? <Wifi size={13} /> : <WifiOff size={13} />}
-            <span className="font-semibold text-[11px]">{online ? "Nominal" : "Offline"}</span>
-          </div>
+          {/* 3. Combined Status Pill with Collapsed Settings */}
+          <div className="relative">
+            <button
+              onClick={() => setShowDemoMenu(!showDemoMenu)}
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-2.5 py-1 text-slate-300 text-xs hover:border-white/25 transition-all"
+              title="Click to view details and testing controls"
+            >
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[11.5px] font-medium font-mono text-emerald-400">
+                4 cameras online ▾
+              </span>
+            </button>
 
-          {/* Honest Simulation Badge */}
-          <div className="hidden md:flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span className="font-medium text-[11px]">◇ Simulation</span>
-          </div>
+            {showDemoMenu && (
+              <div className="absolute right-0 mt-2 w-52 rounded-xl border border-white/15 bg-[#090f1a] p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs animate-fadeIn">
+                <div className="px-2 py-1 text-[10px] text-slate-400 font-semibold uppercase tracking-wider border-b border-white/10">
+                  System Status
+                </div>
+                <div className="px-2 py-1 text-slate-300 text-[11px] flex justify-between">
+                  <span className="text-slate-400">Cameras:</span>
+                  <span className="text-emerald-400 font-mono font-semibold">{cameraCount || 4}/4 online</span>
+                </div>
+                <div className="px-2 py-1 text-slate-300 text-[11px] flex justify-between">
+                  <span className="text-slate-400">Active Alerts:</span>
+                  <span className="text-amber-300 font-mono font-semibold">{activeTrackCount}</span>
+                </div>
+                <div className="px-2 py-1 text-slate-300 text-[11px] flex justify-between border-b border-white/10 pb-1.5">
+                  <span className="text-slate-400">Mode:</span>
+                  <span className="text-sky-300 font-medium">Simulation</span>
+                </div>
 
-          {/* Counts */}
-          <div className="hidden xl:flex items-center gap-1.5 text-slate-400 text-[11.5px]">
-            <span className="text-white font-semibold font-mono">{cameraCount}</span>
-            <span>Sensors</span>
-            <span className="text-slate-600">/</span>
-            <span className={`font-semibold font-mono ${activeTrackCount > 0 ? "text-amber-400" : "text-white"}`}>
-              {activeTrackCount}
-            </span>
-            <span>Tracks</span>
-          </div>
-
-          {/* Demo Scenario Seeder & Reset Buttons */}
-          <div className="hidden sm:flex items-center gap-1.5">
-            {onPopulateDemo && (
-              <button
-                onClick={onPopulateDemo}
-                disabled={populatingDemo}
-                title="Seed 5 real distinct test scenarios via backend simulate-case"
-                className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/40 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:border-white/25 hover:text-white transition-all disabled:opacity-50"
-              >
-                <PlaySquare size={12} className="text-sky-400" />
-                <span>{populatingDemo ? "Seeding..." : "Seed Demo"}</span>
-              </button>
+                <div className="px-2 pt-1 text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                  Testing Controls
+                </div>
+                {onPopulateDemo && (
+                  <button
+                    onClick={() => {
+                      onPopulateDemo();
+                      setShowDemoMenu(false);
+                    }}
+                    disabled={populatingDemo}
+                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-slate-300 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50"
+                  >
+                    <PlaySquare size={13} className="text-sky-400" />
+                    <span>{populatingDemo ? "Loading..." : "Load Example Scenarios"}</span>
+                  </button>
+                )}
+                {onResetDemo && (
+                  <button
+                    onClick={() => {
+                      onResetDemo();
+                      setShowDemoMenu(false);
+                    }}
+                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-slate-400 hover:bg-white/10 hover:text-white transition-all"
+                  >
+                    <RotateCcw size={13} />
+                    <span>Reset to Default</span>
+                  </button>
+                )}
+              </div>
             )}
-
-            {onResetDemo && (
-              <button
-                onClick={onResetDemo}
-                title="Reset simulation state to baseline"
-                className="flex items-center gap-1 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-[11px] font-medium text-slate-400 hover:text-white hover:border-white/25 transition-all"
-              >
-                <RotateCcw size={11} />
-                <span>Reset</span>
-              </button>
-            )}
           </div>
 
-          {/* PROMINENT SIREN / ALARM CONTROL */}
+          {/* 4. Alarm / Silence Control */}
           <button
             onClick={handleSilenceClick}
             disabled={silencing}
-            title="Silence system hardware siren and clear active acoustic alarm"
+            title="Silence active alarm"
             className={`group relative flex items-center gap-2 rounded-lg border px-3 py-1.5 text-[11.5px] font-bold transition-all shadow-lg active:scale-95 shrink-0 ${
               silencedFeedback
                 ? "border-emerald-500 bg-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
@@ -178,10 +177,9 @@ export default function StickyTopBar({
             )}
           </button>
 
-          {/* Real Live Clock */}
+          {/* 5. Clock */}
           <div className="hidden lg:flex items-center pl-1 font-mono text-[11px] text-slate-300">
-            <span>{timeStr}</span>
-            <span className="ml-1 text-slate-500 text-[10px]">IST</span>
+            <span>{timeStr} IST</span>
           </div>
         </div>
       </div>

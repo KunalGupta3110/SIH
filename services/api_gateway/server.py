@@ -221,6 +221,30 @@ def simulate_handoff():
     return {"ok": True, **get_backend().simulate_handoff()}
 
 
+@app.post("/events/run-live-inference")
+@app.post("/v1/events/run-live-inference")
+def run_live_inference_endpoint():
+    """Run genuine YOLOv8 model inference on demo footage and ingest breach incident."""
+    from backend.live_inference import run_live_yolo_inference
+    try:
+        result = run_live_yolo_inference()
+        return {"ok": True, **result}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/events/live-detections")
+@app.get("/v1/events/live-detections")
+def get_live_detections_endpoint():
+    """Return raw per-frame YOLOv8 detection logs."""
+    from backend.live_inference import load_genuine_detections
+    try:
+        detections = load_genuine_detections()
+        return {"total": len(detections), "detections": detections}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
 def _stream_manager():
     from core.vision.multi_stream_engine import get_stream_manager
 

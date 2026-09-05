@@ -1,0 +1,12026 @@
+[
+  {
+    "frame": 0,
+    "timestamp_sec": 0.0,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.89,
+    "box": [
+      435.9,
+      239.1,
+      1277.5,
+      574.8
+    ],
+    "box_4k": [
+      1307.7,
+      717.2,
+      3832.4,
+      1724.3
+    ],
+    "centroid": [
+      856.7,
+      407
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 0,
+    "timestamp_sec": 0.0,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.618,
+    "box": [
+      391.0,
+      299.7,
+      603.4,
+      436.6
+    ],
+    "box_4k": [
+      1173.1,
+      899.1,
+      1810.2,
+      1309.9
+    ],
+    "centroid": [
+      497.2,
+      368
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 0,
+    "timestamp_sec": 0.0,
+    "track_id": 3,
+    "class": "person",
+    "conf": 0.3,
+    "box": [
+      480.3,
+      269.8,
+      503.6,
+      318.5
+    ],
+    "box_4k": [
+      1441.0,
+      809.4,
+      1510.9,
+      955.4
+    ],
+    "centroid": [
+      492.0,
+      294
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 1,
+    "timestamp_sec": 0.033,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.734,
+    "box": [
+      443.3,
+      233.7,
+      1251.8,
+      555.7
+    ],
+    "box_4k": [
+      1329.9,
+      701.0,
+      3755.3,
+      1667.2
+    ],
+    "centroid": [
+      847.5,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 1,
+    "timestamp_sec": 0.033,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.437,
+    "box": [
+      394.6,
+      299.4,
+      606.8,
+      436.2
+    ],
+    "box_4k": [
+      1183.7,
+      898.1,
+      1820.4,
+      1308.5
+    ],
+    "centroid": [
+      500.7,
+      368
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 2,
+    "timestamp_sec": 0.067,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.778,
+    "box": [
+      447.7,
+      233.2,
+      1263.3,
+      557.9
+    ],
+    "box_4k": [
+      1343.0,
+      699.7,
+      3789.9,
+      1673.8
+    ],
+    "centroid": [
+      855.5,
+      396
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 2,
+    "timestamp_sec": 0.067,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.319,
+    "box": [
+      397.3,
+      298.4,
+      610.4,
+      436.0
+    ],
+    "box_4k": [
+      1191.8,
+      895.3,
+      1831.3,
+      1307.9
+    ],
+    "centroid": [
+      503.9,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 3,
+    "timestamp_sec": 0.1,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.816,
+    "box": [
+      455.5,
+      235.5,
+      1261.6,
+      555.9
+    ],
+    "box_4k": [
+      1366.5,
+      706.4,
+      3784.8,
+      1667.6
+    ],
+    "centroid": [
+      858.5,
+      396
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 3,
+    "timestamp_sec": 0.1,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.483,
+    "box": [
+      397.7,
+      297.5,
+      612.2,
+      435.8
+    ],
+    "box_4k": [
+      1193.0,
+      892.4,
+      1836.7,
+      1307.5
+    ],
+    "centroid": [
+      504.9,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 4,
+    "timestamp_sec": 0.133,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.815,
+    "box": [
+      437.3,
+      234.1,
+      1249.7,
+      555.8
+    ],
+    "box_4k": [
+      1312.0,
+      702.2,
+      3749.2,
+      1667.3
+    ],
+    "centroid": [
+      843.5,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 4,
+    "timestamp_sec": 0.133,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.228,
+    "box": [
+      396.6,
+      297.9,
+      611.3,
+      436.2
+    ],
+    "box_4k": [
+      1189.8,
+      893.6,
+      1834.0,
+      1308.7
+    ],
+    "centroid": [
+      504.0,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 5,
+    "timestamp_sec": 0.167,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.814,
+    "box": [
+      430.6,
+      232.3,
+      1254.3,
+      557.6
+    ],
+    "box_4k": [
+      1291.7,
+      696.8,
+      3762.8,
+      1672.9
+    ],
+    "centroid": [
+      842.4,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 5,
+    "timestamp_sec": 0.167,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.117,
+    "box": [
+      394.9,
+      298.1,
+      611.6,
+      438.0
+    ],
+    "box_4k": [
+      1184.6,
+      894.2,
+      1834.8,
+      1314.0
+    ],
+    "centroid": [
+      503.2,
+      368
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 6,
+    "timestamp_sec": 0.2,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.823,
+    "box": [
+      425.6,
+      233.9,
+      1262.7,
+      563.9
+    ],
+    "box_4k": [
+      1276.7,
+      701.6,
+      3788.0,
+      1691.6
+    ],
+    "centroid": [
+      844.1,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 6,
+    "timestamp_sec": 0.2,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.161,
+    "box": [
+      395.8,
+      298.0,
+      608.5,
+      435.3
+    ],
+    "box_4k": [
+      1187.3,
+      893.9,
+      1825.6,
+      1305.8
+    ],
+    "centroid": [
+      502.1,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 7,
+    "timestamp_sec": 0.233,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.842,
+    "box": [
+      423.2,
+      234.0,
+      1265.5,
+      565.4
+    ],
+    "box_4k": [
+      1269.7,
+      701.9,
+      3796.6,
+      1696.1
+    ],
+    "centroid": [
+      844.4,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 7,
+    "timestamp_sec": 0.233,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.207,
+    "box": [
+      394.8,
+      297.5,
+      608.5,
+      435.5
+    ],
+    "box_4k": [
+      1184.5,
+      892.5,
+      1825.6,
+      1306.4
+    ],
+    "centroid": [
+      501.7,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 8,
+    "timestamp_sec": 0.267,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.839,
+    "box": [
+      421.9,
+      234.0,
+      1267.9,
+      566.3
+    ],
+    "box_4k": [
+      1265.6,
+      702.1,
+      3803.8,
+      1698.8
+    ],
+    "centroid": [
+      844.9,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 8,
+    "timestamp_sec": 0.267,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.203,
+    "box": [
+      394.1,
+      296.7,
+      608.5,
+      435.3
+    ],
+    "box_4k": [
+      1182.3,
+      890.0,
+      1825.6,
+      1306.0
+    ],
+    "centroid": [
+      501.3,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 9,
+    "timestamp_sec": 0.3,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.835,
+    "box": [
+      421.7,
+      231.4,
+      1259.3,
+      558.8
+    ],
+    "box_4k": [
+      1265.0,
+      694.2,
+      3777.8,
+      1676.3
+    ],
+    "centroid": [
+      840.5,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 10,
+    "timestamp_sec": 0.333,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.831,
+    "box": [
+      423.9,
+      230.0,
+      1261.1,
+      556.1
+    ],
+    "box_4k": [
+      1271.7,
+      689.9,
+      3783.4,
+      1668.4
+    ],
+    "centroid": [
+      842.5,
+      393
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 11,
+    "timestamp_sec": 0.367,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.821,
+    "box": [
+      432.0,
+      233.4,
+      1280.0,
+      564.7
+    ],
+    "box_4k": [
+      1296.1,
+      700.2,
+      3840.0,
+      1694.0
+    ],
+    "centroid": [
+      856.0,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 11,
+    "timestamp_sec": 0.367,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.523,
+    "box": [
+      393.4,
+      297.0,
+      606.4,
+      434.5
+    ],
+    "box_4k": [
+      1180.1,
+      891.1,
+      1819.2,
+      1303.4
+    ],
+    "centroid": [
+      499.9,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 12,
+    "timestamp_sec": 0.4,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.835,
+    "box": [
+      431.4,
+      235.0,
+      1280.0,
+      568.0
+    ],
+    "box_4k": [
+      1294.1,
+      705.1,
+      3840.0,
+      1704.0
+    ],
+    "centroid": [
+      855.7,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 12,
+    "timestamp_sec": 0.4,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.444,
+    "box": [
+      392.2,
+      297.7,
+      605.5,
+      435.2
+    ],
+    "box_4k": [
+      1176.6,
+      893.1,
+      1816.5,
+      1305.6
+    ],
+    "centroid": [
+      498.8,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 13,
+    "timestamp_sec": 0.433,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.74,
+    "box": [
+      426.8,
+      236.2,
+      1279.1,
+      569.3
+    ],
+    "box_4k": [
+      1280.3,
+      708.5,
+      3837.4,
+      1707.8
+    ],
+    "centroid": [
+      852.9,
+      403
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 13,
+    "timestamp_sec": 0.433,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.205,
+    "box": [
+      391.8,
+      298.6,
+      604.6,
+      435.9
+    ],
+    "box_4k": [
+      1175.4,
+      895.7,
+      1813.9,
+      1307.6
+    ],
+    "centroid": [
+      498.2,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 14,
+    "timestamp_sec": 0.467,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.76,
+    "box": [
+      417.9,
+      237.0,
+      1280.0,
+      578.8
+    ],
+    "box_4k": [
+      1253.6,
+      711.1,
+      3840.0,
+      1736.3
+    ],
+    "centroid": [
+      848.9,
+      408
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 14,
+    "timestamp_sec": 0.467,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.425,
+    "box": [
+      391.4,
+      298.3,
+      605.6,
+      436.6
+    ],
+    "box_4k": [
+      1174.2,
+      895.0,
+      1816.8,
+      1309.8
+    ],
+    "centroid": [
+      498.5,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 15,
+    "timestamp_sec": 0.5,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.781,
+    "box": [
+      419.1,
+      237.2,
+      1280.0,
+      575.3
+    ],
+    "box_4k": [
+      1257.2,
+      711.7,
+      3840.0,
+      1726.0
+    ],
+    "centroid": [
+      849.5,
+      406
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 15,
+    "timestamp_sec": 0.5,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.324,
+    "box": [
+      391.4,
+      297.8,
+      606.8,
+      436.8
+    ],
+    "box_4k": [
+      1174.1,
+      893.3,
+      1820.5,
+      1310.4
+    ],
+    "centroid": [
+      499.1,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 16,
+    "timestamp_sec": 0.533,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.723,
+    "box": [
+      432.5,
+      235.7,
+      1275.3,
+      565.8
+    ],
+    "box_4k": [
+      1297.6,
+      707.1,
+      3826.0,
+      1697.5
+    ],
+    "centroid": [
+      853.9,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 16,
+    "timestamp_sec": 0.533,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.169,
+    "box": [
+      391.4,
+      298.2,
+      606.1,
+      436.4
+    ],
+    "box_4k": [
+      1174.1,
+      894.6,
+      1818.3,
+      1309.1
+    ],
+    "centroid": [
+      498.7,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 17,
+    "timestamp_sec": 0.567,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.862,
+    "box": [
+      424.6,
+      235.6,
+      1271.5,
+      566.6
+    ],
+    "box_4k": [
+      1273.7,
+      706.7,
+      3814.6,
+      1699.9
+    ],
+    "centroid": [
+      848.1,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 17,
+    "timestamp_sec": 0.567,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.352,
+    "box": [
+      391.6,
+      298.5,
+      605.5,
+      436.4
+    ],
+    "box_4k": [
+      1174.8,
+      895.4,
+      1816.5,
+      1309.1
+    ],
+    "centroid": [
+      498.6,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 18,
+    "timestamp_sec": 0.6,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.821,
+    "box": [
+      420.6,
+      236.1,
+      1266.0,
+      565.3
+    ],
+    "box_4k": [
+      1261.7,
+      708.2,
+      3798.0,
+      1695.9
+    ],
+    "centroid": [
+      843.3,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 18,
+    "timestamp_sec": 0.6,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.123,
+    "box": [
+      392.3,
+      298.8,
+      606.3,
+      437.4
+    ],
+    "box_4k": [
+      1176.8,
+      896.4,
+      1819.0,
+      1312.2
+    ],
+    "centroid": [
+      499.3,
+      368
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 19,
+    "timestamp_sec": 0.633,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.807,
+    "box": [
+      419.8,
+      232.6,
+      1262.3,
+      559.1
+    ],
+    "box_4k": [
+      1259.4,
+      697.7,
+      3787.0,
+      1677.3
+    ],
+    "centroid": [
+      841.1,
+      396
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 20,
+    "timestamp_sec": 0.667,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.809,
+    "box": [
+      415.4,
+      234.9,
+      1266.6,
+      564.0
+    ],
+    "box_4k": [
+      1246.3,
+      704.7,
+      3799.7,
+      1692.1
+    ],
+    "centroid": [
+      841.0,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 20,
+    "timestamp_sec": 0.667,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.258,
+    "box": [
+      392.3,
+      296.2,
+      605.3,
+      434.2
+    ],
+    "box_4k": [
+      1176.8,
+      888.6,
+      1815.8,
+      1302.6
+    ],
+    "centroid": [
+      498.8,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 21,
+    "timestamp_sec": 0.7,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.816,
+    "box": [
+      419.3,
+      232.5,
+      1257.7,
+      554.5
+    ],
+    "box_4k": [
+      1257.9,
+      697.5,
+      3773.1,
+      1663.5
+    ],
+    "centroid": [
+      838.5,
+      394
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 21,
+    "timestamp_sec": 0.7,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.174,
+    "box": [
+      392.5,
+      296.3,
+      602.7,
+      432.0
+    ],
+    "box_4k": [
+      1177.6,
+      889.0,
+      1808.2,
+      1296.0
+    ],
+    "centroid": [
+      497.6,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 22,
+    "timestamp_sec": 0.733,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.812,
+    "box": [
+      414.9,
+      234.5,
+      1268.9,
+      562.4
+    ],
+    "box_4k": [
+      1244.6,
+      703.5,
+      3806.6,
+      1687.3
+    ],
+    "centroid": [
+      841.9,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 23,
+    "timestamp_sec": 0.767,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.807,
+    "box": [
+      401.8,
+      234.2,
+      1279.1,
+      572.4
+    ],
+    "box_4k": [
+      1205.4,
+      702.7,
+      3837.2,
+      1717.2
+    ],
+    "centroid": [
+      840.4,
+      403
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 24,
+    "timestamp_sec": 0.8,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.81,
+    "box": [
+      408.5,
+      235.3,
+      1272.3,
+      567.4
+    ],
+    "box_4k": [
+      1225.6,
+      705.9,
+      3817.0,
+      1702.2
+    ],
+    "centroid": [
+      840.4,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 25,
+    "timestamp_sec": 0.833,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.819,
+    "box": [
+      409.1,
+      236.0,
+      1272.6,
+      567.7
+    ],
+    "box_4k": [
+      1227.4,
+      708.1,
+      3817.7,
+      1703.2
+    ],
+    "centroid": [
+      840.9,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 26,
+    "timestamp_sec": 0.867,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.797,
+    "box": [
+      429.4,
+      234.7,
+      1278.1,
+      561.0
+    ],
+    "box_4k": [
+      1288.1,
+      704.0,
+      3834.2,
+      1683.1
+    ],
+    "centroid": [
+      853.7,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 26,
+    "timestamp_sec": 0.867,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.406,
+    "box": [
+      392.3,
+      295.6,
+      607.5,
+      435.1
+    ],
+    "box_4k": [
+      1176.8,
+      886.7,
+      1822.4,
+      1305.2
+    ],
+    "centroid": [
+      499.9,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 27,
+    "timestamp_sec": 0.9,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.792,
+    "box": [
+      432.2,
+      234.0,
+      1271.3,
+      555.7
+    ],
+    "box_4k": [
+      1296.6,
+      702.1,
+      3814.0,
+      1667.2
+    ],
+    "centroid": [
+      851.8,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 27,
+    "timestamp_sec": 0.9,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.362,
+    "box": [
+      392.2,
+      295.9,
+      606.3,
+      434.9
+    ],
+    "box_4k": [
+      1176.5,
+      887.7,
+      1818.8,
+      1304.7
+    ],
+    "centroid": [
+      499.2,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 28,
+    "timestamp_sec": 0.933,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.817,
+    "box": [
+      417.0,
+      236.4,
+      1273.6,
+      564.4
+    ],
+    "box_4k": [
+      1251.1,
+      709.1,
+      3820.7,
+      1693.2
+    ],
+    "centroid": [
+      845.3,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 29,
+    "timestamp_sec": 0.967,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.816,
+    "box": [
+      415.3,
+      237.3,
+      1272.8,
+      565.1
+    ],
+    "box_4k": [
+      1245.9,
+      711.9,
+      3818.3,
+      1695.3
+    ],
+    "centroid": [
+      844.0,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 30,
+    "timestamp_sec": 1.0,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.809,
+    "box": [
+      415.6,
+      237.3,
+      1274.4,
+      565.3
+    ],
+    "box_4k": [
+      1246.9,
+      711.8,
+      3823.3,
+      1695.8
+    ],
+    "centroid": [
+      845.0,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 30,
+    "timestamp_sec": 1.0,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.348,
+    "box": [
+      394.6,
+      297.8,
+      604.1,
+      434.3
+    ],
+    "box_4k": [
+      1183.8,
+      893.5,
+      1812.2,
+      1302.8
+    ],
+    "centroid": [
+      499.3,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 31,
+    "timestamp_sec": 1.033,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.839,
+    "box": [
+      419.4,
+      236.7,
+      1277.3,
+      564.3
+    ],
+    "box_4k": [
+      1258.3,
+      710.0,
+      3832.0,
+      1693.0
+    ],
+    "centroid": [
+      848.4,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 31,
+    "timestamp_sec": 1.033,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.332,
+    "box": [
+      398.4,
+      297.1,
+      609.1,
+      436.0
+    ],
+    "box_4k": [
+      1195.3,
+      891.4,
+      1827.3,
+      1307.9
+    ],
+    "centroid": [
+      503.8,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 32,
+    "timestamp_sec": 1.067,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.836,
+    "box": [
+      405.5,
+      237.1,
+      1280.0,
+      572.8
+    ],
+    "box_4k": [
+      1216.4,
+      711.2,
+      3840.0,
+      1718.5
+    ],
+    "centroid": [
+      842.7,
+      405
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 32,
+    "timestamp_sec": 1.067,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.215,
+    "box": [
+      399.5,
+      297.9,
+      609.5,
+      437.2
+    ],
+    "box_4k": [
+      1198.5,
+      893.8,
+      1828.5,
+      1311.6
+    ],
+    "centroid": [
+      504.5,
+      368
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 33,
+    "timestamp_sec": 1.1,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.738,
+    "box": [
+      405.4,
+      236.5,
+      1280.0,
+      572.1
+    ],
+    "box_4k": [
+      1216.1,
+      709.6,
+      3840.0,
+      1716.3
+    ],
+    "centroid": [
+      842.7,
+      404
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 34,
+    "timestamp_sec": 1.133,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.863,
+    "box": [
+      403.4,
+      236.5,
+      1280.0,
+      575.9
+    ],
+    "box_4k": [
+      1210.3,
+      709.5,
+      3840.0,
+      1727.8
+    ],
+    "centroid": [
+      841.7,
+      406
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 34,
+    "timestamp_sec": 1.133,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.374,
+    "box": [
+      399.3,
+      297.5,
+      607.9,
+      434.8
+    ],
+    "box_4k": [
+      1197.9,
+      892.5,
+      1823.8,
+      1304.4
+    ],
+    "centroid": [
+      503.6,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 35,
+    "timestamp_sec": 1.167,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.793,
+    "box": [
+      407.2,
+      235.9,
+      1280.0,
+      572.6
+    ],
+    "box_4k": [
+      1221.7,
+      707.6,
+      3840.0,
+      1717.7
+    ],
+    "centroid": [
+      843.6,
+      404
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 35,
+    "timestamp_sec": 1.167,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.245,
+    "box": [
+      403.3,
+      297.7,
+      609.7,
+      433.7
+    ],
+    "box_4k": [
+      1209.8,
+      893.1,
+      1829.0,
+      1301.2
+    ],
+    "centroid": [
+      506.5,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 36,
+    "timestamp_sec": 1.2,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.776,
+    "box": [
+      409.7,
+      236.5,
+      1280.0,
+      571.0
+    ],
+    "box_4k": [
+      1229.2,
+      709.6,
+      3840.0,
+      1713.0
+    ],
+    "centroid": [
+      844.9,
+      404
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 36,
+    "timestamp_sec": 1.2,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.146,
+    "box": [
+      403.1,
+      298.6,
+      608.5,
+      433.3
+    ],
+    "box_4k": [
+      1209.4,
+      895.8,
+      1825.4,
+      1300.0
+    ],
+    "centroid": [
+      505.8,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 37,
+    "timestamp_sec": 1.233,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.742,
+    "box": [
+      412.6,
+      236.6,
+      1280.0,
+      571.3
+    ],
+    "box_4k": [
+      1237.8,
+      709.7,
+      3840.0,
+      1713.8
+    ],
+    "centroid": [
+      846.3,
+      404
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 38,
+    "timestamp_sec": 1.267,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.704,
+    "box": [
+      414.7,
+      234.0,
+      1265.9,
+      559.6
+    ],
+    "box_4k": [
+      1244.1,
+      702.1,
+      3797.6,
+      1678.7
+    ],
+    "centroid": [
+      840.3,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 39,
+    "timestamp_sec": 1.3,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.876,
+    "box": [
+      411.6,
+      236.9,
+      1272.8,
+      566.0
+    ],
+    "box_4k": [
+      1234.9,
+      710.6,
+      3818.3,
+      1698.0
+    ],
+    "centroid": [
+      842.2,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 39,
+    "timestamp_sec": 1.3,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.318,
+    "box": [
+      401.8,
+      297.5,
+      611.3,
+      436.1
+    ],
+    "box_4k": [
+      1205.5,
+      892.4,
+      1834.0,
+      1308.3
+    ],
+    "centroid": [
+      506.6,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 40,
+    "timestamp_sec": 1.333,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.886,
+    "box": [
+      412.9,
+      237.4,
+      1276.5,
+      567.3
+    ],
+    "box_4k": [
+      1238.6,
+      712.1,
+      3829.4,
+      1702.0
+    ],
+    "centroid": [
+      844.7,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 41,
+    "timestamp_sec": 1.367,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.846,
+    "box": [
+      412.5,
+      237.2,
+      1277.3,
+      567.5
+    ],
+    "box_4k": [
+      1237.5,
+      711.7,
+      3831.9,
+      1702.5
+    ],
+    "centroid": [
+      844.9,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 42,
+    "timestamp_sec": 1.4,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.893,
+    "box": [
+      414.6,
+      236.4,
+      1278.4,
+      566.3
+    ],
+    "box_4k": [
+      1243.9,
+      709.3,
+      3835.2,
+      1699.0
+    ],
+    "centroid": [
+      846.5,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 43,
+    "timestamp_sec": 1.433,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.886,
+    "box": [
+      421.5,
+      236.9,
+      1280.0,
+      565.5
+    ],
+    "box_4k": [
+      1264.6,
+      710.7,
+      3840.0,
+      1696.5
+    ],
+    "centroid": [
+      850.8,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 44,
+    "timestamp_sec": 1.467,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.834,
+    "box": [
+      427.3,
+      236.9,
+      1280.0,
+      565.7
+    ],
+    "box_4k": [
+      1281.9,
+      710.7,
+      3840.0,
+      1697.1
+    ],
+    "centroid": [
+      853.6,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 45,
+    "timestamp_sec": 1.5,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.898,
+    "box": [
+      428.8,
+      236.9,
+      1280.0,
+      565.0
+    ],
+    "box_4k": [
+      1286.4,
+      710.6,
+      3840.0,
+      1695.0
+    ],
+    "centroid": [
+      854.4,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 46,
+    "timestamp_sec": 1.533,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.869,
+    "box": [
+      428.1,
+      237.9,
+      1278.3,
+      563.8
+    ],
+    "box_4k": [
+      1284.4,
+      713.7,
+      3834.8,
+      1691.4
+    ],
+    "centroid": [
+      853.2,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 47,
+    "timestamp_sec": 1.567,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.901,
+    "box": [
+      426.8,
+      238.0,
+      1278.6,
+      564.7
+    ],
+    "box_4k": [
+      1280.5,
+      714.1,
+      3835.9,
+      1694.0
+    ],
+    "centroid": [
+      852.7,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 48,
+    "timestamp_sec": 1.6,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.91,
+    "box": [
+      430.5,
+      238.3,
+      1280.0,
+      564.8
+    ],
+    "box_4k": [
+      1291.6,
+      715.0,
+      3840.0,
+      1694.4
+    ],
+    "centroid": [
+      855.3,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 49,
+    "timestamp_sec": 1.633,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.908,
+    "box": [
+      434.4,
+      238.2,
+      1280.0,
+      564.7
+    ],
+    "box_4k": [
+      1303.3,
+      714.5,
+      3840.0,
+      1694.1
+    ],
+    "centroid": [
+      857.2,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 50,
+    "timestamp_sec": 1.667,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.899,
+    "box": [
+      436.5,
+      238.6,
+      1280.0,
+      565.2
+    ],
+    "box_4k": [
+      1309.6,
+      715.9,
+      3840.0,
+      1695.6
+    ],
+    "centroid": [
+      858.3,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 51,
+    "timestamp_sec": 1.7,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.852,
+    "box": [
+      438.5,
+      238.9,
+      1280.0,
+      564.2
+    ],
+    "box_4k": [
+      1315.5,
+      716.7,
+      3840.0,
+      1692.7
+    ],
+    "centroid": [
+      859.2,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 52,
+    "timestamp_sec": 1.733,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.804,
+    "box": [
+      434.1,
+      239.0,
+      1280.0,
+      565.4
+    ],
+    "box_4k": [
+      1302.3,
+      717.0,
+      3840.0,
+      1696.2
+    ],
+    "centroid": [
+      857.1,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 53,
+    "timestamp_sec": 1.767,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.867,
+    "box": [
+      429.6,
+      239.1,
+      1277.0,
+      565.7
+    ],
+    "box_4k": [
+      1288.8,
+      717.2,
+      3830.9,
+      1697.0
+    ],
+    "centroid": [
+      853.3,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 54,
+    "timestamp_sec": 1.8,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.886,
+    "box": [
+      431.5,
+      239.0,
+      1276.4,
+      564.5
+    ],
+    "box_4k": [
+      1294.5,
+      717.0,
+      3829.3,
+      1693.5
+    ],
+    "centroid": [
+      854.0,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 55,
+    "timestamp_sec": 1.833,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.688,
+    "box": [
+      432.1,
+      238.3,
+      1272.6,
+      562.2
+    ],
+    "box_4k": [
+      1296.4,
+      715.0,
+      3817.9,
+      1686.6
+    ],
+    "centroid": [
+      852.4,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 56,
+    "timestamp_sec": 1.867,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.861,
+    "box": [
+      427.6,
+      238.1,
+      1273.7,
+      563.9
+    ],
+    "box_4k": [
+      1282.8,
+      714.3,
+      3821.1,
+      1691.6
+    ],
+    "centroid": [
+      850.6,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 57,
+    "timestamp_sec": 1.9,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.88,
+    "box": [
+      427.3,
+      238.3,
+      1276.5,
+      565.2
+    ],
+    "box_4k": [
+      1281.9,
+      714.8,
+      3829.4,
+      1695.6
+    ],
+    "centroid": [
+      851.9,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 58,
+    "timestamp_sec": 1.933,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.715,
+    "box": [
+      431.4,
+      236.1,
+      1270.6,
+      558.1
+    ],
+    "box_4k": [
+      1294.2,
+      708.2,
+      3811.9,
+      1674.4
+    ],
+    "centroid": [
+      851.0,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 59,
+    "timestamp_sec": 1.967,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.851,
+    "box": [
+      422.6,
+      237.1,
+      1276.5,
+      564.9
+    ],
+    "box_4k": [
+      1267.7,
+      711.2,
+      3829.4,
+      1694.7
+    ],
+    "centroid": [
+      849.5,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 60,
+    "timestamp_sec": 2.0,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.816,
+    "box": [
+      421.6,
+      237.6,
+      1277.1,
+      565.9
+    ],
+    "box_4k": [
+      1264.9,
+      712.7,
+      3831.3,
+      1697.8
+    ],
+    "centroid": [
+      849.4,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 61,
+    "timestamp_sec": 2.033,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.829,
+    "box": [
+      419.4,
+      237.0,
+      1277.6,
+      566.3
+    ],
+    "box_4k": [
+      1258.1,
+      710.9,
+      3832.9,
+      1698.9
+    ],
+    "centroid": [
+      848.5,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 62,
+    "timestamp_sec": 2.067,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.792,
+    "box": [
+      418.3,
+      236.9,
+      1276.5,
+      565.9
+    ],
+    "box_4k": [
+      1254.9,
+      710.6,
+      3829.4,
+      1697.8
+    ],
+    "centroid": [
+      847.4,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 63,
+    "timestamp_sec": 2.1,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.884,
+    "box": [
+      417.2,
+      236.5,
+      1275.1,
+      565.2
+    ],
+    "box_4k": [
+      1251.5,
+      709.6,
+      3825.2,
+      1695.7
+    ],
+    "centroid": [
+      846.1,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 63,
+    "timestamp_sec": 2.1,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.253,
+    "box": [
+      404.2,
+      302.4,
+      601.7,
+      434.9
+    ],
+    "box_4k": [
+      1212.6,
+      907.1,
+      1805.1,
+      1304.7
+    ],
+    "centroid": [
+      503.0,
+      369
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 64,
+    "timestamp_sec": 2.133,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.829,
+    "box": [
+      412.2,
+      236.8,
+      1273.6,
+      566.4
+    ],
+    "box_4k": [
+      1236.7,
+      710.4,
+      3820.9,
+      1699.1
+    ],
+    "centroid": [
+      842.9,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 65,
+    "timestamp_sec": 2.167,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.861,
+    "box": [
+      420.9,
+      237.0,
+      1277.5,
+      564.9
+    ],
+    "box_4k": [
+      1262.7,
+      711.1,
+      3832.6,
+      1694.8
+    ],
+    "centroid": [
+      849.2,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 66,
+    "timestamp_sec": 2.2,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.77,
+    "box": [
+      422.4,
+      234.0,
+      1274.5,
+      559.6
+    ],
+    "box_4k": [
+      1267.3,
+      701.9,
+      3823.5,
+      1678.7
+    ],
+    "centroid": [
+      848.5,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 67,
+    "timestamp_sec": 2.233,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.855,
+    "box": [
+      419.4,
+      236.5,
+      1276.1,
+      563.7
+    ],
+    "box_4k": [
+      1258.3,
+      709.5,
+      3828.4,
+      1691.1
+    ],
+    "centroid": [
+      847.8,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 68,
+    "timestamp_sec": 2.267,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.835,
+    "box": [
+      427.1,
+      236.9,
+      1280.0,
+      563.7
+    ],
+    "box_4k": [
+      1281.2,
+      710.6,
+      3840.0,
+      1691.1
+    ],
+    "centroid": [
+      853.5,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 69,
+    "timestamp_sec": 2.3,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.844,
+    "box": [
+      415.9,
+      235.7,
+      1277.2,
+      564.7
+    ],
+    "box_4k": [
+      1247.8,
+      707.0,
+      3831.5,
+      1694.2
+    ],
+    "centroid": [
+      846.6,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 70,
+    "timestamp_sec": 2.333,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.856,
+    "box": [
+      419.9,
+      235.3,
+      1280.0,
+      564.2
+    ],
+    "box_4k": [
+      1259.7,
+      705.9,
+      3839.9,
+      1692.5
+    ],
+    "centroid": [
+      849.9,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 71,
+    "timestamp_sec": 2.367,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.84,
+    "box": [
+      418.0,
+      235.6,
+      1275.9,
+      563.2
+    ],
+    "box_4k": [
+      1253.9,
+      706.7,
+      3827.7,
+      1689.7
+    ],
+    "centroid": [
+      846.9,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 72,
+    "timestamp_sec": 2.4,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.845,
+    "box": [
+      414.9,
+      235.3,
+      1274.6,
+      563.3
+    ],
+    "box_4k": [
+      1244.6,
+      705.9,
+      3823.8,
+      1689.9
+    ],
+    "centroid": [
+      844.7,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 72,
+    "timestamp_sec": 2.4,
+    "track_id": 13,
+    "class": "car",
+    "conf": 0.378,
+    "box": [
+      226.2,
+      293.5,
+      405.8,
+      378.7
+    ],
+    "box_4k": [
+      678.7,
+      880.4,
+      1217.3,
+      1136.2
+    ],
+    "centroid": [
+      316.0,
+      336
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 73,
+    "timestamp_sec": 2.433,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.875,
+    "box": [
+      411.7,
+      235.6,
+      1277.0,
+      565.8
+    ],
+    "box_4k": [
+      1235.0,
+      706.9,
+      3831.1,
+      1697.3
+    ],
+    "centroid": [
+      844.4,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 73,
+    "timestamp_sec": 2.433,
+    "track_id": 13,
+    "class": "car",
+    "conf": 0.591,
+    "box": [
+      242.1,
+      312.3,
+      380.0,
+      377.3
+    ],
+    "box_4k": [
+      726.3,
+      936.9,
+      1140.1,
+      1132.0
+    ],
+    "centroid": [
+      311.1,
+      345
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 73,
+    "timestamp_sec": 2.433,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.259,
+    "box": [
+      399.5,
+      299.1,
+      598.6,
+      432.5
+    ],
+    "box_4k": [
+      1198.4,
+      897.2,
+      1795.9,
+      1297.5
+    ],
+    "centroid": [
+      499.1,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 74,
+    "timestamp_sec": 2.467,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.676,
+    "box": [
+      416.4,
+      232.6,
+      1264.8,
+      554.7
+    ],
+    "box_4k": [
+      1249.1,
+      697.8,
+      3794.4,
+      1664.1
+    ],
+    "centroid": [
+      840.6,
+      394
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 74,
+    "timestamp_sec": 2.467,
+    "track_id": 13,
+    "class": "car",
+    "conf": 0.699,
+    "box": [
+      241.0,
+      321.5,
+      365.7,
+      379.6
+    ],
+    "box_4k": [
+      723.1,
+      964.5,
+      1097.0,
+      1138.8
+    ],
+    "centroid": [
+      303.3,
+      351
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 74,
+    "timestamp_sec": 2.467,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.101,
+    "box": [
+      402.0,
+      299.4,
+      599.0,
+      430.2
+    ],
+    "box_4k": [
+      1206.0,
+      898.1,
+      1797.0,
+      1290.5
+    ],
+    "centroid": [
+      500.5,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 75,
+    "timestamp_sec": 2.5,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.826,
+    "box": [
+      426.9,
+      236.2,
+      1278.4,
+      560.0
+    ],
+    "box_4k": [
+      1280.8,
+      708.5,
+      3835.2,
+      1679.9
+    ],
+    "centroid": [
+      852.7,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 75,
+    "timestamp_sec": 2.5,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.183,
+    "box": [
+      402.8,
+      297.2,
+      604.2,
+      432.8
+    ],
+    "box_4k": [
+      1208.5,
+      891.5,
+      1812.7,
+      1298.5
+    ],
+    "centroid": [
+      503.5,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 76,
+    "timestamp_sec": 2.533,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.769,
+    "box": [
+      422.6,
+      232.8,
+      1273.6,
+      555.7
+    ],
+    "box_4k": [
+      1267.8,
+      698.4,
+      3820.9,
+      1667.0
+    ],
+    "centroid": [
+      848.1,
+      394
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 77,
+    "timestamp_sec": 2.567,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.813,
+    "box": [
+      421.5,
+      230.4,
+      1275.7,
+      554.2
+    ],
+    "box_4k": [
+      1264.6,
+      691.1,
+      3827.0,
+      1662.5
+    ],
+    "centroid": [
+      848.6,
+      392
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 78,
+    "timestamp_sec": 2.6,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.793,
+    "box": [
+      417.3,
+      234.0,
+      1276.4,
+      560.0
+    ],
+    "box_4k": [
+      1251.9,
+      702.1,
+      3829.2,
+      1680.1
+    ],
+    "centroid": [
+      846.9,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 78,
+    "timestamp_sec": 2.6,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.352,
+    "box": [
+      396.7,
+      296.5,
+      603.9,
+      435.8
+    ],
+    "box_4k": [
+      1190.2,
+      889.6,
+      1811.7,
+      1307.5
+    ],
+    "centroid": [
+      500.3,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 79,
+    "timestamp_sec": 2.633,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.809,
+    "box": [
+      402.8,
+      235.1,
+      1280.0,
+      569.9
+    ],
+    "box_4k": [
+      1208.5,
+      705.3,
+      3840.0,
+      1709.8
+    ],
+    "centroid": [
+      841.4,
+      403
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 79,
+    "timestamp_sec": 2.633,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.341,
+    "box": [
+      209.8,
+      292.8,
+      378.9,
+      376.8
+    ],
+    "box_4k": [
+      629.4,
+      878.5,
+      1136.6,
+      1130.3
+    ],
+    "centroid": [
+      294.3,
+      335
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 79,
+    "timestamp_sec": 2.633,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.404,
+    "box": [
+      402.3,
+      296.7,
+      604.8,
+      433.0
+    ],
+    "box_4k": [
+      1207.0,
+      890.2,
+      1814.4,
+      1299.0
+    ],
+    "centroid": [
+      503.6,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 80,
+    "timestamp_sec": 2.667,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.814,
+    "box": [
+      425.3,
+      234.3,
+      1280.0,
+      562.6
+    ],
+    "box_4k": [
+      1275.8,
+      702.9,
+      3840.0,
+      1687.8
+    ],
+    "centroid": [
+      852.6,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 80,
+    "timestamp_sec": 2.667,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.481,
+    "box": [
+      237.2,
+      315.6,
+      363.1,
+      377.8
+    ],
+    "box_4k": [
+      711.6,
+      946.8,
+      1089.2,
+      1133.3
+    ],
+    "centroid": [
+      300.1,
+      347
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 80,
+    "timestamp_sec": 2.667,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.605,
+    "box": [
+      406.6,
+      296.5,
+      608.6,
+      433.4
+    ],
+    "box_4k": [
+      1219.7,
+      889.5,
+      1825.8,
+      1300.3
+    ],
+    "centroid": [
+      507.6,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 81,
+    "timestamp_sec": 2.7,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.784,
+    "box": [
+      417.1,
+      230.9,
+      1273.2,
+      556.2
+    ],
+    "box_4k": [
+      1251.4,
+      692.6,
+      3819.5,
+      1668.7
+    ],
+    "centroid": [
+      845.1,
+      394
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 81,
+    "timestamp_sec": 2.7,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.433,
+    "box": [
+      220.7,
+      318.3,
+      345.9,
+      379.5
+    ],
+    "box_4k": [
+      662.1,
+      955.0,
+      1037.8,
+      1138.6
+    ],
+    "centroid": [
+      283.3,
+      349
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 81,
+    "timestamp_sec": 2.7,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.107,
+    "box": [
+      402.7,
+      298.6,
+      601.6,
+      431.7
+    ],
+    "box_4k": [
+      1208.1,
+      895.7,
+      1804.8,
+      1295.0
+    ],
+    "centroid": [
+      502.1,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 82,
+    "timestamp_sec": 2.733,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.773,
+    "box": [
+      414.9,
+      230.9,
+      1270.8,
+      555.3
+    ],
+    "box_4k": [
+      1244.7,
+      692.7,
+      3812.3,
+      1666.0
+    ],
+    "centroid": [
+      842.8,
+      393
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 82,
+    "timestamp_sec": 2.733,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.556,
+    "box": [
+      227.2,
+      319.5,
+      351.2,
+      379.6
+    ],
+    "box_4k": [
+      681.6,
+      958.4,
+      1053.6,
+      1138.8
+    ],
+    "centroid": [
+      289.2,
+      350
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 83,
+    "timestamp_sec": 2.767,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.829,
+    "box": [
+      407.6,
+      234.8,
+      1277.7,
+      564.8
+    ],
+    "box_4k": [
+      1222.9,
+      704.3,
+      3833.2,
+      1694.4
+    ],
+    "centroid": [
+      842.7,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 83,
+    "timestamp_sec": 2.767,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.376,
+    "box": [
+      233.6,
+      323.9,
+      347.3,
+      378.5
+    ],
+    "box_4k": [
+      700.7,
+      971.8,
+      1041.8,
+      1135.6
+    ],
+    "centroid": [
+      290.4,
+      351
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 84,
+    "timestamp_sec": 2.8,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.849,
+    "box": [
+      407.7,
+      236.4,
+      1280.0,
+      569.5
+    ],
+    "box_4k": [
+      1223.2,
+      709.2,
+      3840.0,
+      1708.5
+    ],
+    "centroid": [
+      843.9,
+      403
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 84,
+    "timestamp_sec": 2.8,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.314,
+    "box": [
+      399.7,
+      298.7,
+      601.0,
+      432.8
+    ],
+    "box_4k": [
+      1199.2,
+      896.0,
+      1803.1,
+      1298.5
+    ],
+    "centroid": [
+      500.4,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 85,
+    "timestamp_sec": 2.833,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.709,
+    "box": [
+      413.5,
+      233.9,
+      1273.3,
+      560.1
+    ],
+    "box_4k": [
+      1240.5,
+      701.8,
+      3819.9,
+      1680.3
+    ],
+    "centroid": [
+      843.4,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 85,
+    "timestamp_sec": 2.833,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.183,
+    "box": [
+      401.6,
+      299.2,
+      603.7,
+      434.2
+    ],
+    "box_4k": [
+      1204.9,
+      897.6,
+      1811.1,
+      1302.7
+    ],
+    "centroid": [
+      502.7,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 86,
+    "timestamp_sec": 2.867,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.799,
+    "box": [
+      404.0,
+      235.6,
+      1280.0,
+      569.3
+    ],
+    "box_4k": [
+      1211.9,
+      706.9,
+      3840.0,
+      1708.0
+    ],
+    "centroid": [
+      842.0,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 86,
+    "timestamp_sec": 2.867,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.456,
+    "box": [
+      401.3,
+      298.3,
+      605.1,
+      434.6
+    ],
+    "box_4k": [
+      1203.8,
+      894.8,
+      1815.2,
+      1303.8
+    ],
+    "centroid": [
+      503.2,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 86,
+    "timestamp_sec": 2.867,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.71,
+    "box": [
+      207.4,
+      321.3,
+      330.5,
+      379.0
+    ],
+    "box_4k": [
+      622.3,
+      963.8,
+      991.5,
+      1137.0
+    ],
+    "centroid": [
+      269.0,
+      350
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 87,
+    "timestamp_sec": 2.9,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.805,
+    "box": [
+      408.8,
+      232.1,
+      1272.3,
+      559.7
+    ],
+    "box_4k": [
+      1226.4,
+      696.2,
+      3816.8,
+      1679.0
+    ],
+    "centroid": [
+      840.5,
+      396
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 87,
+    "timestamp_sec": 2.9,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.159,
+    "box": [
+      397.9,
+      298.2,
+      602.5,
+      434.5
+    ],
+    "box_4k": [
+      1193.7,
+      894.5,
+      1807.6,
+      1303.5
+    ],
+    "centroid": [
+      500.2,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 87,
+    "timestamp_sec": 2.9,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.475,
+    "box": [
+      205.9,
+      320.3,
+      333.6,
+      379.5
+    ],
+    "box_4k": [
+      617.6,
+      961.0,
+      1000.9,
+      1138.6
+    ],
+    "centroid": [
+      269.8,
+      350
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 88,
+    "timestamp_sec": 2.933,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.809,
+    "box": [
+      411.2,
+      229.4,
+      1272.0,
+      555.4
+    ],
+    "box_4k": [
+      1233.7,
+      688.2,
+      3816.1,
+      1666.1
+    ],
+    "centroid": [
+      841.6,
+      392
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 88,
+    "timestamp_sec": 2.933,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.137,
+    "box": [
+      400.1,
+      298.0,
+      603.8,
+      433.8
+    ],
+    "box_4k": [
+      1200.4,
+      894.0,
+      1811.3,
+      1301.3
+    ],
+    "centroid": [
+      501.9,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 88,
+    "timestamp_sec": 2.933,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.651,
+    "box": [
+      211.3,
+      319.8,
+      339.2,
+      378.9
+    ],
+    "box_4k": [
+      634.0,
+      959.5,
+      1017.5,
+      1136.6
+    ],
+    "centroid": [
+      275.3,
+      349
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 89,
+    "timestamp_sec": 2.967,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.795,
+    "box": [
+      407.9,
+      228.4,
+      1270.1,
+      554.2
+    ],
+    "box_4k": [
+      1223.8,
+      685.1,
+      3810.4,
+      1662.5
+    ],
+    "centroid": [
+      839.0,
+      391
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 89,
+    "timestamp_sec": 2.967,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.114,
+    "box": [
+      396.7,
+      298.1,
+      602.2,
+      434.6
+    ],
+    "box_4k": [
+      1190.2,
+      894.4,
+      1806.7,
+      1303.9
+    ],
+    "centroid": [
+      499.5,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 89,
+    "timestamp_sec": 2.967,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.489,
+    "box": [
+      214.8,
+      319.6,
+      340.2,
+      377.2
+    ],
+    "box_4k": [
+      644.3,
+      958.9,
+      1020.7,
+      1131.5
+    ],
+    "centroid": [
+      277.5,
+      348
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 90,
+    "timestamp_sec": 3.0,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.828,
+    "box": [
+      411.8,
+      228.0,
+      1274.3,
+      553.7
+    ],
+    "box_4k": [
+      1235.4,
+      684.0,
+      3822.8,
+      1661.0
+    ],
+    "centroid": [
+      843.0,
+      391
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 90,
+    "timestamp_sec": 3.0,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.454,
+    "box": [
+      216.5,
+      319.7,
+      339.3,
+      375.5
+    ],
+    "box_4k": [
+      649.4,
+      959.1,
+      1018.0,
+      1126.6
+    ],
+    "centroid": [
+      277.9,
+      348
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 91,
+    "timestamp_sec": 3.033,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.832,
+    "box": [
+      408.5,
+      232.0,
+      1275.6,
+      559.6
+    ],
+    "box_4k": [
+      1225.4,
+      696.0,
+      3826.8,
+      1678.9
+    ],
+    "centroid": [
+      842.0,
+      396
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 91,
+    "timestamp_sec": 3.033,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.36,
+    "box": [
+      199.0,
+      318.0,
+      328.5,
+      375.2
+    ],
+    "box_4k": [
+      597.0,
+      954.0,
+      985.6,
+      1125.5
+    ],
+    "centroid": [
+      263.8,
+      347
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 92,
+    "timestamp_sec": 3.067,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.841,
+    "box": [
+      406.9,
+      229.7,
+      1271.7,
+      555.7
+    ],
+    "box_4k": [
+      1220.6,
+      689.0,
+      3815.0,
+      1667.1
+    ],
+    "centroid": [
+      839.3,
+      393
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 92,
+    "timestamp_sec": 3.067,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.174,
+    "box": [
+      204.0,
+      320.3,
+      328.0,
+      374.5
+    ],
+    "box_4k": [
+      612.0,
+      960.9,
+      984.1,
+      1123.5
+    ],
+    "centroid": [
+      266.0,
+      347
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 93,
+    "timestamp_sec": 3.1,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.824,
+    "box": [
+      408.4,
+      228.5,
+      1272.8,
+      554.0
+    ],
+    "box_4k": [
+      1225.3,
+      685.4,
+      3818.5,
+      1661.9
+    ],
+    "centroid": [
+      840.6,
+      391
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 93,
+    "timestamp_sec": 3.1,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.373,
+    "box": [
+      201.3,
+      319.5,
+      329.8,
+      375.5
+    ],
+    "box_4k": [
+      603.8,
+      958.4,
+      989.5,
+      1126.6
+    ],
+    "centroid": [
+      265.6,
+      348
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 94,
+    "timestamp_sec": 3.133,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.807,
+    "box": [
+      416.1,
+      230.7,
+      1276.5,
+      554.7
+    ],
+    "box_4k": [
+      1248.2,
+      692.1,
+      3829.6,
+      1664.2
+    ],
+    "centroid": [
+      846.3,
+      393
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 94,
+    "timestamp_sec": 3.133,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.299,
+    "box": [
+      199.1,
+      318.9,
+      327.2,
+      374.6
+    ],
+    "box_4k": [
+      597.3,
+      956.8,
+      981.5,
+      1123.7
+    ],
+    "centroid": [
+      263.1,
+      347
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 94,
+    "timestamp_sec": 3.133,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.299,
+    "box": [
+      405.4,
+      297.2,
+      611.9,
+      435.5
+    ],
+    "box_4k": [
+      1216.1,
+      891.7,
+      1835.7,
+      1306.6
+    ],
+    "centroid": [
+      508.6,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 95,
+    "timestamp_sec": 3.167,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.828,
+    "box": [
+      411.8,
+      228.9,
+      1275.4,
+      553.7
+    ],
+    "box_4k": [
+      1235.3,
+      686.7,
+      3826.3,
+      1661.1
+    ],
+    "centroid": [
+      843.6,
+      391
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 95,
+    "timestamp_sec": 3.167,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.119,
+    "box": [
+      198.1,
+      318.7,
+      326.5,
+      374.3
+    ],
+    "box_4k": [
+      594.2,
+      956.0,
+      979.5,
+      1122.8
+    ],
+    "centroid": [
+      262.3,
+      346
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 96,
+    "timestamp_sec": 3.2,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.817,
+    "box": [
+      404.6,
+      232.7,
+      1280.0,
+      562.6
+    ],
+    "box_4k": [
+      1213.7,
+      698.1,
+      3840.0,
+      1687.7
+    ],
+    "centroid": [
+      842.3,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 96,
+    "timestamp_sec": 3.2,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.199,
+    "box": [
+      195.0,
+      319.4,
+      322.7,
+      374.1
+    ],
+    "box_4k": [
+      585.1,
+      958.2,
+      968.1,
+      1122.2
+    ],
+    "centroid": [
+      258.9,
+      347
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 97,
+    "timestamp_sec": 3.233,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.799,
+    "box": [
+      407.7,
+      232.5,
+      1274.7,
+      558.4
+    ],
+    "box_4k": [
+      1223.1,
+      697.5,
+      3824.0,
+      1675.1
+    ],
+    "centroid": [
+      841.2,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 97,
+    "timestamp_sec": 3.233,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.244,
+    "box": [
+      162.0,
+      300.1,
+      333.5,
+      374.7
+    ],
+    "box_4k": [
+      486.0,
+      900.4,
+      1000.6,
+      1124.1
+    ],
+    "centroid": [
+      247.8,
+      337
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 98,
+    "timestamp_sec": 3.267,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.791,
+    "box": [
+      410.1,
+      232.4,
+      1274.3,
+      556.9
+    ],
+    "box_4k": [
+      1230.3,
+      697.2,
+      3822.9,
+      1670.8
+    ],
+    "centroid": [
+      842.2,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 98,
+    "timestamp_sec": 3.267,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.344,
+    "box": [
+      148.0,
+      294.2,
+      332.5,
+      375.3
+    ],
+    "box_4k": [
+      444.1,
+      882.5,
+      997.5,
+      1125.9
+    ],
+    "centroid": [
+      240.3,
+      335
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 98,
+    "timestamp_sec": 3.267,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.282,
+    "box": [
+      400.2,
+      297.0,
+      606.0,
+      433.9
+    ],
+    "box_4k": [
+      1200.5,
+      890.9,
+      1818.0,
+      1301.7
+    ],
+    "centroid": [
+      503.1,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 99,
+    "timestamp_sec": 3.3,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.831,
+    "box": [
+      408.1,
+      233.6,
+      1276.1,
+      559.7
+    ],
+    "box_4k": [
+      1224.2,
+      700.7,
+      3828.2,
+      1679.1
+    ],
+    "centroid": [
+      842.1,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 99,
+    "timestamp_sec": 3.3,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.442,
+    "box": [
+      141.3,
+      291.3,
+      332.1,
+      376.4
+    ],
+    "box_4k": [
+      423.9,
+      873.9,
+      996.2,
+      1129.1
+    ],
+    "centroid": [
+      236.7,
+      334
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 99,
+    "timestamp_sec": 3.3,
+    "track_id": 26,
+    "class": "car",
+    "conf": 0.398,
+    "box": [
+      175.7,
+      320.3,
+      317.8,
+      375.0
+    ],
+    "box_4k": [
+      527.1,
+      960.8,
+      953.5,
+      1124.9
+    ],
+    "centroid": [
+      246.8,
+      348
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 99,
+    "timestamp_sec": 3.3,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.162,
+    "box": [
+      401.0,
+      297.7,
+      607.1,
+      434.4
+    ],
+    "box_4k": [
+      1202.9,
+      893.1,
+      1821.4,
+      1303.3
+    ],
+    "centroid": [
+      504.1,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 100,
+    "timestamp_sec": 3.333,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.796,
+    "box": [
+      406.3,
+      234.6,
+      1278.6,
+      563.0
+    ],
+    "box_4k": [
+      1218.8,
+      703.9,
+      3835.8,
+      1688.9
+    ],
+    "centroid": [
+      842.4,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 100,
+    "timestamp_sec": 3.333,
+    "track_id": 20,
+    "class": "bus",
+    "conf": 0.478,
+    "box": [
+      138.9,
+      290.8,
+      327.3,
+      375.5
+    ],
+    "box_4k": [
+      416.8,
+      872.5,
+      981.8,
+      1126.5
+    ],
+    "centroid": [
+      233.1,
+      333
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 100,
+    "timestamp_sec": 3.333,
+    "track_id": 26,
+    "class": "car",
+    "conf": 0.218,
+    "box": [
+      175.5,
+      319.4,
+      315.7,
+      373.4
+    ],
+    "box_4k": [
+      526.5,
+      958.3,
+      947.0,
+      1120.3
+    ],
+    "centroid": [
+      245.6,
+      346
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 100,
+    "timestamp_sec": 3.333,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.217,
+    "box": [
+      399.0,
+      297.3,
+      606.8,
+      434.4
+    ],
+    "box_4k": [
+      1197.0,
+      892.0,
+      1820.5,
+      1303.3
+    ],
+    "centroid": [
+      502.9,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 101,
+    "timestamp_sec": 3.367,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.839,
+    "box": [
+      404.2,
+      235.4,
+      1280.0,
+      567.0
+    ],
+    "box_4k": [
+      1212.5,
+      706.2,
+      3840.0,
+      1701.1
+    ],
+    "centroid": [
+      842.1,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 101,
+    "timestamp_sec": 3.367,
+    "track_id": 20,
+    "class": "bus",
+    "conf": 0.462,
+    "box": [
+      136.9,
+      291.6,
+      320.8,
+      374.7
+    ],
+    "box_4k": [
+      410.7,
+      874.7,
+      962.4,
+      1124.1
+    ],
+    "centroid": [
+      228.8,
+      333
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 101,
+    "timestamp_sec": 3.367,
+    "track_id": 26,
+    "class": "car",
+    "conf": 0.238,
+    "box": [
+      134.9,
+      298.9,
+      329.0,
+      374.2
+    ],
+    "box_4k": [
+      404.8,
+      896.8,
+      987.1,
+      1122.5
+    ],
+    "centroid": [
+      232.0,
+      337
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 101,
+    "timestamp_sec": 3.367,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.18,
+    "box": [
+      401.3,
+      297.0,
+      610.2,
+      435.0
+    ],
+    "box_4k": [
+      1204.0,
+      891.1,
+      1830.7,
+      1304.9
+    ],
+    "centroid": [
+      505.8,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 102,
+    "timestamp_sec": 3.4,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.806,
+    "box": [
+      412.4,
+      233.7,
+      1280.0,
+      562.6
+    ],
+    "box_4k": [
+      1237.3,
+      701.2,
+      3840.0,
+      1687.9
+    ],
+    "centroid": [
+      846.2,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 102,
+    "timestamp_sec": 3.4,
+    "track_id": 20,
+    "class": "bus",
+    "conf": 0.569,
+    "box": [
+      134.5,
+      291.5,
+      317.2,
+      374.7
+    ],
+    "box_4k": [
+      403.6,
+      874.6,
+      951.6,
+      1124.1
+    ],
+    "centroid": [
+      225.9,
+      333
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 102,
+    "timestamp_sec": 3.4,
+    "track_id": 26,
+    "class": "truck",
+    "conf": 0.185,
+    "box": [
+      119.6,
+      291.1,
+      333.0,
+      374.5
+    ],
+    "box_4k": [
+      358.9,
+      873.4,
+      999.1,
+      1123.5
+    ],
+    "centroid": [
+      226.3,
+      333
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 102,
+    "timestamp_sec": 3.4,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.243,
+    "box": [
+      399.7,
+      296.9,
+      609.5,
+      435.0
+    ],
+    "box_4k": [
+      1199.0,
+      890.6,
+      1828.5,
+      1305.0
+    ],
+    "centroid": [
+      504.6,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 103,
+    "timestamp_sec": 3.433,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.81,
+    "box": [
+      409.2,
+      234.3,
+      1280.0,
+      564.2
+    ],
+    "box_4k": [
+      1227.7,
+      702.9,
+      3840.0,
+      1692.7
+    ],
+    "centroid": [
+      844.6,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 103,
+    "timestamp_sec": 3.433,
+    "track_id": 20,
+    "class": "car",
+    "conf": 0.309,
+    "box": [
+      139.7,
+      299.6,
+      305.1,
+      374.1
+    ],
+    "box_4k": [
+      419.2,
+      898.7,
+      915.3,
+      1122.3
+    ],
+    "centroid": [
+      222.4,
+      337
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 103,
+    "timestamp_sec": 3.433,
+    "track_id": 26,
+    "class": "bus",
+    "conf": 0.164,
+    "box": [
+      112.6,
+      288.4,
+      330.5,
+      374.4
+    ],
+    "box_4k": [
+      337.9,
+      865.3,
+      991.4,
+      1123.2
+    ],
+    "centroid": [
+      221.6,
+      331
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 103,
+    "timestamp_sec": 3.433,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.342,
+    "box": [
+      397.0,
+      296.8,
+      605.5,
+      433.8
+    ],
+    "box_4k": [
+      1191.1,
+      890.5,
+      1816.4,
+      1301.5
+    ],
+    "centroid": [
+      501.3,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 104,
+    "timestamp_sec": 3.467,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.8,
+    "box": [
+      415.4,
+      233.2,
+      1277.3,
+      558.3
+    ],
+    "box_4k": [
+      1246.1,
+      699.5,
+      3831.9,
+      1675.0
+    ],
+    "centroid": [
+      846.3,
+      396
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 104,
+    "timestamp_sec": 3.467,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.136,
+    "box": [
+      133.5,
+      294.0,
+      308.5,
+      373.5
+    ],
+    "box_4k": [
+      400.5,
+      882.0,
+      925.5,
+      1120.5
+    ],
+    "centroid": [
+      221.0,
+      334
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 104,
+    "timestamp_sec": 3.467,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.405,
+    "box": [
+      393.9,
+      296.3,
+      605.1,
+      435.0
+    ],
+    "box_4k": [
+      1181.8,
+      889.0,
+      1815.3,
+      1304.9
+    ],
+    "centroid": [
+      499.5,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 105,
+    "timestamp_sec": 3.5,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.823,
+    "box": [
+      417.9,
+      232.0,
+      1280.0,
+      558.2
+    ],
+    "box_4k": [
+      1253.7,
+      696.0,
+      3840.0,
+      1674.7
+    ],
+    "centroid": [
+      849.0,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 105,
+    "timestamp_sec": 3.5,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.196,
+    "box": [
+      128.8,
+      291.5,
+      306.6,
+      373.1
+    ],
+    "box_4k": [
+      386.4,
+      874.5,
+      919.7,
+      1119.3
+    ],
+    "centroid": [
+      217.7,
+      332
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 105,
+    "timestamp_sec": 3.5,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.327,
+    "box": [
+      394.8,
+      296.4,
+      606.4,
+      434.9
+    ],
+    "box_4k": [
+      1184.5,
+      889.1,
+      1819.1,
+      1304.7
+    ],
+    "centroid": [
+      500.6,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 106,
+    "timestamp_sec": 3.533,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.82,
+    "box": [
+      412.2,
+      233.2,
+      1280.0,
+      562.8
+    ],
+    "box_4k": [
+      1236.6,
+      699.6,
+      3840.0,
+      1688.4
+    ],
+    "centroid": [
+      846.1,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 106,
+    "timestamp_sec": 3.533,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.199,
+    "box": [
+      125.8,
+      290.5,
+      303.9,
+      372.8
+    ],
+    "box_4k": [
+      377.5,
+      871.6,
+      911.8,
+      1118.4
+    ],
+    "centroid": [
+      214.9,
+      332
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 106,
+    "timestamp_sec": 3.533,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.271,
+    "box": [
+      395.4,
+      296.7,
+      605.3,
+      433.4
+    ],
+    "box_4k": [
+      1186.2,
+      890.2,
+      1815.9,
+      1300.3
+    ],
+    "centroid": [
+      500.4,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 107,
+    "timestamp_sec": 3.567,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.843,
+    "box": [
+      418.6,
+      233.5,
+      1280.0,
+      564.1
+    ],
+    "box_4k": [
+      1255.9,
+      700.5,
+      3840.0,
+      1692.3
+    ],
+    "centroid": [
+      849.3,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 107,
+    "timestamp_sec": 3.567,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.106,
+    "box": [
+      124.8,
+      290.3,
+      302.6,
+      372.9
+    ],
+    "box_4k": [
+      374.3,
+      870.8,
+      907.7,
+      1118.6
+    ],
+    "centroid": [
+      213.7,
+      332
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 107,
+    "timestamp_sec": 3.567,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.558,
+    "box": [
+      402.4,
+      296.9,
+      611.7,
+      433.4
+    ],
+    "box_4k": [
+      1207.2,
+      890.8,
+      1835.2,
+      1300.3
+    ],
+    "centroid": [
+      507.1,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 108,
+    "timestamp_sec": 3.6,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.797,
+    "box": [
+      424.0,
+      233.1,
+      1280.0,
+      558.2
+    ],
+    "box_4k": [
+      1271.9,
+      699.3,
+      3840.0,
+      1674.7
+    ],
+    "centroid": [
+      852.0,
+      396
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 108,
+    "timestamp_sec": 3.6,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.273,
+    "box": [
+      123.3,
+      289.6,
+      301.4,
+      372.7
+    ],
+    "box_4k": [
+      369.8,
+      868.7,
+      904.1,
+      1118.1
+    ],
+    "centroid": [
+      212.3,
+      331
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 108,
+    "timestamp_sec": 3.6,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.375,
+    "box": [
+      401.6,
+      297.3,
+      610.9,
+      433.6
+    ],
+    "box_4k": [
+      1204.9,
+      892.0,
+      1832.6,
+      1300.7
+    ],
+    "centroid": [
+      506.2,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 109,
+    "timestamp_sec": 3.633,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.829,
+    "box": [
+      426.1,
+      233.9,
+      1280.0,
+      558.5
+    ],
+    "box_4k": [
+      1278.3,
+      701.7,
+      3840.0,
+      1675.5
+    ],
+    "centroid": [
+      853.0,
+      396
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 109,
+    "timestamp_sec": 3.633,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.31,
+    "box": [
+      120.7,
+      288.9,
+      299.8,
+      372.8
+    ],
+    "box_4k": [
+      362.1,
+      866.7,
+      899.3,
+      1118.4
+    ],
+    "centroid": [
+      210.2,
+      331
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 109,
+    "timestamp_sec": 3.633,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.54,
+    "box": [
+      401.7,
+      296.8,
+      611.0,
+      433.1
+    ],
+    "box_4k": [
+      1205.1,
+      890.4,
+      1833.0,
+      1299.2
+    ],
+    "centroid": [
+      506.4,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 109,
+    "timestamp_sec": 3.633,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.352,
+    "box": [
+      150.1,
+      317.9,
+      296.1,
+      370.8
+    ],
+    "box_4k": [
+      450.3,
+      953.8,
+      888.4,
+      1112.3
+    ],
+    "centroid": [
+      223.1,
+      344
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 110,
+    "timestamp_sec": 3.667,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.815,
+    "box": [
+      422.4,
+      234.9,
+      1277.9,
+      560.1
+    ],
+    "box_4k": [
+      1267.3,
+      704.6,
+      3833.7,
+      1680.2
+    ],
+    "centroid": [
+      850.2,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 110,
+    "timestamp_sec": 3.667,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.181,
+    "box": [
+      122.2,
+      289.6,
+      299.0,
+      373.0
+    ],
+    "box_4k": [
+      366.7,
+      868.7,
+      897.1,
+      1118.9
+    ],
+    "centroid": [
+      210.6,
+      331
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 110,
+    "timestamp_sec": 3.667,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.408,
+    "box": [
+      403.3,
+      296.7,
+      612.2,
+      433.3
+    ],
+    "box_4k": [
+      1209.8,
+      890.2,
+      1836.6,
+      1299.8
+    ],
+    "centroid": [
+      507.7,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 110,
+    "timestamp_sec": 3.667,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.336,
+    "box": [
+      142.1,
+      318.8,
+      286.8,
+      371.1
+    ],
+    "box_4k": [
+      426.2,
+      956.3,
+      860.5,
+      1113.3
+    ],
+    "centroid": [
+      214.5,
+      345
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 111,
+    "timestamp_sec": 3.7,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.879,
+    "box": [
+      422.5,
+      235.8,
+      1280.0,
+      561.9
+    ],
+    "box_4k": [
+      1267.6,
+      707.5,
+      3839.9,
+      1685.8
+    ],
+    "centroid": [
+      851.2,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 111,
+    "timestamp_sec": 3.7,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.142,
+    "box": [
+      123.3,
+      292.2,
+      290.5,
+      371.4
+    ],
+    "box_4k": [
+      370.0,
+      876.7,
+      871.4,
+      1114.3
+    ],
+    "centroid": [
+      206.9,
+      332
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 111,
+    "timestamp_sec": 3.7,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.364,
+    "box": [
+      400.0,
+      297.3,
+      606.9,
+      432.3
+    ],
+    "box_4k": [
+      1200.1,
+      892.0,
+      1820.7,
+      1296.8
+    ],
+    "centroid": [
+      503.5,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 111,
+    "timestamp_sec": 3.7,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.479,
+    "box": [
+      141.4,
+      316.8,
+      288.5,
+      370.1
+    ],
+    "box_4k": [
+      424.3,
+      950.4,
+      865.5,
+      1110.4
+    ],
+    "centroid": [
+      215.0,
+      343
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 112,
+    "timestamp_sec": 3.733,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.856,
+    "box": [
+      421.6,
+      236.5,
+      1280.0,
+      563.9
+    ],
+    "box_4k": [
+      1264.8,
+      709.5,
+      3840.0,
+      1691.6
+    ],
+    "centroid": [
+      850.8,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 112,
+    "timestamp_sec": 3.733,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.446,
+    "box": [
+      118.2,
+      289.0,
+      290.9,
+      371.7
+    ],
+    "box_4k": [
+      354.5,
+      866.9,
+      872.8,
+      1115.0
+    ],
+    "centroid": [
+      204.6,
+      330
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 112,
+    "timestamp_sec": 3.733,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.266,
+    "box": [
+      397.5,
+      297.2,
+      605.3,
+      432.6
+    ],
+    "box_4k": [
+      1192.5,
+      891.7,
+      1815.8,
+      1297.8
+    ],
+    "centroid": [
+      501.4,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 112,
+    "timestamp_sec": 3.733,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.165,
+    "box": [
+      138.8,
+      316.2,
+      288.1,
+      370.5
+    ],
+    "box_4k": [
+      416.4,
+      948.5,
+      864.2,
+      1111.6
+    ],
+    "centroid": [
+      213.4,
+      343
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 113,
+    "timestamp_sec": 3.767,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.875,
+    "box": [
+      420.8,
+      236.2,
+      1280.0,
+      563.7
+    ],
+    "box_4k": [
+      1262.4,
+      708.6,
+      3840.0,
+      1691.0
+    ],
+    "centroid": [
+      850.4,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 113,
+    "timestamp_sec": 3.767,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.16,
+    "box": [
+      112.1,
+      287.9,
+      285.7,
+      371.4
+    ],
+    "box_4k": [
+      336.3,
+      863.8,
+      857.1,
+      1114.3
+    ],
+    "centroid": [
+      198.9,
+      330
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 113,
+    "timestamp_sec": 3.767,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.226,
+    "box": [
+      395.9,
+      296.5,
+      605.3,
+      432.9
+    ],
+    "box_4k": [
+      1187.8,
+      889.4,
+      1815.8,
+      1298.6
+    ],
+    "centroid": [
+      500.6,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 113,
+    "timestamp_sec": 3.767,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.186,
+    "box": [
+      139.5,
+      317.5,
+      283.4,
+      370.1
+    ],
+    "box_4k": [
+      418.4,
+      952.6,
+      850.3,
+      1110.3
+    ],
+    "centroid": [
+      211.5,
+      344
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 114,
+    "timestamp_sec": 3.8,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.85,
+    "box": [
+      420.9,
+      236.6,
+      1280.0,
+      564.6
+    ],
+    "box_4k": [
+      1262.6,
+      709.9,
+      3840.0,
+      1693.8
+    ],
+    "centroid": [
+      850.4,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 114,
+    "timestamp_sec": 3.8,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.322,
+    "box": [
+      107.9,
+      287.3,
+      281.5,
+      371.4
+    ],
+    "box_4k": [
+      323.7,
+      861.9,
+      844.5,
+      1114.2
+    ],
+    "centroid": [
+      194.7,
+      329
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 114,
+    "timestamp_sec": 3.8,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.252,
+    "box": [
+      395.3,
+      297.5,
+      603.8,
+      433.0
+    ],
+    "box_4k": [
+      1186.0,
+      892.5,
+      1811.4,
+      1298.9
+    ],
+    "centroid": [
+      499.6,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 114,
+    "timestamp_sec": 3.8,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.373,
+    "box": [
+      139.5,
+      318.2,
+      279.1,
+      369.4
+    ],
+    "box_4k": [
+      418.6,
+      954.6,
+      837.3,
+      1108.2
+    ],
+    "centroid": [
+      209.3,
+      344
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 115,
+    "timestamp_sec": 3.833,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.874,
+    "box": [
+      419.9,
+      236.1,
+      1279.2,
+      563.3
+    ],
+    "box_4k": [
+      1259.6,
+      708.3,
+      3837.5,
+      1689.9
+    ],
+    "centroid": [
+      849.5,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 115,
+    "timestamp_sec": 3.833,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.243,
+    "box": [
+      105.3,
+      287.7,
+      278.3,
+      371.9
+    ],
+    "box_4k": [
+      315.8,
+      863.2,
+      834.9,
+      1115.6
+    ],
+    "centroid": [
+      191.8,
+      330
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 115,
+    "timestamp_sec": 3.833,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.188,
+    "box": [
+      397.4,
+      299.3,
+      603.6,
+      433.0
+    ],
+    "box_4k": [
+      1192.1,
+      898.0,
+      1810.7,
+      1299.0
+    ],
+    "centroid": [
+      500.5,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 116,
+    "timestamp_sec": 3.867,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.802,
+    "box": [
+      425.8,
+      234.8,
+      1278.6,
+      559.7
+    ],
+    "box_4k": [
+      1277.5,
+      704.4,
+      3835.8,
+      1679.0
+    ],
+    "centroid": [
+      852.2,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 116,
+    "timestamp_sec": 3.867,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.194,
+    "box": [
+      102.4,
+      288.4,
+      273.8,
+      372.0
+    ],
+    "box_4k": [
+      307.3,
+      865.3,
+      821.4,
+      1116.0
+    ],
+    "centroid": [
+      188.1,
+      330
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 116,
+    "timestamp_sec": 3.867,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.319,
+    "box": [
+      398.4,
+      297.7,
+      608.0,
+      434.0
+    ],
+    "box_4k": [
+      1195.1,
+      893.0,
+      1823.9,
+      1302.1
+    ],
+    "centroid": [
+      503.2,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 117,
+    "timestamp_sec": 3.9,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.878,
+    "box": [
+      422.1,
+      236.0,
+      1280.0,
+      564.1
+    ],
+    "box_4k": [
+      1266.3,
+      708.1,
+      3840.0,
+      1692.4
+    ],
+    "centroid": [
+      851.1,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 117,
+    "timestamp_sec": 3.9,
+    "track_id": 20,
+    "class": "bench",
+    "conf": 0.131,
+    "box": [
+      102.7,
+      289.9,
+      270.7,
+      371.9
+    ],
+    "box_4k": [
+      308.2,
+      869.6,
+      812.0,
+      1115.7
+    ],
+    "centroid": [
+      186.7,
+      331
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 117,
+    "timestamp_sec": 3.9,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.282,
+    "box": [
+      398.0,
+      299.1,
+      605.5,
+      434.1
+    ],
+    "box_4k": [
+      1193.9,
+      897.3,
+      1816.4,
+      1302.2
+    ],
+    "centroid": [
+      501.7,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 118,
+    "timestamp_sec": 3.933,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.868,
+    "box": [
+      420.2,
+      236.3,
+      1280.0,
+      565.6
+    ],
+    "box_4k": [
+      1260.5,
+      709.0,
+      3840.0,
+      1696.8
+    ],
+    "centroid": [
+      850.1,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 118,
+    "timestamp_sec": 3.933,
+    "track_id": 20,
+    "class": "truck",
+    "conf": 0.135,
+    "box": [
+      105.1,
+      289.8,
+      271.3,
+      371.5
+    ],
+    "box_4k": [
+      315.2,
+      869.4,
+      813.8,
+      1114.5
+    ],
+    "centroid": [
+      188.2,
+      331
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 118,
+    "timestamp_sec": 3.933,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.173,
+    "box": [
+      399.7,
+      301.0,
+      604.4,
+      434.1
+    ],
+    "box_4k": [
+      1199.0,
+      902.9,
+      1813.3,
+      1302.2
+    ],
+    "centroid": [
+      502.0,
+      368
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 119,
+    "timestamp_sec": 3.967,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.86,
+    "box": [
+      423.3,
+      236.1,
+      1280.0,
+      565.9
+    ],
+    "box_4k": [
+      1269.9,
+      708.4,
+      3840.0,
+      1697.7
+    ],
+    "centroid": [
+      851.7,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 119,
+    "timestamp_sec": 3.967,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.405,
+    "box": [
+      397.3,
+      299.7,
+      607.0,
+      436.8
+    ],
+    "box_4k": [
+      1191.9,
+      899.0,
+      1821.1,
+      1310.4
+    ],
+    "centroid": [
+      502.2,
+      368
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 120,
+    "timestamp_sec": 4.0,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.844,
+    "box": [
+      421.6,
+      236.6,
+      1280.0,
+      565.3
+    ],
+    "box_4k": [
+      1264.7,
+      709.9,
+      3840.0,
+      1695.9
+    ],
+    "centroid": [
+      850.8,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 120,
+    "timestamp_sec": 4.0,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.417,
+    "box": [
+      399.7,
+      296.2,
+      609.9,
+      434.5
+    ],
+    "box_4k": [
+      1199.2,
+      888.7,
+      1829.6,
+      1303.6
+    ],
+    "centroid": [
+      504.8,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 121,
+    "timestamp_sec": 4.033,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.847,
+    "box": [
+      422.6,
+      236.2,
+      1278.0,
+      563.2
+    ],
+    "box_4k": [
+      1267.7,
+      708.6,
+      3834.1,
+      1689.5
+    ],
+    "centroid": [
+      850.3,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 121,
+    "timestamp_sec": 4.033,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.276,
+    "box": [
+      397.8,
+      295.5,
+      609.0,
+      435.2
+    ],
+    "box_4k": [
+      1193.4,
+      886.5,
+      1827.1,
+      1305.7
+    ],
+    "centroid": [
+      503.4,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 122,
+    "timestamp_sec": 4.067,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.831,
+    "box": [
+      424.1,
+      235.2,
+      1272.8,
+      559.3
+    ],
+    "box_4k": [
+      1272.4,
+      705.7,
+      3818.5,
+      1677.9
+    ],
+    "centroid": [
+      848.5,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 122,
+    "timestamp_sec": 4.067,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.226,
+    "box": [
+      402.5,
+      296.9,
+      608.8,
+      433.6
+    ],
+    "box_4k": [
+      1207.4,
+      890.8,
+      1826.5,
+      1300.8
+    ],
+    "centroid": [
+      505.6,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 123,
+    "timestamp_sec": 4.1,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.875,
+    "box": [
+      425.7,
+      235.8,
+      1276.3,
+      560.6
+    ],
+    "box_4k": [
+      1277.0,
+      707.5,
+      3829.0,
+      1681.9
+    ],
+    "centroid": [
+      851.0,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 123,
+    "timestamp_sec": 4.1,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.349,
+    "box": [
+      403.3,
+      295.2,
+      609.9,
+      432.7
+    ],
+    "box_4k": [
+      1209.9,
+      885.5,
+      1829.8,
+      1298.2
+    ],
+    "centroid": [
+      506.6,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 123,
+    "timestamp_sec": 4.1,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.437,
+    "box": [
+      113.9,
+      315.2,
+      251.6,
+      366.2
+    ],
+    "box_4k": [
+      341.7,
+      945.5,
+      754.7,
+      1098.7
+    ],
+    "centroid": [
+      182.7,
+      341
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 124,
+    "timestamp_sec": 4.133,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.834,
+    "box": [
+      426.3,
+      235.8,
+      1277.6,
+      560.7
+    ],
+    "box_4k": [
+      1279.0,
+      707.3,
+      3832.9,
+      1682.2
+    ],
+    "centroid": [
+      852.0,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 124,
+    "timestamp_sec": 4.133,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.156,
+    "box": [
+      407.9,
+      299.1,
+      607.0,
+      431.6
+    ],
+    "box_4k": [
+      1223.7,
+      897.2,
+      1821.1,
+      1294.9
+    ],
+    "centroid": [
+      507.5,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 124,
+    "timestamp_sec": 4.133,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.283,
+    "box": [
+      113.1,
+      314.4,
+      250.0,
+      365.7
+    ],
+    "box_4k": [
+      339.2,
+      943.2,
+      750.1,
+      1097.1
+    ],
+    "centroid": [
+      181.6,
+      340
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 125,
+    "timestamp_sec": 4.167,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.871,
+    "box": [
+      423.2,
+      235.6,
+      1277.5,
+      561.6
+    ],
+    "box_4k": [
+      1269.6,
+      706.8,
+      3832.6,
+      1684.9
+    ],
+    "centroid": [
+      850.4,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 125,
+    "timestamp_sec": 4.167,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.147,
+    "box": [
+      405.5,
+      297.4,
+      606.0,
+      430.9
+    ],
+    "box_4k": [
+      1216.5,
+      892.3,
+      1818.1,
+      1292.6
+    ],
+    "centroid": [
+      505.8,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 125,
+    "timestamp_sec": 4.167,
+    "track_id": 20,
+    "class": "bench",
+    "conf": 0.251,
+    "box": [
+      83.4,
+      283.7,
+      251.9,
+      366.8
+    ],
+    "box_4k": [
+      250.3,
+      851.0,
+      755.8,
+      1100.3
+    ],
+    "centroid": [
+      167.7,
+      325
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 126,
+    "timestamp_sec": 4.2,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.863,
+    "box": [
+      423.1,
+      235.6,
+      1279.6,
+      562.5
+    ],
+    "box_4k": [
+      1269.3,
+      706.8,
+      3838.9,
+      1687.6
+    ],
+    "centroid": [
+      851.4,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 126,
+    "timestamp_sec": 4.2,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.286,
+    "box": [
+      405.1,
+      297.8,
+      605.1,
+      430.8
+    ],
+    "box_4k": [
+      1215.3,
+      893.5,
+      1815.2,
+      1292.5
+    ],
+    "centroid": [
+      505.1,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 126,
+    "timestamp_sec": 4.2,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.261,
+    "box": [
+      109.0,
+      312.4,
+      249.8,
+      365.5
+    ],
+    "box_4k": [
+      327.1,
+      937.2,
+      749.3,
+      1096.6
+    ],
+    "centroid": [
+      179.4,
+      339
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 127,
+    "timestamp_sec": 4.233,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.833,
+    "box": [
+      417.2,
+      235.9,
+      1276.5,
+      563.5
+    ],
+    "box_4k": [
+      1251.6,
+      707.8,
+      3829.4,
+      1690.6
+    ],
+    "centroid": [
+      846.8,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 127,
+    "timestamp_sec": 4.233,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.151,
+    "box": [
+      110.0,
+      314.8,
+      243.8,
+      365.4
+    ],
+    "box_4k": [
+      330.1,
+      944.4,
+      731.5,
+      1096.1
+    ],
+    "centroid": [
+      176.9,
+      340
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 128,
+    "timestamp_sec": 4.267,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.832,
+    "box": [
+      412.2,
+      235.9,
+      1279.4,
+      566.7
+    ],
+    "box_4k": [
+      1236.7,
+      707.7,
+      3838.3,
+      1700.1
+    ],
+    "centroid": [
+      845.8,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 129,
+    "timestamp_sec": 4.3,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.83,
+    "box": [
+      414.9,
+      236.0,
+      1279.3,
+      565.8
+    ],
+    "box_4k": [
+      1244.7,
+      708.0,
+      3837.9,
+      1697.3
+    ],
+    "centroid": [
+      847.1,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 130,
+    "timestamp_sec": 4.333,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.804,
+    "box": [
+      404.0,
+      233.1,
+      1280.0,
+      572.8
+    ],
+    "box_4k": [
+      1212.0,
+      699.4,
+      3840.0,
+      1718.5
+    ],
+    "centroid": [
+      842.0,
+      403
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 131,
+    "timestamp_sec": 4.367,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.803,
+    "box": [
+      404.7,
+      231.6,
+      1280.0,
+      571.3
+    ],
+    "box_4k": [
+      1214.1,
+      694.7,
+      3840.0,
+      1714.0
+    ],
+    "centroid": [
+      842.4,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 132,
+    "timestamp_sec": 4.4,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.703,
+    "box": [
+      421.5,
+      228.5,
+      1280.0,
+      560.8
+    ],
+    "box_4k": [
+      1264.4,
+      685.4,
+      3840.0,
+      1682.3
+    ],
+    "centroid": [
+      850.7,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 132,
+    "timestamp_sec": 4.4,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.331,
+    "box": [
+      94.8,
+      308.6,
+      236.0,
+      362.5
+    ],
+    "box_4k": [
+      284.4,
+      925.8,
+      707.9,
+      1087.4
+    ],
+    "centroid": [
+      165.4,
+      336
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 133,
+    "timestamp_sec": 4.433,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.831,
+    "box": [
+      436.4,
+      229.6,
+      1278.8,
+      553.0
+    ],
+    "box_4k": [
+      1309.1,
+      688.9,
+      3836.4,
+      1659.1
+    ],
+    "centroid": [
+      857.6,
+      391
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 133,
+    "timestamp_sec": 4.433,
+    "track_id": 30,
+    "class": "bench",
+    "conf": 0.151,
+    "box": [
+      79.9,
+      303.5,
+      236.5,
+      363.6
+    ],
+    "box_4k": [
+      239.6,
+      910.5,
+      709.5,
+      1090.9
+    ],
+    "centroid": [
+      158.2,
+      334
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 134,
+    "timestamp_sec": 4.467,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.841,
+    "box": [
+      422.0,
+      231.5,
+      1280.0,
+      562.5
+    ],
+    "box_4k": [
+      1266.0,
+      694.6,
+      3840.0,
+      1687.6
+    ],
+    "centroid": [
+      851.0,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 134,
+    "timestamp_sec": 4.467,
+    "track_id": 30,
+    "class": "car",
+    "conf": 0.205,
+    "box": [
+      86.2,
+      307.9,
+      228.0,
+      362.3
+    ],
+    "box_4k": [
+      258.5,
+      923.7,
+      683.9,
+      1087.0
+    ],
+    "centroid": [
+      157.1,
+      335
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 135,
+    "timestamp_sec": 4.5,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.793,
+    "box": [
+      416.4,
+      231.2,
+      1280.0,
+      564.6
+    ],
+    "box_4k": [
+      1249.1,
+      693.5,
+      3840.0,
+      1693.9
+    ],
+    "centroid": [
+      848.2,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 135,
+    "timestamp_sec": 4.5,
+    "track_id": 30,
+    "class": "bench",
+    "conf": 0.216,
+    "box": [
+      65.7,
+      290.4,
+      248.4,
+      363.3
+    ],
+    "box_4k": [
+      197.0,
+      871.1,
+      745.3,
+      1090.0
+    ],
+    "centroid": [
+      157.0,
+      327
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 136,
+    "timestamp_sec": 4.533,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.824,
+    "box": [
+      414.2,
+      231.2,
+      1280.0,
+      565.6
+    ],
+    "box_4k": [
+      1242.7,
+      693.5,
+      3840.0,
+      1696.8
+    ],
+    "centroid": [
+      847.1,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 136,
+    "timestamp_sec": 4.533,
+    "track_id": 30,
+    "class": "truck",
+    "conf": 0.233,
+    "box": [
+      62.2,
+      284.1,
+      254.2,
+      363.6
+    ],
+    "box_4k": [
+      186.7,
+      852.4,
+      762.7,
+      1090.9
+    ],
+    "centroid": [
+      158.2,
+      324
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 137,
+    "timestamp_sec": 4.567,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.836,
+    "box": [
+      434.0,
+      229.2,
+      1280.0,
+      555.2
+    ],
+    "box_4k": [
+      1301.9,
+      687.7,
+      3840.0,
+      1665.6
+    ],
+    "centroid": [
+      857.0,
+      392
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 137,
+    "timestamp_sec": 4.567,
+    "track_id": 30,
+    "class": "truck",
+    "conf": 0.237,
+    "box": [
+      63.4,
+      281.3,
+      254.3,
+      362.8
+    ],
+    "box_4k": [
+      190.3,
+      844.0,
+      762.9,
+      1088.4
+    ],
+    "centroid": [
+      158.9,
+      322
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 137,
+    "timestamp_sec": 4.567,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.324,
+    "box": [
+      401.0,
+      287.9,
+      613.8,
+      430.5
+    ],
+    "box_4k": [
+      1202.9,
+      863.7,
+      1841.3,
+      1291.5
+    ],
+    "centroid": [
+      507.4,
+      359
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 138,
+    "timestamp_sec": 4.6,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.855,
+    "box": [
+      442.8,
+      226.5,
+      1280.0,
+      550.7
+    ],
+    "box_4k": [
+      1328.5,
+      679.4,
+      3840.0,
+      1652.2
+    ],
+    "centroid": [
+      861.4,
+      389
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 138,
+    "timestamp_sec": 4.6,
+    "track_id": 30,
+    "class": "bench",
+    "conf": 0.169,
+    "box": [
+      60.3,
+      279.2,
+      250.6,
+      363.0
+    ],
+    "box_4k": [
+      180.9,
+      837.7,
+      751.9,
+      1089.1
+    ],
+    "centroid": [
+      155.5,
+      321
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 138,
+    "timestamp_sec": 4.6,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.206,
+    "box": [
+      402.0,
+      286.2,
+      615.4,
+      430.5
+    ],
+    "box_4k": [
+      1206.0,
+      858.5,
+      1846.1,
+      1291.6
+    ],
+    "centroid": [
+      508.7,
+      358
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 139,
+    "timestamp_sec": 4.633,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.802,
+    "box": [
+      432.4,
+      226.8,
+      1280.0,
+      554.9
+    ],
+    "box_4k": [
+      1297.1,
+      680.4,
+      3840.0,
+      1664.6
+    ],
+    "centroid": [
+      856.2,
+      391
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 139,
+    "timestamp_sec": 4.633,
+    "track_id": 30,
+    "class": "bench",
+    "conf": 0.11,
+    "box": [
+      57.1,
+      278.7,
+      241.2,
+      361.8
+    ],
+    "box_4k": [
+      171.2,
+      836.0,
+      723.6,
+      1085.3
+    ],
+    "centroid": [
+      149.1,
+      320
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 139,
+    "timestamp_sec": 4.633,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.311,
+    "box": [
+      698.0,
+      277.0,
+      817.6,
+      643.9
+    ],
+    "box_4k": [
+      2094.1,
+      831.0,
+      2452.9,
+      1931.7
+    ],
+    "centroid": [
+      757.8,
+      460
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 140,
+    "timestamp_sec": 4.667,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.813,
+    "box": [
+      423.8,
+      228.9,
+      1280.0,
+      559.7
+    ],
+    "box_4k": [
+      1271.5,
+      686.6,
+      3840.0,
+      1679.1
+    ],
+    "centroid": [
+      851.9,
+      394
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 140,
+    "timestamp_sec": 4.667,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.164,
+    "box": [
+      698.3,
+      277.0,
+      817.7,
+      643.2
+    ],
+    "box_4k": [
+      2094.8,
+      830.9,
+      2453.0,
+      1929.5
+    ],
+    "centroid": [
+      758.0,
+      460
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 141,
+    "timestamp_sec": 4.7,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.862,
+    "box": [
+      416.1,
+      229.7,
+      1280.0,
+      564.9
+    ],
+    "box_4k": [
+      1248.4,
+      689.0,
+      3840.0,
+      1694.7
+    ],
+    "centroid": [
+      848.1,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 141,
+    "timestamp_sec": 4.7,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.155,
+    "box": [
+      698.5,
+      276.7,
+      817.9,
+      642.8
+    ],
+    "box_4k": [
+      2095.6,
+      830.1,
+      2453.6,
+      1928.3
+    ],
+    "centroid": [
+      758.2,
+      460
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 142,
+    "timestamp_sec": 4.733,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.839,
+    "box": [
+      430.3,
+      228.7,
+      1275.3,
+      554.5
+    ],
+    "box_4k": [
+      1290.8,
+      686.2,
+      3826.0,
+      1663.4
+    ],
+    "centroid": [
+      852.8,
+      392
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 142,
+    "timestamp_sec": 4.733,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.13,
+    "box": [
+      698.5,
+      276.3,
+      817.9,
+      642.3
+    ],
+    "box_4k": [
+      2095.6,
+      829.0,
+      2453.6,
+      1926.9
+    ],
+    "centroid": [
+      758.2,
+      459
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 143,
+    "timestamp_sec": 4.767,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.863,
+    "box": [
+      424.1,
+      229.1,
+      1279.6,
+      559.1
+    ],
+    "box_4k": [
+      1272.2,
+      687.2,
+      3838.9,
+      1677.4
+    ],
+    "centroid": [
+      851.9,
+      394
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 143,
+    "timestamp_sec": 4.767,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.112,
+    "box": [
+      698.5,
+      275.3,
+      818.0,
+      641.5
+    ],
+    "box_4k": [
+      2095.6,
+      825.9,
+      2453.9,
+      1924.4
+    ],
+    "centroid": [
+      758.2,
+      458
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 144,
+    "timestamp_sec": 4.8,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.84,
+    "box": [
+      427.1,
+      229.5,
+      1280.0,
+      559.1
+    ],
+    "box_4k": [
+      1281.3,
+      688.6,
+      3840.0,
+      1677.4
+    ],
+    "centroid": [
+      853.6,
+      394
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 144,
+    "timestamp_sec": 4.8,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.174,
+    "box": [
+      698.5,
+      275.3,
+      818.0,
+      641.8
+    ],
+    "box_4k": [
+      2095.4,
+      826.0,
+      2454.1,
+      1925.5
+    ],
+    "centroid": [
+      758.2,
+      459
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 144,
+    "timestamp_sec": 4.8,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.336,
+    "box": [
+      405.3,
+      288.1,
+      613.7,
+      430.1
+    ],
+    "box_4k": [
+      1215.8,
+      864.3,
+      1841.1,
+      1290.3
+    ],
+    "centroid": [
+      509.5,
+      359
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 145,
+    "timestamp_sec": 4.833,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.839,
+    "box": [
+      442.2,
+      228.3,
+      1280.0,
+      554.7
+    ],
+    "box_4k": [
+      1326.7,
+      684.9,
+      3840.0,
+      1664.2
+    ],
+    "centroid": [
+      861.1,
+      392
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 145,
+    "timestamp_sec": 4.833,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.167,
+    "box": [
+      698.3,
+      275.5,
+      817.8,
+      641.7
+    ],
+    "box_4k": [
+      2094.9,
+      826.4,
+      2453.5,
+      1925.0
+    ],
+    "centroid": [
+      758.1,
+      459
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 145,
+    "timestamp_sec": 4.833,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.288,
+    "box": [
+      405.7,
+      288.9,
+      612.4,
+      429.7
+    ],
+    "box_4k": [
+      1217.1,
+      866.7,
+      1837.3,
+      1289.2
+    ],
+    "centroid": [
+      509.1,
+      359
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 146,
+    "timestamp_sec": 4.867,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.83,
+    "box": [
+      448.9,
+      227.8,
+      1280.0,
+      549.1
+    ],
+    "box_4k": [
+      1346.8,
+      683.3,
+      3840.0,
+      1647.4
+    ],
+    "centroid": [
+      864.5,
+      388
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 146,
+    "timestamp_sec": 4.867,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.225,
+    "box": [
+      698.3,
+      275.6,
+      817.9,
+      642.0
+    ],
+    "box_4k": [
+      2094.9,
+      826.7,
+      2453.8,
+      1926.0
+    ],
+    "centroid": [
+      758.1,
+      459
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 146,
+    "timestamp_sec": 4.867,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.208,
+    "box": [
+      405.3,
+      288.0,
+      610.9,
+      428.5
+    ],
+    "box_4k": [
+      1215.9,
+      864.0,
+      1832.7,
+      1285.6
+    ],
+    "centroid": [
+      508.1,
+      358
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 147,
+    "timestamp_sec": 4.9,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.831,
+    "box": [
+      443.0,
+      227.6,
+      1273.3,
+      547.7
+    ],
+    "box_4k": [
+      1328.9,
+      682.7,
+      3819.8,
+      1643.0
+    ],
+    "centroid": [
+      858.1,
+      388
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 147,
+    "timestamp_sec": 4.9,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.262,
+    "box": [
+      697.7,
+      275.6,
+      817.2,
+      641.7
+    ],
+    "box_4k": [
+      2093.2,
+      826.7,
+      2451.7,
+      1925.1
+    ],
+    "centroid": [
+      757.5,
+      459
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 147,
+    "timestamp_sec": 4.9,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.185,
+    "box": [
+      397.6,
+      286.5,
+      606.2,
+      428.8
+    ],
+    "box_4k": [
+      1192.9,
+      859.4,
+      1818.7,
+      1286.4
+    ],
+    "centroid": [
+      501.9,
+      358
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 148,
+    "timestamp_sec": 4.933,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.834,
+    "box": [
+      446.0,
+      228.2,
+      1278.5,
+      549.4
+    ],
+    "box_4k": [
+      1337.9,
+      684.7,
+      3835.6,
+      1648.2
+    ],
+    "centroid": [
+      862.3,
+      389
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 148,
+    "timestamp_sec": 4.933,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.29,
+    "box": [
+      697.2,
+      275.6,
+      816.8,
+      642.0
+    ],
+    "box_4k": [
+      2091.7,
+      826.8,
+      2450.5,
+      1926.1
+    ],
+    "centroid": [
+      757.0,
+      459
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 148,
+    "timestamp_sec": 4.933,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.149,
+    "box": [
+      393.0,
+      285.3,
+      604.3,
+      429.1
+    ],
+    "box_4k": [
+      1179.0,
+      855.8,
+      1813.0,
+      1287.4
+    ],
+    "centroid": [
+      498.7,
+      357
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 149,
+    "timestamp_sec": 4.967,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.852,
+    "box": [
+      446.8,
+      228.9,
+      1280.0,
+      552.1
+    ],
+    "box_4k": [
+      1340.3,
+      686.6,
+      3840.0,
+      1656.2
+    ],
+    "centroid": [
+      863.4,
+      390
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 149,
+    "timestamp_sec": 4.967,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.259,
+    "box": [
+      697.1,
+      276.0,
+      816.5,
+      641.6
+    ],
+    "box_4k": [
+      2091.3,
+      828.1,
+      2449.6,
+      1924.7
+    ],
+    "centroid": [
+      756.8,
+      459
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 149,
+    "timestamp_sec": 4.967,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.458,
+    "box": [
+      398.4,
+      285.0,
+      609.7,
+      430.2
+    ],
+    "box_4k": [
+      1195.2,
+      854.9,
+      1829.1,
+      1290.6
+    ],
+    "centroid": [
+      504.1,
+      358
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 150,
+    "timestamp_sec": 5.0,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.85,
+    "box": [
+      447.4,
+      229.8,
+      1280.0,
+      553.4
+    ],
+    "box_4k": [
+      1342.1,
+      689.4,
+      3840.0,
+      1660.3
+    ],
+    "centroid": [
+      863.7,
+      392
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 150,
+    "timestamp_sec": 5.0,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.206,
+    "box": [
+      696.5,
+      277.0,
+      815.9,
+      641.9
+    ],
+    "box_4k": [
+      2089.6,
+      830.9,
+      2447.7,
+      1925.6
+    ],
+    "centroid": [
+      756.2,
+      459
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 150,
+    "timestamp_sec": 5.0,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.407,
+    "box": [
+      402.6,
+      287.7,
+      609.8,
+      430.8
+    ],
+    "box_4k": [
+      1207.8,
+      863.1,
+      1829.5,
+      1292.3
+    ],
+    "centroid": [
+      506.2,
+      359
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 151,
+    "timestamp_sec": 5.033,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.831,
+    "box": [
+      445.8,
+      229.8,
+      1280.0,
+      554.0
+    ],
+    "box_4k": [
+      1337.3,
+      689.4,
+      3840.0,
+      1662.0
+    ],
+    "centroid": [
+      862.9,
+      392
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 151,
+    "timestamp_sec": 5.033,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.161,
+    "box": [
+      696.2,
+      277.3,
+      815.6,
+      642.0
+    ],
+    "box_4k": [
+      2088.5,
+      831.9,
+      2446.8,
+      1925.9
+    ],
+    "centroid": [
+      755.9,
+      460
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 151,
+    "timestamp_sec": 5.033,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.276,
+    "box": [
+      402.7,
+      287.7,
+      608.4,
+      430.6
+    ],
+    "box_4k": [
+      1208.2,
+      863.2,
+      1825.2,
+      1291.8
+    ],
+    "centroid": [
+      505.6,
+      359
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 152,
+    "timestamp_sec": 5.067,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.814,
+    "box": [
+      440.1,
+      231.2,
+      1280.0,
+      557.9
+    ],
+    "box_4k": [
+      1320.4,
+      693.6,
+      3840.0,
+      1673.7
+    ],
+    "centroid": [
+      860.1,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 152,
+    "timestamp_sec": 5.067,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.161,
+    "box": [
+      696.1,
+      277.5,
+      815.4,
+      641.6
+    ],
+    "box_4k": [
+      2088.3,
+      832.5,
+      2446.3,
+      1924.8
+    ],
+    "centroid": [
+      755.8,
+      460
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 152,
+    "timestamp_sec": 5.067,
+    "track_id": 2,
+    "class": "truck",
+    "conf": 0.125,
+    "box": [
+      387.9,
+      271.2,
+      613.2,
+      429.5
+    ],
+    "box_4k": [
+      1163.7,
+      813.5,
+      1839.5,
+      1288.6
+    ],
+    "centroid": [
+      500.5,
+      350
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 153,
+    "timestamp_sec": 5.1,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.838,
+    "box": [
+      438.9,
+      231.3,
+      1280.0,
+      558.4
+    ],
+    "box_4k": [
+      1316.8,
+      694.0,
+      3840.0,
+      1675.2
+    ],
+    "centroid": [
+      859.5,
+      395
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 153,
+    "timestamp_sec": 5.1,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.195,
+    "box": [
+      695.9,
+      277.7,
+      815.5,
+      642.4
+    ],
+    "box_4k": [
+      2087.6,
+      833.1,
+      2446.5,
+      1927.1
+    ],
+    "centroid": [
+      755.7,
+      460
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 154,
+    "timestamp_sec": 5.133,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.884,
+    "box": [
+      432.7,
+      233.1,
+      1280.0,
+      562.7
+    ],
+    "box_4k": [
+      1298.2,
+      699.2,
+      3840.0,
+      1688.2
+    ],
+    "centroid": [
+      856.4,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 154,
+    "timestamp_sec": 5.133,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.175,
+    "box": [
+      695.6,
+      278.1,
+      815.4,
+      643.1
+    ],
+    "box_4k": [
+      2086.9,
+      834.4,
+      2446.3,
+      1929.4
+    ],
+    "centroid": [
+      755.5,
+      461
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 154,
+    "timestamp_sec": 5.133,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.372,
+    "box": [
+      406.3,
+      288.9,
+      608.2,
+      430.8
+    ],
+    "box_4k": [
+      1218.9,
+      866.8,
+      1824.6,
+      1292.5
+    ],
+    "centroid": [
+      507.3,
+      360
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 155,
+    "timestamp_sec": 5.167,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.849,
+    "box": [
+      433.2,
+      233.5,
+      1278.2,
+      561.3
+    ],
+    "box_4k": [
+      1299.6,
+      700.4,
+      3834.6,
+      1683.8
+    ],
+    "centroid": [
+      855.7,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 155,
+    "timestamp_sec": 5.167,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.148,
+    "box": [
+      695.4,
+      278.4,
+      815.4,
+      643.9
+    ],
+    "box_4k": [
+      2086.3,
+      835.3,
+      2446.3,
+      1931.7
+    ],
+    "centroid": [
+      755.4,
+      461
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 155,
+    "timestamp_sec": 5.167,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.471,
+    "box": [
+      408.2,
+      291.2,
+      607.7,
+      431.9
+    ],
+    "box_4k": [
+      1224.6,
+      873.7,
+      1823.1,
+      1295.7
+    ],
+    "centroid": [
+      508.0,
+      362
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 156,
+    "timestamp_sec": 5.2,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.859,
+    "box": [
+      431.3,
+      233.5,
+      1277.6,
+      561.6
+    ],
+    "box_4k": [
+      1293.8,
+      700.5,
+      3832.8,
+      1684.7
+    ],
+    "centroid": [
+      854.4,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 156,
+    "timestamp_sec": 5.2,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.149,
+    "box": [
+      695.9,
+      278.7,
+      816.0,
+      644.6
+    ],
+    "box_4k": [
+      2087.6,
+      836.1,
+      2447.9,
+      1933.9
+    ],
+    "centroid": [
+      755.9,
+      462
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 157,
+    "timestamp_sec": 5.233,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.846,
+    "box": [
+      431.0,
+      234.6,
+      1280.0,
+      564.7
+    ],
+    "box_4k": [
+      1293.1,
+      703.8,
+      3840.0,
+      1694.1
+    ],
+    "centroid": [
+      855.5,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 157,
+    "timestamp_sec": 5.233,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.234,
+    "box": [
+      695.5,
+      278.8,
+      815.8,
+      645.2
+    ],
+    "box_4k": [
+      2086.6,
+      836.4,
+      2447.3,
+      1935.6
+    ],
+    "centroid": [
+      755.7,
+      462
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 158,
+    "timestamp_sec": 5.267,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.88,
+    "box": [
+      427.0,
+      235.1,
+      1277.1,
+      565.1
+    ],
+    "box_4k": [
+      1280.9,
+      705.2,
+      3831.3,
+      1695.2
+    ],
+    "centroid": [
+      852.0,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 158,
+    "timestamp_sec": 5.267,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.131,
+    "box": [
+      695.4,
+      278.8,
+      815.7,
+      645.6
+    ],
+    "box_4k": [
+      2086.1,
+      836.4,
+      2447.1,
+      1936.8
+    ],
+    "centroid": [
+      755.5,
+      462
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 159,
+    "timestamp_sec": 5.3,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.873,
+    "box": [
+      428.9,
+      235.6,
+      1278.1,
+      565.5
+    ],
+    "box_4k": [
+      1286.8,
+      706.8,
+      3834.4,
+      1696.6
+    ],
+    "centroid": [
+      853.5,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 159,
+    "timestamp_sec": 5.3,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.215,
+    "box": [
+      695.4,
+      279.2,
+      815.6,
+      645.6
+    ],
+    "box_4k": [
+      2086.1,
+      837.5,
+      2446.7,
+      1936.8
+    ],
+    "centroid": [
+      755.5,
+      462
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 159,
+    "timestamp_sec": 5.3,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.554,
+    "box": [
+      408.2,
+      289.8,
+      609.9,
+      433.0
+    ],
+    "box_4k": [
+      1224.6,
+      869.5,
+      1829.8,
+      1298.9
+    ],
+    "centroid": [
+      509.1,
+      361
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 160,
+    "timestamp_sec": 5.333,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.891,
+    "box": [
+      427.7,
+      235.6,
+      1273.2,
+      563.4
+    ],
+    "box_4k": [
+      1283.0,
+      706.8,
+      3819.6,
+      1690.2
+    ],
+    "centroid": [
+      850.4,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 160,
+    "timestamp_sec": 5.333,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.169,
+    "box": [
+      695.3,
+      279.4,
+      815.4,
+      645.6
+    ],
+    "box_4k": [
+      2086.0,
+      838.3,
+      2446.2,
+      1936.8
+    ],
+    "centroid": [
+      755.4,
+      463
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 160,
+    "timestamp_sec": 5.333,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.374,
+    "box": [
+      408.8,
+      290.7,
+      609.3,
+      433.2
+    ],
+    "box_4k": [
+      1226.4,
+      872.1,
+      1827.8,
+      1299.5
+    ],
+    "centroid": [
+      509.0,
+      362
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 161,
+    "timestamp_sec": 5.367,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.887,
+    "box": [
+      426.5,
+      235.6,
+      1274.7,
+      564.1
+    ],
+    "box_4k": [
+      1279.4,
+      706.8,
+      3824.1,
+      1692.4
+    ],
+    "centroid": [
+      850.6,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 161,
+    "timestamp_sec": 5.367,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.151,
+    "box": [
+      695.4,
+      279.5,
+      815.5,
+      645.8
+    ],
+    "box_4k": [
+      2086.1,
+      838.6,
+      2446.4,
+      1937.5
+    ],
+    "centroid": [
+      755.4,
+      463
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 161,
+    "timestamp_sec": 5.367,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.413,
+    "box": [
+      409.6,
+      292.1,
+      606.9,
+      432.7
+    ],
+    "box_4k": [
+      1228.9,
+      876.2,
+      1820.6,
+      1298.0
+    ],
+    "centroid": [
+      508.3,
+      362
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 162,
+    "timestamp_sec": 5.4,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.883,
+    "box": [
+      428.1,
+      235.9,
+      1275.9,
+      564.0
+    ],
+    "box_4k": [
+      1284.2,
+      707.6,
+      3827.8,
+      1692.1
+    ],
+    "centroid": [
+      852.0,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 162,
+    "timestamp_sec": 5.4,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.164,
+    "box": [
+      695.5,
+      279.7,
+      815.6,
+      645.9
+    ],
+    "box_4k": [
+      2086.5,
+      839.1,
+      2446.7,
+      1937.7
+    ],
+    "centroid": [
+      755.5,
+      463
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 162,
+    "timestamp_sec": 5.4,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.293,
+    "box": [
+      409.8,
+      292.5,
+      605.6,
+      432.3
+    ],
+    "box_4k": [
+      1229.5,
+      877.5,
+      1816.9,
+      1296.9
+    ],
+    "centroid": [
+      507.7,
+      362
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 163,
+    "timestamp_sec": 5.433,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.914,
+    "box": [
+      424.9,
+      235.3,
+      1274.1,
+      563.5
+    ],
+    "box_4k": [
+      1274.6,
+      705.8,
+      3822.2,
+      1690.4
+    ],
+    "centroid": [
+      849.5,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 163,
+    "timestamp_sec": 5.433,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.108,
+    "box": [
+      695.6,
+      279.8,
+      815.6,
+      646.0
+    ],
+    "box_4k": [
+      2086.7,
+      839.4,
+      2446.8,
+      1938.1
+    ],
+    "centroid": [
+      755.6,
+      463
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 164,
+    "timestamp_sec": 5.467,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.884,
+    "box": [
+      424.2,
+      236.0,
+      1276.9,
+      565.5
+    ],
+    "box_4k": [
+      1272.5,
+      708.0,
+      3830.7,
+      1696.6
+    ],
+    "centroid": [
+      850.5,
+      401
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 164,
+    "timestamp_sec": 5.467,
+    "track_id": 35,
+    "class": "parking meter",
+    "conf": 0.192,
+    "box": [
+      695.6,
+      279.9,
+      815.7,
+      646.2
+    ],
+    "box_4k": [
+      2086.8,
+      839.6,
+      2447.0,
+      1938.6
+    ],
+    "centroid": [
+      755.6,
+      463
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 165,
+    "timestamp_sec": 5.5,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.877,
+    "box": [
+      430.7,
+      235.8,
+      1279.6,
+      564.0
+    ],
+    "box_4k": [
+      1292.1,
+      707.4,
+      3838.9,
+      1692.1
+    ],
+    "centroid": [
+      855.2,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 166,
+    "timestamp_sec": 5.533,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.835,
+    "box": [
+      432.0,
+      232.5,
+      1276.7,
+      558.8
+    ],
+    "box_4k": [
+      1295.9,
+      697.5,
+      3830.2,
+      1676.4
+    ],
+    "centroid": [
+      854.3,
+      396
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 167,
+    "timestamp_sec": 5.567,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.877,
+    "box": [
+      428.6,
+      234.8,
+      1275.1,
+      561.4
+    ],
+    "box_4k": [
+      1285.8,
+      704.5,
+      3825.2,
+      1684.1
+    ],
+    "centroid": [
+      851.8,
+      398
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 167,
+    "timestamp_sec": 5.567,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.358,
+    "box": [
+      412.4,
+      296.4,
+      603.5,
+      432.6
+    ],
+    "box_4k": [
+      1237.2,
+      889.2,
+      1810.5,
+      1297.8
+    ],
+    "centroid": [
+      507.9,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 168,
+    "timestamp_sec": 5.6,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.835,
+    "box": [
+      429.8,
+      231.5,
+      1270.6,
+      554.8
+    ],
+    "box_4k": [
+      1289.5,
+      694.4,
+      3811.7,
+      1664.4
+    ],
+    "centroid": [
+      850.2,
+      393
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 168,
+    "timestamp_sec": 5.6,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.182,
+    "box": [
+      415.0,
+      299.7,
+      601.2,
+      431.3
+    ],
+    "box_4k": [
+      1245.1,
+      899.0,
+      1803.6,
+      1293.9
+    ],
+    "centroid": [
+      508.1,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 169,
+    "timestamp_sec": 5.633,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.809,
+    "box": [
+      428.7,
+      235.1,
+      1273.2,
+      559.4
+    ],
+    "box_4k": [
+      1286.1,
+      705.3,
+      3819.5,
+      1678.3
+    ],
+    "centroid": [
+      850.9,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 169,
+    "timestamp_sec": 5.633,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.263,
+    "box": [
+      411.0,
+      294.7,
+      605.5,
+      432.6
+    ],
+    "box_4k": [
+      1233.1,
+      884.1,
+      1816.5,
+      1297.8
+    ],
+    "centroid": [
+      508.3,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 170,
+    "timestamp_sec": 5.667,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.823,
+    "box": [
+      430.0,
+      236.5,
+      1275.5,
+      561.0
+    ],
+    "box_4k": [
+      1290.1,
+      709.4,
+      3826.6,
+      1682.9
+    ],
+    "centroid": [
+      852.8,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 170,
+    "timestamp_sec": 5.667,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.355,
+    "box": [
+      409.9,
+      295.9,
+      603.3,
+      433.0
+    ],
+    "box_4k": [
+      1229.6,
+      887.7,
+      1809.9,
+      1298.9
+    ],
+    "centroid": [
+      506.6,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 171,
+    "timestamp_sec": 5.7,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.838,
+    "box": [
+      434.3,
+      235.7,
+      1276.1,
+      559.0
+    ],
+    "box_4k": [
+      1302.8,
+      707.1,
+      3828.3,
+      1676.9
+    ],
+    "centroid": [
+      855.2,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 171,
+    "timestamp_sec": 5.7,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.437,
+    "box": [
+      402.9,
+      294.6,
+      599.1,
+      432.6
+    ],
+    "box_4k": [
+      1208.8,
+      883.9,
+      1797.3,
+      1297.9
+    ],
+    "centroid": [
+      501.0,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 172,
+    "timestamp_sec": 5.733,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.858,
+    "box": [
+      433.9,
+      235.3,
+      1275.7,
+      558.6
+    ],
+    "box_4k": [
+      1301.7,
+      705.8,
+      3827.0,
+      1675.7
+    ],
+    "centroid": [
+      854.8,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 172,
+    "timestamp_sec": 5.733,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.429,
+    "box": [
+      402.5,
+      293.7,
+      601.1,
+      433.2
+    ],
+    "box_4k": [
+      1207.5,
+      881.2,
+      1803.4,
+      1299.7
+    ],
+    "centroid": [
+      501.8,
+      363
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 173,
+    "timestamp_sec": 5.767,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.809,
+    "box": [
+      433.7,
+      235.1,
+      1275.9,
+      558.8
+    ],
+    "box_4k": [
+      1301.1,
+      705.3,
+      3827.8,
+      1676.3
+    ],
+    "centroid": [
+      854.8,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 173,
+    "timestamp_sec": 5.767,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.413,
+    "box": [
+      404.2,
+      294.6,
+      603.2,
+      434.3
+    ],
+    "box_4k": [
+      1212.5,
+      883.9,
+      1809.6,
+      1302.9
+    ],
+    "centroid": [
+      503.7,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 174,
+    "timestamp_sec": 5.8,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.812,
+    "box": [
+      433.5,
+      235.0,
+      1275.1,
+      558.5
+    ],
+    "box_4k": [
+      1300.4,
+      705.1,
+      3825.3,
+      1675.5
+    ],
+    "centroid": [
+      854.3,
+      397
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 174,
+    "timestamp_sec": 5.8,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.435,
+    "box": [
+      404.4,
+      295.1,
+      603.3,
+      434.4
+    ],
+    "box_4k": [
+      1213.3,
+      885.2,
+      1809.9,
+      1303.2
+    ],
+    "centroid": [
+      503.9,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 175,
+    "timestamp_sec": 5.833,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.809,
+    "box": [
+      427.6,
+      233.8,
+      1266.8,
+      554.9
+    ],
+    "box_4k": [
+      1282.7,
+      701.3,
+      3800.5,
+      1664.6
+    ],
+    "centroid": [
+      847.2,
+      394
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 175,
+    "timestamp_sec": 5.833,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.19,
+    "box": [
+      403.4,
+      294.6,
+      602.3,
+      433.1
+    ],
+    "box_4k": [
+      1210.3,
+      883.9,
+      1807.0,
+      1299.4
+    ],
+    "centroid": [
+      502.9,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 176,
+    "timestamp_sec": 5.867,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.796,
+    "box": [
+      423.5,
+      233.5,
+      1263.5,
+      553.4
+    ],
+    "box_4k": [
+      1270.6,
+      700.6,
+      3790.6,
+      1660.3
+    ],
+    "centroid": [
+      843.5,
+      393
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 176,
+    "timestamp_sec": 5.867,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.125,
+    "box": [
+      403.6,
+      294.3,
+      601.5,
+      431.5
+    ],
+    "box_4k": [
+      1210.8,
+      883.0,
+      1804.4,
+      1294.4
+    ],
+    "centroid": [
+      502.5,
+      363
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 177,
+    "timestamp_sec": 5.9,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.86,
+    "box": [
+      426.7,
+      234.5,
+      1273.2,
+      557.3
+    ],
+    "box_4k": [
+      1280.1,
+      703.5,
+      3819.7,
+      1671.8
+    ],
+    "centroid": [
+      850.0,
+      396
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 177,
+    "timestamp_sec": 5.9,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.377,
+    "box": [
+      403.4,
+      294.0,
+      603.6,
+      433.0
+    ],
+    "box_4k": [
+      1210.3,
+      882.0,
+      1810.8,
+      1299.1
+    ],
+    "centroid": [
+      503.5,
+      364
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 178,
+    "timestamp_sec": 5.933,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.865,
+    "box": [
+      421.7,
+      235.8,
+      1277.0,
+      561.9
+    ],
+    "box_4k": [
+      1265.2,
+      707.5,
+      3831.0,
+      1685.7
+    ],
+    "centroid": [
+      849.4,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 178,
+    "timestamp_sec": 5.933,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.129,
+    "box": [
+      403.6,
+      293.1,
+      608.1,
+      436.2
+    ],
+    "box_4k": [
+      1210.7,
+      879.4,
+      1824.3,
+      1308.6
+    ],
+    "centroid": [
+      505.8,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 179,
+    "timestamp_sec": 5.967,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.87,
+    "box": [
+      418.3,
+      236.7,
+      1277.2,
+      563.9
+    ],
+    "box_4k": [
+      1255.0,
+      710.0,
+      3831.6,
+      1691.6
+    ],
+    "centroid": [
+      847.8,
+      400
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 179,
+    "timestamp_sec": 5.967,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.21,
+    "box": [
+      402.6,
+      294.7,
+      603.8,
+      435.3
+    ],
+    "box_4k": [
+      1207.8,
+      884.2,
+      1811.4,
+      1306.0
+    ],
+    "centroid": [
+      503.2,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 179,
+    "timestamp_sec": 5.967,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.386,
+    "box": [
+      0.0,
+      308.6,
+      118.8,
+      362.7
+    ],
+    "box_4k": [
+      0.0,
+      925.7,
+      356.4,
+      1088.1
+    ],
+    "centroid": [
+      59.4,
+      336
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 180,
+    "timestamp_sec": 6.0,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.866,
+    "box": [
+      419.2,
+      238.2,
+      1279.0,
+      565.8
+    ],
+    "box_4k": [
+      1257.6,
+      714.6,
+      3837.1,
+      1697.5
+    ],
+    "centroid": [
+      849.1,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 180,
+    "timestamp_sec": 6.0,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.126,
+    "box": [
+      404.0,
+      296.7,
+      601.2,
+      434.1
+    ],
+    "box_4k": [
+      1211.9,
+      890.2,
+      1803.5,
+      1302.4
+    ],
+    "centroid": [
+      502.6,
+      365
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 180,
+    "timestamp_sec": 6.0,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.495,
+    "box": [
+      0.0,
+      310.0,
+      114.6,
+      361.6
+    ],
+    "box_4k": [
+      0.0,
+      930.0,
+      343.9,
+      1084.9
+    ],
+    "centroid": [
+      57.3,
+      336
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 181,
+    "timestamp_sec": 6.033,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.872,
+    "box": [
+      420.7,
+      238.7,
+      1280.0,
+      567.4
+    ],
+    "box_4k": [
+      1262.0,
+      716.2,
+      3840.0,
+      1702.2
+    ],
+    "centroid": [
+      850.3,
+      403
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 181,
+    "timestamp_sec": 6.033,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.259,
+    "box": [
+      403.1,
+      298.1,
+      599.7,
+      434.7
+    ],
+    "box_4k": [
+      1209.3,
+      894.4,
+      1799.1,
+      1304.2
+    ],
+    "centroid": [
+      501.4,
+      366
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 181,
+    "timestamp_sec": 6.033,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.535,
+    "box": [
+      0.0,
+      310.0,
+      113.8,
+      361.1
+    ],
+    "box_4k": [
+      0.0,
+      930.1,
+      341.5,
+      1083.4
+    ],
+    "centroid": [
+      56.9,
+      336
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 182,
+    "timestamp_sec": 6.067,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.768,
+    "box": [
+      419.3,
+      235.7,
+      1277.0,
+      562.5
+    ],
+    "box_4k": [
+      1258.0,
+      707.0,
+      3831.0,
+      1687.6
+    ],
+    "centroid": [
+      848.2,
+      399
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 182,
+    "timestamp_sec": 6.067,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.233,
+    "box": [
+      0.0,
+      310.4,
+      111.9,
+      360.9
+    ],
+    "box_4k": [
+      0.0,
+      931.3,
+      335.8,
+      1082.6
+    ],
+    "centroid": [
+      56.0,
+      336
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 183,
+    "timestamp_sec": 6.1,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.865,
+    "box": [
+      418.0,
+      237.9,
+      1279.8,
+      566.5
+    ],
+    "box_4k": [
+      1254.0,
+      713.6,
+      3839.5,
+      1699.5
+    ],
+    "centroid": [
+      848.9,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 183,
+    "timestamp_sec": 6.1,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.108,
+    "box": [
+      0.3,
+      312.0,
+      107.7,
+      360.3
+    ],
+    "box_4k": [
+      0.9,
+      936.1,
+      323.2,
+      1080.8
+    ],
+    "centroid": [
+      54.0,
+      336
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 183,
+    "timestamp_sec": 6.1,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.294,
+    "box": [
+      404.9,
+      298.6,
+      600.0,
+      434.4
+    ],
+    "box_4k": [
+      1214.7,
+      895.9,
+      1800.1,
+      1303.2
+    ],
+    "centroid": [
+      502.5,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 184,
+    "timestamp_sec": 6.133,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.865,
+    "box": [
+      417.6,
+      238.2,
+      1278.9,
+      566.5
+    ],
+    "box_4k": [
+      1252.7,
+      714.7,
+      3836.6,
+      1699.6
+    ],
+    "centroid": [
+      848.2,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 184,
+    "timestamp_sec": 6.133,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.387,
+    "box": [
+      0.0,
+      310.9,
+      108.3,
+      360.3
+    ],
+    "box_4k": [
+      0.0,
+      932.6,
+      325.0,
+      1081.0
+    ],
+    "centroid": [
+      54.2,
+      336
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 184,
+    "timestamp_sec": 6.133,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.349,
+    "box": [
+      404.8,
+      298.6,
+      600.3,
+      434.9
+    ],
+    "box_4k": [
+      1214.3,
+      895.8,
+      1800.8,
+      1304.6
+    ],
+    "centroid": [
+      502.5,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 185,
+    "timestamp_sec": 6.167,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.857,
+    "box": [
+      411.7,
+      238.7,
+      1280.0,
+      569.7
+    ],
+    "box_4k": [
+      1235.1,
+      716.0,
+      3840.0,
+      1709.0
+    ],
+    "centroid": [
+      845.8,
+      404
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 185,
+    "timestamp_sec": 6.167,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.182,
+    "box": [
+      0.0,
+      310.6,
+      107.3,
+      362.1
+    ],
+    "box_4k": [
+      0.0,
+      931.9,
+      321.9,
+      1086.2
+    ],
+    "centroid": [
+      53.7,
+      336
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 185,
+    "timestamp_sec": 6.167,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.22,
+    "box": [
+      405.4,
+      298.7,
+      602.5,
+      436.5
+    ],
+    "box_4k": [
+      1216.2,
+      896.2,
+      1807.5,
+      1309.6
+    ],
+    "centroid": [
+      503.9,
+      368
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 186,
+    "timestamp_sec": 6.2,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.844,
+    "box": [
+      411.8,
+      239.3,
+      1277.7,
+      569.1
+    ],
+    "box_4k": [
+      1235.4,
+      717.8,
+      3833.2,
+      1707.2
+    ],
+    "centroid": [
+      844.8,
+      404
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 186,
+    "timestamp_sec": 6.2,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.493,
+    "box": [
+      0.0,
+      311.9,
+      106.8,
+      362.8
+    ],
+    "box_4k": [
+      0.0,
+      935.6,
+      320.5,
+      1088.3
+    ],
+    "centroid": [
+      53.4,
+      337
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 186,
+    "timestamp_sec": 6.2,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.309,
+    "box": [
+      403.2,
+      299.4,
+      598.1,
+      435.0
+    ],
+    "box_4k": [
+      1209.6,
+      898.2,
+      1794.4,
+      1304.9
+    ],
+    "centroid": [
+      500.7,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 187,
+    "timestamp_sec": 6.233,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.889,
+    "box": [
+      411.5,
+      241.6,
+      1275.0,
+      569.9
+    ],
+    "box_4k": [
+      1234.6,
+      724.8,
+      3824.9,
+      1709.8
+    ],
+    "centroid": [
+      843.3,
+      406
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 187,
+    "timestamp_sec": 6.233,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.118,
+    "box": [
+      0.0,
+      313.1,
+      104.7,
+      363.0
+    ],
+    "box_4k": [
+      0.0,
+      939.4,
+      314.1,
+      1088.9
+    ],
+    "centroid": [
+      52.4,
+      338
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 187,
+    "timestamp_sec": 6.233,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.195,
+    "box": [
+      404.9,
+      300.3,
+      600.2,
+      436.2
+    ],
+    "box_4k": [
+      1214.7,
+      901.0,
+      1800.5,
+      1308.7
+    ],
+    "centroid": [
+      502.5,
+      368
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 188,
+    "timestamp_sec": 6.267,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.891,
+    "box": [
+      424.1,
+      244.0,
+      1280.0,
+      572.0
+    ],
+    "box_4k": [
+      1272.4,
+      732.1,
+      3840.0,
+      1715.9
+    ],
+    "centroid": [
+      852.1,
+      408
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 188,
+    "timestamp_sec": 6.267,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.105,
+    "box": [
+      0.0,
+      312.2,
+      100.9,
+      363.1
+    ],
+    "box_4k": [
+      0.0,
+      936.7,
+      302.8,
+      1089.3
+    ],
+    "centroid": [
+      50.5,
+      338
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 188,
+    "timestamp_sec": 6.267,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.441,
+    "box": [
+      404.4,
+      301.1,
+      600.6,
+      436.9
+    ],
+    "box_4k": [
+      1213.3,
+      903.2,
+      1801.7,
+      1310.6
+    ],
+    "centroid": [
+      502.5,
+      369
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 189,
+    "timestamp_sec": 6.3,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.881,
+    "box": [
+      421.4,
+      245.6,
+      1276.4,
+      571.0
+    ],
+    "box_4k": [
+      1264.1,
+      736.8,
+      3829.3,
+      1713.0
+    ],
+    "centroid": [
+      848.9,
+      408
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 189,
+    "timestamp_sec": 6.3,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.457,
+    "box": [
+      0.0,
+      312.8,
+      100.5,
+      363.0
+    ],
+    "box_4k": [
+      0.0,
+      938.3,
+      301.5,
+      1089.0
+    ],
+    "centroid": [
+      50.3,
+      338
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 189,
+    "timestamp_sec": 6.3,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.386,
+    "box": [
+      399.8,
+      300.5,
+      598.8,
+      437.4
+    ],
+    "box_4k": [
+      1199.3,
+      901.6,
+      1796.3,
+      1312.1
+    ],
+    "centroid": [
+      499.3,
+      369
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 190,
+    "timestamp_sec": 6.333,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.867,
+    "box": [
+      422.6,
+      246.7,
+      1280.0,
+      575.7
+    ],
+    "box_4k": [
+      1267.7,
+      740.2,
+      3840.0,
+      1727.0
+    ],
+    "centroid": [
+      851.3,
+      411
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 190,
+    "timestamp_sec": 6.333,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.621,
+    "box": [
+      401.7,
+      300.6,
+      600.2,
+      437.1
+    ],
+    "box_4k": [
+      1205.2,
+      901.9,
+      1800.7,
+      1311.2
+    ],
+    "centroid": [
+      501.0,
+      369
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 191,
+    "timestamp_sec": 6.367,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.849,
+    "box": [
+      421.9,
+      246.1,
+      1280.0,
+      574.6
+    ],
+    "box_4k": [
+      1265.6,
+      738.2,
+      3840.0,
+      1723.8
+    ],
+    "centroid": [
+      850.9,
+      410
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 191,
+    "timestamp_sec": 6.367,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.201,
+    "box": [
+      403.1,
+      302.7,
+      599.0,
+      437.2
+    ],
+    "box_4k": [
+      1209.2,
+      908.2,
+      1796.9,
+      1311.7
+    ],
+    "centroid": [
+      501.0,
+      370
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 192,
+    "timestamp_sec": 6.4,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.859,
+    "box": [
+      422.1,
+      246.7,
+      1277.2,
+      572.7
+    ],
+    "box_4k": [
+      1266.4,
+      740.2,
+      3831.5,
+      1718.1
+    ],
+    "centroid": [
+      849.6,
+      410
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 192,
+    "timestamp_sec": 6.4,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.336,
+    "box": [
+      400.0,
+      302.3,
+      599.4,
+      438.9
+    ],
+    "box_4k": [
+      1200.1,
+      906.8,
+      1798.3,
+      1316.6
+    ],
+    "centroid": [
+      499.7,
+      371
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 193,
+    "timestamp_sec": 6.433,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.888,
+    "box": [
+      427.0,
+      247.5,
+      1280.0,
+      576.6
+    ],
+    "box_4k": [
+      1281.1,
+      742.5,
+      3840.0,
+      1729.7
+    ],
+    "centroid": [
+      853.5,
+      412
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 193,
+    "timestamp_sec": 6.433,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.571,
+    "box": [
+      398.2,
+      302.4,
+      599.2,
+      439.7
+    ],
+    "box_4k": [
+      1194.7,
+      907.2,
+      1797.7,
+      1319.1
+    ],
+    "centroid": [
+      498.7,
+      371
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 194,
+    "timestamp_sec": 6.467,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.885,
+    "box": [
+      423.1,
+      248.1,
+      1280.0,
+      578.4
+    ],
+    "box_4k": [
+      1269.4,
+      744.4,
+      3840.0,
+      1735.2
+    ],
+    "centroid": [
+      851.6,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 194,
+    "timestamp_sec": 6.467,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.449,
+    "box": [
+      396.7,
+      303.9,
+      598.1,
+      440.7
+    ],
+    "box_4k": [
+      1190.0,
+      911.8,
+      1794.2,
+      1322.2
+    ],
+    "centroid": [
+      497.4,
+      372
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 194,
+    "timestamp_sec": 6.467,
+    "track_id": 39,
+    "class": "car",
+    "conf": 0.573,
+    "box": [
+      0.0,
+      315.6,
+      95.3,
+      369.1
+    ],
+    "box_4k": [
+      0.0,
+      946.9,
+      285.8,
+      1107.3
+    ],
+    "centroid": [
+      47.6,
+      342
+    ],
+    "in_restricted_zone": true
+  },
+  {
+    "frame": 195,
+    "timestamp_sec": 6.5,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.89,
+    "box": [
+      435.5,
+      249.7,
+      1280.0,
+      576.5
+    ],
+    "box_4k": [
+      1306.4,
+      749.1,
+      3840.0,
+      1729.4
+    ],
+    "centroid": [
+      857.7,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 195,
+    "timestamp_sec": 6.5,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.4,
+    "box": [
+      400.1,
+      305.4,
+      599.1,
+      440.4
+    ],
+    "box_4k": [
+      1200.4,
+      916.3,
+      1797.2,
+      1321.1
+    ],
+    "centroid": [
+      499.6,
+      373
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 196,
+    "timestamp_sec": 6.533,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.901,
+    "box": [
+      433.7,
+      248.7,
+      1280.0,
+      579.2
+    ],
+    "box_4k": [
+      1301.0,
+      746.1,
+      3840.0,
+      1737.7
+    ],
+    "centroid": [
+      856.8,
+      414
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 196,
+    "timestamp_sec": 6.533,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.244,
+    "box": [
+      401.9,
+      305.5,
+      600.6,
+      440.2
+    ],
+    "box_4k": [
+      1205.8,
+      916.4,
+      1801.7,
+      1320.6
+    ],
+    "centroid": [
+      501.3,
+      373
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 197,
+    "timestamp_sec": 6.567,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.89,
+    "box": [
+      432.7,
+      248.4,
+      1280.0,
+      580.1
+    ],
+    "box_4k": [
+      1298.2,
+      745.2,
+      3840.0,
+      1740.2
+    ],
+    "centroid": [
+      856.4,
+      414
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 197,
+    "timestamp_sec": 6.567,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.432,
+    "box": [
+      396.7,
+      303.6,
+      598.8,
+      440.0
+    ],
+    "box_4k": [
+      1190.2,
+      910.7,
+      1796.5,
+      1320.0
+    ],
+    "centroid": [
+      497.8,
+      372
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 198,
+    "timestamp_sec": 6.6,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.809,
+    "box": [
+      420.4,
+      246.7,
+      1280.0,
+      581.3
+    ],
+    "box_4k": [
+      1261.3,
+      740.0,
+      3840.0,
+      1744.0
+    ],
+    "centroid": [
+      850.2,
+      414
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 199,
+    "timestamp_sec": 6.633,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.87,
+    "box": [
+      432.3,
+      248.9,
+      1278.1,
+      576.0
+    ],
+    "box_4k": [
+      1297.0,
+      746.8,
+      3834.3,
+      1728.0
+    ],
+    "centroid": [
+      855.2,
+      412
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 200,
+    "timestamp_sec": 6.667,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.868,
+    "box": [
+      438.6,
+      248.9,
+      1280.0,
+      575.9
+    ],
+    "box_4k": [
+      1315.9,
+      746.7,
+      3840.0,
+      1727.6
+    ],
+    "centroid": [
+      859.3,
+      412
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 201,
+    "timestamp_sec": 6.7,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.866,
+    "box": [
+      441.9,
+      249.3,
+      1280.0,
+      576.1
+    ],
+    "box_4k": [
+      1325.7,
+      747.9,
+      3840.0,
+      1728.4
+    ],
+    "centroid": [
+      860.9,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 201,
+    "timestamp_sec": 6.7,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.264,
+    "box": [
+      392.7,
+      302.0,
+      605.1,
+      446.0
+    ],
+    "box_4k": [
+      1178.0,
+      906.1,
+      1815.3,
+      1338.0
+    ],
+    "centroid": [
+      498.9,
+      374
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 202,
+    "timestamp_sec": 6.733,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.861,
+    "box": [
+      432.4,
+      248.8,
+      1280.0,
+      581.0
+    ],
+    "box_4k": [
+      1297.2,
+      746.3,
+      3840.0,
+      1743.1
+    ],
+    "centroid": [
+      856.2,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 202,
+    "timestamp_sec": 6.733,
+    "track_id": 2,
+    "class": "truck",
+    "conf": 0.121,
+    "box": [
+      376.7,
+      294.3,
+      587.6,
+      440.0
+    ],
+    "box_4k": [
+      1130.0,
+      882.9,
+      1762.8,
+      1320.1
+    ],
+    "centroid": [
+      482.1,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 203,
+    "timestamp_sec": 6.767,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.884,
+    "box": [
+      441.5,
+      249.6,
+      1280.0,
+      577.6
+    ],
+    "box_4k": [
+      1324.6,
+      748.7,
+      3840.0,
+      1732.9
+    ],
+    "centroid": [
+      860.8,
+      414
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 203,
+    "timestamp_sec": 6.767,
+    "track_id": 2,
+    "class": "truck",
+    "conf": 0.127,
+    "box": [
+      382.1,
+      291.9,
+      598.5,
+      441.7
+    ],
+    "box_4k": [
+      1146.4,
+      875.6,
+      1795.4,
+      1325.2
+    ],
+    "centroid": [
+      490.3,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 204,
+    "timestamp_sec": 6.8,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.887,
+    "box": [
+      444.4,
+      249.6,
+      1280.0,
+      576.6
+    ],
+    "box_4k": [
+      1333.1,
+      748.8,
+      3840.0,
+      1729.8
+    ],
+    "centroid": [
+      862.2,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 204,
+    "timestamp_sec": 6.8,
+    "track_id": 2,
+    "class": "truck",
+    "conf": 0.119,
+    "box": [
+      385.3,
+      292.8,
+      600.2,
+      441.5
+    ],
+    "box_4k": [
+      1155.9,
+      878.4,
+      1800.7,
+      1324.5
+    ],
+    "centroid": [
+      492.8,
+      367
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 205,
+    "timestamp_sec": 6.833,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.892,
+    "box": [
+      447.9,
+      249.9,
+      1280.0,
+      575.7
+    ],
+    "box_4k": [
+      1343.6,
+      749.6,
+      3840.0,
+      1727.1
+    ],
+    "centroid": [
+      863.9,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 205,
+    "timestamp_sec": 6.833,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.153,
+    "box": [
+      401.1,
+      301.2,
+      605.7,
+      442.9
+    ],
+    "box_4k": [
+      1203.2,
+      903.5,
+      1817.1,
+      1328.7
+    ],
+    "centroid": [
+      503.4,
+      372
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 206,
+    "timestamp_sec": 6.867,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.877,
+    "box": [
+      450.0,
+      250.0,
+      1280.0,
+      575.4
+    ],
+    "box_4k": [
+      1349.9,
+      749.9,
+      3840.0,
+      1726.3
+    ],
+    "centroid": [
+      865.0,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 206,
+    "timestamp_sec": 6.867,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.215,
+    "box": [
+      406.6,
+      304.7,
+      606.8,
+      443.7
+    ],
+    "box_4k": [
+      1219.8,
+      914.2,
+      1820.4,
+      1331.2
+    ],
+    "centroid": [
+      506.7,
+      374
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 207,
+    "timestamp_sec": 6.9,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.825,
+    "box": [
+      445.0,
+      249.4,
+      1280.0,
+      577.8
+    ],
+    "box_4k": [
+      1335.1,
+      748.2,
+      3840.0,
+      1733.3
+    ],
+    "centroid": [
+      862.5,
+      414
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 207,
+    "timestamp_sec": 6.9,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.135,
+    "box": [
+      404.6,
+      303.6,
+      604.2,
+      442.5
+    ],
+    "box_4k": [
+      1213.8,
+      910.9,
+      1812.7,
+      1327.6
+    ],
+    "centroid": [
+      504.4,
+      373
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 208,
+    "timestamp_sec": 6.933,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.841,
+    "box": [
+      440.3,
+      248.9,
+      1275.9,
+      575.0
+    ],
+    "box_4k": [
+      1320.8,
+      746.7,
+      3827.7,
+      1724.9
+    ],
+    "centroid": [
+      858.1,
+      412
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 209,
+    "timestamp_sec": 6.967,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.847,
+    "box": [
+      436.6,
+      248.7,
+      1272.4,
+      574.1
+    ],
+    "box_4k": [
+      1309.9,
+      746.2,
+      3817.3,
+      1722.4
+    ],
+    "centroid": [
+      854.5,
+      411
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 210,
+    "timestamp_sec": 7.0,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.805,
+    "box": [
+      435.1,
+      246.2,
+      1262.4,
+      566.3
+    ],
+    "box_4k": [
+      1305.4,
+      738.5,
+      3787.1,
+      1699.0
+    ],
+    "centroid": [
+      848.8,
+      406
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 211,
+    "timestamp_sec": 7.033,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.799,
+    "box": [
+      425.8,
+      245.1,
+      1252.9,
+      562.8
+    ],
+    "box_4k": [
+      1277.4,
+      735.4,
+      3758.8,
+      1688.3
+    ],
+    "centroid": [
+      839.4,
+      404
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 212,
+    "timestamp_sec": 7.067,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.81,
+    "box": [
+      424.6,
+      242.8,
+      1256.3,
+      560.7
+    ],
+    "box_4k": [
+      1273.9,
+      728.5,
+      3768.8,
+      1682.2
+    ],
+    "centroid": [
+      840.5,
+      402
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 213,
+    "timestamp_sec": 7.1,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.849,
+    "box": [
+      435.8,
+      245.0,
+      1277.1,
+      567.6
+    ],
+    "box_4k": [
+      1307.3,
+      735.0,
+      3831.3,
+      1702.7
+    ],
+    "centroid": [
+      856.4,
+      406
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 213,
+    "timestamp_sec": 7.1,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.387,
+    "box": [
+      399.6,
+      301.3,
+      600.6,
+      439.5
+    ],
+    "box_4k": [
+      1198.7,
+      903.8,
+      1801.7,
+      1318.6
+    ],
+    "centroid": [
+      500.1,
+      370
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 214,
+    "timestamp_sec": 7.133,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.788,
+    "box": [
+      427.8,
+      243.6,
+      1268.0,
+      564.9
+    ],
+    "box_4k": [
+      1283.5,
+      730.8,
+      3804.0,
+      1694.8
+    ],
+    "centroid": [
+      847.9,
+      404
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 214,
+    "timestamp_sec": 7.133,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.106,
+    "box": [
+      403.0,
+      301.2,
+      603.4,
+      437.6
+    ],
+    "box_4k": [
+      1209.0,
+      903.7,
+      1810.1,
+      1312.8
+    ],
+    "centroid": [
+      503.2,
+      369
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 215,
+    "timestamp_sec": 7.167,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.788,
+    "box": [
+      416.8,
+      242.0,
+      1275.1,
+      570.2
+    ],
+    "box_4k": [
+      1250.5,
+      725.9,
+      3825.2,
+      1710.5
+    ],
+    "centroid": [
+      846.0,
+      406
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 216,
+    "timestamp_sec": 7.2,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.855,
+    "box": [
+      421.0,
+      244.0,
+      1276.4,
+      571.0
+    ],
+    "box_4k": [
+      1263.0,
+      732.1,
+      3829.1,
+      1712.9
+    ],
+    "centroid": [
+      848.7,
+      408
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 216,
+    "timestamp_sec": 7.2,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.484,
+    "box": [
+      402.4,
+      300.9,
+      606.7,
+      440.0
+    ],
+    "box_4k": [
+      1207.3,
+      902.6,
+      1820.2,
+      1320.1
+    ],
+    "centroid": [
+      504.6,
+      370
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 217,
+    "timestamp_sec": 7.233,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.83,
+    "box": [
+      421.5,
+      244.9,
+      1280.0,
+      573.4
+    ],
+    "box_4k": [
+      1264.6,
+      734.7,
+      3840.0,
+      1720.3
+    ],
+    "centroid": [
+      850.8,
+      409
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 217,
+    "timestamp_sec": 7.233,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.183,
+    "box": [
+      402.5,
+      301.2,
+      605.0,
+      438.8
+    ],
+    "box_4k": [
+      1207.6,
+      903.5,
+      1814.9,
+      1316.4
+    ],
+    "centroid": [
+      503.8,
+      370
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 218,
+    "timestamp_sec": 7.267,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.77,
+    "box": [
+      428.1,
+      245.9,
+      1280.0,
+      573.8
+    ],
+    "box_4k": [
+      1284.2,
+      737.8,
+      3840.0,
+      1721.3
+    ],
+    "centroid": [
+      854.0,
+      410
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 218,
+    "timestamp_sec": 7.267,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.404,
+    "box": [
+      399.5,
+      301.0,
+      600.7,
+      436.8
+    ],
+    "box_4k": [
+      1198.6,
+      903.1,
+      1802.2,
+      1310.5
+    ],
+    "centroid": [
+      500.1,
+      369
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 219,
+    "timestamp_sec": 7.3,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.754,
+    "box": [
+      436.8,
+      244.1,
+      1272.4,
+      563.5
+    ],
+    "box_4k": [
+      1310.5,
+      732.2,
+      3817.3,
+      1690.5
+    ],
+    "centroid": [
+      854.6,
+      404
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 219,
+    "timestamp_sec": 7.3,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.304,
+    "box": [
+      398.4,
+      303.2,
+      599.7,
+      437.8
+    ],
+    "box_4k": [
+      1195.3,
+      909.6,
+      1799.1,
+      1313.4
+    ],
+    "centroid": [
+      499.1,
+      370
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 220,
+    "timestamp_sec": 7.333,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.76,
+    "box": [
+      432.7,
+      244.7,
+      1278.4,
+      568.8
+    ],
+    "box_4k": [
+      1298.1,
+      734.1,
+      3835.1,
+      1706.5
+    ],
+    "centroid": [
+      855.5,
+      407
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 220,
+    "timestamp_sec": 7.333,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.251,
+    "box": [
+      398.8,
+      304.7,
+      601.0,
+      439.6
+    ],
+    "box_4k": [
+      1196.4,
+      914.2,
+      1803.1,
+      1318.8
+    ],
+    "centroid": [
+      499.9,
+      372
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 221,
+    "timestamp_sec": 7.367,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.791,
+    "box": [
+      442.6,
+      246.1,
+      1280.0,
+      571.0
+    ],
+    "box_4k": [
+      1327.8,
+      738.3,
+      3840.0,
+      1712.9
+    ],
+    "centroid": [
+      861.3,
+      409
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 222,
+    "timestamp_sec": 7.4,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.827,
+    "box": [
+      435.3,
+      248.4,
+      1280.0,
+      573.8
+    ],
+    "box_4k": [
+      1305.8,
+      745.3,
+      3840.0,
+      1721.3
+    ],
+    "centroid": [
+      857.6,
+      411
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 223,
+    "timestamp_sec": 7.433,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.872,
+    "box": [
+      433.3,
+      249.5,
+      1277.0,
+      573.4
+    ],
+    "box_4k": [
+      1300.0,
+      748.4,
+      3830.9,
+      1720.2
+    ],
+    "centroid": [
+      855.2,
+      411
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 224,
+    "timestamp_sec": 7.467,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.838,
+    "box": [
+      432.5,
+      249.5,
+      1277.3,
+      573.8
+    ],
+    "box_4k": [
+      1297.4,
+      748.5,
+      3831.9,
+      1721.4
+    ],
+    "centroid": [
+      854.9,
+      412
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 225,
+    "timestamp_sec": 7.5,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.857,
+    "box": [
+      434.2,
+      249.0,
+      1280.0,
+      576.1
+    ],
+    "box_4k": [
+      1302.6,
+      746.9,
+      3840.0,
+      1728.2
+    ],
+    "centroid": [
+      857.1,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 225,
+    "timestamp_sec": 7.5,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.294,
+    "box": [
+      397.0,
+      307.1,
+      601.7,
+      442.2
+    ],
+    "box_4k": [
+      1191.1,
+      921.2,
+      1805.1,
+      1326.5
+    ],
+    "centroid": [
+      499.4,
+      375
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 226,
+    "timestamp_sec": 7.533,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.849,
+    "box": [
+      435.2,
+      248.6,
+      1280.0,
+      577.0
+    ],
+    "box_4k": [
+      1305.5,
+      745.9,
+      3840.0,
+      1731.0
+    ],
+    "centroid": [
+      857.6,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 226,
+    "timestamp_sec": 7.533,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.19,
+    "box": [
+      400.4,
+      311.3,
+      599.6,
+      441.6
+    ],
+    "box_4k": [
+      1201.3,
+      933.9,
+      1798.8,
+      1324.7
+    ],
+    "centroid": [
+      500.0,
+      376
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 227,
+    "timestamp_sec": 7.567,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.814,
+    "box": [
+      433.7,
+      245.0,
+      1278.5,
+      570.6
+    ],
+    "box_4k": [
+      1301.0,
+      734.9,
+      3835.4,
+      1711.7
+    ],
+    "centroid": [
+      856.1,
+      408
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 228,
+    "timestamp_sec": 7.6,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.825,
+    "box": [
+      434.0,
+      248.1,
+      1280.0,
+      574.9
+    ],
+    "box_4k": [
+      1302.0,
+      744.4,
+      3840.0,
+      1724.6
+    ],
+    "centroid": [
+      857.0,
+      412
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 229,
+    "timestamp_sec": 7.633,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.836,
+    "box": [
+      436.4,
+      249.0,
+      1280.0,
+      577.3
+    ],
+    "box_4k": [
+      1309.1,
+      747.1,
+      3840.0,
+      1731.9
+    ],
+    "centroid": [
+      858.2,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 230,
+    "timestamp_sec": 7.667,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.869,
+    "box": [
+      432.9,
+      249.1,
+      1280.0,
+      576.8
+    ],
+    "box_4k": [
+      1298.8,
+      747.3,
+      3840.0,
+      1730.3
+    ],
+    "centroid": [
+      856.5,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 231,
+    "timestamp_sec": 7.7,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.856,
+    "box": [
+      425.5,
+      249.1,
+      1276.1,
+      577.3
+    ],
+    "box_4k": [
+      1276.4,
+      747.2,
+      3828.4,
+      1731.8
+    ],
+    "centroid": [
+      850.8,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 232,
+    "timestamp_sec": 7.733,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.841,
+    "box": [
+      430.9,
+      250.8,
+      1277.4,
+      577.4
+    ],
+    "box_4k": [
+      1292.8,
+      752.5,
+      3832.3,
+      1732.3
+    ],
+    "centroid": [
+      854.2,
+      414
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 233,
+    "timestamp_sec": 7.767,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.853,
+    "box": [
+      432.4,
+      251.2,
+      1279.0,
+      578.0
+    ],
+    "box_4k": [
+      1297.3,
+      753.5,
+      3837.1,
+      1734.0
+    ],
+    "centroid": [
+      855.7,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 234,
+    "timestamp_sec": 7.8,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.835,
+    "box": [
+      434.0,
+      251.5,
+      1280.0,
+      579.2
+    ],
+    "box_4k": [
+      1302.1,
+      754.6,
+      3840.0,
+      1737.5
+    ],
+    "centroid": [
+      857.0,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 235,
+    "timestamp_sec": 7.833,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.854,
+    "box": [
+      435.5,
+      251.6,
+      1280.0,
+      580.0
+    ],
+    "box_4k": [
+      1306.4,
+      754.7,
+      3840.0,
+      1739.9
+    ],
+    "centroid": [
+      857.7,
+      416
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 236,
+    "timestamp_sec": 7.867,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.784,
+    "box": [
+      436.8,
+      251.3,
+      1280.0,
+      579.6
+    ],
+    "box_4k": [
+      1310.4,
+      754.0,
+      3840.0,
+      1738.7
+    ],
+    "centroid": [
+      858.4,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 237,
+    "timestamp_sec": 7.9,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.829,
+    "box": [
+      428.6,
+      250.5,
+      1279.3,
+      580.1
+    ],
+    "box_4k": [
+      1285.9,
+      751.5,
+      3837.8,
+      1740.4
+    ],
+    "centroid": [
+      854.0,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 238,
+    "timestamp_sec": 7.933,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.825,
+    "box": [
+      425.9,
+      250.6,
+      1278.2,
+      580.7
+    ],
+    "box_4k": [
+      1277.8,
+      751.7,
+      3834.6,
+      1742.1
+    ],
+    "centroid": [
+      852.1,
+      416
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 239,
+    "timestamp_sec": 7.967,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.816,
+    "box": [
+      426.8,
+      250.6,
+      1277.7,
+      580.0
+    ],
+    "box_4k": [
+      1280.5,
+      751.7,
+      3833.1,
+      1740.1
+    ],
+    "centroid": [
+      852.3,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 240,
+    "timestamp_sec": 8.0,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.777,
+    "box": [
+      432.1,
+      247.7,
+      1269.5,
+      570.9
+    ],
+    "box_4k": [
+      1296.4,
+      743.2,
+      3808.4,
+      1712.8
+    ],
+    "centroid": [
+      850.8,
+      409
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 241,
+    "timestamp_sec": 8.033,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.758,
+    "box": [
+      431.2,
+      246.7,
+      1265.5,
+      567.5
+    ],
+    "box_4k": [
+      1293.6,
+      740.0,
+      3796.4,
+      1702.6
+    ],
+    "centroid": [
+      848.3,
+      407
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 242,
+    "timestamp_sec": 8.067,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.828,
+    "box": [
+      434.5,
+      250.5,
+      1278.2,
+      575.5
+    ],
+    "box_4k": [
+      1303.6,
+      751.6,
+      3834.7,
+      1726.6
+    ],
+    "centroid": [
+      856.4,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 243,
+    "timestamp_sec": 8.1,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.813,
+    "box": [
+      434.7,
+      251.1,
+      1280.0,
+      578.1
+    ],
+    "box_4k": [
+      1304.1,
+      753.3,
+      3840.0,
+      1734.4
+    ],
+    "centroid": [
+      857.4,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 244,
+    "timestamp_sec": 8.133,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.801,
+    "box": [
+      437.6,
+      251.1,
+      1280.0,
+      578.4
+    ],
+    "box_4k": [
+      1312.8,
+      753.4,
+      3840.0,
+      1735.3
+    ],
+    "centroid": [
+      858.8,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 245,
+    "timestamp_sec": 8.167,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.811,
+    "box": [
+      433.4,
+      248.6,
+      1280.0,
+      577.9
+    ],
+    "box_4k": [
+      1300.2,
+      745.8,
+      3840.0,
+      1733.7
+    ],
+    "centroid": [
+      856.7,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 246,
+    "timestamp_sec": 8.2,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.829,
+    "box": [
+      434.4,
+      249.3,
+      1280.0,
+      578.4
+    ],
+    "box_4k": [
+      1303.2,
+      748.0,
+      3840.0,
+      1735.2
+    ],
+    "centroid": [
+      857.2,
+      414
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 247,
+    "timestamp_sec": 8.233,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.831,
+    "box": [
+      434.1,
+      249.5,
+      1280.0,
+      580.0
+    ],
+    "box_4k": [
+      1302.2,
+      748.4,
+      3840.0,
+      1740.1
+    ],
+    "centroid": [
+      857.0,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 248,
+    "timestamp_sec": 8.267,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.817,
+    "box": [
+      434.4,
+      249.7,
+      1280.0,
+      579.7
+    ],
+    "box_4k": [
+      1303.3,
+      749.0,
+      3840.0,
+      1739.1
+    ],
+    "centroid": [
+      857.2,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 249,
+    "timestamp_sec": 8.3,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.827,
+    "box": [
+      443.0,
+      249.5,
+      1280.0,
+      577.2
+    ],
+    "box_4k": [
+      1329.0,
+      748.5,
+      3840.0,
+      1731.7
+    ],
+    "centroid": [
+      861.5,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 249,
+    "timestamp_sec": 8.3,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.375,
+    "box": [
+      416.1,
+      315.1,
+      615.9,
+      444.8
+    ],
+    "box_4k": [
+      1248.4,
+      945.4,
+      1847.7,
+      1334.3
+    ],
+    "centroid": [
+      516.0,
+      380
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 250,
+    "timestamp_sec": 8.333,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.835,
+    "box": [
+      441.8,
+      248.7,
+      1280.0,
+      578.2
+    ],
+    "box_4k": [
+      1325.4,
+      746.2,
+      3840.0,
+      1734.6
+    ],
+    "centroid": [
+      860.9,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 250,
+    "timestamp_sec": 8.333,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.239,
+    "box": [
+      414.0,
+      314.3,
+      616.2,
+      444.6
+    ],
+    "box_4k": [
+      1242.1,
+      943.0,
+      1848.6,
+      1333.8
+    ],
+    "centroid": [
+      515.1,
+      379
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 251,
+    "timestamp_sec": 8.367,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.787,
+    "box": [
+      441.9,
+      250.0,
+      1280.0,
+      577.9
+    ],
+    "box_4k": [
+      1325.6,
+      750.1,
+      3840.0,
+      1733.6
+    ],
+    "centroid": [
+      860.9,
+      414
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 251,
+    "timestamp_sec": 8.367,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.123,
+    "box": [
+      413.7,
+      313.8,
+      618.8,
+      446.0
+    ],
+    "box_4k": [
+      1241.2,
+      941.3,
+      1856.4,
+      1338.0
+    ],
+    "centroid": [
+      516.3,
+      380
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 252,
+    "timestamp_sec": 8.4,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.787,
+    "box": [
+      439.9,
+      250.4,
+      1280.0,
+      579.5
+    ],
+    "box_4k": [
+      1319.8,
+      751.1,
+      3840.0,
+      1738.4
+    ],
+    "centroid": [
+      860.0,
+      415
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 253,
+    "timestamp_sec": 8.433,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.78,
+    "box": [
+      438.9,
+      250.2,
+      1280.0,
+      580.9
+    ],
+    "box_4k": [
+      1316.8,
+      750.6,
+      3840.0,
+      1742.8
+    ],
+    "centroid": [
+      859.5,
+      416
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 254,
+    "timestamp_sec": 8.467,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.792,
+    "box": [
+      439.3,
+      249.9,
+      1280.0,
+      581.3
+    ],
+    "box_4k": [
+      1318.0,
+      749.8,
+      3840.0,
+      1744.0
+    ],
+    "centroid": [
+      859.7,
+      416
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 255,
+    "timestamp_sec": 8.5,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.783,
+    "box": [
+      437.0,
+      249.7,
+      1280.0,
+      582.5
+    ],
+    "box_4k": [
+      1311.0,
+      749.1,
+      3840.0,
+      1747.4
+    ],
+    "centroid": [
+      858.5,
+      416
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 256,
+    "timestamp_sec": 8.533,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.817,
+    "box": [
+      442.9,
+      248.8,
+      1278.9,
+      576.5
+    ],
+    "box_4k": [
+      1328.6,
+      746.4,
+      3836.8,
+      1729.4
+    ],
+    "centroid": [
+      860.9,
+      413
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 257,
+    "timestamp_sec": 8.567,
+    "track_id": 1,
+    "class": "car",
+    "conf": 0.849,
+    "box": [
+      456.7,
+      244.3,
+      1280.0,
+      568.0
+    ],
+    "box_4k": [
+      1370.0,
+      733.0,
+      3840.0,
+      1704.1
+    ],
+    "centroid": [
+      868.3,
+      406
+    ],
+    "in_restricted_zone": false
+  },
+  {
+    "frame": 257,
+    "timestamp_sec": 8.567,
+    "track_id": 2,
+    "class": "car",
+    "conf": 0.554,
+    "box": [
+      401.8,
+      318.4,
+      612.5,
+      452.8
+    ],
+    "box_4k": [
+      1205.4,
+      955.3,
+      1837.6,
+      1358.3
+    ],
+    "centroid": [
+      507.2,
+      386
+    ],
+    "in_restricted_zone": false
+  }
+]

@@ -56,6 +56,11 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
   const [simulatingHandoff, setSimulatingHandoff] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
+  // Progressive disclosure controls (Content Stays, Density Drops)
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [showHandoffCalc, setShowHandoffCalc] = useState(false);
+  const [showCorridorPresets, setShowCorridorPresets] = useState(false);
+
   const currentIncident = useMemo(() => {
     return incidents.find((i) => i.incident_id === selectedId) || pendingIncidents[0] || incidents[0] || null;
   }, [incidents, pendingIncidents, selectedId]);
@@ -127,7 +132,7 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
       { step: 3, camera_id: "CAM_BRAVO", timestamp_iso: "18:42:08", rule_detail: "Cross-camera Re-ID match 94.2% within ETA window" },
       { step: 4, camera_id: "CAM_BRAVO", timestamp_iso: "18:42:11", rule_detail: "Persistent movement vector toward zero line" },
       { step: 5, camera_id: "SYSTEM", timestamp_iso: "18:42:15", rule_detail: "Threat score 87 / 100 · 5 correlated observations" },
-      { step: 6, camera_id: "SYSTEM", timestamp_iso: "18:42:16", rule_detail: "Evidence capsule sealed into SHA-256 ledger" },
+      { step: 6, camera_id: "SYSTEM", timestamp_iso: "18:42:16", rule_detail: "Evidence record verified and sealed" },
     ];
   }, [currentIncident]);
 
@@ -136,8 +141,8 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
       {/* ── SECTION HEADER ─────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <SectionHeader
-          title="Incident Reconstruction & Predictive Handoff"
-          sub="Correlates individual camera observations into a unified incident track, and forecasts target transit through blind corridors."
+          title="What Happened"
+          sub="A person crossed into a restricted area at Camera 1, moving east. The system predicted where they'd go next and found them again at Camera 2 just 8.5 seconds later."
         />
         {/* Incident Switcher Pills */}
         <div className="flex items-center gap-1.5 self-start sm:self-center">
@@ -230,235 +235,295 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
               </div>
             </div>
 
-            {/* Split Grid: Left = Reconstruction, Right = Predictive Handoff */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* ── LEFT COLUMN (7 cols): OBSERVATION LADDER & SCORE ─── */}
-              <div className="lg:col-span-7 flex flex-col gap-4">
-                {/* Chronological Observation Ladder */}
-                <div className="rounded-xl border border-white/10 bg-black/40 p-4 flex flex-col gap-3">
-                  <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
-                    <span className="font-bold text-sky-300 uppercase tracking-wider flex items-center gap-2">
-                      <Clock size={14} />
-                      Chronological Spatio-Temporal Progression
-                    </span>
-                    <span className="font-mono text-[11px]">{observationLadder.length} Nodes</span>
-                  </div>
+            {/* ── PLAIN-ENGLISH INCIDENT SUMMARY (ALWAYS VISIBLE) ─────── */}
+            <div className="rounded-xl border border-sky-500/25 bg-sky-950/20 px-4 py-3 text-xs text-slate-300 flex items-center justify-between gap-3 leading-relaxed">
+              <div>
+                <span className="font-semibold text-white">Incident Summary: </span>
+                A person crossed into a restricted area at Camera 1, moving east. The system predicted where they'd go next and found them again at Camera 2 just 8.5 seconds later.
+              </div>
+            </div>
 
-                  <div className="flex flex-col gap-2 pt-1">
-                    {observationLadder.map((obs, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-3 p-2.5 rounded-lg bg-black/50 border border-white/5 text-xs hover:border-white/15 transition-all"
-                      >
-                        <span className="shrink-0 rounded bg-slate-900 border border-white/10 px-2 py-0.5 text-[11px] text-slate-400 font-mono font-medium">
-                          {obs.timestamp_iso || "18:42:01"}
-                        </span>
-                        <span className="shrink-0 rounded bg-sky-950/60 border border-sky-500/30 px-2 py-0.5 text-[11px] text-sky-300 font-mono font-semibold">
-                          {obs.camera_id}
-                        </span>
-                        <span className="flex-1 text-slate-300 text-xs">
-                          {obs.rule_detail}
-                        </span>
-                        <span className="text-emerald-400 shrink-0 font-bold text-xs">✓</span>
-                      </div>
-                    ))}
-                  </div>
+            {/* ── PREDICTIVE HANDOFF SUMMARY CALLOUT (ALWAYS VISIBLE) ─── */}
+            <div className="rounded-xl border border-sky-500/30 bg-gradient-to-r from-sky-950/40 via-black/60 to-black/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-sky-500/40 bg-sky-500/10 text-sky-400">
+                  <GitBranch size={16} />
                 </div>
-
-                {/* Explainable Threat Score Breakdown */}
-                <div className="rounded-xl border border-white/10 bg-black/40 p-4 flex flex-col gap-3">
-                  <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
-                    <span className="font-bold uppercase tracking-wider text-slate-300">
-                      Explainable Threat Factor Breakdown
-                    </span>
-                    <span className="text-slate-400 font-mono text-[11px]">Total: {currentIncident.threat_score} pts</span>
+                <div>
+                  <div className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Camera Handoff</div>
+                  <div className="text-sm font-bold text-white flex items-center gap-2 flex-wrap font-mono mt-0.5">
+                    <span className="text-sky-300">Camera 1 ➔ Camera 2</span>
+                    <span className="text-slate-500 font-sans font-normal text-xs">·</span>
+                    <span className="text-emerald-300 font-sans text-xs font-semibold">Predicted correctly in 8.5 seconds</span>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs">
-                    {(currentIncident.score_breakdown || [
-                      { factor: "Restricted Red Zone Penetration", points: 30 },
-                      { factor: "Movement Toward Boundary", points: 20 },
-                      { factor: "Loitering Behaviour", points: 15 },
-                      { factor: "Cross-Camera Re-ID Match", points: 12 },
-                      { factor: "Night Window Curfew", points: 10 },
-                    ]).map((f, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between rounded-lg border border-white/10 bg-black/50 px-3 py-2"
-                      >
-                        <span className="text-slate-300 text-xs">{f.factor}</span>
-                        <span className="font-bold text-red-400 font-mono text-xs shrink-0 ml-2">+{f.points}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Commander Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      onClick={scrollToVault}
-                      className="flex items-center gap-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 px-3.5 py-2 text-xs font-semibold text-sky-300 hover:bg-sky-500/20 transition-all"
-                    >
-                      <Archive size={14} />
-                      <span>Evidence Capsule</span>
-                    </button>
-                    <a
-                      href={`/incidents/${currentIncident.incident_id}/dossier`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-lg border border-white/15 bg-black/60 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white transition-all"
-                    >
-                      <FileText size={14} className="text-sky-400" />
-                      <span>Section 65B Dossier</span>
-                    </a>
-                  </div>
-
-                  {isPending ? (
-                    <div className="flex items-center gap-2.5">
-                      {!showDismissPicker ? (
-                        <>
-                          <button
-                            onClick={() => handleConfirm(currentIncident.incident_id)}
-                            disabled={busyId === currentIncident.incident_id}
-                            className="flex items-center gap-1.5 rounded-lg border border-red-500/60 bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-500 transition-all shadow-md active:scale-95 disabled:opacity-50"
-                          >
-                            <CircleCheck size={14} />
-                            <span>Confirm Threat</span>
-                          </button>
-                          <button
-                            onClick={() => setShowDismissPicker(true)}
-                            className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/60 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white transition-all"
-                          >
-                            <XCircle size={14} />
-                            <span>Dismiss False Alarm</span>
-                          </button>
-                        </>
-                      ) : (
-                        <div className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-950/30 p-1.5 text-xs">
-                          <select
-                            value={selectedReason}
-                            onChange={(e) => setSelectedReason(e.target.value)}
-                            className="rounded-md border border-white/20 bg-black px-2.5 py-1 text-white text-xs focus:outline-none"
-                          >
-                            {DISMISS_REASONS.map((r) => (
-                              <option key={r.id} value={r.id}>
-                                {r.icon} {r.label}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            onClick={() => handleDismiss(currentIncident.incident_id, selectedReason)}
-                            className="rounded-md bg-amber-500 px-3 py-1 font-bold text-slate-950 hover:bg-amber-400 text-xs"
-                          >
-                            Confirm
-                          </button>
-                          <button onClick={() => setShowDismissPicker(false)} className="px-1.5 text-slate-400 hover:text-white">
-                            ✕
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-emerald-400 flex items-center gap-1.5 font-medium">
-                      <Check size={14} />
-                      <span>Incident confirmed & sealed to cryptographic ledger.</span>
-                    </div>
-                  )}
                 </div>
               </div>
 
-              {/* ── RIGHT COLUMN (5 cols): PREDICTIVE HANDOFF CARD ───── */}
-              <div className="lg:col-span-5 flex flex-col gap-4">
-                <div className="rounded-2xl border border-sky-500/40 bg-gradient-to-b from-sky-950/30 to-black/60 p-5 shadow-xl flex flex-col gap-4">
-                  {/* Handoff Header */}
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <div className="flex items-center gap-2">
-                      <GitBranch size={18} className="text-sky-400" />
-                      <span className="font-bold text-white text-sm tracking-wide">
-                        PREDICTIVE CAMERA HANDOFF
-                      </span>
-                    </div>
-                    <span className="rounded-md bg-emerald-500/15 border border-emerald-500/40 px-2.5 py-0.5 text-[10.5px] font-bold text-emerald-300">
-                      Topology Active
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                <button
+                  onClick={() => setShowHandoffCalc(!showHandoffCalc)}
+                  className="text-xs font-semibold text-sky-300 hover:text-sky-200 flex items-center gap-1 px-3 py-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 transition-all"
+                >
+                  <span>{showHandoffCalc ? "Hide calculation" : "View handoff calculation (7 metrics)"}</span>
+                  <span className={`transition-transform duration-200 ${showHandoffCalc ? "rotate-90" : ""}`}>→</span>
+                </button>
+                <button
+                  onClick={() => setShowCorridorPresets(!showCorridorPresets)}
+                  className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/10 bg-black/40 hover:bg-black/60 transition-all"
+                >
+                  <span>{showCorridorPresets ? "Hide presets" : "Camera Routes"}</span>
+                  <span className={`transition-transform duration-200 ${showCorridorPresets ? "rotate-90" : ""}`}>→</span>
+                </button>
+              </div>
+            </div>
+
+            {/* ── EXPANDABLE: HANDOFF CALCULATION (7 METRICS) ───────── */}
+            {showHandoffCalc && (
+              <div className="rounded-xl border border-sky-500/30 bg-black/60 p-4 animate-fadeIn flex flex-col gap-3">
+                <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
+                  <span className="font-bold text-sky-300 uppercase tracking-wider flex items-center gap-2">
+                    <Navigation size={14} />
+                    7-Point Multi-Camera Spatial Handoff Telemetry
+                  </span>
+                  <span className="rounded bg-emerald-500/15 border border-emerald-500/40 px-2 py-0.5 text-[10.5px] font-bold text-emerald-300">
+                    Topology Active
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs pt-1">
+                  <div className="flex items-center justify-between bg-black/50 p-2.5 rounded-lg border border-white/5">
+                    <span className="text-slate-400">1. Ingress Source Camera:</span>
+                    <span className="font-bold font-mono text-white">{activeCorridor.source}</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-black/50 p-2.5 rounded-lg border border-white/5">
+                    <span className="text-slate-400">2. Correlated Target Track:</span>
+                    <span className="font-bold font-mono text-sky-300">Person Detected (ID: P17)</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-black/50 p-2.5 rounded-lg border border-white/5">
+                    <span className="text-slate-400">3. Transit Heading Vector:</span>
+                    <span className="font-bold text-amber-300 flex items-center gap-1 font-mono">
+                      <Navigation size={11} />
+                      <span>{activeCorridor.dir} @ 1.8 m/s</span>
                     </span>
                   </div>
-
-                  {/* Clean Formatted Key-Value Telemetry Block */}
-                  <div className="flex flex-col gap-2.5 bg-black/60 rounded-xl p-4 border border-white/5 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Source Camera:</span>
-                      <span className="font-bold font-mono text-white">{activeCorridor.source}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Track ID:</span>
-                      <span className="font-bold font-mono text-sky-300">TRACK P17 [Person]</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Movement Heading:</span>
-                      <span className="font-bold text-amber-300 flex items-center gap-1.5">
-                        <Navigation size={12} />
-                        <span>{activeCorridor.dir} @ 1.8 m/s</span>
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between border-t border-white/5 pt-2">
-                      <span className="text-slate-400">Predicted Next Camera:</span>
-                      <span className="font-bold font-mono text-sky-400">{activeCorridor.target}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Calculated Arrival ETA:</span>
-                      <span className="font-bold text-white flex items-center gap-1.5">
-                        <Clock size={12} className="text-sky-400" />
-                        <span className="font-mono">{activeCorridor.eta}</span>
-                        <span className="text-slate-400 font-normal">({activeCorridor.dist} corridor)</span>
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Appearance Re-ID Match:</span>
-                      <span className="font-bold font-mono text-emerald-400">{activeCorridor.reid}</span>
-                    </div>
-                    <div className="flex items-center justify-between border-t border-white/5 pt-2">
-                      <span className="text-slate-400">Handoff Status:</span>
-                      <span className="font-bold text-emerald-300 flex items-center gap-1.5">
-                        <CheckCircle2 size={14} className="text-emerald-400 animate-pulse" />
-                        <span>✓ CONFIRMED</span>
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between bg-black/50 p-2.5 rounded-lg border border-white/5">
+                    <span className="text-slate-400">4. Predicted Egress Camera:</span>
+                    <span className="font-bold font-mono text-sky-400">{activeCorridor.target}</span>
                   </div>
-
-                  {/* Quick Preset Corridors */}
-                  <div className="flex flex-col gap-2">
-                    <span className="text-[11px] text-slate-400 uppercase font-semibold">
-                      Topological Corridor Presets:
+                  <div className="flex items-center justify-between bg-black/50 p-2.5 rounded-lg border border-white/5">
+                    <span className="text-slate-400">5. Arrival ETA Window:</span>
+                    <span className="font-bold text-white flex items-center gap-1 font-mono">
+                      <Clock size={11} className="text-sky-400" />
+                      <span>{activeCorridor.eta} ({activeCorridor.dist} corridor)</span>
                     </span>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {PRESET_CORRIDORS.map((c) => (
-                        <button
-                          key={c.id}
-                          onClick={() => setSelectedCorridorId(c.id)}
-                          className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all truncate ${
-                            c.id === selectedCorridorId
-                              ? "bg-sky-500/20 border-sky-400 text-sky-200"
-                              : "bg-black/40 border-white/10 text-slate-400 hover:text-white"
-                          }`}
-                        >
-                          {c.label}
-                        </button>
-                      ))}
-                    </div>
+                  </div>
+                  <div className="flex items-center justify-between bg-black/50 p-2.5 rounded-lg border border-white/5">
+                    <span className="text-slate-400">6. Re-ID Appearance Similarity:</span>
+                    <span className="font-bold font-mono text-emerald-400">{activeCorridor.reid} Match</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-black/50 p-2.5 rounded-lg border border-white/5 md:col-span-2">
+                    <span className="text-slate-400">7. Corridor Correlation Status:</span>
+                    <span className="font-bold text-emerald-300 flex items-center gap-1.5">
+                      <CheckCircle2 size={13} className="text-emerald-400 animate-pulse" />
+                      <span>✓ CONFIRMED HANDOFF · NO TARGET LOSS</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── EXPANDABLE: CORRIDOR PRESETS & TEST HANDOFF ────────── */}
+            {showCorridorPresets && (
+              <div className="rounded-xl border border-white/10 bg-black/60 p-4 animate-fadeIn flex flex-col gap-3">
+                <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
+                  <span className="font-bold text-slate-300 uppercase tracking-wider">
+                    Blind Corridor Presets & Spatial Transit Simulator
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-mono">3 Calibrated Sectors</span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-1">
+                  <div className="grid grid-cols-3 gap-2 flex-1 w-full">
+                    {PRESET_CORRIDORS.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => setSelectedCorridorId(c.id)}
+                        className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all truncate text-center ${
+                          c.id === selectedCorridorId
+                            ? "bg-sky-500/20 border-sky-400 text-sky-200 shadow-sm"
+                            : "bg-black/40 border-white/10 text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
                   </div>
 
-                  {/* Trigger Button */}
                   <button
                     onClick={handleSimulateHandoff}
                     disabled={simulatingHandoff}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-sky-500/60 bg-sky-500/20 py-3 text-xs font-bold text-sky-200 hover:bg-sky-500/30 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-sky-500/60 bg-sky-500/20 px-4 py-2.5 text-xs font-bold text-sky-200 hover:bg-sky-500/30 transition-all shadow-md active:scale-95 disabled:opacity-50 shrink-0 w-full sm:w-auto"
                   >
                     <Play size={13} fill="currentColor" className={simulatingHandoff ? "animate-spin" : ""} />
-                    <span>{simulatingHandoff ? "Computing Spatial Transit..." : "Simulate Live Handoff"}</span>
+                    <span>{simulatingHandoff ? "Computing Transit..." : "Simulate Live Handoff"}</span>
                   </button>
                 </div>
               </div>
+            )}
+
+            {/* ── OBSERVATION TIMELINE DISCLOSURE TOGGLE ─────────────── */}
+            <div className="flex items-center justify-between border-t border-white/10 pt-4">
+              <button
+                onClick={() => setShowTimeline(!showTimeline)}
+                className="text-xs font-semibold text-sky-300 hover:text-sky-200 flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 transition-all"
+              >
+                <Clock size={14} />
+                <span>{showTimeline ? "Hide observation timeline & factor breakdown" : `View full observation timeline (${observationLadder.length} events) & score breakdown →`}</span>
+              </button>
+              <span className="text-[11px] text-slate-400 font-mono hidden sm:inline">
+                {observationLadder.length} Spatio-temporal events · {currentIncident.threat_score} Points
+              </span>
+            </div>
+
+            {/* ── EXPANDABLE: FULL OBSERVATION LADDER & SCORE BREAKDOWN ── */}
+            {showTimeline && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fadeIn">
+                {/* Chronological Observation Ladder (7 cols) */}
+                <div className="lg:col-span-7 flex flex-col gap-4">
+                  <div className="rounded-xl border border-white/10 bg-black/40 p-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
+                      <span className="font-bold text-sky-300 uppercase tracking-wider flex items-center gap-2">
+                        <Clock size={14} />
+                        Chronological Spatio-Temporal Progression
+                      </span>
+                      <span className="font-mono text-[11px]">{observationLadder.length} Nodes</span>
+                    </div>
+
+                    <div className="flex flex-col gap-2 pt-1">
+                      {observationLadder.map((obs, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 p-2.5 rounded-lg bg-black/50 border border-white/5 text-xs hover:border-white/15 transition-all"
+                        >
+                          <span className="shrink-0 rounded bg-slate-900 border border-white/10 px-2 py-0.5 text-[11px] text-slate-400 font-mono font-medium">
+                            {obs.timestamp_iso || "18:42:01"}
+                          </span>
+                          <span className="shrink-0 rounded bg-sky-950/60 border border-sky-500/30 px-2 py-0.5 text-[11px] text-sky-300 font-mono font-semibold">
+                            {obs.camera_id}
+                          </span>
+                          <span className="flex-1 text-slate-300 text-xs">
+                            {obs.rule_detail}
+                          </span>
+                          <span className="text-emerald-400 shrink-0 font-bold text-xs">✓</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Explainable Threat Score Breakdown (5 cols) */}
+                <div className="lg:col-span-5 flex flex-col gap-4">
+                  <div className="rounded-xl border border-white/10 bg-black/40 p-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
+                      <span className="font-bold uppercase tracking-wider text-slate-300">
+                        Why This Score
+                      </span>
+                      <span className="text-slate-400 font-mono text-[11px]">Total: {currentIncident.threat_score} pts</span>
+                    </div>
+
+                    <div className="flex flex-col gap-2 pt-1 text-xs">
+                      {(currentIncident.score_breakdown || [
+                        { factor: "+30 — Entered a restricted zone", points: 30 },
+                        { factor: "+20 — Moving toward the border", points: 20 },
+                        { factor: "+12 — Matched on a second camera", points: 12 },
+                        { factor: "+10 — Happened at night", points: 10 },
+                      ]).map((f, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between rounded-lg border border-white/10 bg-black/50 px-3 py-2"
+                        >
+                          <span className="text-slate-300 text-xs">{f.factor}</span>
+                          <span className="font-bold text-red-400 font-mono text-xs shrink-0 ml-2">+{f.points}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── COMMANDER ACTIONS (ALWAYS VISIBLE AT BOTTOM) ───────── */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={scrollToVault}
+                  className="flex items-center gap-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 px-3.5 py-2 text-xs font-semibold text-sky-300 hover:bg-sky-500/20 transition-all"
+                >
+                  <Archive size={14} />
+                  <span>Evidence</span>
+                </button>
+                <a
+                  href={`/incidents/${currentIncident.incident_id}/dossier`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-lg border border-white/15 bg-black/60 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white transition-all"
+                >
+                  <FileText size={14} className="text-sky-400" />
+                  <span>View Record</span>
+                </a>
+              </div>
+
+              {isPending ? (
+                <div className="flex items-center gap-2.5">
+                  {!showDismissPicker ? (
+                    <>
+                      <button
+                        onClick={() => handleConfirm(currentIncident.incident_id)}
+                        disabled={busyId === currentIncident.incident_id}
+                        className="flex items-center gap-1.5 rounded-lg border border-red-500/60 bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-500 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                      >
+                        <CircleCheck size={14} />
+                        <span>Confirm Threat</span>
+                      </button>
+                      <button
+                        onClick={() => setShowDismissPicker(true)}
+                        className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/60 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white transition-all"
+                      >
+                        <XCircle size={14} />
+                        <span>Dismiss False Alarm</span>
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-950/30 p-1.5 text-xs">
+                      <select
+                        value={selectedReason}
+                        onChange={(e) => setSelectedReason(e.target.value)}
+                        className="rounded-md border border-white/20 bg-black px-2.5 py-1 text-white text-xs focus:outline-none"
+                      >
+                        {DISMISS_REASONS.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.icon} {r.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleDismiss(currentIncident.incident_id, selectedReason)}
+                        className="rounded-md bg-amber-500 px-3 py-1 font-bold text-slate-950 hover:bg-amber-400 text-xs"
+                      >
+                        Confirm
+                      </button>
+                      <button onClick={() => setShowDismissPicker(false)} className="px-1.5 text-slate-400 hover:text-white">
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-xs text-emerald-400 flex items-center gap-1.5 font-medium">
+                  <Check size={14} />
+                  <span>Incident confirmed & sealed to cryptographic ledger.</span>
+                </div>
+              )}
             </div>
           </>
         ) : (
