@@ -11,11 +11,11 @@ function useClock() {
 }
 
 const SECTION_LINKS = [
-  { id: "overview", label: "01 OVERVIEW" },
-  { id: "surveillance", label: "02 SURVEILLANCE LAB" },
-  { id: "incidents", label: "03 RECONSTRUCTION & HANDOFF" },
-  { id: "map", label: "04 BORDER MAP" },
-  { id: "custody", label: "05 EVIDENCE VAULT" },
+  { id: "overview", label: "Overview" },
+  { id: "surveillance", label: "Surveillance Lab" },
+  { id: "incidents", label: "Reconstruction & Handoff" },
+  { id: "map", label: "Border Map" },
+  { id: "custody", label: "Evidence Vault" },
 ];
 
 export default function StickyTopBar({
@@ -58,32 +58,32 @@ export default function StickyTopBar({
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#050b12]/95 backdrop-blur-md shadow-2xl transition-all">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5 gap-4">
         {/* Brand */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md border border-sky-500/40 bg-sky-500/10 shadow-[0_0_12px_rgba(56,189,248,0.2)]">
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-sky-500/40 bg-sky-500/10 shadow-[0_0_12px_rgba(56,189,248,0.2)]">
             <Shield size={18} className="text-sky-400" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[13.5px] font-bold tracking-wider text-white">IBVAP SENTINEL</span>
-              <span className="rounded bg-sky-500/15 px-1.5 py-0.2 font-mono text-[9.5px] font-semibold text-sky-300 border border-sky-500/30">
+              <span className="text-[14px] font-bold tracking-tight text-white">IBVAP SENTINEL</span>
+              <span className="rounded bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-sky-300 border border-sky-500/30">
                 CONSOLE
               </span>
             </div>
-            <div className="font-mono text-[10px] text-slate-400 tracking-tight">
-              SECTOR 4B · PUNJAB BORDER WATCHFLOOR
+            <div className="text-[11px] text-slate-400 tracking-normal font-medium">
+              Sector 4-B · Gurdaspur Watchfloor
             </div>
           </div>
         </div>
 
         {/* Section Quick Jump Anchors */}
-        <nav className="hidden lg:flex items-center gap-1 font-mono text-[11px]">
+        <nav className="hidden lg:flex items-center gap-1 text-xs">
           {SECTION_LINKS.map((link) => (
             <button
               key={link.id}
               onClick={() => scrollToSection(link.id)}
-              className="rounded px-2.5 py-1 text-slate-400 transition-colors hover:bg-white/5 hover:text-sky-300 active:text-sky-200"
+              className="rounded-lg px-3 py-1.5 font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-sky-300 active:text-sky-200"
             >
               {link.label}
             </button>
@@ -91,46 +91,47 @@ export default function StickyTopBar({
         </nav>
 
         {/* Controls & Telemetry */}
-        <div className="flex items-center gap-3.5 font-mono text-[11px]">
+        <div className="flex items-center gap-3 text-xs">
           {/* Link Status */}
           <div
-            className={`flex items-center gap-1.5 rounded border px-2 py-1 ${
+            className={`hidden sm:flex items-center gap-1.5 rounded-lg border px-2.5 py-1 ${
               online
                 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                 : "border-red-500/40 bg-red-500/15 text-red-300"
             }`}
           >
-            {online ? <Wifi size={12} /> : <WifiOff size={12} />}
-            <span className="font-semibold text-[10.5px]">{online ? "LINK NOMINAL" : "LINK OFFLINE"}</span>
+            {online ? <Wifi size={13} /> : <WifiOff size={13} />}
+            <span className="font-semibold text-[11px]">{online ? "Nominal" : "Offline"}</span>
           </div>
 
           {/* Honest Simulation Badge */}
-          <div className="hidden sm:flex items-center gap-1.5 rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-amber-300">
+          <div className="hidden md:flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-300">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span className="font-semibold text-[10px]">◇ SIMULATION MODE</span>
+            <span className="font-medium text-[11px]">◇ Simulation</span>
           </div>
 
           {/* Counts */}
-          <div className="hidden sm:flex items-center gap-2 text-slate-400 text-[10.5px]">
-            <span className="text-slate-200 font-semibold">{cameraCount}</span> SENSORS
+          <div className="hidden xl:flex items-center gap-1.5 text-slate-400 text-[11.5px]">
+            <span className="text-white font-semibold font-mono">{cameraCount}</span>
+            <span>Sensors</span>
             <span className="text-slate-600">/</span>
-            <span className={`font-semibold ${activeTrackCount > 0 ? "text-amber-400" : "text-slate-200"}`}>
+            <span className={`font-semibold font-mono ${activeTrackCount > 0 ? "text-amber-400" : "text-white"}`}>
               {activeTrackCount}
-            </span>{" "}
-            TRACKS
+            </span>
+            <span>Tracks</span>
           </div>
 
           {/* Demo Scenario Seeder & Reset Buttons */}
-          <div className="hidden md:flex items-center gap-1.5">
+          <div className="hidden sm:flex items-center gap-1.5">
             {onPopulateDemo && (
               <button
                 onClick={onPopulateDemo}
                 disabled={populatingDemo}
                 title="Seed 5 real distinct test scenarios via backend simulate-case"
-                className="flex items-center gap-1.5 rounded border border-white/10 bg-black/40 px-2.5 py-1 text-[10.5px] text-slate-300 hover:border-white/25 hover:text-white transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/40 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:border-white/25 hover:text-white transition-all disabled:opacity-50"
               >
-                <PlaySquare size={11} className="text-sky-400" />
-                <span>{populatingDemo ? "SEEDING..." : "SEED DEMO"}</span>
+                <PlaySquare size={12} className="text-sky-400" />
+                <span>{populatingDemo ? "Seeding..." : "Seed Demo"}</span>
               </button>
             )}
 
@@ -138,10 +139,10 @@ export default function StickyTopBar({
               <button
                 onClick={onResetDemo}
                 title="Reset simulation state to baseline"
-                className="flex items-center gap-1 rounded border border-white/10 bg-black/40 px-2 py-1 text-[10.5px] text-slate-400 hover:text-white hover:border-white/25 transition-all"
+                className="flex items-center gap-1 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-[11px] font-medium text-slate-400 hover:text-white hover:border-white/25 transition-all"
               >
                 <RotateCcw size={11} />
-                <span>RESET</span>
+                <span>Reset</span>
               </button>
             )}
           </div>
@@ -151,7 +152,7 @@ export default function StickyTopBar({
             onClick={handleSilenceClick}
             disabled={silencing}
             title="Silence system hardware siren and clear active acoustic alarm"
-            className={`group relative flex items-center gap-2 rounded-md border px-3 py-1.5 font-mono text-[11px] font-bold transition-all shadow-lg active:scale-95 ${
+            className={`group relative flex items-center gap-2 rounded-lg border px-3 py-1.5 text-[11.5px] font-bold transition-all shadow-lg active:scale-95 shrink-0 ${
               silencedFeedback
                 ? "border-emerald-500 bg-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                 : sirenActive
@@ -161,26 +162,26 @@ export default function StickyTopBar({
           >
             {silencedFeedback ? (
               <>
-                <CheckCircle2 size={13} className="text-emerald-400" />
-                <span>SIREN SILENCED</span>
+                <CheckCircle2 size={14} className="text-emerald-400" />
+                <span>Siren Silenced</span>
               </>
             ) : sirenActive ? (
               <>
-                <Bell size={13} className="text-red-400 animate-bounce" />
-                <span>ALARM ACTIVE · SILENCE</span>
+                <Bell size={14} className="text-red-400 animate-bounce" />
+                <span>Alarm Active · Silence</span>
               </>
             ) : (
               <>
-                <BellOff size={13} className="text-sky-400 group-hover:rotate-12 transition-transform" />
-                <span>SILENCE SIREN</span>
+                <BellOff size={14} className="text-sky-400 group-hover:rotate-12 transition-transform" />
+                <span>Silence Siren</span>
               </>
             )}
           </button>
 
           {/* Real Live Clock */}
-          <div className="hidden xl:flex items-center pl-1 font-mono text-[11px] text-white">
+          <div className="hidden lg:flex items-center pl-1 font-mono text-[11px] text-slate-300">
             <span>{timeStr}</span>
-            <span className="ml-1 text-slate-500 text-[9.5px]">IST</span>
+            <span className="ml-1 text-slate-500 text-[10px]">IST</span>
           </div>
         </div>
       </div>

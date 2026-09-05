@@ -25,7 +25,7 @@ export default function MapPanel({
   incidents = [],
   selectedId,
   onSelect,
-  className = "relative w-full h-[580px] rounded-2xl overflow-hidden border border-sky-500/30 bg-[#02060c] shadow-2xl font-mono",
+  className = "relative w-full h-[580px] rounded-2xl overflow-hidden border border-sky-500/30 bg-[#02060c] shadow-2xl",
 }) {
   // Layer visibility toggles
   const [showCones, setShowCones] = useState(true);
