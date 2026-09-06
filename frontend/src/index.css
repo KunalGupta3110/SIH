@@ -80,6 +80,38 @@ body {
   transform: scale(0.975);
 }
 
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+@keyframes drift-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-drift {
+  animation: drift-y 6s ease-in-out infinite;
+}
+@keyframes scan-band {
+  0% { transform: translateY(-110%); }
+  100% { transform: translateY(320%); }
+}
+.scanline {
+  position: relative;
+  overflow: hidden;
+}
+.scanline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 40%;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.09), transparent);
+  animation: scan-band 4.5s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -148,4 +180,114 @@ body {
 }
 .sentinel-console [class*="bg-white/"] svg {
   color: #ffffff !important;
+}
+
+/* ═══ Console design layer — bring it up to the landing's finish ═══ */
+
+.sentinel-console {
+  background: #000;
+  letter-spacing: 0.005em;
+}
+
+/* Tactical radius: tighter than the stock rounded-2xl */
+.sentinel-console [class*="rounded-2xl"] { border-radius: 8px !important; }
+.sentinel-console [class*="rounded-xl"]  { border-radius: 7px !important; }
+.sentinel-console [class*="rounded-lg"]  { border-radius: 6px !important; }
+.sentinel-console [class*="rounded-md"]  { border-radius: 5px !important; }
+
+/* Panel surfaces: a whisper of elevation instead of flat black boxes */
+.sentinel-console [class*="rounded-2xl"][class*="border"],
+.sentinel-console [class*="rounded-xl"][class*="border"] {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.008)) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 16px 40px -30px rgba(0, 0, 0, 0.9);
+}
+
+/* Hairline discipline everywhere */
+.sentinel-console [class*="border-white/12"],
+.sentinel-console [class*="border-white/10"],
+.sentinel-console [class*="border-white/8"] {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.sentinel-console [class*="divide-white"] > * + * {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Header: quiet, precise */
+.sentinel-console > header {
+  height: 60px !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(8px);
+}
+.sentinel-console > header input {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+.sentinel-console > header input:focus {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Nav rail: refined active state */
+.sentinel-console aside nav button,
+.sentinel-console aside nav a {
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease, padding 0.2s ease;
+}
+.sentinel-console aside nav .bg-white,
+.sentinel-console aside nav [class~="bg-white"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  box-shadow: inset 2px 0 0 #fff;
+}
+.sentinel-console aside nav .bg-white *,
+.sentinel-console aside nav [class~="bg-white"] * {
+  color: #fff !important;
+}
+.sentinel-console aside nav button:not([class~="bg-white"]):hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* KPI stat cards: top hairline accent + hover lift */
+.sentinel-console main > section:first-child [class*="rounded-2xl"] {
+  position: relative;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.22s ease;
+}
+.sentinel-console main > section:first-child [class*="rounded-2xl"]:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+/* Camera tiles: subtle scan shimmer */
+.sentinel-console .aspect-video {
+  position: relative;
+  overflow: hidden;
+}
+.sentinel-console .aspect-video::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 42%, rgba(255, 255, 255, 0.05) 50%, transparent 58%);
+  background-size: 100% 260%;
+  animation: scan-band 5s linear infinite;
+}
+
+/* Eyebrow-style small labels: consistent tracking */
+.sentinel-console .font-mono.uppercase,
+.sentinel-console [class*="tracking-"] {
+  letter-spacing: 0.16em;
+}
+
+/* Buttons: crisp press feedback */
+.sentinel-console button {
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.14s ease;
+}
+.sentinel-console button:active {
+  transform: scale(0.985);
+}
+
+/* View transitions */
+.sentinel-console main > * {
+  animation: fadeIn 0.35s ease both;
 }

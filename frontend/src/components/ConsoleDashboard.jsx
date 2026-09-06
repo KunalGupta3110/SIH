@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../lib/api.js";
 import siren from "../lib/audioSiren.js";
+import { CountUp } from "../lib/motion.jsx";
 import {
   Shield,
   Search,
@@ -430,7 +431,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       severity: "MEDIUM",
       status: "Medium",
       color: "text-white",
-      badge: "bg-white/20 text-white border-white/40",
+      badge: "bg-white/[0.06] text-white border-white/12",
       target: "Loitering Subject",
       sub: "Outside Buffer Zone",
       cam: "CAM_FOXTROT (Sector 4-B)",
@@ -618,7 +619,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
     setIncidentList((prev) =>
       prev.map((item) =>
         item.id === currentIncident.id
-          ? { ...item, status: "DISPATCHED", badge: "bg-white/20 text-white border-white/50" }
+          ? { ...item, status: "DISPATCHED", badge: "bg-white/[0.06] text-white border-white/12" }
           : item
       )
     );
@@ -650,7 +651,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
     <div className={`sentinel-console min-h-screen w-full ${darkMode ? "bg-[#000000]" : "bg-[#000000]"} text-white flex flex-col antialiased selection:bg-white selection:text-black font-sans`}>
       {/* ── ACTION NOTIFICATION TOAST ───────────────────────────── */}
       {actionNotice && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-3 rounded-xl bg-black/95 border border-white/60 px-4 py-3 text-xs text-white shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-md animate-fadeIn">
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-3 rounded-xl bg-black/95 border border-white/12 px-4 py-3 text-xs text-white shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-md animate-fadeIn">
           <CheckCircle2 size={16} className="text-white shrink-0" />
           <span className="font-mono">{actionNotice}</span>
           <button onClick={() => setActionNotice(null)} className="text-white/55 hover:text-white ml-2">
@@ -719,11 +720,11 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       )}
 
       {/* ── TOP HEADER BAR (Duty Commander / Command Operator) ────── */}
-      <header className="h-16 w-full border-b border-white/80 bg-[#000000] px-5 flex items-center justify-between shrink-0 sticky top-0 z-40">
+      <header className="h-16 w-full border-b border-white/12 bg-[#000000] px-5 flex items-center justify-between shrink-0 sticky top-0 z-40">
         {/* Left branding */}
         <div className="flex items-center gap-3">
           <Link to="/" onClick={() => triggerSound("click")} className="flex items-center gap-3 group">
-            <div className="h-9 w-9 rounded-xl bg-white/10 border border-white/40 flex items-center justify-center text-white shadow-none group-hover:scale-105 transition-transform">
+            <div className="h-9 w-9 rounded-xl bg-white/10 border border-white/12 flex items-center justify-center text-white shadow-none group-hover:scale-105 transition-transform">
               <Shield size={20} />
             </div>
             <div>
@@ -737,11 +738,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
             </div>
           </Link>
 
-          <div className="hidden xl:block h-5 w-[1px] bg-black mx-3" />
 
-          <div className="hidden xl:flex items-center text-[10.5px] tracking-[0.2em] font-medium text-white/55 uppercase font-mono">
-            SECURING TOMORROW&apos;S BORDERS
-          </div>
         </div>
 
         {/* Center/Right items */}
@@ -754,7 +751,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search incidents, cameras, tracks..."
-              className="h-9 w-64 lg:w-72 rounded-lg bg-[#000000] border border-white/60 pl-9 pr-3 text-xs text-white placeholder:text-white/55 focus:outline-none focus:border-white/70 transition-colors font-sans"
+              className="h-9 w-64 lg:w-72 rounded-lg bg-[#000000] border border-white/12 pl-9 pr-3 text-xs text-white placeholder:text-white/55 focus:outline-none focus:border-white/12 transition-colors font-sans"
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery("")} className="absolute right-2.5 text-white/55 hover:text-white">
@@ -763,19 +760,6 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
             )}
           </div>
 
-          {/* CCTV Ingress Simulator & Model Lab Quick Trigger */}
-          <button
-            onClick={() => {
-              triggerSound("click");
-              setActiveNav("surveillance");
-              setActiveSurveillanceView("testbed");
-            }}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/60 border border-white/50 text-white hover:bg-white/10 text-xs font-mono font-bold transition-all shadow-sm"
-          >
-            <Disc size={13} className="text-white animate-spin" />
-            <span>AI CCTV Lab</span>
-          </button>
-
           {/* Audio Squelch / FX Toggle */}
           <button
             onClick={() => {
@@ -783,21 +767,9 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
               triggerSound("click");
             }}
             title={audioEnabled ? "Tactical Audio On" : "Tactical Audio Muted"}
-            className="h-9 w-9 rounded-lg bg-[#000000] border border-white/60 flex items-center justify-center text-white/55 hover:text-white transition-colors"
+            className="h-9 w-9 rounded-lg bg-[#000000] border border-white/12 flex items-center justify-center text-white/55 hover:text-white transition-colors"
           >
             {audioEnabled ? <Volume2 size={15} className="text-white" /> : <VolumeX size={15} />}
-          </button>
-
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={() => {
-              setDarkMode(!darkMode);
-              triggerSound("click");
-            }}
-            title="Toggle stealth / twilight mode"
-            className="h-9 w-9 rounded-lg bg-[#000000] border border-white/60 flex items-center justify-center text-white/55 hover:text-white transition-colors"
-          >
-            {darkMode ? <Moon size={15} /> : <Sun size={15} />}
           </button>
 
           {/* Notification Bell */}
@@ -808,7 +780,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 setModalType(modalType === "notifications" ? null : "notifications");
               }}
               title="Notifications"
-              className="relative h-9 w-9 rounded-lg bg-[#000000] border border-white/60 flex items-center justify-center text-white/55 hover:text-white transition-colors"
+              className="relative h-9 w-9 rounded-lg bg-[#000000] border border-white/12 flex items-center justify-center text-white/55 hover:text-white transition-colors"
             >
               <Bell size={15} />
               <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 rounded-full bg-red-500 text-[9.5px] font-bold text-white flex items-center justify-center shadow-lg shadow-red-500/40">
@@ -824,7 +796,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <X size={13} />
                   </button>
                 </div>
-                <div className="divide-y divide-white/80 my-1 text-xs">
+                <div className="divide-y divide-white/10 my-1 text-xs">
                   {incidentList.slice(0, 3).map((n) => (
                     <div
                       key={n.id}
@@ -856,7 +828,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
             }}
             className="hidden sm:flex items-center gap-2.5 pl-1 border-l border-white/12 cursor-pointer hover:opacity-90 relative"
           >
-            <div className="h-8 w-8 rounded-full bg-black border border-white/40 flex items-center justify-center text-white font-bold text-xs">
+            <div className="h-8 w-8 rounded-full bg-black border border-white/12 flex items-center justify-center text-white font-bold text-xs">
               CO
             </div>
             <div className="text-left">
@@ -865,7 +837,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
             </div>
 
             {modalType === "operator" && (
-              <div className="absolute right-0 top-11 w-64 rounded-xl bg-[#000000] border border-white/40 p-3 shadow-2xl z-50 text-xs space-y-2 animate-fadeIn">
+              <div className="absolute right-0 top-11 w-64 rounded-xl bg-[#000000] border border-white/12 p-3 shadow-2xl z-50 text-xs space-y-2 animate-fadeIn">
                 <div className="font-bold text-white border-b border-white/12 pb-1.5">Operator Session</div>
                 <div className="space-y-1 text-white font-mono text-[11px]">
                   <div>Designation: <strong className="text-white">Duty Commander</strong></div>
@@ -888,7 +860,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       {/* ── BODY: LEFT SIDEBAR + MAIN CONTENT CANVAS ───────────── */}
       <div className="flex-1 flex overflow-hidden">
         {/* ── LEFT SIDEBAR (EXACT MATCH TO media_1788630611463.png) ─ */}
-        <aside className="w-56 bg-[#000000] border-r border-white/80 flex flex-col justify-between shrink-0 p-3 select-none">
+        <aside className="w-56 bg-[#000000] border-r border-white/12 flex flex-col justify-between shrink-0 p-3 select-none">
           {/* Navigation Items */}
           <nav className="space-y-1">
             {[
@@ -914,7 +886,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all group ${
                     isActive
-                      ? "bg-[#000000]/80 text-white border border-white/50 shadow-none font-semibold"
+                      ? "bg-[#000000]/80 text-white border border-white/12 shadow-none font-semibold"
                       : "text-white/55 hover:text-white hover:bg-black/40 border border-transparent font-medium"
                   }`}
                 >
@@ -944,7 +916,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           </nav>
 
           {/* Bottom pinned decorative watchtower illustration & ministry credit */}
-          <div className="mt-4 pt-3 border-t border-white/80">
+          <div className="mt-4 pt-3 border-t border-white/12">
             <div className="relative rounded-xl overflow-hidden bg-gradient-to-b from-[#000000] to-[#000000] border border-white/12 p-2 text-center mb-2">
               <div className="space-y-0.5 font-mono text-[8.5px] uppercase tracking-[0.25em] text-white/55">
                 <div>VIGILANCE</div>
@@ -971,39 +943,39 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
               <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
                 <div
                   onClick={() => { setActiveNav("surveillance"); }}
-                  className="rounded-2xl bg-[#000000] border border-white/90 p-3.5 flex items-center gap-3.5 shadow-sm hover:border-white/12 cursor-pointer transition-all"
+                  className="rounded-2xl bg-[#000000] border border-white/12 p-3.5 flex items-center gap-3.5 shadow-sm hover:border-white/30 cursor-pointer transition-all"
                 >
-                  <div className="h-11 w-11 rounded-xl bg-white/15 border border-white/30 flex items-center justify-center text-white shrink-0">
+                  <div className="h-11 w-11 rounded-xl bg-white/[0.06] border border-white/12 flex items-center justify-center text-white shrink-0">
                     <Video size={20} />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold font-mono text-white leading-tight">6 / 6</div>
+                    <div className="text-2xl font-bold font-mono text-white leading-tight tabular-nums"><CountUp value={6} />&thinsp;/&thinsp;6</div>
                     <div className="text-xs text-white/55">Cameras Online</div>
                   </div>
                 </div>
 
                 <div
                   onClick={() => { setActiveNav("incidents"); }}
-                  className="rounded-2xl bg-[#000000] border border-white/90 p-3.5 flex items-center gap-3.5 shadow-sm hover:border-white/12 cursor-pointer transition-all"
+                  className="rounded-2xl bg-[#000000] border border-white/12 p-3.5 flex items-center gap-3.5 shadow-sm hover:border-white/30 cursor-pointer transition-all"
                 >
-                  <div className="h-11 w-11 rounded-xl bg-black/30 border border-white/40 flex items-center justify-center text-white shrink-0">
+                  <div className="h-11 w-11 rounded-xl bg-black/30 border border-white/12 flex items-center justify-center text-white shrink-0">
                     <AlertTriangle size={20} />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold font-mono text-white leading-tight">3</div>
+                    <div className="text-2xl font-bold font-mono text-white leading-tight tabular-nums"><CountUp value={3} /></div>
                     <div className="text-xs text-white/55">Active Incidents</div>
                   </div>
                 </div>
 
                 <div
                   onClick={() => { setActiveNav("tracking"); }}
-                  className="rounded-2xl bg-[#000000] border border-white/90 p-3.5 flex items-center gap-3.5 shadow-sm hover:border-white/12 cursor-pointer transition-all"
+                  className="rounded-2xl bg-[#000000] border border-white/12 p-3.5 flex items-center gap-3.5 shadow-sm hover:border-white/30 cursor-pointer transition-all"
                 >
-                  <div className="h-11 w-11 rounded-xl bg-white/15 border border-white/30 flex items-center justify-center text-white shrink-0">
+                  <div className="h-11 w-11 rounded-xl bg-white/[0.06] border border-white/12 flex items-center justify-center text-white shrink-0">
                     <Crosshair size={20} />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold font-mono text-white leading-tight">12</div>
+                    <div className="text-2xl font-bold font-mono text-white leading-tight tabular-nums"><CountUp value={12} /></div>
                     <div className="text-xs text-white/55">Tracked Targets</div>
                   </div>
                 </div>
@@ -1014,20 +986,20 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     setSelectedIncidentId("INC-0042");
                     setModalType("alertDetails");
                   }}
-                  className="rounded-2xl bg-[#000000] border border-white/90 p-3.5 flex items-center gap-3.5 shadow-sm hover:border-white/12 cursor-pointer transition-all"
+                  className="rounded-2xl bg-[#000000] border border-white/12 p-3.5 flex items-center gap-3.5 shadow-sm hover:border-white/30 cursor-pointer transition-all"
                 >
-                  <div className="h-11 w-11 rounded-xl bg-white/15 border border-white/30 flex items-center justify-center text-white shrink-0">
+                  <div className="h-11 w-11 rounded-xl bg-white/[0.06] border border-white/12 flex items-center justify-center text-white shrink-0">
                     <BarChart3 size={20} />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold font-mono text-white leading-tight">87</div>
+                    <div className="text-2xl font-bold font-mono text-white leading-tight tabular-nums"><CountUp value={87} /></div>
                     <div className="text-xs text-white/55">Highest Threat Score</div>
                   </div>
                 </div>
 
                 <div
                   onClick={handleToggleArm}
-                  className="rounded-2xl bg-[#000000] border border-white/90 p-3.5 flex items-center justify-between shadow-sm cursor-pointer hover:border-emerald-500/40 transition-all"
+                  className="rounded-2xl bg-[#000000] border border-white/12 p-3.5 flex items-center justify-between shadow-sm cursor-pointer hover:border-emerald-500/40 transition-all"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="h-11 w-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
@@ -1053,7 +1025,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
               {/* MIDDLE ROW: LIVE SURVEILLANCE + ACTIVE ALERT */}
               <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 {/* 6 Cameras Grid */}
-                <div className="lg:col-span-7 rounded-2xl bg-[#000000] border border-white/90 p-4 space-y-3">
+                <div className="lg:col-span-7 rounded-2xl bg-[#000000] border border-white/12 p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -1063,7 +1035,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <div className="flex items-center gap-1 text-xs bg-[#000000] p-1 rounded-lg border border-white/12">
                       <button
                         onClick={() => { triggerSound("click"); setActiveSurveillanceView("grid"); }}
-                        className={`px-2.5 py-1 rounded-md transition-colors ${activeSurveillanceView === "grid" ? "bg-[#000000] text-white border border-white/40 font-semibold" : "text-white/55 hover:text-white"}`}
+                        className={`px-2.5 py-1 rounded-md transition-colors ${activeSurveillanceView === "grid" ? "bg-[#000000] text-white border border-white/12 font-semibold" : "text-white/55 hover:text-white"}`}
                       >
                         Grid View
                       </button>
@@ -1075,7 +1047,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       </button>
                       <button
                         onClick={() => { triggerSound("click"); setActiveSurveillanceView("focus"); }}
-                        className={`px-2.5 py-1 rounded-md transition-colors ${activeSurveillanceView === "focus" ? "bg-[#000000] text-white border border-white/40 font-semibold" : "text-white/55 hover:text-white"}`}
+                        className={`px-2.5 py-1 rounded-md transition-colors ${activeSurveillanceView === "focus" ? "bg-[#000000] text-white border border-white/12 font-semibold" : "text-white/55 hover:text-white"}`}
                       >
                         Focus View
                       </button>
@@ -1091,8 +1063,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           onClick={() => { triggerSound("click"); setSelectedCameraId(cam.id); }}
                           className={`group relative aspect-video rounded-xl overflow-hidden bg-black border transition-all cursor-pointer ${
                             isSelected
-                              ? "border-white/40 shadow-none ring-1 ring-white/50"
-                              : "border-white/90 hover:border-white/12"
+                              ? "border-white/12 shadow-none ring-1 ring-white/20"
+                              : "border-white/12 hover:border-white/30"
                           }`}
                         >
                           <video
@@ -1126,7 +1098,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 </div>
 
                 {/* Active Alert Panel */}
-                <div className="lg:col-span-5 rounded-2xl bg-[#000000] border border-white/90 p-4 flex flex-col justify-between space-y-3.5">
+                <div className="lg:col-span-5 rounded-2xl bg-[#000000] border border-white/12 p-4 flex flex-col justify-between space-y-3.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="h-7 w-7 rounded-lg bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400">
@@ -1178,7 +1150,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         <button
                           key={idx}
                           onClick={() => { triggerSound("click"); setActiveFactorInfo(f); }}
-                          className="px-2.5 py-1.5 rounded-lg bg-[#000000] border border-white/80 hover:border-white/50 text-[11px] font-medium text-white text-left truncate transition-colors"
+                          className="px-2.5 py-1.5 rounded-lg bg-[#000000] border border-white/12 hover:border-white/30 text-[11px] font-medium text-white text-left truncate transition-colors"
                         >
                           {f.label}
                         </button>
@@ -1189,21 +1161,21 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <div className="grid grid-cols-3 gap-2 pt-1">
                     <button
                       onClick={() => { triggerSound("click"); setModalType("alertDetails"); }}
-                      className="bg-[#171717] hover:bg-[#1f1f1f] text-white border border-white/80 font-bold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      className="bg-[#171717] hover:bg-[#1f1f1f] text-white border border-white/12 font-bold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
                     >
                       <span>View Details</span>
                       <ArrowRight size={13} />
                     </button>
                     <button
                       onClick={() => handleTrackTarget("P17")}
-                      className="bg-[#171717] hover:bg-[#1f1f1f] text-white border border-white/80 font-semibold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      className="bg-[#171717] hover:bg-[#1f1f1f] text-white border border-white/12 font-semibold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
                     >
                       <Crosshair size={13} />
                       <span>Track Target</span>
                     </button>
                     <button
                       onClick={() => handleOpenDispatch(currentIncident.id)}
-                      className="bg-white/60 hover:bg-white/10 border border-white/60 text-white font-semibold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1 shadow-none"
+                      className="bg-white/[0.06] hover:bg-white/10 border border-white/12 text-white font-semibold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1 shadow-none"
                     >
                       <Radio size={13} />
                       <span>Dispatch QRT</span>
@@ -1214,7 +1186,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
               {/* LOWER ROW: RECENT INCIDENTS + BORDER MAP */}
               <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                <div className="lg:col-span-6 rounded-2xl bg-[#000000] border border-white/90 p-4 space-y-3">
+                <div className="lg:col-span-6 rounded-2xl bg-[#000000] border border-white/12 p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Activity size={16} className="text-white/55" />
@@ -1238,7 +1210,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           <th className="pb-2 font-medium">STATUS</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/60 font-mono">
+                      <tbody className="divide-y divide-white/10 font-mono">
                         {filteredIncidents.map((inc) => {
                           const isRowSelected = selectedIncidentId === inc.id;
                           return (
@@ -1271,7 +1243,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 </div>
 
                 {/* Mini Border Map */}
-                <div className="lg:col-span-6 rounded-2xl bg-[#000000] border border-white/90 p-4 space-y-3 relative overflow-hidden flex flex-col justify-between">
+                <div className="lg:col-span-6 rounded-2xl bg-[#000000] border border-white/12 p-4 space-y-3 relative overflow-hidden flex flex-col justify-between">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Shield size={16} className="text-white" />
@@ -1286,7 +1258,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         triggerSound("click");
                         setMapTheme(mapTheme === "satellite" ? "schematic" : "satellite");
                       }}
-                      className="px-2.5 py-1 rounded-md bg-[#000000] border border-white/12 text-xs text-white flex items-center gap-1.5 hover:border-white/12 transition-colors"
+                      className="px-2.5 py-1 rounded-md bg-[#000000] border border-white/12 text-xs text-white flex items-center gap-1.5 hover:border-white/30 transition-colors"
                     >
                       <span>{mapTheme === "satellite" ? "Satellite" : "Schematic Grid"}</span>
                       <ChevronDown size={12} />
@@ -1334,7 +1306,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                             onClick={() => { triggerSound("click"); setActiveMapFilter(layer.toLowerCase()); }}
                             className={`px-2 py-1 rounded text-[10px] font-medium text-left transition-colors ${
                               isFilterActive
-                                ? "bg-white/20 text-white border border-white/40 font-semibold"
+                                ? "bg-white/[0.06] text-white border border-white/12 font-semibold"
                                 : "bg-[#000000]/80 text-white/55 hover:text-white border border-white/12"
                             }`}
                           >
@@ -1350,7 +1322,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       <button onClick={() => { triggerSound("click"); setMapZoom(1); }} className="h-7 w-7 rounded bg-[#000000]/90 border border-white/12 text-white hover:text-white flex items-center justify-center"><RotateCcw size={11} /></button>
                     </div>
 
-                    <div onClick={() => handleTrackTarget("P17")} className="absolute right-3 bottom-3 rounded-xl bg-[#000000]/95 border border-white/12 p-2.5 text-left text-[10.5px] font-mono shadow-xl backdrop-blur-sm cursor-pointer hover:border-white/50 transition-colors">
+                    <div onClick={() => handleTrackTarget("P17")} className="absolute right-3 bottom-3 rounded-xl bg-[#000000]/95 border border-white/12 p-2.5 text-left text-[10.5px] font-mono shadow-xl backdrop-blur-sm cursor-pointer hover:border-white/30 transition-colors">
                       <div className="flex items-center gap-1.5 font-bold text-white"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />Track #P17</div>
                       <div className="text-white">Moving NE · 5.2 km/h</div>
                       <div className="text-white font-semibold">Last: CAM_BRAVO</div>
@@ -1367,7 +1339,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {activeNav === "surveillance" && (
             <div className="space-y-4 animate-fadeIn">
               {/* Surveillance Sub-Nav Header */}
-              <div className="p-4 rounded-2xl bg-[#000000] border border-white/90 flex flex-wrap items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <Video size={18} className="text-white" />
@@ -1381,7 +1353,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <button
                       onClick={() => { triggerSound("click"); setActiveSurveillanceView("grid"); }}
                       className={`px-3 py-1.5 rounded-lg font-mono text-xs transition-colors ${
-                        activeSurveillanceView === "grid" ? "bg-white/20 text-white border border-white/40 font-bold" : "text-white/55 hover:text-white"
+                        activeSurveillanceView === "grid" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "text-white/55 hover:text-white"
                       }`}
                     >
                       6-Cam Grid
@@ -1398,7 +1370,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <button
                       onClick={() => { triggerSound("click"); setActiveSurveillanceView("focus"); }}
                       className={`px-3 py-1.5 rounded-lg font-mono text-xs transition-colors ${
-                        activeSurveillanceView === "focus" ? "bg-white/20 text-white border border-white/40 font-bold" : "text-white/55 hover:text-white"
+                        activeSurveillanceView === "focus" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "text-white/55 hover:text-white"
                       }`}
                     >
                       PTZ Focus
@@ -1412,7 +1384,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         key={mode}
                         onClick={() => { triggerSound("click"); setVisionMode(mode); }}
                         className={`px-2.5 py-1 rounded-lg capitalize font-mono text-xs transition-colors ${
-                          visionMode === mode ? "bg-white/20 text-white border border-white/40 font-bold" : "text-white/55 hover:text-white"
+                          visionMode === mode ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "text-white/55 hover:text-white"
                         }`}
                       >
                         {mode}
@@ -1431,7 +1403,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
               {activeSurveillanceView === "testbed" && (
                 <div className="space-y-4 animate-fadeIn">
                   {/* Testbed Top Command Bar */}
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-[#000000] to-[#000000] border border-white/40 space-y-3 shadow-lg">
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-[#000000] to-[#000000] border border-white/12 space-y-3 shadow-lg">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
@@ -1461,7 +1433,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         <button
                           onClick={handleStartTraining}
                           disabled={trainingActive}
-                          className="px-3.5 py-1.5 rounded-xl bg-white/60 border border-white/50 hover:bg-white text-black text-xs font-mono font-bold flex items-center gap-1.5 transition-colors shadow-md"
+                          className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/12 hover:bg-white text-black text-xs font-mono font-bold flex items-center gap-1.5 transition-colors shadow-md"
                         >
                           <Cpu size={13} />
                           <span>{trainingActive ? "Retraining Edge..." : "Fine-Tune YOLOv8"}</span>
@@ -1477,7 +1449,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           <button
                             onClick={() => { triggerSound("click"); setIngressScenario("vehicle"); }}
                             className={`px-2.5 py-1.5 rounded-lg text-xs font-mono text-left truncate transition-colors ${
-                              ingressScenario === "vehicle" ? "bg-white/20 text-white border border-white/50 font-bold" : "bg-[#000000] text-white/55 border border-white/12"
+                              ingressScenario === "vehicle" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "bg-[#000000] text-white/55 border border-white/12"
                             }`}
                           >
                             🚗 Vehicle Rush (42 km/h)
@@ -1485,7 +1457,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           <button
                             onClick={() => { triggerSound("click"); setIngressScenario("person"); }}
                             className={`px-2.5 py-1.5 rounded-lg text-xs font-mono text-left truncate transition-colors ${
-                              ingressScenario === "person" ? "bg-white/20 text-white border border-white/50 font-bold" : "bg-[#000000] text-white/55 border border-white/12"
+                              ingressScenario === "person" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "bg-[#000000] text-white/55 border border-white/12"
                             }`}
                           >
                             🏃 Infiltrator Crawl
@@ -1577,7 +1549,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                             ? "border-red-500 bg-red-500/10 shadow-[0_0_25px_rgba(239,68,68,0.8)]"
                             : ingressCalculatedThreat >= 50
                             ? "border-amber-400 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.5)]"
-                            : "border-white/40 bg-white/10"
+                            : "border-white/12 bg-white/10"
                         }`}
                         style={{
                           top: `${Math.max(15, 60 - ((150 - ingressDistance) / 140) * 35)}%`,
@@ -1641,7 +1613,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         </div>
 
                         {/* Training Terminal Log Box */}
-                        <div className="h-36 rounded-xl bg-[#000000] border border-white/80 p-2.5 font-mono text-[10.5px] text-white overflow-y-auto space-y-1">
+                        <div className="h-36 rounded-xl bg-[#000000] border border-white/12 p-2.5 font-mono text-[10.5px] text-white overflow-y-auto space-y-1">
                           <div className="text-white/55">// Edge Terminal Console Stream</div>
                           {trainingLogs.map((log, idx) => (
                             <div key={idx} className="text-white">{log}</div>
@@ -1678,7 +1650,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         key={cam.id}
                         onClick={() => { triggerSound("click"); setSelectedCameraId(cam.id); }}
                         className={`group rounded-2xl overflow-hidden bg-black border transition-all cursor-pointer ${
-                          isSelected ? "border-white/40 shadow-none ring-1 ring-white/60" : "border-white/12 hover:border-white/12"
+                          isSelected ? "border-white/12 shadow-none ring-1 ring-white/20" : "border-white/12 hover:border-white/30"
                         }`}
                       >
                         <div className="relative aspect-video">
@@ -1698,7 +1670,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           />
                           <div className="absolute top-2 inset-x-2 flex items-center justify-between text-[11px] font-mono text-white">
                             <span className="bg-black/70 px-2 py-0.5 rounded border border-white/12">{cam.name}</span>
-                            <span className="bg-black text-white/70 border border-white/25 px-2 py-0.5 rounded flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />LIVE</span>
+                            <span className="bg-black text-white/70 border border-white/12 px-2 py-0.5 rounded flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />LIVE</span>
                           </div>
                           {cam.hasDetection && (
                             <div className="absolute top-[20%] left-[38%] w-[24%] h-[60%] border-2 border-red-500 rounded pointer-events-none shadow-[0_0_12px_rgba(239,68,68,0.7)] flex flex-col justify-start">
@@ -1717,7 +1689,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           <div className="flex items-center gap-1">
                             <button onClick={(e) => { e.stopPropagation(); triggerSound("click"); setActionNotice(`${cam.name} PTZ preset 1 loaded.`); }} className="px-2 py-0.5 rounded bg-black hover:bg-black text-white">P1</button>
                             <button onClick={(e) => { e.stopPropagation(); triggerSound("click"); setActionNotice(`${cam.name} PTZ preset 2 loaded.`); }} className="px-2 py-0.5 rounded bg-black hover:bg-black text-white">P2</button>
-                            <button onClick={(e) => { e.stopPropagation(); triggerSound("click"); setSelectedCameraId(cam.id); setActiveSurveillanceView("focus"); }} className="px-2 py-0.5 rounded bg-white/60 border border-white/40 text-white">PTZ</button>
+                            <button onClick={(e) => { e.stopPropagation(); triggerSound("click"); setSelectedCameraId(cam.id); setActiveSurveillanceView("focus"); }} className="px-2 py-0.5 rounded bg-white/[0.06] border border-white/12 text-white">PTZ</button>
                           </div>
                         </div>
                       </div>
@@ -1841,7 +1813,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "incidents" && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#000000] border border-white/90">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#000000] border border-white/12">
                 <div>
                   <div className="flex items-center gap-2">
                     <AlertTriangle size={18} className="text-white" />
@@ -1850,7 +1822,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <p className="text-xs text-white/55 mt-0.5">Sector 4-B Northern Border Corridor • Correlated Multi-Camera Telemetry</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => { setActiveNav("evidence"); }} className="px-3.5 py-1.5 rounded-xl bg-white/50 border border-white/40 text-black hover:bg-white text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                  <button onClick={() => { setActiveNav("evidence"); }} className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/12 text-black hover:bg-white text-xs font-semibold flex items-center gap-1.5 transition-colors">
                     <Database size={13} />
                     <span>Evidence Vault</span>
                   </button>
@@ -1876,7 +1848,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       onClick={() => { triggerSound("click"); setIncidentSeverityFilter(sev); }}
                       className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                         isActive
-                          ? "bg-white/20 text-white border border-white/50 shadow-none"
+                          ? "bg-white/[0.06] text-white border border-white/12 shadow-none"
                           : "bg-[#000000] text-white/55 border border-white/12 hover:text-white"
                       }`}
                     >
@@ -1888,8 +1860,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredIncidents.map((inc) => (
-                  <div key={inc.id} className="p-4.5 rounded-2xl bg-[#000000] border border-white/90 hover:border-white/50 transition-all space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/80 pb-2.5">
+                  <div key={inc.id} className="p-4.5 rounded-2xl bg-[#000000] border border-white/12 hover:border-white/30 transition-all space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/12 pb-2.5">
                       <div className="flex items-center gap-2">
                         <span className={`font-mono font-extrabold text-sm ${inc.color}`}>{inc.id}</span>
                         <span className="text-xs text-white/55 font-mono">[{inc.time}]</span>
@@ -1918,7 +1890,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       </button>
                       <button
                         onClick={() => handleOpenDispatch(inc.id)}
-                        className="flex-1 py-2 rounded-xl bg-white/60 hover:bg-white/10 border border-white/60 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                        className="flex-1 py-2 rounded-xl bg-white/[0.06] hover:bg-white/10 border border-white/12 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
                       >
                         <Radio size={13} />
                         <span>Dispatch QRT</span>
@@ -1935,7 +1907,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "map" && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="p-4 rounded-2xl bg-[#000000] border border-white/90 flex flex-wrap items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <MapIcon size={18} className="text-white" />
@@ -2039,7 +2011,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
                 {/* Selected Camera Popover on Map */}
                 {selectedMapCamera && (
-                  <div className="absolute left-6 bottom-6 bg-[#000000]/95 border border-white/60 rounded-xl p-3 shadow-2xl z-20 text-xs font-mono space-y-1.5 w-64 backdrop-blur-md">
+                  <div className="absolute left-6 bottom-6 bg-[#000000]/95 border border-white/12 rounded-xl p-3 shadow-2xl z-20 text-xs font-mono space-y-1.5 w-64 backdrop-blur-md">
                     <div className="flex justify-between items-center text-white font-bold border-b border-white/12 pb-1">
                       <span>{selectedMapCamera}</span>
                       <button onClick={() => setSelectedMapCamera(null)} className="text-white/55 hover:text-white">
@@ -2072,9 +2044,9 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "tracking" && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="p-4 rounded-2xl bg-[#000000] border border-white/90 flex flex-wrap items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-white/15 border border-white/30 flex items-center justify-center text-white">
+                  <div className="h-9 w-9 rounded-xl bg-white/[0.06] border border-white/12 flex items-center justify-center text-white">
                     <Crosshair size={20} />
                   </div>
                   <div>
@@ -2090,7 +2062,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       key={cls}
                       onClick={() => { triggerSound("click"); setTargetClassFilter(cls); }}
                       className={`px-3 py-1 rounded-lg capitalize transition-colors ${
-                        targetClassFilter === cls ? "bg-white/20 text-white border border-white/50 font-bold" : "text-white/55 hover:text-white"
+                        targetClassFilter === cls ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "text-white/55 hover:text-white"
                       }`}
                     >
                       {cls}
@@ -2104,7 +2076,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <div
                     key={t.id}
                     onClick={() => handleTrackTarget(t.id)}
-                    className="p-4.5 rounded-2xl bg-[#000000] border border-white/90 hover:border-white/50 cursor-pointer transition-all space-y-3"
+                    className="p-4.5 rounded-2xl bg-[#000000] border border-white/12 hover:border-white/30 cursor-pointer transition-all space-y-3"
                   >
                     <div className="flex items-center gap-3">
                       <div className="h-16 w-16 rounded-xl overflow-hidden bg-black border border-white/12 shrink-0">
@@ -2134,9 +2106,9 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "reconstruction" && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="p-4 rounded-2xl bg-[#000000] border border-white/90 flex flex-wrap items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-white/15 border border-white/30 flex items-center justify-center text-white">
+                  <div className="h-9 w-9 rounded-xl bg-white/[0.06] border border-white/12 flex items-center justify-center text-white">
                     <GitBranch size={20} />
                   </div>
                   <div>
@@ -2186,7 +2158,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <video src="/data/reid_cam1_entry.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
                 </div>
 
-                <div className="rounded-2xl overflow-hidden bg-black border border-white/80 p-3 space-y-2 shadow-none">
+                <div className="rounded-2xl overflow-hidden bg-black border border-white/12 p-3 space-y-2 shadow-none">
                   <div className="flex items-center justify-between text-xs font-mono text-white">
                     <span className="font-bold text-white">CAM_BRAVO (Downstream Acquisition)</span>
                     <span className="text-white font-bold">● T=8.5s Re-ID Match</span>
@@ -2202,9 +2174,9 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "evidence" && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="p-4 rounded-2xl bg-[#000000] border border-white/90 flex flex-wrap items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-white/15 border border-white/30 flex items-center justify-center text-white">
+                  <div className="h-9 w-9 rounded-xl bg-white/[0.06] border border-white/12 flex items-center justify-center text-white">
                     <Database size={20} />
                   </div>
                   <div>
@@ -2218,7 +2190,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       triggerSound("verify");
                       setModalType("certificate");
                     }}
-                    className="px-3.5 py-2 rounded-xl bg-white/60 border border-white/50 hover:bg-white text-black text-xs font-bold flex items-center gap-1.5 transition-colors shadow-md"
+                    className="px-3.5 py-2 rounded-xl bg-white/[0.06] border border-white/12 hover:bg-white text-black text-xs font-bold flex items-center gap-1.5 transition-colors shadow-md"
                   >
                     <FileCheck size={14} />
                     <span>View Section 65B Certificate</span>
@@ -2266,7 +2238,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "analytics" && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="p-4 rounded-2xl bg-[#000000] border border-white/90 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <BarChart3 size={18} className="text-white" />
@@ -2310,7 +2282,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "hardware" && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="p-4 rounded-2xl bg-[#000000] border border-white/90 flex flex-wrap items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <Cpu size={18} className="text-white" />
@@ -2318,7 +2290,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   </h2>
                   <p className="text-xs text-white/55">On-Premise Sensor Gateway • Air-Gapped Cluster</p>
                 </div>
-                <div className="px-3 py-1 rounded-xl bg-white/60 border border-white/40 text-white text-xs font-mono">
+                <div className="px-3 py-1 rounded-xl bg-white/[0.06] border border-white/12 text-white text-xs font-mono">
                   Runtime: TensorRT INT8 Quantized
                 </div>
               </div>
@@ -2420,7 +2392,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "reports" && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="p-4 rounded-2xl bg-[#000000] border border-white/90 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <FileText size={18} className="text-white" />
@@ -2446,7 +2418,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         triggerSound("click");
                         setModalType("dossier");
                       }}
-                      className="px-3.5 py-1.5 rounded-xl bg-white/60 border border-white/40 text-white hover:bg-white/10 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                      className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/12 text-white hover:bg-white/10 text-xs font-bold flex items-center gap-1.5 transition-colors"
                     >
                       <Download size={13} />
                       <span>View Dossier</span>
@@ -2462,7 +2434,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "settings" && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="p-4 rounded-2xl bg-[#000000] border border-white/90 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <Settings size={18} className="text-white" />
@@ -2507,7 +2479,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           )}
 
           {/* ── FOOTER ───────────────────────────────────────────── */}
-          <footer className="pt-3 border-t border-white/80 flex flex-col sm:flex-row items-center justify-between text-[11px] text-white/55 gap-2">
+          <footer className="pt-3 border-t border-white/12 flex flex-col sm:flex-row items-center justify-between text-[11px] text-white/55 gap-2">
             <div className="flex items-center gap-3">
               <span className="font-semibold text-white">IBVAP SENTINEL v1.0.0</span>
               <span>|</span>
@@ -2528,7 +2500,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       {/* ── MODAL: TACTICAL QRT DISPATCH MODAL ─────────────────── */}
       {modalType === "dispatchModal" && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-[#000000] border border-white/60 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn space-y-4 p-6">
+          <div className="w-full max-w-lg bg-[#000000] border border-white/12 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn space-y-4 p-6">
             <div className="flex items-center justify-between border-b border-white/12 pb-3">
               <div className="flex items-center gap-2">
                 <Radio size={20} className="text-white" />
@@ -2555,7 +2527,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       key={u}
                       onClick={() => { triggerSound("click"); setDispatchUnit(u); }}
                       className={`p-2.5 rounded-xl border text-left text-[11px] transition-colors ${
-                        dispatchUnit === u ? "bg-white/60 border-white/70 text-white font-bold" : "bg-[#000000] border-white/12 text-white/55 hover:text-white"
+                        dispatchUnit === u ? "bg-white/[0.06] border-white/12 text-white font-bold" : "bg-[#000000] border-white/12 text-white/55 hover:text-white"
                       }`}
                     >
                       {u}
@@ -2564,7 +2536,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-white/30 border border-white/30 text-white text-[11px]">
+              <div className="p-2.5 rounded-xl bg-white/[0.06] border border-white/12 text-white text-[11px]">
                 Radio Squelch: VHF 156.800 MHz Encrypted Defense Relay Active
               </div>
             </div>
@@ -2585,7 +2557,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       {/* ── MODAL: SECTION 65B INDIAN EVIDENCE ACT FORMAL CERTIFICATE ── */}
       {modalType === "certificate" && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-[#000000] border border-white/60 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn p-6 space-y-4">
+          <div className="w-full max-w-2xl bg-[#000000] border border-white/12 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-white/12 pb-3">
               <div className="flex items-center gap-2">
                 <FileCheck size={20} className="text-white" />
@@ -2729,7 +2701,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       {/* ── MODAL: FACTOR EXPLANATION ──────────────────────────── */}
       {activeFactorInfo && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-[#000000] border border-white/60 rounded-2xl p-5 shadow-2xl space-y-3 animate-fadeIn">
+          <div className="w-full max-w-md bg-[#000000] border border-white/12 rounded-2xl p-5 shadow-2xl space-y-3 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-white/12 pb-2">
               <span className="text-xs font-bold font-mono text-white">{activeFactorInfo.label}</span>
               <button onClick={() => setActiveFactorInfo(null)} className="text-white/55 hover:text-white">
@@ -2751,7 +2723,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       {/* ── MODAL: FULL DOSSIER REPORT ─────────────────────────── */}
       {modalType === "dossier" && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl bg-[#000000] border border-white/60 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn p-6 space-y-4">
+          <div className="w-full max-w-3xl bg-[#000000] border border-white/12 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-white/12 pb-3">
               <div className="flex items-center gap-2">
                 <FileText size={20} className="text-white" />
