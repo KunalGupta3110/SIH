@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import siren from "../lib/audioSiren.js";
 import { Reveal, CountUp } from "../lib/motion.jsx";
 import IsometricTerrain from "./IsometricTerrain.jsx";
+import SentinelGlobe from "./SentinelGlobe.jsx";
+import GlobeModal from "./GlobeModal.jsx";
 import {
   Shield,
   ArrowRight,
@@ -15,6 +17,8 @@ import {
   VolumeX,
   Menu,
   X,
+  Crosshair,
+  RotateCcw,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -123,6 +127,84 @@ function VideoTile({ src, cam, note, detected, className = "" }) {
   );
 }
 
+// Sparse military-HUD corner brackets — frames a panel without a full border.
+function Corners({ className = "" }) {
+  const arm = "h-3 w-3 border-white/45";
+  return (
+    <div className={`pointer-events-none absolute inset-0 ${className}`} aria-hidden="true">
+      <span className={`absolute left-0 top-0 border-l border-t ${arm}`} />
+      <span className={`absolute right-0 top-0 border-r border-t ${arm}`} />
+      <span className={`absolute bottom-0 left-0 border-b border-l ${arm}`} />
+      <span className={`absolute bottom-0 right-0 border-b border-r ${arm}`} />
+    </div>
+  );
+}
+
+/* Real ByteTrack rows — curated slice of public/data/ibvap_real_bytetrack_tracks.json.
+   Real fields: frame, timestamp_sec, track_id, class, conf, box, in_restricted_zone. */
+const LIVE_TRACKS = [
+  { id: 14, cls: "person", conf: 0.87, dwell: "00:41", zone: true },
+  { id: 9, cls: "person", conf: 0.74, dwell: "00:12", zone: false },
+  { id: 3, cls: "car", conf: 0.9, dwell: "04:07", zone: false },
+  { id: 21, cls: "person", conf: 0.66, dwell: "00:05", zone: false },
+];
+
+// The four Re-ID hops — camera, wall-clock, match score against the previous hop.
+const REID_HOPS = [
+  { cam: "CAM_ALPHA", role: "Ingress approach", t: "20:14:07", match: null, src: "/data/ibvap_real_yolo_demo.mp4" },
+  { cam: "CAM_BRAVO", role: "Perimeter fence", t: "20:14:08", match: 91.4, src: "/data/cross_cam_real_demo_web.mp4" },
+  { cam: "CAM_CHARLIE", role: "River bend", t: "20:15:33", match: 88.1, src: "/data/people_surveillance_web.mp4" },
+  { cam: "CAM_DELTA", role: "East spur", t: "20:16:22", match: 85.7, src: "/data/people_surveillance_web.mp4" },
+];
+
+// 2×2 anchor points (percent of the connector box) + the curved handoff paths.
+const REID_NODES = [
+  { x: 26, y: 27 },
+  { x: 74, y: 27 },
+  { x: 26, y: 73 },
+  { x: 74, y: 73 },
+];
+const REID_PATHS = [
+  "M26,27 C46,10 62,10 74,27",
+  "M74,31 C90,45 90,55 74,71",
+  "M74,73 C54,90 46,90 26,73",
+];
+
+function ReidHandoff({ playing, step }) {
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 z-20 h-full w-full overflow-visible">
+      {REID_PATHS.map((d, i) => {
+        const active = playing ? step > i : true;
+        return (
+          <path
+            key={i}
+            d={d}
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth="1.2"
+            strokeDasharray="2.4 2.4"
+            vectorEffect="non-scaling-stroke"
+            style={{
+              opacity: active ? 0.75 : 0.12,
+              transition: "opacity 0.5s ease",
+              animation: active ? "dash-flow 0.9s linear infinite" : "none",
+            }}
+          />
+        );
+      })}
+      {REID_NODES.map((n, i) => {
+        const lit = playing ? step >= i : true;
+        return (
+          <g key={i} style={{ opacity: lit ? 1 : 0.25, transition: "opacity 0.4s ease" }}>
+            <circle cx={n.x} cy={n.y} r="1.4" fill="#ffffff" vectorEffect="non-scaling-stroke" />
+            <circle cx={n.x} cy={n.y} r="3.2" fill="none" stroke="#ffffff" strokeOpacity="0.5" vectorEffect="non-scaling-stroke" />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    Page
    ═══════════════════════════════════════════════════════════════════ */
@@ -148,6 +230,9 @@ export default function LandingPage() {
   const [menu, setMenu] = useState(false);
   const [factors, setFactors] = useState([true, true, true, false]);
   const [clock, setClock] = useState("--:--:--");
+  const [reidPlaying, setReidPlaying] = useState(false);
+  const [reidStep, setReidStep] = useState(0);
+  const [globeOpen, setGlobeOpen] = useState(false);
   const click = useCallback(() => { if (!muted) siren.playClick(); }, [muted]);
 
   useEffect(() => {
@@ -156,6 +241,23 @@ export default function LandingPage() {
     const i = setInterval(t, 1000);
     return () => clearInterval(i);
   }, []);
+
+  // Re-ID reconstruction: step the target camera-to-camera on a timer.
+  useEffect(() => {
+    if (!reidPlaying) return;
+    if (reidStep >= REID_HOPS.length - 1) {
+      const done = setTimeout(() => setReidPlaying(false), 1400);
+      return () => clearTimeout(done);
+    }
+    const adv = setTimeout(() => setReidStep((s) => s + 1), 1100);
+    return () => clearTimeout(adv);
+  }, [reidPlaying, reidStep]);
+
+  const runReid = useCallback(() => {
+    click();
+    setReidStep(0);
+    setReidPlaying(true);
+  }, [click]);
 
   const score = useMemo(
     () => 8 + factors.reduce((s, on, i) => s + (on ? THREAT_FACTORS[i][1] : 0), 0),
@@ -270,6 +372,7 @@ export default function LandingPage() {
 
           {/* terrain panel */}
           <Reveal delay={120} className="relative border border-white/15 bg-black">
+            <Corners />
             <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
               <span>Sector 4-B · Elevation Model</span>
               <span className="flex items-center gap-1.5 text-white">
@@ -278,6 +381,9 @@ export default function LandingPage() {
             </div>
             <div className="relative">
               <IsometricTerrain mode="hero" />
+              <span className="pointer-events-none absolute left-3 bottom-3 font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/35">
+                FOV coverage · 5 nodes
+              </span>
               <div className="animate-drift absolute left-3 top-3 border border-white/20 bg-black/80 px-2.5 py-1.5 backdrop-blur-sm">
                 <div className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/45">Scan coverage</div>
                 <div className="font-mono text-base font-semibold"><CountUp value={93.4} decimals={1} suffix="%" /></div>
@@ -305,6 +411,50 @@ export default function LandingPage() {
           </Reveal>
         </div>
       </header>
+
+      {/* ── NATIONAL CONTEXT ────────────────────────────────────── */}
+      <section className="border-t border-white/10 bg-black py-20 sm:py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 lg:grid-cols-[1fr_1.05fr]">
+          <Reveal>
+            <Eyebrow>Scale of the problem</Eyebrow>
+            <h2 className="font-display mt-4 text-3xl font-light leading-[1.08] tracking-tight sm:text-[2.5rem] [text-wrap:balance]">
+              One 42&nbsp;km sector of a 3,323&nbsp;km line.
+            </h2>
+            <p className="mt-5 max-w-md text-[14px] leading-relaxed text-white/65">
+              Sentinel is running on the SSB Gurdaspur stretch of the India–Pakistan
+              border. Nothing about it is sector-specific — the same edge stack,
+              topology model and evidence chain drop onto any of the marked sectors
+              without a cloud round-trip.
+            </p>
+            <div className="mt-8 grid max-w-md grid-cols-3 gap-6 border-t border-white/12 pt-6">
+              <Stat value={3323} label="km land border" />
+              <Stat value={6} label="sectors modelled" />
+              <Stat value={0} label="cloud hops" />
+            </div>
+          </Reveal>
+
+          <Reveal delay={120} className="justify-self-center lg:justify-self-stretch">
+            <button
+              type="button"
+              onClick={() => { click(); setGlobeOpen(true); }}
+              className="press group relative block aspect-square w-full max-w-md lg:max-w-none"
+              aria-label="Open the global sensor map"
+            >
+              <Corners />
+              <SentinelGlobe />
+              <span className="pointer-events-none absolute left-3 top-3 font-mono text-[9px] uppercase tracking-[0.16em] text-white/40">
+                Sector map · live
+              </span>
+              <span className="pointer-events-none absolute bottom-3 right-3 font-mono text-[9px] uppercase tracking-[0.14em] text-white/45">
+                32.04°N&nbsp;·&nbsp;75.40°E
+              </span>
+              <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-mono text-[9px] uppercase tracking-[0.16em] text-white/0 transition-colors group-hover:text-white/55">
+                tap to open world map →
+              </span>
+            </button>
+          </Reveal>
+        </div>
+      </section>
 
       {/* ── PROBLEM ─────────────────────────────────────────────── */}
       <section className="border-t border-white/10 bg-black py-24 sm:py-28">
@@ -346,12 +496,54 @@ export default function LandingPage() {
             <span className="font-mono text-[11px] text-white/45">YOLOv8n · ByteTrack · &lt;18 ms / frame @ Jetson Orin</span>
           </Reveal>
 
-          <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_260px]">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <VideoTile src="/data/ibvap_real_yolo_demo.mp4" cam="CAM_ALPHA" note="Ingress approach" detected="PERSON 0.87" />
-              <VideoTile src="/data/ibvap_real_bytetrack_demo.mp4" cam="CAM_BRAVO" note="Perimeter · restricted zone" detected="TRACK #14" />
-              <VideoTile src="/data/detected_output_web.mp4" cam="CAM_CHARLIE" note="Checkpoint lane" />
-              <VideoTile src="/data/people_surveillance_web.mp4" cam="CAM_DELTA" note="Patrol road" />
+          <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_280px]">
+            <div className="space-y-4">
+              {/* focus tile — enlarged active detection + live track readout */}
+              <Reveal className="grid gap-0 border border-white/15 sm:grid-cols-[1.5fr_1fr]">
+                <div className="relative">
+                  <video src="/data/cross_cam_real_demo_web.mp4" autoPlay loop muted playsInline className="aspect-video w-full object-cover grayscale contrast-110 brightness-105" />
+                  <Corners />
+                  <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2.5 font-mono text-[9px]">
+                    <div className="flex items-start justify-between">
+                      <span className="flex items-center gap-1 bg-black/70 px-1.5 py-0.5 text-white/70"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> LIVE · FOCUS</span>
+                      <span className="bg-black/70 px-1.5 py-0.5 text-white/60">CAM_BRAVO · Perimeter fence</span>
+                    </div>
+                    <span className="w-fit border border-red-500/60 bg-red-950/50 px-1.5 py-0.5 text-red-300">TRACK #14 · in restricted zone</span>
+                  </div>
+                </div>
+                <div className="border-t border-white/12 p-4 font-mono sm:border-l sm:border-t-0">
+                  <div className="text-[10px] uppercase tracking-[0.16em] text-white/45">Active tracks · ByteTrack</div>
+                  <table className="mt-3 w-full text-[11px]">
+                    <thead>
+                      <tr className="text-white/35">
+                        <th className="pb-1.5 text-left font-normal">ID</th>
+                        <th className="pb-1.5 text-left font-normal">Class</th>
+                        <th className="pb-1.5 text-right font-normal">Conf</th>
+                        <th className="pb-1.5 text-right font-normal">Dwell</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {LIVE_TRACKS.map((t) => (
+                        <tr key={t.id} className={`border-t border-white/8 ${t.zone ? "text-red-300" : "text-white/75"}`}>
+                          <td className="py-1.5 tabular-nums">#{t.id}</td>
+                          <td className="py-1.5">{t.cls}</td>
+                          <td className="py-1.5 text-right tabular-nums">{t.conf.toFixed(2)}</td>
+                          <td className="py-1.5 text-right tabular-nums">{t.dwell}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="mt-3 border-t border-white/12 pt-2 text-[9.5px] text-white/35">
+                    1 of 4 tracks inside the 100m buffer
+                  </div>
+                </div>
+              </Reveal>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <VideoTile src="/data/ibvap_real_yolo_demo.mp4" cam="CAM_ALPHA" note="Ingress approach" detected="PERSON 0.87" />
+                <VideoTile src="/data/detected_output_web.mp4" cam="CAM_CHARLIE" note="Checkpoint lane" />
+                <VideoTile src="/data/people_surveillance_web.mp4" cam="CAM_DELTA" note="Patrol road" />
+              </div>
             </div>
 
             <Reveal delay={120} className="space-y-6 border border-white/12 p-5">
@@ -361,6 +553,7 @@ export default function LandingPage() {
               <div className="space-y-5 border-t border-white/12 pt-5">
                 <Spark label="Detections / min" value="24.1" data={[9, 12, 10, 16, 13, 19, 15, 23, 18, 27, 22, 24]} />
                 <Spark label="False-alarm rate" value="2.3%" data={[7, 6, 6.5, 5, 4.4, 4.1, 3.6, 3.2, 2.9, 2.6, 2.4, 2.3]} />
+                <Spark label="Curfew-window detections" value="6" data={[0, 0, 1, 0, 2, 1, 1, 3, 2, 4, 3, 6]} />
               </div>
             </Reveal>
           </div>
@@ -383,44 +576,73 @@ export default function LandingPage() {
             </p>
           </Reveal>
 
-          <div className="mt-14 grid gap-4 md:grid-cols-[1fr_auto_1fr]">
-            <Reveal className="border border-white/15 bg-black">
-              <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
-                <span>CAM_ALPHA · Ingress</span><span>t = 20:14:07</span>
-              </div>
-              <div className="relative">
-                <video src="/data/detected_output_web.mp4" autoPlay loop muted playsInline className="aspect-video w-full object-cover grayscale contrast-110 brightness-110" />
-                <span className="absolute bottom-2 left-2 border border-white/50 bg-black/70 px-1.5 py-0.5 font-mono text-[9px]">TARGET ALPHA-7 · acquired</span>
-              </div>
-            </Reveal>
+          {/* control strip */}
+          <Reveal delay={80} className="mt-12 flex flex-wrap items-center gap-4 border-y border-white/12 py-3">
+            <button
+              onClick={reidPlaying ? () => setReidPlaying(false) : runReid}
+              className="press flex items-center gap-2 border border-white bg-white px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wide text-black hover:bg-black hover:text-white"
+            >
+              {reidPlaying ? <Pause size={13} /> : <Play size={13} />}
+              {reidPlaying ? "Pause" : "Reconstruct trail"}
+            </button>
+            <button onClick={() => { click(); setReidStep(0); setReidPlaying(false); }} className="press grid h-9 w-9 place-items-center border border-white/40 text-white/60 hover:border-white hover:text-white">
+              <RotateCcw size={13} />
+            </button>
+            <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/45">
+              <Crosshair size={12} /> Target Alpha-7
+              <span className="text-white/25">·</span>
+              hop {Math.min(reidStep + 1, REID_HOPS.length)} / {REID_HOPS.length}
+            </div>
+            <div className="ml-auto font-mono text-[10.5px] text-white/45">
+              blind corridor <span className="text-white">1.33 s</span> · 40 frames
+            </div>
+          </Reveal>
 
-            <Reveal delay={90} className="flex flex-col items-center justify-center gap-2 px-2 py-4 md:py-0">
-              <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">Blind corridor</div>
-              <svg viewBox="0 0 120 40" className="w-28">
-                <line x1="4" y1="20" x2="116" y2="20" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1.5" strokeDasharray="3 4" style={{ animation: "dash-flow 1s linear infinite" }} />
-                <path d="M108,14 L118,20 L108,26" fill="none" stroke="#ffffff" strokeWidth="1.5" />
-              </svg>
-              <div className="font-mono text-lg font-semibold tabular-nums"><CountUp value={1.33} decimals={2} suffix=" s" /></div>
-              <div className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-white/40">40 frames unmonitored</div>
-            </Reveal>
+          {/* 2×2 camera grid with animated handoff arcs */}
+          <Reveal delay={120} className="relative mt-6">
+            <ReidHandoff playing={reidPlaying} step={reidStep} />
+            <div className="grid gap-x-12 gap-y-12 sm:grid-cols-2">
+              {REID_HOPS.map((hop, i) => {
+                const reached = reidPlaying ? reidStep >= i : true;
+                const isHere = reidPlaying && reidStep === i;
+                return (
+                  <div
+                    key={hop.cam}
+                    className={`relative border bg-black transition-all duration-500 ${
+                      isHere ? "border-white shadow-[0_0_0_2px_rgba(255,255,255,0.25)]" : reached ? "border-white/40" : "border-white/12 opacity-45"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/50">
+                      <span>{hop.cam} · {hop.role}</span>
+                      <span>t = {hop.t}</span>
+                    </div>
+                    <div className="relative">
+                      <video src={hop.src} autoPlay loop muted playsInline className="aspect-video w-full object-cover grayscale contrast-110 brightness-125" />
+                      {isHere && <Corners />}
+                      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2 font-mono text-[9px]">
+                        <div className="flex justify-end">
+                          {hop.match != null && reached && (
+                            <span className="bg-black/75 px-1.5 py-0.5 text-white/80">match {hop.match}%</span>
+                          )}
+                        </div>
+                        <span className={`w-fit px-1.5 py-0.5 ${reached ? "border border-white bg-white text-black" : "border border-white/40 bg-black/70 text-white/60"}`}>
+                          <Crosshair size={9} className="mr-1 inline" />
+                          {i === 0 ? "TARGET ALPHA-7 · acquired" : reached ? "TARGET ALPHA-7 · re-identified" : "awaiting arrival"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Reveal>
 
-            <Reveal delay={180} className="border border-white bg-black">
-              <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/60">
-                <span>CAM_BRAVO · Perimeter</span><span>t = 20:14:08</span>
-              </div>
-              <div className="relative">
-                <video src="/data/cross_cam_real_demo_web.mp4" autoPlay loop muted playsInline className="aspect-video w-full object-cover grayscale contrast-110 brightness-110" />
-                <span className="absolute bottom-2 left-2 border border-white bg-white px-1.5 py-0.5 font-mono text-[9px] text-black">TARGET ALPHA-7 · re-identified</span>
-              </div>
-            </Reveal>
-          </div>
-
-          <Reveal delay={120} className="mt-4 grid grid-cols-2 gap-px border border-white/12 bg-white/12 sm:grid-cols-4">
+          <Reveal delay={160} className="mt-6 grid grid-cols-2 gap-px border border-white/12 bg-white/12 sm:grid-cols-4">
             {[
-              ["91.4%", "Match confidence"],
-              ["512-d", "Embedding vector"],
+              ["91.4%", "Peak match"],
+              ["512-d", "Embedding"],
               ["0.82", "Cosine threshold"],
-              ["3", "Camera handoffs"],
+              ["3", "Handoffs"],
             ].map(([v, l]) => (
               <div key={l} className="bg-black px-4 py-5 text-center">
                 <div className="font-mono text-xl font-semibold tabular-nums">{v}</div>
@@ -512,15 +734,35 @@ export default function LandingPage() {
             </div>
             <div className="relative">
               <IsometricTerrain mode="perimeter" />
-              <div className="absolute right-4 top-4 w-60 border border-red-500/50 bg-black/85 p-3 backdrop-blur-sm">
-                <div className="flex items-center gap-2 font-mono text-[10.5px] font-bold uppercase tracking-[0.14em] text-red-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Zone breach · critical
+              <div className="absolute right-4 top-4 w-64 border border-red-500/50 bg-black/85 backdrop-blur-sm">
+                <Corners />
+                <div className="flex items-center justify-between border-b border-red-500/30 px-3 py-2 font-mono text-[10.5px] font-bold uppercase tracking-[0.14em] text-red-400">
+                  <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Zone breach</span>
+                  <span>CRITICAL</span>
                 </div>
-                <div className="mt-2 space-y-1 font-mono text-[10.5px] text-white/55">
-                  <div className="flex justify-between"><span>Zone</span><span className="text-white">Alpha-Red</span></div>
-                  <div className="flex justify-between"><span>Score</span><span className="text-red-400">87 / 100</span></div>
-                  <div className="flex justify-between"><span>Dwell</span><span className="text-white">00:41</span></div>
+                <div className="space-y-1.5 px-3 py-2.5 font-mono text-[10.5px] text-white/55">
+                  <div className="flex justify-between"><span>Zone</span><span className="text-white">Alpha-Red · River Bend</span></div>
                   <div className="flex justify-between"><span>Camera</span><span className="text-white">CAM-03</span></div>
+                  <div className="flex justify-between"><span>Threat</span><span className="text-red-400">87 / 100</span></div>
+                  {/* dwell progress bar */}
+                  <div className="pt-1">
+                    <div className="flex justify-between"><span>Dwell</span><span className="text-white">00:41 / 01:00</span></div>
+                    <div className="mt-1 h-1 w-full bg-white/10">
+                      <div className="h-full bg-red-500" style={{ width: "68%" }} />
+                    </div>
+                  </div>
+                </div>
+                {/* entities inside the zone */}
+                <div className="border-t border-red-500/20 px-3 py-2 font-mono text-[10px]">
+                  <div className="text-white/40">Entities in zone · 2</div>
+                  <div className="mt-1.5 space-y-1">
+                    <div className="flex items-center justify-between text-red-300">
+                      <span>· TRACK #14 · person</span><span className="tabular-nums">0.87</span>
+                    </div>
+                    <div className="flex items-center justify-between text-white/60">
+                      <span>· TRACK #22 · person</span><span className="tabular-nums">0.71</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -664,6 +906,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {globeOpen && <GlobeModal onClose={() => setGlobeOpen(false)} />}
     </div>
   );
 }

@@ -1,19 +1,18 @@
 // IBVAP Sentinel — isometric border-sector terrain, rendered as a black &
 // white digital-elevation model. Pure SVG, no raster assets.
-//   mode="hero"      → camera network + animated sightlines
-//   mode="perimeter" → adds a dashed restricted geofence + a breach marker
+//   mode="hero"      → camera network, FOV coverage wedges, animated sightlines
+//   mode="perimeter" → adds a pulsing restricted geofence + a breach marker
 // Severity red is the only non-monochrome ink, and only in perimeter mode.
 
 const CAMERAS = [
-  { id: "CAM-01", x: 138, y: 236 },
-  { id: "CAM-02", x: 300, y: 300 },
-  { id: "CAM-03", x: 468, y: 250 },
-  { id: "CAM-04", x: 606, y: 300 },
-  { id: "CAM-05", x: 700, y: 214 },
+  { id: "CAM-01", x: 138, y: 236, aim: -32 },
+  { id: "CAM-02", x: 300, y: 300, aim: -70 },
+  { id: "CAM-03", x: 468, y: 250, aim: -50 },
+  { id: "CAM-04", x: 606, y: 300, aim: -105 },
+  { id: "CAM-05", x: 700, y: 214, aim: -140 },
 ];
 const SIGHTLINES = [[0, 1], [1, 2], [2, 3], [3, 4]];
 
-// A ridge silhouette as an isometric-ish polyline across the plane.
 function ridge(y, amp, seed) {
   const pts = [];
   for (let i = 0; i <= 12; i++) {
@@ -22,6 +21,14 @@ function ridge(y, amp, seed) {
     pts.push(`${x.toFixed(0)},${(y - Math.abs(h)).toFixed(0)}`);
   }
   return pts.join(" ");
+}
+
+// A camera FOV wedge: apex at the node, opening `spread` degrees around `aim`.
+function fovWedge(x, y, aim, reach = 92, spread = 34) {
+  const a1 = ((aim - spread / 2) * Math.PI) / 180;
+  const a2 = ((aim + spread / 2) * Math.PI) / 180;
+  return `M ${x} ${y} L ${x + Math.cos(a1) * reach} ${y + Math.sin(a1) * reach * 0.55}
+          A ${reach} ${reach * 0.55} 0 0 1 ${x + Math.cos(a2) * reach} ${y + Math.sin(a2) * reach * 0.55} Z`;
 }
 
 export default function IsometricTerrain({ mode = "hero", className = "" }) {
@@ -41,11 +48,14 @@ export default function IsometricTerrain({ mode = "hero", className = "" }) {
           <stop offset="0" stopColor="#ffffff" stopOpacity="0.02" />
           <stop offset="1" stopColor="#ffffff" stopOpacity="0.08" />
         </linearGradient>
+        <radialGradient id="it-fov" cx="0" cy="0" r="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.16" />
+          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+        </radialGradient>
       </defs>
 
       {/* isometric ground plane */}
       <polygon points="410,96 786,250 410,404 34,250" fill="url(#it-fade)" stroke="#ffffff" strokeOpacity="0.22" strokeWidth="1" />
-      {/* plane thickness */}
       <polygon points="34,250 410,404 410,432 34,278" fill="#0a0a0a" stroke="#ffffff" strokeOpacity="0.12" />
       <polygon points="786,250 410,404 410,432 786,278" fill="#050505" stroke="#ffffff" strokeOpacity="0.12" />
 
@@ -55,8 +65,8 @@ export default function IsometricTerrain({ mode = "hero", className = "" }) {
           const t = (i - 4) / 4;
           return (
             <g key={i} stroke="#ffffff" strokeOpacity="0.06" strokeWidth="1">
-              <line x1={410 + t * 376} y1={96 + Math.abs(t) * 0} x2={410 + t * 376} y2={404} />
-              <line x1={34 + (t + 1) * 188} y1={250 - (t) * 0} x2={410 + t * 188} y2={96} />
+              <line x1={410 + t * 376} y1={96} x2={410 + t * 376} y2={404} />
+              <line x1={34 + (t + 1) * 188} y1={250} x2={410 + t * 188} y2={96} />
             </g>
           );
         })}
@@ -67,6 +77,19 @@ export default function IsometricTerrain({ mode = "hero", className = "" }) {
         <polyline points={ridge(266, 16, 1.4)} fill="none" stroke="#ffffff" strokeOpacity="0.22" strokeWidth="1.25" />
         <polyline points={ridge(286, 26, 2.7)} fill="none" stroke="#ffffff" strokeOpacity="0.34" strokeWidth="1.5" />
         <polyline points={ridge(310, 34, 3.9)} fill="none" stroke="#ffffff" strokeOpacity="0.5" strokeWidth="1.75" />
+
+        {/* camera FOV coverage wedges — the lit ground each camera sees */}
+        {CAMERAS.map((c) => (
+          <path
+            key={"fov-" + c.id}
+            d={fovWedge(c.x, c.y, c.aim)}
+            fill="#ffffff"
+            fillOpacity="0.05"
+            stroke="#ffffff"
+            strokeOpacity="0.12"
+            strokeWidth="0.75"
+          />
+        ))}
 
         {/* river / infiltration channel */}
         <path
@@ -83,12 +106,14 @@ export default function IsometricTerrain({ mode = "hero", className = "" }) {
             <polygon
               points="244,224 470,178 588,254 500,322 296,318"
               fill="#ef4444"
-              fillOpacity="0.06"
+              fillOpacity="0.08"
               stroke="#ef4444"
               strokeWidth="2"
               strokeDasharray="7 5"
-              className="animate-[dash-flow_1s_linear_infinite]"
-            />
+              style={{ animation: "dash-flow 1s linear infinite" }}
+            >
+              <animate attributeName="fill-opacity" values="0.05;0.14;0.05" dur="2.6s" repeatCount="indefinite" />
+            </polygon>
             <text x="246" y="214" fill="#ef4444" fillOpacity="0.9" fontSize="9.5" fontFamily="'IBM Plex Mono',monospace" letterSpacing="1">
               RESTRICTED GEOFENCE · 100m
             </text>

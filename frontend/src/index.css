@@ -85,6 +85,14 @@ body {
     stroke-dashoffset: -18;
   }
 }
+@keyframes zone-pulse {
+  0%, 100% { fill-opacity: 0.04; }
+  50% { fill-opacity: 0.12; }
+}
+@keyframes draw-path {
+  from { stroke-dashoffset: var(--len, 400); }
+  to { stroke-dashoffset: 0; }
+}
 @keyframes drift-y {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
