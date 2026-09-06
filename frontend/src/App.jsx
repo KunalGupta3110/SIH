@@ -20,15 +20,15 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#080d16] text-slate-200 flex flex-col items-center justify-center p-6 text-center">
-          <div className="h-16 w-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center text-cyan-400 mb-6 shadow-[0_0_25px_rgba(6,182,212,0.3)]">
-            <span className="text-2xl">⚠️</span>
+        <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="h-16 w-16 bg-white text-black border border-white flex items-center justify-center mb-6">
+            <span className="text-2xl">⚠</span>
           </div>
-          <h1 className="text-xl font-bold font-mono tracking-wider text-white uppercase mb-2">
-            Watchfloor Console Diagnostics Required
+          <h1 className="text-lg font-bold tracking-wide text-white uppercase mb-2">
+            Console Diagnostics Required
           </h1>
-          <p className="text-slate-400 text-sm max-w-md mb-6">
-            A transient interface component anomaly was intercepted. The tactical state has been preserved safely.
+          <p className="text-white/60 text-sm max-w-md mb-6">
+            A transient interface anomaly was intercepted. Operational state has been preserved safely.
           </p>
           <div className="flex gap-3">
             <button
@@ -36,15 +36,15 @@ class ErrorBoundary extends Component {
                 this.setState({ hasError: false });
                 window.location.reload();
               }}
-              className="px-5 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs font-bold transition-all shadow-lg"
+              className="px-5 py-2.5 bg-white text-black hover:bg-black hover:text-white border border-white font-bold text-xs transition-all"
             >
-              RELOAD WATCHFLOOR
+              RELOAD CONSOLE
             </button>
             <button
               onClick={() => {
                 window.location.href = "/";
               }}
-              className="px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs transition-all"
+              className="px-5 py-2.5 bg-black text-white hover:bg-white hover:text-black border border-white text-xs transition-all"
             >
               RETURN TO BASE
             </button>
