@@ -1,8 +1,13 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../lib/api.js";
 import siren from "../lib/audioSiren.js";
 import { CountUp } from "../lib/motion.jsx";
+import TacticalWatchfloor from "./TacticalWatchfloor.jsx";
+
+// 3D border-terrain map — code-split (pulls in three.js) so it only loads
+// when the operator opens the Border Map view.
+const BorderTerrainMapPanel = lazy(() => import("./gis/BorderTerrainPanel.jsx"));
 import {
   Shield,
   Search,
@@ -85,7 +90,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
   }, [urlTab]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSurveillanceView, setActiveSurveillanceView] = useState("grid"); // 'grid' | 'focus' | 'testbed'
-  const [visionMode, setVisionMode] = useState("optical"); // 'optical' | 'thermal' | 'edge'
+  const [visionMode, setVisionMode] = useState("optical"); // 'optical' | 'lowlight' | 'edge'
   const [selectedCameraId, setSelectedCameraId] = useState("CAM_BRAVO");
   const [selectedTrackId, setSelectedTrackId] = useState("P17");
   const [activeMapFilter, setActiveMapFilter] = useState("all");
@@ -371,7 +376,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       factors: [
         { label: "+30 Restricted Zone Breach", reason: "Target crossed 100m virtual geofence tripwire in Sector 4-B without authorization." },
         { label: "+20 Heading Toward Border", reason: "Spatial trajectory vector confirmed moving 5.2 km/h directly toward Zero Line." },
-        { label: "+12 Re-ID Match", reason: "OSNet appearance feature vector matched subject across CAM_ALPHA and CAM_BRAVO (91.4%)." },
+        { label: "+12 Re-ID Match", reason: "OSNet / ResNet appearance embedding matched subject across CAM_ALPHA and CAM_BRAVO at 0.914 cosine (2-camera testbed)." },
         { label: "+10 Night Window (Curfew)", reason: "Detected during high-security curfew window (22:00 - 05:00 IST)." },
         { label: "+15 Loitering Anomaly", reason: "Subject static in blind gap corridor for >90 seconds prior to perimeter ingress." },
       ],
@@ -461,7 +466,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       coords: "Lat 32.5635, Long 75.1250",
       hash: "42a8b910dc81273645e901fa32948cbb8192384a719283ba82910384759281a4",
       factors: [
-        { label: "+8 Fence Motion", reason: "Infrared thermal motion detected near ground level." },
+        { label: "+8 Fence Motion", reason: "Low-level motion detected near the fence line in the optical feed." },
         { label: "+4 Edge Noise", reason: "Vegetation sway filtered by site calibration engine." },
       ],
     },
@@ -577,14 +582,14 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
     triggerSound("click");
     setTrainingActive(true);
     setTrainingEpoch(0);
-    setTrainingLogs(["[INIT] Initializing YOLOv8n backbone on NVIDIA Jetson Orin AGX..."]);
+    setTrainingLogs(["[INIT] SIMULATION — illustrative YOLOv8n fine-tuning run on a CPU node (Phase 2 capability)..."]);
 
     const steps = [
       { epoch: 1, loss: 0.384, map: 86.1, log: "[EPOCH 1/5] Loss: 0.384 · Box Loss: 0.042 · Class Loss: 0.021 · DFL: 0.321" },
-      { epoch: 2, loss: 0.291, map: 89.4, log: "[EPOCH 2/5] Loss: 0.291 · False alarm suppression active for border vegetation" },
+      { epoch: 2, loss: 0.291, map: 89.4, log: "[EPOCH 2/5] Loss: 0.291 · nuisance suppression sampling for border vegetation" },
       { epoch: 3, loss: 0.188, map: 92.7, log: "[EPOCH 3/5] Loss: 0.188 · OSNet Re-ID 512-dim embedding margin optimization" },
-      { epoch: 4, loss: 0.114, map: 95.3, log: "[EPOCH 4/5] Loss: 0.114 · Curfew night-window contrast adaptation converged" },
-      { epoch: 5, loss: 0.068, map: 97.2, log: "[EPOCH 5/5] Loss: 0.068 · TensorRT INT8 Quantization: 17.4ms Latency (57.4 FPS)" },
+      { epoch: 4, loss: 0.114, map: 95.3, log: "[EPOCH 4/5] Loss: 0.114 · low-light contrast adaptation converged" },
+      { epoch: 5, loss: 0.068, map: 97.2, log: "[EPOCH 5/5] Loss: 0.068 · simulated run only — no weights shipped in the MVP" },
     ];
 
     let currentStep = 0;
@@ -600,7 +605,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
         clearInterval(interval);
         setTrainingActive(false);
         triggerSound("verify");
-        setActionNotice("Edge Model Retraining & TensorRT INT8 Quantization Complete (mAP: 97.2%).");
+        setActionNotice("Simulated fine-tuning run complete — illustrative only, Phase 2 roadmap capability.");
         setTimeout(() => setActionNotice(null), 4500);
       }
     }, 1100);
@@ -864,6 +869,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* Navigation Items */}
           <nav className="space-y-1">
             {[
+              { id: "watchfloor", label: "Command Watchfloor", icon: Radio },
               { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
               { id: "surveillance", label: "Live Surveillance", icon: Video },
               { id: "incidents", label: "Incidents", icon: AlertTriangle, badge: "3" },
@@ -934,6 +940,11 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
         {/* ── MAIN CONTENT CANVAS ──────────────────────────────── */}
         <main className="flex-1 overflow-y-auto bg-[#000000] p-4.5 space-y-4">
+          {/* ══════════════════════════════════════════════════════ */}
+          {/* VIEW 0: COMMAND WATCHFLOOR (pseudo-3D tactical scene)  */}
+          {/* ══════════════════════════════════════════════════════ */}
+          {activeNav === "watchfloor" && <TacticalWatchfloor />}
+
           {/* ══════════════════════════════════════════════════════ */}
           {/* VIEW 1: DASHBOARD MASTER OVERVIEW                      */}
           {/* ══════════════════════════════════════════════════════ */}
@@ -1379,7 +1390,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
                   {/* Vision Filter Mode */}
                   <div className="hidden sm:flex items-center gap-1 bg-[#000000] p-1 rounded-xl border border-white/12 text-xs">
-                    {["optical", "thermal", "edge"].map((mode) => (
+                    {["optical", "lowlight", "edge"].map((mode) => (
                       <button
                         key={mode}
                         onClick={() => { triggerSound("click"); setVisionMode(mode); }}
@@ -1387,7 +1398,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           visionMode === mode ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "text-white/55 hover:text-white"
                         }`}
                       >
-                        {mode}
+                        {mode === "lowlight" ? "low-light" : mode}
                       </button>
                     ))}
                   </div>
@@ -1522,7 +1533,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           muted
                           playsInline
                           className={`h-full w-full object-cover ${
-                            visionMode === "thermal"
+                            visionMode === "lowlight"
                               ? "invert hue-rotate-180 contrast-150 brightness-110"
                               : visionMode === "edge"
                               ? "filter contrast-200 grayscale invert"
@@ -1571,7 +1582,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         </div>
                         <div className="flex items-center gap-3">
                           <span>VELOCITY: <strong className="text-emerald-400">{ingressScenario === "vehicle" ? "42.0 km/h" : "5.2 km/h"}</strong></span>
-                          <span>LATENCY: <strong className="text-white">17.4 ms</strong></span>
+                          <span>RUNTIME: <strong className="text-white">CPU edge</strong></span>
                         </div>
                       </div>
                     </div>
@@ -1584,7 +1595,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                             <Terminal size={14} className="text-white" />
                             <span>EDGE TRAINING & TELEMETRY</span>
                           </span>
-                          <span className="text-[10px] text-emerald-400 font-mono">ONLINE (0 Drops)</span>
+                          <span className="text-[10px] text-amber-300 font-mono">SIMULATION · PHASE 2</span>
                         </div>
 
                         <div className="space-y-2 font-mono text-xs">
@@ -1593,8 +1604,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                             <span className="text-white">Ultralytics v8.1.0n</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-white/55">Quantization:</span>
-                            <span className="text-white">NVIDIA TensorRT INT8</span>
+                            <span className="text-white/55">Runtime:</span>
+                            <span className="text-white">PyTorch / ONNX Runtime (CPU)</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-white/55">Current Loss:</span>
@@ -1661,7 +1672,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                             muted
                             playsInline
                             className={`h-full w-full object-cover ${
-                              visionMode === "thermal"
+                              visionMode === "lowlight"
                                 ? "invert hue-rotate-180 contrast-150 brightness-110"
                                 : visionMode === "edge"
                                 ? "filter contrast-200 grayscale invert"
@@ -1906,137 +1917,15 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* VIEW 4: BORDER MAP (Full GIS Command Center)           */}
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "map" && (
-            <div className="space-y-4 animate-fadeIn">
-              <div className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-base font-bold text-white flex items-center gap-2">
-                    <MapIcon size={18} className="text-white" />
-                    <span>Sector 4-B GIS Tactical Map & Sensor Topology</span>
-                  </h2>
-                  <p className="text-xs text-white/55">Zero Line • 100m Geofenced Corridor • 6 Multi-Camera Overlap Cones</p>
+            <Suspense
+              fallback={
+                <div className="grid h-[68vh] place-items-center rounded-2xl border border-white/12 bg-[#000000] font-mono text-[11px] uppercase tracking-[0.2em] text-white/45">
+                  loading terrain map…
                 </div>
-                <div className="flex items-center gap-3">
-                  {/* Geofence adjustment slider */}
-                  <div className="hidden sm:flex items-center gap-2 text-xs font-mono bg-[#000000] px-3 py-1.5 rounded-xl border border-white/12">
-                    <span className="text-white/55">Restricted Buffer:</span>
-                    <input
-                      type="range"
-                      min="50"
-                      max="200"
-                      value={geofenceDistance}
-                      onChange={(e) => setGeofenceDistance(Number(e.target.value))}
-                      className="w-20 accent-cyan-500 cursor-pointer"
-                    />
-                    <span className="text-white font-bold">{geofenceDistance}m</span>
-                  </div>
-
-                  <button onClick={() => { triggerSound("click"); setMapTheme(mapTheme === "satellite" ? "schematic" : "satellite"); }} className="px-3 py-1.5 rounded-xl bg-black hover:bg-black text-white border border-white/12 text-xs">
-                    {mapTheme === "satellite" ? "Satellite Aerial View" : "Schematic HUD Grid"}
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative h-[68vh] w-full rounded-2xl overflow-hidden bg-[#000000] border border-white/12 flex items-center justify-center">
-                {mapTheme === "satellite" ? (
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_40%,#000000_0%,#000000_85%)] opacity-90" />
-                ) : (
-                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#171717_1px,transparent_1px),linear-gradient(to_bottom,#171717_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-75" />
-                )}
-
-                <svg className="absolute inset-0 h-full w-full transition-transform duration-300" style={{ transform: `scale(${mapZoom})` }} viewBox="0 0 800 400">
-                  <line x1="0" y1="100" x2="800" y2="100" stroke="#171717" strokeDasharray="4 4" />
-                  <line x1="0" y1="200" x2="800" y2="200" stroke="#171717" strokeDasharray="4 4" />
-                  <line x1="0" y1="300" x2="800" y2="300" stroke="#171717" strokeDasharray="4 4" />
-
-                  {/* International Border Zero Line */}
-                  <path d="M 50 350 Q 300 240 550 200 T 780 50" fill="none" stroke="#ffffff" strokeWidth="3" strokeDasharray="8 6" />
-                  <text x="580" y="75" fill="#ffffff" fontSize="12" fontFamily="monospace" fontWeight="bold">INTERNATIONAL ZERO LINE (IB)</text>
-
-                  {/* Restricted Zone Polygon based on geofenceDistance slider */}
-                  <path
-                    d={`M 260 ${300 - (geofenceDistance - 100) * 0.2} L 520 ${180 - (geofenceDistance - 100) * 0.2} L 580 ${210 + (geofenceDistance - 100) * 0.2} L 320 ${330 + (geofenceDistance - 100) * 0.2} Z`}
-                    fill="#ef4444"
-                    fillOpacity="0.18"
-                    stroke="#ef4444"
-                    strokeWidth="2"
-                    strokeDasharray="6 3"
-                  />
-                  <text x="320" y="245" fill="#fca5a5" fontSize="11" fontFamily="sans-serif" fontWeight="bold">
-                    RESTRICTED ZERO-BLINDSPOT CORRIDOR ({geofenceDistance}m)
-                  </text>
-
-                  {/* Inter-Camera Transit Corridors */}
-                  <path d="M 160 310 L 290 250 L 450 190 L 600 130" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
-
-                  {/* Camera 1: CAM_ALPHA */}
-                  <polygon points="160,310 120,260 200,260" fill="#ffffff" fillOpacity="0.18" />
-                  <circle cx="160" cy="310" r="9" fill="#ffffff" className="cursor-pointer" onClick={() => setSelectedMapCamera("CAM_ALPHA")} />
-                  <text x="135" y="335" fill="#ffffff" fontSize="10" fontFamily="monospace">CAM_ALPHA</text>
-
-                  {/* Camera 2: CAM_BRAVO */}
-                  <polygon points="290,250 250,200 330,200" fill="#ffffff" fillOpacity="0.25" />
-                  <circle cx="290" cy="250" r="10" fill="#ef4444" className="cursor-pointer" onClick={() => setSelectedMapCamera("CAM_BRAVO")} />
-                  <text x="265" y="275" fill="#fca5a5" fontSize="10" fontFamily="monospace" fontWeight="bold">CAM_BRAVO [BREACH]</text>
-
-                  {/* Camera 3: CAM_CHARLIE */}
-                  <polygon points="450,190 410,140 490,140" fill="#ffffff" fillOpacity="0.15" />
-                  <circle cx="450" cy="190" r="9" fill="#ffffff" className="cursor-pointer" onClick={() => setSelectedMapCamera("CAM_CHARLIE")} />
-                  <text x="425" y="215" fill="#ffffff" fontSize="10" fontFamily="monospace">CAM_CHARLIE</text>
-
-                  {/* Camera 4: CAM_DELTA */}
-                  <polygon points="600,130 560,80 640,80" fill="#ffffff" fillOpacity="0.15" />
-                  <circle cx="600" cy="130" r="9" fill="#ffffff" className="cursor-pointer" onClick={() => setSelectedMapCamera("CAM_DELTA")} />
-                  <text x="575" y="155" fill="#ffffff" fontSize="10" fontFamily="monospace">CAM_DELTA</text>
-
-                  {/* Animated Moving Target Blip #P17 */}
-                  {(() => {
-                    const cx = 240 + Math.sin(targetBlipTick * 0.1) * 25;
-                    const cy = 230 - (targetBlipTick % 40) * 1.2;
-                    return (
-                      <g className="cursor-pointer" onClick={() => handleTrackTarget("P17")}>
-                        <circle cx={cx} cy={cy} r="14" fill="#ef4444" fillOpacity="0.35" className="animate-ping" />
-                        <polygon points={`${cx},${cy - 12} ${cx + 10},${cy + 8} ${cx - 10},${cy + 8}`} fill="#ef4444" stroke="#fff" strokeWidth="1.5" />
-                        <text x={cx + 12} y={cy + 4} fill="#fff" fontSize="10" fontFamily="monospace" fontWeight="bold">#P17</text>
-                      </g>
-                    );
-                  })()}
-                </svg>
-
-                {/* Map Floating Control Box */}
-                <div className="absolute right-4 top-4 flex flex-col gap-2 z-10">
-                  <button onClick={() => { triggerSound("click"); setMapZoom((z) => Math.min(z + 0.25, 2.0)); }} className="h-8 w-8 rounded-xl bg-[#000000]/90 border border-white/12 text-white flex items-center justify-center font-bold">+</button>
-                  <button onClick={() => { triggerSound("click"); setMapZoom((z) => Math.max(z - 0.25, 0.75)); }} className="h-8 w-8 rounded-xl bg-[#000000]/90 border border-white/12 text-white flex items-center justify-center font-bold">-</button>
-                  <button onClick={() => { triggerSound("click"); setMapZoom(1); }} className="h-8 w-8 rounded-xl bg-[#000000]/90 border border-white/12 text-white flex items-center justify-center"><RotateCcw size={12} /></button>
-                </div>
-
-                {/* Selected Camera Popover on Map */}
-                {selectedMapCamera && (
-                  <div className="absolute left-6 bottom-6 bg-[#000000]/95 border border-white/12 rounded-xl p-3 shadow-2xl z-20 text-xs font-mono space-y-1.5 w-64 backdrop-blur-md">
-                    <div className="flex justify-between items-center text-white font-bold border-b border-white/12 pb-1">
-                      <span>{selectedMapCamera}</span>
-                      <button onClick={() => setSelectedMapCamera(null)} className="text-white/55 hover:text-white">
-                        <X size={13} />
-                      </button>
-                    </div>
-                    <div className="text-white">Status: <strong className="text-emerald-400">ONLINE</strong></div>
-                    <div className="text-white">Azimuth: 078° · Elevation: -12°</div>
-                    <div className="text-white">Sensor Temp: 39.4°C · Power: Mains Active</div>
-                    <div className="pt-1 flex gap-1.5">
-                      <button
-                        onClick={() => {
-                          setSelectedCameraId(selectedMapCamera);
-                          setActiveNav("surveillance");
-                          setActiveSurveillanceView("focus");
-                        }}
-                        className="flex-1 py-1 rounded bg-white hover:bg-white text-black font-bold text-[10px]"
-                      >
-                        Open PTZ Feed
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+              }
+            >
+              <BorderTerrainMapPanel />
+            </Suspense>
           )}
 
           {/* ══════════════════════════════════════════════════════ */}
@@ -2118,8 +2007,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right font-mono text-xs text-white">
-                    <span>OSNet Re-ID Cosine Match: </span>
-                    <strong className="text-emerald-400 text-sm">91.4% Confidence</strong>
+                    <span>OSNet / ResNet Re-ID cosine: </span>
+                    <strong className="text-emerald-400 text-sm">0.914 (2-cam testbed)</strong>
                   </div>
                   <button
                     onClick={() => { triggerSound("click"); setIsReconPlaying(!isReconPlaying); }}
@@ -2180,8 +2069,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <Database size={20} />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-white">Section 65B Digital Evidence Ledger</h2>
-                    <p className="text-xs text-white/55">Cryptographically Sealed Hash Chain • Indian Evidence Act, 1872 Compliant</p>
+                    <h2 className="text-base font-bold text-white">Section 65B Digital Evidence — SHA-256 Hash Chain</h2>
+                    <p className="text-xs text-white/55">Sequential SHA-256 hash-chaining • tamper-evident chain-of-custody • not a blockchain or distributed ledger</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -2198,7 +2087,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <button
                     onClick={() => {
                       triggerSound("verify");
-                      setActionNotice("Blockchain Ledger verification completed: 5/5 Blocks Authenticated & Unaltered.");
+                      setActionNotice("SHA-256 hash-chain verification completed: 5/5 capsules authenticated & unaltered.");
                       setTimeout(() => setActionNotice(null), 4000);
                     }}
                     className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 transition-colors shadow-md"
@@ -2246,31 +2135,31 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   </h2>
                   <p className="text-xs text-white/55">Sector 4-B Historical Filter Telemetry</p>
                 </div>
-                <div className="px-3 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono">
-                  38.2% False Positive Reduction
+                <div className="px-3 py-1 rounded-xl bg-white/[0.06] border border-white/12 text-white text-xs font-mono">
+                  Rule-based nuisance suppression
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4.5 rounded-2xl bg-[#000000] border border-white/12 space-y-2">
-                  <div className="text-xs text-white/55 font-mono">CALIBRATION ENGINE</div>
-                  <div className="text-2xl font-bold font-mono text-emerald-400">62 / 100 Alerts Valid</div>
+                  <div className="text-xs text-white/55 font-mono">SPATIAL MASK RULE</div>
+                  <div className="text-2xl font-bold font-mono text-white">Animal / vegetation</div>
                   <div className="text-xs text-white">
-                    21 Animal & 11 Vegetation triggers automatically suppressed by spatial masks.
+                    Detections inside operator-drawn mask polygons are demoted before scoring — illustrative demo counts.
                   </div>
                 </div>
                 <div className="p-4.5 rounded-2xl bg-[#000000] border border-white/12 space-y-2">
-                  <div className="text-xs text-white/55 font-mono">CURFEW DETECTION ACCURACY</div>
-                  <div className="text-2xl font-bold font-mono text-white">98.4% Precision</div>
+                  <div className="text-xs text-white/55 font-mono">CURFEW WINDOW RULE</div>
+                  <div className="text-2xl font-bold font-mono text-white">+10 threat points</div>
                   <div className="text-xs text-white">
-                    Zero undetected breaches during 22:00 - 05:00 high-security window.
+                    Detections between 22:00 - 05:00 IST add a fixed, auditable weight to the incident score.
                   </div>
                 </div>
                 <div className="p-4.5 rounded-2xl bg-[#000000] border border-white/12 space-y-2">
-                  <div className="text-xs text-white/55 font-mono">CAMERA UPTIME</div>
-                  <div className="text-2xl font-bold font-mono text-white">99.8% Availability</div>
+                  <div className="text-xs text-white/55 font-mono">FEED SOURCE</div>
+                  <div className="text-2xl font-bold font-mono text-white">Recorded + simulated</div>
                   <div className="text-xs text-white">
-                    Average ping latency under 3.4ms across all 6 edge sensor nodes.
+                    Synchronized two-angle testbed plus public dataset clips (MOT17, VisDrone). Not live tactical CCTV.
                   </div>
                 </div>
               </div>
@@ -2278,7 +2167,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           )}
 
           {/* ══════════════════════════════════════════════════════ */}
-          {/* VIEW 9: HARDWARE CONTROL (Relays & Jetson Orin)         */}
+          {/* VIEW 9: HARDWARE CONTROL (Phase 2 — simulated relay layer) */}
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "hardware" && (
             <div className="space-y-4 animate-fadeIn">
@@ -2286,32 +2175,32 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <Cpu size={18} className="text-white" />
-                    <span>NVIDIA Jetson Edge Hardware & GPIO Relays</span>
+                    <span>Edge Deployment & GPIO Relay Interface</span>
                   </h2>
-                  <p className="text-xs text-white/55">On-Premise Sensor Gateway • Air-Gapped Cluster</p>
+                  <p className="text-xs text-white/55">Phase 2 roadmap • physical relay layer simulated in the MVP</p>
                 </div>
-                <div className="px-3 py-1 rounded-xl bg-white/[0.06] border border-white/12 text-white text-xs font-mono">
-                  Runtime: TensorRT INT8 Quantized
+                <div className="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono">
+                  Simulated — not wired to hardware
                 </div>
               </div>
 
-              {/* Telemetry Metric Cards */}
+              {/* Planned edge-target reference specs (illustrative) */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center font-mono">
                 <div className="p-4 rounded-2xl bg-[#000000] border border-white/12">
-                  <div className="text-2xl font-bold text-emerald-400">42°C</div>
-                  <div className="text-xs text-white/55 mt-1">CORE TEMPERATURE</div>
+                  <div className="text-2xl font-bold text-white">CPU-first</div>
+                  <div className="text-xs text-white/55 mt-1">MVP RUNTIME TARGET</div>
                 </div>
                 <div className="p-4 rounded-2xl bg-[#000000] border border-white/12">
-                  <div className="text-2xl font-bold text-white">48%</div>
-                  <div className="text-xs text-white/55 mt-1">GPU UTILIZATION</div>
+                  <div className="text-2xl font-bold text-white">Jetson / RPi 5</div>
+                  <div className="text-xs text-white/55 mt-1">PHASE 2 EDGE TARGET</div>
                 </div>
                 <div className="p-4 rounded-2xl bg-[#000000] border border-white/12">
-                  <div className="text-2xl font-bold text-white">5.4 / 16 GB</div>
-                  <div className="text-xs text-white/55 mt-1">UNIFIED MEMORY</div>
+                  <div className="text-2xl font-bold text-white">ONNX Runtime</div>
+                  <div className="text-xs text-white/55 mt-1">INFERENCE RUNTIME</div>
                 </div>
                 <div className="p-4 rounded-2xl bg-[#000000] border border-white/12">
-                  <div className="text-2xl font-bold text-white">17.4 ms</div>
-                  <div className="text-xs text-white/55 mt-1">INFERENCE LATENCY</div>
+                  <div className="text-2xl font-bold text-white">GPIO relays</div>
+                  <div className="text-xs text-white/55 mt-1">PLANNED ACTUATION</div>
                 </div>
               </div>
 
@@ -2491,7 +2380,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
             </div>
             <div className="flex items-center gap-2 text-emerald-400 font-medium font-mono">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>All 6 edge sensor nodes operational</span>
+              <span>6 camera feeds configured · simulation mode</span>
             </div>
           </footer>
         </main>
@@ -2572,17 +2461,18 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
             <div className="p-4 rounded-xl bg-[#000000] border border-white/12 space-y-3 text-xs font-mono text-white max-h-[60vh] overflow-y-auto">
               <div className="text-center space-y-0.5 border-b border-white/12 pb-2">
-                <div className="font-bold text-white uppercase text-sm">GOVERNMENT OF INDIA · MINISTRY OF HOME AFFAIRS</div>
-                <div className="text-white">SASHASTRA SEEMA BAL (SSB) · SECTOR 4-B COMMAND POST</div>
-                <div className="text-white/55 text-[10px]">CERTIFICATE SERIAL NO: SSB/FTR-S4B/EVD/2026/09/0042</div>
+                <div className="text-amber-300 text-[10px] font-bold tracking-widest">SPECIMEN TEMPLATE · AUTO-GENERATED BY IBVAP SENTINEL · NOT AN ISSUED CERTIFICATE</div>
+                <div className="font-bold text-white uppercase text-sm">SECTION 65B(4) CERTIFICATE — DRAFT</div>
+                <div className="text-white">Indian Evidence Act, 1872 · to be reviewed and signed by the lawful officer</div>
+                <div className="text-white/55 text-[10px]">TEMPLATE REF: SENTINEL/EVD/2026/09/0042</div>
               </div>
 
               <div className="space-y-1.5 leading-relaxed text-[11px]">
                 <p>
-                  <strong>1. Identification of Electronic Record:</strong> Video surveillance stream, timestamped bounding box telemetry, and cross-camera OSNet appearance embeddings recorded on <strong>05 September 2026 at 20:49:02 IST</strong>.
+                  <strong>1. Identification of Electronic Record:</strong> Video surveillance stream, timestamped bounding box telemetry, and cross-camera OSNet / ResNet appearance embeddings recorded on <strong>05 September 2026 at 20:49:02 IST</strong>.
                 </p>
                 <p>
-                  <strong>2. Machine & Device Architecture:</strong> NVIDIA Jetson AGX Orin Edge Gateway (Serial: JTS-7749-ORIN-AGX) operating on Ubuntu 22.04 LTS (JetPack 5.1.2) air-gapped from public networks.
+                  <strong>2. Machine &amp; Device Architecture:</strong> CPU edge node (reference build) running the IBVAP Sentinel pipeline on Ubuntu 22.04 LTS, offline / air-gapped from public networks.
                 </p>
                 <p>
                   <strong>3. Cryptographic Hash Signature (SHA-256):</strong>
@@ -2662,13 +2552,13 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 </div>
                 <div className="rounded-xl bg-[#000000] border border-white/12 p-4 space-y-2">
                   <div className="text-xs font-bold text-white uppercase tracking-wider">Correlation Metric</div>
-                  <div className="text-2xl font-bold font-mono text-white">96.71%</div>
-                  <div className="text-xs text-white/55">ResNet-18 512-d cosine similarity confirmed across 1.33s blind corridor gap.</div>
+                  <div className="text-2xl font-bold font-mono text-white">0.914 cosine</div>
+                  <div className="text-xs text-white/55">OSNet / ResNet 512-d appearance similarity across a 1.33s blind-corridor gap (2-camera testbed).</div>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-xl bg-[#000000] border border-white/12 space-y-1">
-                <div className="text-[10.5px] font-bold text-white/55 uppercase tracking-wider">Cryptographic SHA-256 Merkle Proof</div>
+                <div className="text-[10.5px] font-bold text-white/55 uppercase tracking-wider">SHA-256 Hash-Chain Proof</div>
                 <div className="font-mono text-xs text-white break-all">{currentIncident.hash}</div>
               </div>
 
@@ -2751,7 +2641,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <div>● 20:49:05 — 100m Geofence restricted buffer violated (+30 threat points).</div>
                   <div>● 20:49:09 — Subject entered 180m blind gap corridor moving 5.2 km/h NE.</div>
                   <div>● 20:49:17 — Subject re-acquired on CAM_BRAVO downstream sensor.</div>
-                  <div>● 20:49:18 — OSNet Re-ID appearance vector matched subject at 91.4% confidence.</div>
+                  <div>● 20:49:18 — OSNet / ResNet Re-ID appearance vector matched subject at 0.914 cosine (2-cam testbed).</div>
                   <div>● 20:49:20 — Threat score evaluated at 87/100; physical acoustic siren triggered.</div>
                 </div>
               </div>

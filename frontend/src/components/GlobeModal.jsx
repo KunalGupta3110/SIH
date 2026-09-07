@@ -38,7 +38,7 @@ const CAMERAS = [
   { id: "CAM_BRAVO", lat: 32.10, lon: 75.28, sector: "Gurdaspur", status: "ONLINE", note: "Perimeter fence · restricted zone" },
   { id: "CAM_CHARLIE", lat: 32.31, lon: 75.05, sector: "Gurdaspur", status: "ONLINE", note: "River bend" },
   { id: "CAM_DELTA", lat: 30.35, lon: 74.52, sector: "Fazilka", status: "ONLINE", note: "East spur" },
-  { id: "CAM_ECHO", lat: 34.08, lon: 74.80, sector: "Uri", status: "ONLINE", note: "Tower thermal pan" },
+  { id: "CAM_ECHO", lat: 34.08, lon: 74.80, sector: "Uri", status: "ONLINE", note: "Tower pan-tilt" },
   { id: "CAM_FOXTROT", lat: 33.42, lon: 74.30, sector: "Poonch", status: "STALE", note: "Riverine sentry" },
   { id: "CAM_GOLF", lat: 27.65, lon: 71.35, sector: "Barmer", status: "ONLINE", note: "Desert BOP" },
   { id: "CAM_HOTEL", lat: 24.40, lon: 68.90, sector: "Kutch", status: "OFFLINE", note: "Marsh outpost" },
@@ -285,7 +285,8 @@ export default function GlobeModal({ onClose }) {
       {/* header */}
       <div className="flex items-center justify-between border-b border-white/12 px-5 py-3">
         <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/60">
-          Global Sensor Map <span className="text-white">· {online} / {CAMERAS.length} active</span>
+          Planned Sensor Topology <span className="text-white">· {online} / {CAMERAS.length} nodes</span>
+          <span className="ml-2 text-amber-400/80">simulation</span>
         </div>
         <button onClick={onClose} className="press grid h-9 w-9 place-items-center border border-white/40 text-white/70 hover:bg-white hover:text-black">
           <X size={16} />

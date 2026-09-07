@@ -613,7 +613,7 @@
     "severity": "CRITICAL",
     "confidence_pct": 95.2,
     "start_time_iso": "2026-09-04T09:39:53.177095+00:00",
-    "last_update_iso": "2026-09-04T12:19:03.728935+00:00",
+    "last_update_iso": "2026-09-07T07:18:54.233782+00:00",
     "cameras_involved": [
       "CAM_BRAVO",
       "CAM_ALPHA"
@@ -660,6 +660,20 @@
         "event_type": "CROSS_CAMERA_MATCH",
         "timestamp_iso": "2026-09-04T12:19:03.728935+00:00",
         "rule_detail": "Target arrival verified via Predictive Handoff in 9.4s with 96.4% appearance similarity."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-07T07:18:51.513241+00:00",
+        "rule_detail": "Target crossed North Gate Red Zone moving East towards perimeter fence."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "CROSS_CAMERA_MATCH",
+        "timestamp_iso": "2026-09-07T07:18:54.233782+00:00",
+        "rule_detail": "Target arrival verified via Predictive Handoff in 9.4s with 96.4% appearance similarity."
       }
     ],
     "score_breakdown": [
@@ -689,7 +703,7 @@
         "evidence": "Target successfully linked across nodes via spatio-temporal transit prediction."
       }
     ],
-    "cryptographic_block_hash": "d34299c456b257bf5463358dfe53e6a7f0592569b599a19918c139b6943b9075",
+    "cryptographic_block_hash": "86f3814a81f69b7d6e597218801e45bd6ef10906d7833e568a86658002495628",
     "operator_triage": "UNREVIEWED",
     "story_summary": "Multi-node progression: Target TRG-0017 traversed 2 camera nodes (CAM_BRAVO -> CAM_ALPHA) with sustained threat level CRITICAL."
   },

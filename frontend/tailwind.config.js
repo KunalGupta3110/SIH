@@ -28,7 +28,7 @@ export default {
       fontFamily: {
         display: ["'Fraunces'", "'Times New Roman'", "Georgia", "serif"],
         sans: ["'Manrope'", "system-ui", "-apple-system", "sans-serif"],
-        mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"],
+        mono: ["'JetBrains Mono'", "'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       letterSpacing: {
         micro: "0.22em",

@@ -1,10 +1,16 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import siren from "../lib/audioSiren.js";
 import { Reveal, CountUp } from "../lib/motion.jsx";
 import IsometricTerrain from "./IsometricTerrain.jsx";
 import SentinelGlobe from "./SentinelGlobe.jsx";
-import GlobeModal from "./GlobeModal.jsx";
+
+// The 3D terrain diorama pulls in three.js — code-split so it only loads
+// when the operator taps the sector map open.
+const BorderTerrainModal = lazy(() => import("./gis/BorderTerrainModal.jsx"));
+// Textured earth globe (react-three-fiber + a 22 MB .glb) — also split, and
+// only mounted once the hero globe scrolls into view.
+const SentinelGlobe3D = lazy(() => import("./SentinelGlobe3D.jsx"));
 import {
   Shield,
   ArrowRight,
@@ -25,6 +31,33 @@ import {
    Primitives
    ═══════════════════════════════════════════════════════════════════ */
 
+// Defers a heavy child until it scrolls near the viewport; shows `fallback`
+// (the lightweight 2D globe) until then.
+function WhenVisible({ children, fallback, rootMargin = "300px" }) {
+  const [vis, setVis] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || vis) return undefined;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setVis(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [vis, rootMargin]);
+  return (
+    <div ref={ref} className="h-full w-full">
+      {vis ? children : fallback}
+    </div>
+  );
+}
+
 function Eyebrow({ children }) {
   return (
     <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-white/45">{children}</div>
@@ -38,6 +71,16 @@ function Stat({ value, label, decimals = 0, prefix = "", suffix = "" }) {
         <CountUp value={value} decimals={decimals} prefix={prefix} suffix={suffix} />
       </div>
       <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/45">{label}</div>
+    </div>
+  );
+}
+
+// Architectural spec — a fixed engineering fact, not a measured metric.
+function Spec({ label, value }) {
+  return (
+    <div>
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/45">{label}</div>
+      <div className="mt-1.5 font-mono text-[15px] font-semibold leading-tight text-white">{value}</div>
     </div>
   );
 }
@@ -112,7 +155,7 @@ function VideoTile({ src, cam, note, detected, className = "" }) {
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2 font-mono text-[9px]">
         <div className="flex items-start justify-between">
           <span className="flex items-center gap-1 bg-black/70 px-1.5 py-0.5 text-white/70">
-            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> LIVE
+            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> SIM
           </span>
           <span className="bg-black/70 px-1.5 py-0.5 text-white/60">{cam}</span>
         </div>
@@ -127,7 +170,7 @@ function VideoTile({ src, cam, note, detected, className = "" }) {
   );
 }
 
-// Sparse military-HUD corner brackets — frames a panel without a full border.
+// Sparse HUD corner brackets — frames a panel without a full border.
 function Corners({ className = "" }) {
   const arm = "h-3 w-3 border-white/45";
   return (
@@ -214,7 +257,8 @@ const NAV = [
   ["Cross-Match", "#reid"],
   ["Threat Engine", "#threat"],
   ["Evidence", "#evidence"],
-  ["Benchmarks", "#specs"],
+  ["Spec", "#specs"],
+  ["Roadmap", "#roadmap"],
 ];
 
 const THREAT_FACTORS = [
@@ -280,7 +324,7 @@ export default function LandingPage() {
             <span className="leading-none">
               <span className="block text-[13px] font-bold tracking-wide">IBVAP SENTINEL</span>
               <span className="mt-1 block font-mono text-[8.5px] uppercase tracking-[0.24em] text-white/45">
-                Border Defense Vision AI
+                Edge-First Surveillance Analytics
               </span>
             </span>
           </Link>
@@ -338,15 +382,15 @@ export default function LandingPage() {
             </Reveal>
 
             <Reveal as="h1" delay={70} className="font-display mt-6 text-[2.7rem] font-light leading-[1.04] tracking-tight text-white sm:text-6xl [text-wrap:balance]">
-              AI Border<br />
-              <span className="italic">Surveillance System</span>
+              Edge-First Border<br />
+              <span className="italic">Surveillance Analytics</span>
             </Reveal>
 
             <Reveal as="p" delay={140} className="mt-6 max-w-lg text-[15px] leading-relaxed text-white/65">
-              One identity, tracked across every camera on the line. Sentinel correlates
-              multi-camera detections through the blind gaps between them, scores each
-              event on an explainable 0–100 scale, and seals the evidence the instant it
-              is captured — fully on-premise, air-gapped, court-admissible.
+              A lightweight, multi-camera correlation platform that aggregates raw edge
+              detections into unified, explainable threat incidents. Runs on CPU with no
+              GPU dependency, offline-first, with tamper-evident evidence capture on every
+              incident.
             </Reveal>
 
             <Reveal delay={210} className="mt-8 flex flex-wrap items-center gap-3">
@@ -363,10 +407,11 @@ export default function LandingPage() {
               </a>
             </Reveal>
 
-            <Reveal delay={280} className="mt-10 grid max-w-md grid-cols-3 gap-6 border-t border-white/12 pt-6">
-              <Stat value={6} label="Cameras online" />
-              <Stat value={4} label="Active perimeters" />
-              <Stat value={1.8} decimals={1} suffix="s" label="Detect → alert" />
+            <Reveal delay={280} className="mt-10 grid max-w-md grid-cols-2 gap-x-6 gap-y-5 border-t border-white/12 pt-6">
+              <Spec label="Target hardware" value="CPU-first edge" />
+              <Spec label="Detection & tracking" value="YOLOv8n + ByteTrack" />
+              <Spec label="Appearance embeddings" value="OSNet (torchreid)" />
+              <Spec label="Evidence integrity" value="SHA-256 chained" />
             </Reveal>
           </div>
 
@@ -374,27 +419,27 @@ export default function LandingPage() {
           <Reveal delay={120} className="relative border border-white/15 bg-black">
             <Corners />
             <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
-              <span>Sector 4-B · Elevation Model</span>
-              <span className="flex items-center gap-1.5 text-white">
-                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> Streaming
+              <span>Sector 4-B · Camera Topology Model</span>
+              <span className="flex items-center gap-1.5 text-amber-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" /> Simulation
               </span>
             </div>
             <div className="relative">
               <IsometricTerrain mode="hero" />
               <span className="pointer-events-none absolute left-3 bottom-3 font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/35">
-                FOV coverage · 5 nodes
+                FOV model · 5 nodes
               </span>
               <div className="animate-drift absolute left-3 top-3 border border-white/20 bg-black/80 px-2.5 py-1.5 backdrop-blur-sm">
-                <div className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/45">Scan coverage</div>
-                <div className="font-mono text-base font-semibold"><CountUp value={93.4} decimals={1} suffix="%" /></div>
+                <div className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/45">Detector</div>
+                <div className="font-mono text-base font-semibold">YOLOv8n</div>
               </div>
               <div className="animate-drift absolute right-3 top-10 border border-white/20 bg-black/80 px-2.5 py-1.5 backdrop-blur-sm" style={{ animationDelay: "-2s" }}>
-                <div className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/45">Uptime</div>
-                <div className="font-mono text-base font-semibold"><CountUp value={99.98} decimals={2} suffix="%" /></div>
+                <div className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/45">Classes</div>
+                <div className="font-mono text-base font-semibold">person · vehicle</div>
               </div>
               <div className="animate-drift absolute bottom-3 right-4 border border-white/20 bg-black/80 px-2.5 py-1.5 backdrop-blur-sm" style={{ animationDelay: "-4s" }}>
-                <div className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/45">Open alerts</div>
-                <div className="font-mono text-base font-semibold text-amber-400"><CountUp value={3} /></div>
+                <div className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/45">Feed source</div>
+                <div className="font-mono text-base font-semibold text-amber-400">Recorded</div>
               </div>
             </div>
             <div className="flex items-center gap-3 border-t border-white/12 px-3 py-2">
@@ -421,14 +466,15 @@ export default function LandingPage() {
               One 42&nbsp;km sector of a 3,323&nbsp;km line.
             </h2>
             <p className="mt-5 max-w-md text-[14px] leading-relaxed text-white/65">
-              Sentinel is running on the SSB Gurdaspur stretch of the India–Pakistan
-              border. Nothing about it is sector-specific — the same edge stack,
-              topology model and evidence chain drop onto any of the marked sectors
-              without a cloud round-trip.
+              Sentinel's MVP is modelled on the SSB Gurdaspur stretch of the
+              India–Pakistan border using recorded and simulated feeds. Nothing about
+              the pipeline is sector-specific — the same CPU edge stack, transit-time
+              estimator and hash-chained evidence store are designed to drop onto any
+              marked sector without a cloud round-trip.
             </p>
             <div className="mt-8 grid max-w-md grid-cols-3 gap-6 border-t border-white/12 pt-6">
               <Stat value={3323} label="km land border" />
-              <Stat value={6} label="sectors modelled" />
+              <Stat value={6} label="sectors mapped" />
               <Stat value={0} label="cloud hops" />
             </div>
           </Reveal>
@@ -438,21 +484,70 @@ export default function LandingPage() {
               type="button"
               onClick={() => { click(); setGlobeOpen(true); }}
               className="press group relative block aspect-square w-full max-w-md lg:max-w-none"
-              aria-label="Open the global sensor map"
+              aria-label="Open the 3D sector terrain model"
             >
               <Corners />
-              <SentinelGlobe />
+              <WhenVisible fallback={<SentinelGlobe />}>
+                <Suspense fallback={<SentinelGlobe />}>
+                  <SentinelGlobe3D onTap={() => { click(); setGlobeOpen(true); }} />
+                </Suspense>
+              </WhenVisible>
               <span className="pointer-events-none absolute left-3 top-3 font-mono text-[9px] uppercase tracking-[0.16em] text-white/40">
-                Sector map · live
+                Sector 4-B · terrain model
               </span>
               <span className="pointer-events-none absolute bottom-3 right-3 font-mono text-[9px] uppercase tracking-[0.14em] text-white/45">
                 32.04°N&nbsp;·&nbsp;75.40°E
               </span>
               <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-mono text-[9px] uppercase tracking-[0.16em] text-white/0 transition-colors group-hover:text-white/55">
-                tap to open world map →
+                tap to open 3D terrain →
               </span>
             </button>
           </Reveal>
+        </div>
+      </section>
+
+      {/* ── CAPABILITIES ────────────────────────────────────────── */}
+      <section className="border-t border-white/10 bg-black py-24 sm:py-28">
+        <div className="mx-auto max-w-6xl px-6">
+          <Reveal>
+            <Eyebrow>What the MVP does</Eyebrow>
+            <h2 className="font-display mt-4 max-w-2xl text-3xl font-light leading-tight tracking-tight sm:text-[2.75rem]">
+              Four capabilities, each independently verifiable.
+            </h2>
+          </Reveal>
+          <div className="mt-14 grid gap-px border border-white/12 bg-white/12 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              [
+                "Lightweight Edge Vision",
+                "Runs CPU-optimized YOLOv8n (COCO-pretrained), filtered to the person and vehicle classes, with no dedicated GPU required.",
+                "YOLOv8n · CPU",
+              ],
+              [
+                "Dual-Camera Re-Identification (MVP)",
+                "OSNet / ResNet appearance embeddings matched across two synchronized angles, gated by a distance-and-speed transit-time window.",
+                "OSNet · 2-cam testbed",
+              ],
+              [
+                "Explainable Threat Scoring",
+                "A transparent rule-based correlation engine that itemizes every threat point (+30 boundary breach, +20 directional violation) — no black-box model in the decision path.",
+                "Rule correlator · 0–100",
+              ],
+              [
+                "Tamper-Evident Evidence Chain",
+                "SHA-256 sequential hash-chaining across incident capsules so any edit to one capsule breaks verification of every capsule after it.",
+                "SHA-256 · chain-of-custody",
+              ],
+            ].map(([t, d, tag], i) => (
+              <Reveal key={t} delay={i * 70} className="flex flex-col bg-black p-7">
+                <div className="font-mono text-[11px] text-white/35">0{i + 1}</div>
+                <h3 className="mt-3 text-[15px] font-bold leading-snug">{t}</h3>
+                <p className="mt-2 flex-1 text-[12.5px] leading-relaxed text-white/60">{d}</p>
+                <div className="mt-5 border-t border-white/12 pt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/40">
+                  {tag}
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -468,8 +563,8 @@ export default function LandingPage() {
           <div className="mt-14 grid gap-px border border-white/12 bg-white/12 sm:grid-cols-3">
             {[
               ["01", "Blind corridors", "Cameras on a border cannot overlap for kilometres. A subject that leaves one frame simply vanishes until the next — if anyone is watching it.", "13s", "median blind-gap transit"],
-              ["02", "Alarm fatigue", "Wildlife, weather and vegetation trip motion alerts hundreds of times a night. Operators learn to ignore the buzzer.", "38%", "of alerts are false, pre-Sentinel"],
-              ["03", "Unusable evidence", "Footage pulled days later has no verifiable chain of custody and routinely fails Section 65B scrutiny in court.", "0", "tamper-proof by default"],
+              ["02", "Alarm fatigue", "Wildlife, weather and vegetation trip motion alerts repeatedly through the night. Operators learn to ignore the buzzer.", "motion-only", "nuisance triggers dominate legacy alerts"],
+              ["03", "Unusable evidence", "Footage pulled days later has no verifiable chain of custody and routinely fails Section 65B scrutiny in court.", "0", "verifiable chain, pre-Sentinel"],
             ].map(([n, t, d, stat, statlabel]) => (
               <Reveal key={n} className="bg-black p-7">
                 <div className="font-mono text-[11px] text-white/35">{n}</div>
@@ -493,7 +588,12 @@ export default function LandingPage() {
               <Eyebrow>01 — Operations</Eyebrow>
               <h2 className="font-display mt-4 text-3xl font-light tracking-tight sm:text-[2.75rem]">Every feed, one watchfloor</h2>
             </div>
-            <span className="font-mono text-[11px] text-white/45">YOLOv8n · ByteTrack · &lt;18 ms / frame @ Jetson Orin</span>
+            <span className="font-mono text-[11px] text-white/45">YOLOv8n (COCO · person/vehicle) · ByteTrack · CPU inference</span>
+          </Reveal>
+
+          <Reveal delay={60} className="mt-4 flex items-center gap-2 border border-white/12 bg-white/[0.03] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+            Mode: dual-angle synchronized simulation (VisDrone + recorded testbed feeds) · target pipeline: CPU edge node
           </Reveal>
 
           <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_280px]">
@@ -505,7 +605,7 @@ export default function LandingPage() {
                   <Corners />
                   <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2.5 font-mono text-[9px]">
                     <div className="flex items-start justify-between">
-                      <span className="flex items-center gap-1 bg-black/70 px-1.5 py-0.5 text-white/70"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> LIVE · FOCUS</span>
+                      <span className="flex items-center gap-1 bg-black/70 px-1.5 py-0.5 text-white/70"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> SIM · FOCUS</span>
                       <span className="bg-black/70 px-1.5 py-0.5 text-white/60">CAM_BRAVO · Perimeter fence</span>
                     </div>
                     <span className="w-fit border border-red-500/60 bg-red-950/50 px-1.5 py-0.5 text-red-300">TRACK #14 · in restricted zone</span>
@@ -551,8 +651,8 @@ export default function LandingPage() {
               <Ring value={78} label="Scan coverage" sub="perimeter sweep" />
               <Ring value={64} label="Channel load" sub="6 of 8 active" />
               <div className="space-y-5 border-t border-white/12 pt-5">
-                <Spark label="Detections / min" value="24.1" data={[9, 12, 10, 16, 13, 19, 15, 23, 18, 27, 22, 24]} />
-                <Spark label="False-alarm rate" value="2.3%" data={[7, 6, 6.5, 5, 4.4, 4.1, 3.6, 3.2, 2.9, 2.6, 2.4, 2.3]} />
+                <Spark label="Detections / min" value="24" data={[9, 12, 10, 16, 13, 19, 15, 23, 18, 27, 22, 24]} />
+                <Spark label="Restricted-zone entries" value="3" data={[0, 1, 0, 1, 1, 0, 2, 1, 2, 1, 3, 3]} />
                 <Spark label="Curfew-window detections" value="6" data={[0, 0, 1, 0, 2, 1, 1, 3, 2, 4, 3, 6]} />
               </div>
             </Reveal>
@@ -569,11 +669,18 @@ export default function LandingPage() {
               One identity, held across the blind gap
             </h2>
             <p className="mt-5 text-[14px] leading-relaxed text-white/65">
-              A ResNet-18 appearance encoder turns each detection into a 512-dimension
-              embedding. When a track leaves one camera, Sentinel predicts where and when
-              it will re-emerge and matches it on arrival by cosine similarity — no
-              overlap required.
+              An OSNet / ResNet appearance encoder (torchreid) turns each person
+              detection into a 512-d embedding. When a track leaves one camera, Sentinel
+              estimates a transit-time window from last-known distance and speed, then
+              matches on arrival by cosine similarity. Validated on a synchronized
+              two-angle testbed — viewpoint and lighting shifts remain the main error
+              source.
             </p>
+          </Reveal>
+
+          <Reveal delay={40} className="mt-4 flex items-center gap-2 border border-white/12 bg-white/[0.03] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
+            Validated pair: CAM_ALPHA ↔ CAM_BRAVO (2 synchronized angles) · the four-node trail below illustrates the target camera topology
           </Reveal>
 
           {/* control strip */}
@@ -639,10 +746,10 @@ export default function LandingPage() {
 
           <Reveal delay={160} className="mt-6 grid grid-cols-2 gap-px border border-white/12 bg-white/12 sm:grid-cols-4">
             {[
-              ["91.4%", "Peak match"],
+              ["91.4%", "Peak match · testbed"],
               ["512-d", "Embedding"],
               ["0.82", "Cosine threshold"],
-              ["3", "Handoffs"],
+              ["2-cam", "Validated topology"],
             ].map(([v, l]) => (
               <div key={l} className="bg-black px-4 py-5 text-center">
                 <div className="font-mono text-xl font-semibold tabular-nums">{v}</div>
@@ -778,9 +885,10 @@ export default function LandingPage() {
             <h2 className="font-display mt-4 text-3xl font-light tracking-tight sm:text-[2.75rem]">Sealed at capture, not after</h2>
             <p className="mt-5 text-[14px] leading-relaxed text-white/65">
               Every snapshot, bounding box and operator action is hashed into a
-              SHA-256 chain the moment it is written. Break one block and every block
-              after it fails verification — and the Section 65B certificate generates
-              itself.
+              SHA-256 chain the moment it is written. Break one capsule and every
+              capsule after it fails verification — and a Section 65B certificate
+              template is generated alongside it. This is hash-chaining for
+              tamper-evidence, not a blockchain or distributed ledger.
             </p>
           </Reveal>
 
@@ -816,8 +924,8 @@ export default function LandingPage() {
           </Reveal>
 
           <Reveal delay={160} className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-2 border-t border-white/12 pt-4 font-mono text-[11px] text-white/50">
-            <span className="flex items-center gap-2 text-white"><Check size={13} /> Ledger integrity: verified</span>
-            <span>5 blocks sealed</span>
+            <span className="flex items-center gap-2 text-white"><Check size={13} /> Hash-chain integrity: verified</span>
+            <span>5 capsules sealed</span>
             <span>Genesis: sentinel::genesis::ssb-gurdaspur::2026</span>
           </Reveal>
         </div>
@@ -832,10 +940,10 @@ export default function LandingPage() {
           </Reveal>
           <div className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              ["01", "Edge ingest", "YOLOv8n TensorRT on the Jetson at the tower. Raw video never leaves the sector."],
-              ["02", "Track & hand off", "ByteTrack maintains IDs; the topology model routes vectors across blind gaps."],
-              ["03", "Score & explain", "Additive 0–100 threat, every point traceable to a rule and a pixel."],
-              ["04", "Seal & certify", "SHA-256 chain + auto-generated Section 65B certificate."],
+              ["01", "Edge ingest", "CPU-optimized YOLOv8n (COCO, person/vehicle filter) on the sector node. Raw video never leaves the sector."],
+              ["02", "Track & hand off", "ByteTrack assigns local track IDs; a distance/speed transit-time estimator cues the next camera across blind gaps."],
+              ["03", "Score & explain", "Additive 0–100 threat, every point traceable to a rule and a detection."],
+              ["04", "Seal & certify", "SHA-256 hash-chained evidence capsules + a Section 65B certificate template."],
             ].map(([n, t, d], i) => (
               <Reveal key={n} delay={i * 80} className="group border-t-2 border-white pt-5">
                 <div className="font-display text-5xl font-light text-white/35 transition-colors group-hover:text-white">{n}</div>
@@ -847,26 +955,83 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── BENCHMARKS ──────────────────────────────────────────── */}
+      {/* ── ENGINEERING SPECIFICATION ───────────────────────────── */}
       <section id="specs" className="scroll-mt-20 border-t border-white/10 bg-black py-24 sm:py-28">
         <div className="mx-auto max-w-6xl px-6">
-          <Reveal><Eyebrow>Field benchmarks</Eyebrow></Reveal>
+          <Reveal>
+            <Eyebrow>Engineering specification</Eyebrow>
+            <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-white/50">
+              Architectural facts, not measured field metrics. The MVP is tested on
+              public datasets (MOT17, VisDrone) and recorded synchronized two-angle
+              simulation feeds — not on live tactical CCTV.
+            </p>
+          </Reveal>
           <Reveal delay={80} className="mt-10 grid grid-cols-2 divide-y divide-white/12 border-y border-white/15 md:grid-cols-4 md:divide-y-0 md:divide-x">
             {[
-              { v: 18, prefix: "< ", suffix: " ms", l: "Inference latency", s: "YOLOv8n · TensorRT FP16" },
-              { v: 91.4, decimals: 1, suffix: "%", l: "Re-ID match rate", s: "ResNet-18 · 512-d cosine" },
-              { v: 38, suffix: "%", l: "False-alarm cut", s: "Site calibration engine" },
-              { v: 100, suffix: "%", l: "Air-gapped", s: "Zero cloud dependency" },
+              { v: "YOLOv8n", l: "Detector", s: "COCO-pretrained · person/vehicle filter · CPU" },
+              { v: "ByteTrack", l: "Tracker", s: "local multi-object track IDs" },
+              { v: "OSNet / ResNet", l: "Re-ID", s: "512-d cosine · 2-camera testbed" },
+              { v: "SHA-256", l: "Evidence", s: "sequential hash-chained capsules" },
             ].map((m) => (
               <div key={m.l} className="p-6 md:p-8">
-                <div className="font-mono text-3xl font-semibold tabular-nums sm:text-[2.5rem]">
-                  <CountUp value={m.v} prefix={m.prefix || ""} suffix={m.suffix || ""} decimals={m.decimals || 0} />
-                </div>
+                <div className="font-mono text-xl font-semibold leading-tight sm:text-2xl">{m.v}</div>
                 <div className="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-white">{m.l}</div>
-                <div className="mt-1 font-mono text-[10px] text-white/40">{m.s}</div>
+                <div className="mt-1 font-mono text-[10px] leading-relaxed text-white/40">{m.s}</div>
               </div>
             ))}
           </Reveal>
+        </div>
+      </section>
+
+      {/* ── ROADMAP ─────────────────────────────────────────────── */}
+      <section id="roadmap" className="scroll-mt-20 border-t border-white/10 bg-black py-24 sm:py-28">
+        <div className="mx-auto max-w-6xl px-6">
+          <Reveal>
+            <Eyebrow>Built vs. planned</Eyebrow>
+            <h2 className="font-display mt-4 max-w-2xl text-3xl font-light leading-tight tracking-tight sm:text-[2.75rem]">
+              A two-phase roadmap, stated plainly.
+            </h2>
+          </Reveal>
+          <div className="mt-14 grid gap-px border border-white/12 bg-white/12 md:grid-cols-2">
+            <Reveal className="bg-black p-8">
+              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white">
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                Phase 1 — current MVP
+              </div>
+              <ul className="mt-6 space-y-3 text-[13px] leading-relaxed text-white/70">
+                {[
+                  "CPU YOLOv8n (COCO) + ByteTrack detection and tracking",
+                  "Explainable rule-based incident correlator (0–100)",
+                  "SHA-256 hash-chained evidence capsules + Section 65B template",
+                  "Dual-camera OSNet Re-ID testbed (2 synchronized angles)",
+                ].map((x) => (
+                  <li key={x} className="flex gap-2.5">
+                    <Check size={14} className="mt-0.5 shrink-0 text-white" />
+                    <span>{x}</span>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+            <Reveal delay={100} className="bg-black p-8">
+              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+                <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
+                Phase 2 &amp; future scope
+              </div>
+              <ul className="mt-6 space-y-3 text-[13px] leading-relaxed text-white/50">
+                {[
+                  "LWIR / thermal sensor integration for low-light and night",
+                  "Physical edge deployment (Jetson / Raspberry Pi 5)",
+                  "ANPR integration for vehicle-of-interest matching",
+                  "Distributed message brokering for multi-sector fan-out",
+                ].map((x) => (
+                  <li key={x} className="flex gap-2.5">
+                    <ArrowRight size={14} className="mt-0.5 shrink-0 text-white/40" />
+                    <span>{x}</span>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          </div>
         </div>
       </section>
 
@@ -907,7 +1072,11 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {globeOpen && <GlobeModal onClose={() => setGlobeOpen(false)} />}
+      {globeOpen && (
+        <Suspense fallback={null}>
+          <BorderTerrainModal onClose={() => setGlobeOpen(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }

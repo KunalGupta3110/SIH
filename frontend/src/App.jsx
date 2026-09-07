@@ -62,7 +62,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/console" element={<ConsoleDashboard />} />
+          <Route path="/console" element={<ConsoleDashboard initialNav="watchfloor" />} />
           <Route path="/surveillance" element={<ConsoleDashboard initialNav="surveillance" />} />
           <Route path="/incidents" element={<ConsoleDashboard initialNav="incidents" />} />
           <Route path="/map" element={<ConsoleDashboard initialNav="map" />} />
