@@ -6,12 +6,14 @@ evidence-chain audit, mobile token registration, and safe hardware simulation.
 The heavier camera/CV stack is imported lazily only for stream endpoints.
 """
 
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+import logging
 import os
 from pathlib import Path
 import sys
 import time
-from typing import Any, Dict, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 if str(ROOT_DIR) not in sys.path:
@@ -19,7 +21,7 @@ if str(ROOT_DIR) not in sys.path:
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -29,11 +31,30 @@ from core.rules.site_calibration import get_calibration_summary, record_site_fee
 from core.vision.camera_health import CameraHealthMonitor
 from services.hardware_bridge.serial_controller import get_hardware_controller
 
+logger = logging.getLogger("ibvap.gateway")
+
+
+@asynccontextmanager
+async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Migrate the schema (already done by get_backend()) and seed demo data
+    so the dashboard isn't empty on a fresh clone. Never blocks startup —
+    a seed failure is logged, not fatal, since the API is still usable
+    without demo rows."""
+    try:
+        from core.db.seed import run_seed
+
+        result = run_seed(get_backend())
+        logger.info("Startup seed check: %s", result)
+    except Exception:
+        logger.exception("Demo data seed failed (non-fatal, API will still start)")
+    yield
+
 
 app = FastAPI(
     title="IBVAP Sentinel Backend API",
     description="Reliable SQLite-backed gateway for the IBVAP Sentinel command center and mobile app.",
     version="1.0.0",
+    lifespan=_lifespan,
 )
 
 app.add_middleware(
@@ -67,6 +88,20 @@ OFFLINE_EVENT_QUEUE: list = []
 
 def get_camera_health_monitor() -> CameraHealthMonitor:
     return _camera_health_monitor
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """
+    Last-resort safety net for a live demo: an unexpected error becomes a
+    clean 500 JSON body with a logged traceback server-side, never a raw
+    stack trace shown to the client or a crashed process.
+    """
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"error": "internal_error", "detail": "Something went wrong processing this request.", "path": request.url.path},
+    )
 
 
 class ArmStateRequest(BaseModel):
@@ -108,6 +143,15 @@ class RegisterTokenRequest(BaseModel):
     token: str
     device_id: Optional[str] = None
     platform: Optional[str] = None
+
+
+class EnrollPersonRequest(BaseModel):
+    person_id: str
+    name: str
+    role: str = Field(default="authorized", pattern="^(authorized|watchlist)$")
+    reference_embedding: Optional[List[float]] = None
+    photo_path: Optional[str] = None
+    notes: Optional[str] = None
 
 
 def api_incident_to_mobile(incident: Dict[str, Any], base_url: str) -> Dict[str, Any]:
@@ -252,6 +296,26 @@ def silence_siren():
 def register_device_token(payload: RegisterTokenRequest):
     token = get_backend().register_fcm_token(payload.token, payload.device_id, payload.platform)
     return {"status": "registered", **token}
+
+
+@app.get("/enrollment/people")
+@app.get("/v1/enrollment/people")
+def list_enrolled_people():
+    return {"people": get_backend().list_enrolled_people()}
+
+
+@app.post("/enrollment/people")
+@app.post("/v1/enrollment/people")
+def enroll_person(payload: EnrollPersonRequest):
+    person = get_backend().enroll_person(
+        person_id=payload.person_id,
+        name=payload.name,
+        role=payload.role,
+        reference_embedding=payload.reference_embedding,
+        photo_path=payload.photo_path,
+        notes=payload.notes,
+    )
+    return {"status": "enrolled", **person}
 
 
 @app.post("/events/simulate-handoff")

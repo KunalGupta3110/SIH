@@ -128,6 +128,11 @@ def test_camera_health_fault_simulation_and_clear(client):
 
 
 def test_offline_queue_buffers_and_drains_on_reconnect(client):
+    # The gateway's startup hook seeds a few realistic demo incidents into
+    # every fresh database (including this test's isolated one) — assert
+    # against the count *changing*, not against an empty incident list.
+    incidents_before = len(client.get("/incidents").json())
+
     status = client.get("/network/status").json()
     assert status["simulated_down"] is False
 
@@ -140,13 +145,15 @@ def test_offline_queue_buffers_and_drains_on_reconnect(client):
     assert r2.json()["status"] == "queued_offline"
     assert client.get("/network/status").json()["queued_events_count"] == 2
 
-    # Nothing should have been correlated into an incident while offline.
-    assert client.get("/incidents").json() == []
+    # Nothing should have been correlated into a new incident while offline.
+    assert len(client.get("/incidents").json()) == incidents_before
 
     toggled_on = client.post("/network/toggle").json()
     assert toggled_on["simulated_down"] is False
     assert toggled_on["drained_events"] == 2
     assert toggled_on["queued_events_count"] == 0
+
+    assert len(client.get("/incidents").json()) > incidents_before
 
     incidents = client.get("/incidents").json()
     assert len(incidents) >= 1

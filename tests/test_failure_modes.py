@@ -98,7 +98,7 @@ class TestSentinelFailureModes(unittest.TestCase):
 
             with backend.connect() as conn:
                 conn.execute(
-                    "UPDATE audit_ledger SET payload_json = '{\"tampered\":true}' WHERE block_index = 1"
+                    "UPDATE evidence_blocks SET payload_json = '{\"tampered\":true}' WHERE block_index = 1"
                 )
                 conn.commit()
             conn.close()
