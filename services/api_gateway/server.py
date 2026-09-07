@@ -281,9 +281,21 @@ def acknowledge_incident(incident_id: str, request: Request, payload: Optional[A
 
 @app.get("/audit/blockchain")
 @app.get("/v1/audit/blockchain")
+def get_audit_blockchain():
+    """The sealed evidence chain itself, most-recent-first — what the
+    Evidence Vault UI renders as the linked-block visualization."""
+    blocks = get_backend().get_ledger_blocks()
+    return {"blocks_sealed": len(blocks), "blocks": blocks}
+
+
 @app.get("/audit/verify")
 @app.get("/v1/audit/verify")
+@app.get("/integrity/verify")
+@app.get("/v1/integrity/verify")
 def verify_audit_chain():
+    """Walks the chain and reports whether it's intact — separate from
+    /audit/blockchain (which just lists the blocks) because verifying is an
+    active, on-demand operator action ("Run cryptographic audit")."""
     is_valid, broken_index, reason, logs = get_backend().verify_chain()
     return {
         "is_valid": is_valid,

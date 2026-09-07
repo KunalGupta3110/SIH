@@ -121,6 +121,28 @@ def test_enrollment_people_round_trip(client):
     assert listed[0]["person_id"] == "P-100"
 
 
+def test_audit_blockchain_lists_blocks_separately_from_verify(client):
+    """Regression test: /audit/blockchain must return the actual block list
+    (EvidencePanel.jsx reads blockchain.blocks), not verification status —
+    they were previously the same handler, so the vault silently rendered
+    empty against a real backend."""
+    client.post("/events/simulate-handoff")
+
+    chain = client.get("/audit/blockchain")
+    assert chain.status_code == 200
+    body = chain.json()
+    assert body["blocks_sealed"] >= 1
+    assert isinstance(body["blocks"], list)
+    first_block = body["blocks"][0]
+    assert "current_hash" in first_block
+    assert "payload" in first_block and isinstance(first_block["payload"], dict)
+
+    verify = client.get("/audit/verify")
+    assert verify.status_code == 200
+    assert verify.json()["is_valid"] is True
+    assert "blocks" not in verify.json()
+
+
 def test_pipeline_run_demo_produces_real_detections(client, monkeypatch):
     """
     A real, lightweight run of the actual YOLOv8+ByteTrack+Re-ID stack

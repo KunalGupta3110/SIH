@@ -666,6 +666,25 @@ class SentinelBackend:
             )
         return self.get_incident(incident_id)
 
+    def get_ledger_blocks(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """Every sealed block, most recent first, with `payload` parsed as a
+        dict — what the Evidence Vault UI renders as the visual chain."""
+        with self._session() as session:
+            rows = session.execute(select(EvidenceBlock).order_by(desc(EvidenceBlock.block_index)).limit(limit)).scalars().all()
+            return [
+                {
+                    "block_index": row.block_index,
+                    "previous_hash": row.previous_hash,
+                    "data_hash": row.data_hash,
+                    "current_hash": row.current_hash,
+                    "payload": json.loads(row.payload_json),
+                    "timestamp": row.timestamp,
+                    "linked_incident_id": row.linked_incident_id,
+                    "operator_action": row.operator_action,
+                }
+                for row in rows
+            ]
+
     def get_ledger_block_for_incident(self, incident_id: str) -> Optional[Dict[str, Any]]:
         """The most recently sealed evidence block for this incident, for the dossier."""
         with self._session() as session:
