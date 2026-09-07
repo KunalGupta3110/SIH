@@ -1,29 +1,34 @@
 """
-IBVAP Sentinel — backend/dossier_generator.py
+IBVAP Sentinel — core/dossier.py
 
-Court-Admissible Incident Dossier & PDF Report Generator.
-Compliant with Section 65B of the Indian Evidence Act for electronic records.
-Generates printable, highly formatted military-grade incident documentation.
+Court-admissible incident dossier & printable HTML/PDF report generator.
+Formatted to reference Section 65B of the Indian Evidence Act for
+electronic records, so operators have a 1-click, print-to-PDF forensic
+document for any sealed incident.
 """
 
-import json
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 
-def generate_incident_dossier_html(incident: dict, events: list, block: dict | None) -> str:
+def generate_incident_dossier_html(
+    incident: Dict[str, Any],
+    events: List[Dict[str, Any]],
+    block: Optional[Dict[str, Any]],
+) -> str:
     """Renders a complete, official forensic dossier in HTML/PDF printable format."""
     inc_id = incident.get("incident_id", "INC-UNKNOWN")
-    created_at = incident.get("created_at", datetime.utcnow().isoformat())
+    created_at = incident.get("created_at") or datetime.now(timezone.utc).isoformat()
     score = incident.get("threat_score", 0)
     severity = incident.get("severity", "INFO")
     status = incident.get("status", "UNCONFIRMED")
-    story = incident.get("story_summary", "No narrative recorded.")
-    cameras = json.loads(incident.get("cameras_json") or "[]") if isinstance(incident.get("cameras_json"), str) else incident.get("cameras_json", [])
-    factors = json.loads(incident.get("score_breakdown_json") or "[]") if isinstance(incident.get("score_breakdown_json"), str) else incident.get("score_breakdown_json", [])
+    story = incident.get("story_summary") or "No narrative recorded."
+    cameras = incident.get("cameras_involved") or []
+    factors = incident.get("score_breakdown") or []
 
-    block_hash = block.get("current_hash", incident.get("cryptographic_hash", "UNSEALED")) if block else incident.get("cryptographic_hash", "UNSEALED")
-    prev_hash = block.get("previous_hash", "GENESIS_ANCHOR") if block else "GENESIS_ANCHOR"
-    data_hash = block.get("data_hash", "N/A") if block else "N/A"
+    block_hash = (block or {}).get("current_hash") or incident.get("cryptographic_hash") or "UNSEALED"
+    prev_hash = (block or {}).get("previous_hash") or "GENESIS_ANCHOR"
+    data_hash = (block or {}).get("data_hash") or "N/A"
 
     badge_color = "#dc2626" if severity == "CRITICAL" else "#ea580c" if severity == "WARNING" else "#2563eb"
 
@@ -52,7 +57,7 @@ def generate_incident_dossier_html(incident: dict, events: list, block: dict | N
         </tr>
         """
 
-    html = f"""<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -182,41 +187,14 @@ def generate_incident_dossier_html(incident: dict, events: list, block: dict | N
             background-color: #1d4ed8;
         }}
         @media print {{
-            body {{
-                background-color: #ffffff;
-                color: #000000;
-                padding: 0;
-            }}
-            .dossier-container {{
-                box-shadow: none;
-                border: 1px solid #cccccc;
-                background-color: #ffffff;
-                padding: 20px;
-            }}
-            .btn-print {{
-                display: none;
-            }}
-            .info-card {{
-                background: #f8fafc;
-                border: 1px solid #cbd5e1;
-                color: #000000;
-            }}
-            .info-card .val {{
-                color: #000000;
-            }}
-            th {{
-                background-color: #f1f5f9;
-                color: #000000;
-            }}
-            td {{
-                color: #000000 !important;
-                border: 1px solid #cbd5e1 !important;
-            }}
-            .hash-box {{
-                background: #f0fdf4;
-                color: #15803d;
-                border-color: #86efac;
-            }}
+            body {{ background-color: #ffffff; color: #000000; padding: 0; }}
+            .dossier-container {{ box-shadow: none; border: 1px solid #cccccc; background-color: #ffffff; padding: 20px; }}
+            .btn-print {{ display: none; }}
+            .info-card {{ background: #f8fafc; border: 1px solid #cbd5e1; color: #000000; }}
+            .info-card .val {{ color: #000000; }}
+            th {{ background-color: #f1f5f9; color: #000000; }}
+            td {{ color: #000000 !important; border: 1px solid #cbd5e1 !important; }}
+            .hash-box {{ background: #f0fdf4; color: #15803d; border-color: #86efac; }}
         }}
     </style>
 </head>
@@ -260,27 +238,15 @@ def generate_incident_dossier_html(incident: dict, events: list, block: dict | N
         <div class="section-title">Factorized Explainable Threat Matrix (Rule Breakdown)</div>
         <table>
             <thead>
-                <tr>
-                    <th>Contributing Factor</th>
-                    <th style="text-align: center;">Points</th>
-                    <th>Kinematic / Spatial Evidence</th>
-                </tr>
+                <tr><th>Contributing Factor</th><th style="text-align: center;">Points</th><th>Kinematic / Spatial Evidence</th></tr>
             </thead>
-            <tbody>
-                {factors_html}
-            </tbody>
+            <tbody>{factors_html}</tbody>
         </table>
 
         <div class="section-title">Chronological Event Trail (Multi-Node Evidence)</div>
         <table>
             <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Camera</th>
-                    <th>Event Type</th>
-                    <th>Timestamp</th>
-                    <th>Rule Detail</th>
-                </tr>
+                <tr><th>#</th><th>Camera</th><th>Event Type</th><th>Timestamp</th><th>Rule Detail</th></tr>
             </thead>
             <tbody>
                 {events_html if events_html else "<tr><td colspan='5' style='text-align:center; padding:12px;'>No atomic sub-events logged.</td></tr>"}
@@ -293,15 +259,14 @@ def generate_incident_dossier_html(incident: dict, events: list, block: dict | N
             <strong>PREVIOUS LINK HASH:</strong> {prev_hash}<br>
             <strong>PAYLOAD DATA HASH:</strong> {data_hash}<br>
             <strong>GENESIS ANCHOR:</strong> sentinel::genesis::ssb-gurdaspur::2026<br>
-            <strong>TAMPER VERIFICATION STATUS:</strong> <span style="color: #22c55e;">VERIFIED UNTAMPERED (GET /integrity/verify)</span>
+            <strong>TAMPER VERIFICATION STATUS:</strong> <span style="color: #22c55e;">VERIFIED UNTAMPERED (GET /audit/verify)</span>
         </div>
 
         <div style="margin-top: 35px; border-top: 1px solid #334155; padding-top: 15px; font-size: 11px; color: #64748b; display: flex; justify-content: space-between;">
-            <div>Generated by IBVAP Sentinel Edge Engine v2.0</div>
+            <div>Generated by IBVAP Sentinel Edge Engine v1.0</div>
             <div>Authorized Lawful Electronic Evidence Record</div>
         </div>
     </div>
 </body>
 </html>
-    """
-    return html
+"""

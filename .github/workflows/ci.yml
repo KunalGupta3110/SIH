@@ -26,7 +26,7 @@ jobs:
 
     - name: Syntax & Compilation Validation
       run: |
-        python -m py_compile alerts/*.py reid/*.py detection_tracking/*.py dashboard/*.py backend/*.py
+        python -m py_compile alerts/*.py reid/*.py detection_tracking/*.py dashboard/*.py core/*.py core/rules/*.py core/vision/*.py services/api_gateway/*.py
 
     - name: Verify Schema and Database Initialization
       run: |

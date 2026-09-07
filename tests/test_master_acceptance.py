@@ -138,6 +138,7 @@ def test_tampered_historical_ledger_block_reports_exact_index(tmp_path):
             (json.dumps(payload, sort_keys=True),),
         )
         conn.commit()
+    conn.close()
 
     is_valid, broken_index, reason, _ = backend.verify_chain()
     assert is_valid is False

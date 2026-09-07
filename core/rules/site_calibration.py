@@ -32,7 +32,7 @@ class CameraSiteProfile:
 
     def __post_init__(self):
         if self.reason_counts is None:
-            self.reason_counts = {"wildlife": 0, "vegetation": 0, "weather": 0, "glare": 0, "other": 0}
+            self.reason_counts = {"vegetation": 0, "animal": 0, "weather": 0, "camera_noise": 0, "other": 0}
 
 
 class SiteAlertCalibrationEngine:
@@ -84,7 +84,7 @@ class SiteAlertCalibrationEngine:
             if prof.reason_counts["vegetation"] >= 3:
                 prof.vegetation_filter_active = True
                 prof.min_confidence_filter = 0.35
-            if prof.reason_counts["wildlife"] >= 3:
+            if prof.reason_counts["animal"] >= 3:
                 prof.loitering_tolerance_sec = 4.5
 
         self._save()
@@ -106,3 +106,26 @@ def record_site_feedback(camera_id: str, is_confirmed: bool, false_reason: Optio
 
 def get_site_profiles() -> Dict[str, Dict]:
     return {cid: asdict(p) for cid, p in _calibration_engine.profiles.items()}
+
+
+def get_calibration_summary(camera_id: Optional[str] = None) -> Dict:
+    """
+    Aggregated dismissal-reason tallies for the operator triage sidebar.
+    With no camera_id, sums every camera's profile; otherwise scoped to one.
+    """
+    profiles = (
+        [_calibration_engine.get_profile(camera_id)]
+        if camera_id
+        else list(_calibration_engine.profiles.values())
+    )
+    by_reason: Dict[str, int] = {}
+    total_dismissed = 0
+    for prof in profiles:
+        total_dismissed += prof.false_positives
+        for reason, count in prof.reason_counts.items():
+            by_reason[reason] = by_reason.get(reason, 0) + count
+
+    if not by_reason:
+        by_reason = {"vegetation": 0, "animal": 0, "weather": 0, "camera_noise": 0, "other": 0}
+
+    return {"camera_id": camera_id, "total_dismissed": total_dismissed, "by_reason": by_reason}

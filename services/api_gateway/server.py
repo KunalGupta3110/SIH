@@ -19,11 +19,14 @@ if str(ROOT_DIR) not in sys.path:
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from core import dossier
 from core.backend_service import get_backend
+from core.rules.site_calibration import get_calibration_summary, record_site_feedback
+from core.vision.camera_health import CameraHealthMonitor
 from services.hardware_bridge.serial_controller import get_hardware_controller
 
 
@@ -50,6 +53,20 @@ if not STATIC_HTML.exists():
     STATIC_HTML = ROOT_DIR / "apps" / "web_command_center" / "static" / "index.html"
 
 CURRENT_ARM_STATE = {"arm_state": "armed"}
+
+# Simulated camera fleet health, independent of any real video feed —
+# lets an operator or demo trigger/clear a fault without hardware attached.
+_camera_health_monitor = CameraHealthMonitor()
+
+# Offline-first event queue: while NETWORK_STATE is "down" (operator/demo
+# toggled), ingested events are buffered here instead of being correlated,
+# then drained in order once the network comes back.
+NETWORK_STATE = {"simulated_down": False}
+OFFLINE_EVENT_QUEUE: list = []
+
+
+def get_camera_health_monitor() -> CameraHealthMonitor:
+    return _camera_health_monitor
 
 
 class ArmStateRequest(BaseModel):
@@ -84,6 +101,7 @@ class EventIn(BaseModel):
 class AcknowledgeRequest(BaseModel):
     status: str = "CONFIRMED"
     notes: Optional[str] = None
+    dismiss_reason: Optional[str] = None
 
 
 class RegisterTokenRequest(BaseModel):
@@ -116,6 +134,7 @@ def api_incident_to_mobile(incident: Dict[str, Any], base_url: str) -> Dict[str,
         "score_breakdown": incident.get("score_breakdown", []),
         "cryptographic_hash": incident.get("cryptographic_hash"),
         "event_ids": incident.get("event_ids", []),
+        "dismiss_reason": incident.get("dismiss_reason"),
     }
 
 
@@ -144,9 +163,18 @@ def set_arm_state(req: ArmStateRequest):
 @app.post("/events")
 @app.post("/v1/events")
 def ingest_event(event: EventIn):
+    payload = event.model_dump(exclude_none=True)
+    if NETWORK_STATE["simulated_down"]:
+        OFFLINE_EVENT_QUEUE.append(payload)
+        return {
+            "ok": True,
+            "status": "queued_offline",
+            "event_id": payload.get("event_id"),
+            "queued_events_count": len(OFFLINE_EVENT_QUEUE),
+        }
     try:
-        result = get_backend().ingest_event(event.model_dump(exclude_none=True))
-        return {"ok": True, **result}
+        result = get_backend().ingest_event(payload)
+        return {"ok": True, "status": "duplicate" if result.get("duplicate") else "recorded", **result}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -178,13 +206,24 @@ def get_incident_by_id(incident_id: str, request: Request):
 def acknowledge_incident(incident_id: str, request: Request, payload: Optional[AcknowledgeRequest] = None):
     payload = payload or AcknowledgeRequest()
     try:
-        incident = get_backend().acknowledge_incident(incident_id, status=payload.status, notes=payload.notes)
+        incident = get_backend().acknowledge_incident(
+            incident_id, status=payload.status, notes=payload.notes, dismiss_reason=payload.dismiss_reason
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not incident:
         raise HTTPException(status_code=404, detail="Incident not found")
+
+    # Feed operator triage back into per-camera site calibration, so recurring
+    # environmental false alarms (vegetation, wildlife, glare...) get learned.
+    is_confirmed = payload.status == "CONFIRMED"
+    for camera_id in incident.get("cameras_involved") or []:
+        record_site_feedback(camera_id, is_confirmed=is_confirmed, false_reason=payload.dismiss_reason)
+
     get_hardware_controller().send_command("SIREN_OFF")
-    return api_incident_to_mobile(incident, str(request.base_url).rstrip("/"))
+    result = api_incident_to_mobile(incident, str(request.base_url).rstrip("/"))
+    result["dismiss_reason"] = incident.get("dismiss_reason")
+    return result
 
 
 @app.get("/audit/blockchain")
@@ -219,6 +258,96 @@ def register_device_token(payload: RegisterTokenRequest):
 @app.post("/v1/events/simulate-handoff")
 def simulate_handoff():
     return {"ok": True, **get_backend().simulate_handoff()}
+
+
+@app.get("/incidents/{incident_id}/dossier")
+@app.get("/v1/incidents/{incident_id}/dossier")
+def get_incident_dossier(incident_id: str):
+    """1-click, print-to-PDF forensic incident dossier (Section 65B formatted)."""
+    backend = get_backend()
+    incident = backend.get_incident(incident_id)
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    events = backend.get_events_for_incident(incident_id)
+    block = backend.get_ledger_block_for_incident(incident_id)
+    html = dossier.generate_incident_dossier_html(incident, events, block)
+    return HTMLResponse(content=html)
+
+
+@app.get("/calibration")
+@app.get("/v1/calibration")
+def get_calibration():
+    return get_calibration_summary()
+
+
+@app.get("/calibration/{camera_id}")
+@app.get("/v1/calibration/{camera_id}")
+def get_calibration_for_camera(camera_id: str):
+    return get_calibration_summary(camera_id)
+
+
+@app.get("/cameras/health")
+@app.get("/v1/cameras/health")
+def get_cameras_health():
+    cameras = get_camera_health_monitor().get_all_health()
+    return {"count": len(cameras), "cameras": cameras}
+
+
+@app.post("/cameras/{camera_id}/simulate-fault")
+@app.post("/v1/cameras/{camera_id}/simulate-fault")
+def simulate_camera_fault(camera_id: str):
+    record = get_camera_health_monitor().simulate_fault(camera_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Unknown camera_id")
+    return {"camera_id": camera_id, "status": record.status, "message": "Simulated camera fault active."}
+
+
+@app.post("/cameras/{camera_id}/clear-fault")
+@app.post("/v1/cameras/{camera_id}/clear-fault")
+def clear_camera_fault(camera_id: str):
+    record = get_camera_health_monitor().clear_fault(camera_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Unknown camera_id")
+    return {"camera_id": camera_id, "status": record.status, "message": "Simulated fault cleared."}
+
+
+@app.get("/network/status")
+@app.get("/v1/network/status")
+def get_network_status():
+    down = NETWORK_STATE["simulated_down"]
+    return {
+        "simulated_down": down,
+        "status": "OFFLINE_BUFFERING" if down else "ONLINE_SYNCED",
+        "queued_events_count": len(OFFLINE_EVENT_QUEUE),
+        "message": "Network down. Events queued locally." if down else "Network healthy.",
+    }
+
+
+@app.post("/network/toggle")
+@app.post("/v1/network/toggle")
+def toggle_network():
+    NETWORK_STATE["simulated_down"] = not NETWORK_STATE["simulated_down"]
+    drained = 0
+    if not NETWORK_STATE["simulated_down"]:
+        backend = get_backend()
+        while OFFLINE_EVENT_QUEUE:
+            queued_event = OFFLINE_EVENT_QUEUE.pop(0)
+            try:
+                backend.ingest_event(queued_event)
+                drained += 1
+            except ValueError:
+                continue
+    return {
+        "simulated_down": NETWORK_STATE["simulated_down"],
+        "status": "OFFLINE_BUFFERING" if NETWORK_STATE["simulated_down"] else "ONLINE_SYNCED",
+        "drained_events": drained,
+        "queued_events_count": len(OFFLINE_EVENT_QUEUE),
+        "message": (
+            "Simulated network failure. Buffering."
+            if NETWORK_STATE["simulated_down"]
+            else f"Reconnected. Drained {drained} events."
+        ),
+    }
 
 
 def _stream_manager():

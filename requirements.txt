@@ -24,3 +24,7 @@ pandas>=2.1.0
 # Utilities
 tqdm>=4.65.0
 requests>=2.31.0
+
+# Testing (FastAPI's TestClient needs an httpx-family HTTP client installed)
+pytest>=8.0.0
+httpx2>=2.0.0
