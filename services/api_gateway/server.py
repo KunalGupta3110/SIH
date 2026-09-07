@@ -19,7 +19,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -143,6 +143,15 @@ class RegisterTokenRequest(BaseModel):
     token: str
     device_id: Optional[str] = None
     platform: Optional[str] = None
+
+
+class DispatchRequest(BaseModel):
+    unit: str = "QRT-1"
+    notes: Optional[str] = None
+
+
+class SirenThresholdRequest(BaseModel):
+    value: int = Field(ge=0, le=100)
 
 
 class EnrollPersonRequest(BaseModel):
@@ -322,6 +331,129 @@ def enroll_person(payload: EnrollPersonRequest):
 @app.post("/v1/events/simulate-handoff")
 def simulate_handoff():
     return {"ok": True, **get_backend().simulate_handoff()}
+
+
+# ---------------------------------------------------------------------------
+# Camera management, raw detections, target tracking, reconstruction,
+# analytics — all real reads against the SQLAlchemy-backed database.
+# ---------------------------------------------------------------------------
+
+@app.get("/cameras")
+@app.get("/v1/cameras")
+def list_cameras():
+    return {"cameras": get_backend().get_cameras()}
+
+
+@app.get("/cameras/{camera_id}/detections")
+@app.get("/v1/cameras/{camera_id}/detections")
+def get_camera_detections(camera_id: str, limit: int = Query(100, ge=1, le=1000)):
+    return {"camera_id": camera_id, "detections": get_backend().get_detections(camera_id=camera_id, limit=limit)}
+
+
+@app.get("/targets")
+@app.get("/v1/targets")
+def list_targets():
+    return {"targets": get_backend().get_tracked_targets()}
+
+
+@app.get("/targets/{global_id}/reconstruction")
+@app.get("/v1/targets/{global_id}/reconstruction")
+def get_target_reconstruction(global_id: str):
+    return get_backend().get_target_reconstruction(global_id)
+
+
+@app.get("/analytics/overview")
+@app.get("/v1/analytics/overview")
+def get_analytics_overview():
+    return get_backend().get_analytics_overview()
+
+
+@app.post("/incidents/{incident_id}/dispatch")
+@app.post("/v1/incidents/{incident_id}/dispatch")
+def dispatch_incident(incident_id: str, payload: Optional[DispatchRequest] = None):
+    payload = payload or DispatchRequest()
+    try:
+        result = get_backend().dispatch_incident(incident_id, unit=payload.unit, notes=payload.notes)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    get_hardware_controller().send_command("RELAY_ON_1")
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Hardware control — telemetry read + relay toggle. Real serial I/O when a
+# controller is attached; SIMULATION MODE (clearly labeled in the response)
+# on every dev machine and demo laptop without one, per
+# services/hardware_bridge/serial_controller.py.
+# ---------------------------------------------------------------------------
+
+@app.get("/hardware/telemetry")
+@app.get("/v1/hardware/telemetry")
+def get_hardware_telemetry():
+    from services.hardware_bridge.serial_controller import SUPPORTED_COMMANDS
+
+    controller = get_hardware_controller()
+    return {
+        "connected": controller.is_connected,
+        "mode": "serial" if controller.is_connected else "simulation",
+        "port": controller.port,
+        "supported_relays": sorted(SUPPORTED_COMMANDS),
+    }
+
+
+@app.post("/hardware/relay/{relay_name}")
+@app.post("/v1/hardware/relay/{relay_name}")
+def toggle_hardware_relay(relay_name: str):
+    try:
+        result = get_hardware_controller().send_command(relay_name.upper())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Settings — small operator-tunable key/value store.
+# ---------------------------------------------------------------------------
+
+@app.get("/settings/siren-threshold")
+@app.get("/v1/settings/siren-threshold")
+def get_siren_threshold():
+    value = get_backend().get_setting("siren_threat_threshold", default="70")
+    return {"key": "siren_threat_threshold", "value": int(value)}
+
+
+@app.post("/settings/siren-threshold")
+@app.post("/v1/settings/siren-threshold")
+def set_siren_threshold(payload: SirenThresholdRequest):
+    result = get_backend().set_setting("siren_threat_threshold", str(payload.value))
+    return {**result, "value": int(result["value"])}
+
+
+# ---------------------------------------------------------------------------
+# AI pipeline trigger — runs the real YOLOv8+ByteTrack+Re-ID stack against
+# the configured demo videos and writes real detections/events/incidents.
+# Heavy deps (torch/opencv/ultralytics) are imported lazily here only, same
+# pattern as the /stream endpoint below, so the rest of the API stays fast
+# to import and usable even before those are installed.
+# ---------------------------------------------------------------------------
+
+@app.post("/pipeline/run-demo")
+@app.post("/v1/pipeline/run-demo")
+def run_demo_pipeline(max_frames: Optional[int] = Query(None, ge=1, le=5000)):
+    try:
+        from core.vision.pipeline import get_pipeline
+    except ImportError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"AI pipeline dependencies not installed (torch/opencv/ultralytics): {exc}",
+        ) from exc
+    try:
+        pipeline = get_pipeline()
+        summaries = pipeline.process_all_configured_cameras(max_frames=max_frames)
+    except Exception as exc:
+        logger.exception("AI pipeline run failed")
+        raise HTTPException(status_code=500, detail=f"Pipeline run failed: {exc}") from exc
+    return {"runs": summaries}
 
 
 @app.get("/incidents/{incident_id}/dossier")

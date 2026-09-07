@@ -32,7 +32,20 @@ from sqlalchemy.orm import Session, sessionmaker
 from core.camera_topology import get_transit_window_either_direction
 from core.db.base import build_engine, resolve_db_path
 from core.db.migrate import ensure_schema
-from core.db.models import EnrolledPerson, EvidenceBlock, FcmToken, Incident, IncidentEvent, OperatorAuditLog, SecurityEvent
+from core.db.models import (
+    Camera,
+    CameraAdjacency,
+    Detection,
+    EnrolledPerson,
+    EvidenceBlock,
+    FcmToken,
+    Incident,
+    IncidentEvent,
+    OperatorAuditLog,
+    SystemSetting,
+    SecurityEvent,
+    TrackedTarget,
+)
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = ROOT_DIR / "data" / "events.db"
@@ -761,6 +774,187 @@ class SentinelBackend:
             "created_at": row.created_at,
             "has_reference_embedding": row.reference_embedding_json is not None,
         }
+
+    # -- camera management ---------------------------------------------------
+
+    def get_cameras(self) -> List[Dict[str, Any]]:
+        with self._session() as session:
+            cameras = session.execute(select(Camera)).scalars().all()
+            edges = session.execute(select(CameraAdjacency)).scalars().all()
+            edges_by_source: Dict[str, List[Dict[str, Any]]] = {}
+            for edge in edges:
+                edges_by_source.setdefault(edge.source_camera_id, []).append({
+                    "target_camera_id": edge.target_camera_id,
+                    "min_transit_s": edge.min_transit_s,
+                    "max_transit_s": edge.max_transit_s,
+                    "distance_m": edge.distance_m,
+                    "exit_heading": edge.exit_heading,
+                })
+            return [
+                {
+                    "camera_id": cam.camera_id,
+                    "name": cam.name,
+                    "location_desc": cam.location_desc,
+                    "fov_deg": cam.fov_deg,
+                    "lat": cam.lat,
+                    "lon": cam.lon,
+                    "status": cam.status,
+                    "neighbors": edges_by_source.get(cam.camera_id, []),
+                }
+                for cam in cameras
+            ]
+
+    # -- raw AI detections ----------------------------------------------------
+
+    def get_detections(self, camera_id: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
+        with self._session() as session:
+            query = select(Detection).order_by(desc(Detection.timestamp_iso)).limit(limit)
+            if camera_id:
+                query = select(Detection).where(Detection.camera_id == camera_id).order_by(desc(Detection.timestamp_iso)).limit(limit)
+            rows = session.execute(query).scalars().all()
+            return [
+                {
+                    "id": row.id,
+                    "camera_id": row.camera_id,
+                    "timestamp_iso": row.timestamp_iso,
+                    "timestamp_ms": row.timestamp_ms,
+                    "track_id": row.track_id,
+                    "class_name": row.class_name,
+                    "confidence": row.confidence,
+                    "bbox": json.loads(row.bbox_json or "[]"),
+                    "centroid": json.loads(row.centroid_json or "[]"),
+                    "global_target_id": row.global_target_id,
+                    "source": row.source,
+                }
+                for row in rows
+            ]
+
+    # -- target tracking registry ---------------------------------------------
+
+    def get_tracked_targets(self) -> List[Dict[str, Any]]:
+        with self._session() as session:
+            rows = session.execute(select(TrackedTarget).order_by(desc(TrackedTarget.last_seen_at))).scalars().all()
+            return [self._target_to_dict(row) for row in rows]
+
+    def get_target_reconstruction(self, global_id: str) -> Dict[str, Any]:
+        """Cross-camera timeline for one target: every detection plus every
+        security event tied to it, in chronological order — the "how did
+        this target move through our camera network" forensic view."""
+        with self._session() as session:
+            target = session.execute(select(TrackedTarget).where(TrackedTarget.global_id == global_id)).scalars().first()
+            detections = session.execute(
+                select(Detection).where(Detection.global_target_id == global_id).order_by(Detection.timestamp_iso)
+            ).scalars().all()
+            events = session.execute(
+                select(SecurityEvent).where(
+                    SecurityEvent.rule_metrics_json.like(f'%"reid_global_id": "{global_id}"%')
+                    | SecurityEvent.rule_metrics_json.like(f'%"reid_global_id":"{global_id}"%')
+                ).order_by(SecurityEvent.timestamp_iso)
+            ).scalars().all()
+
+            timeline = [
+                {"type": "detection", "timestamp_iso": d.timestamp_iso, "camera_id": d.camera_id, "class_name": d.class_name, "confidence": d.confidence}
+                for d in detections
+            ] + [
+                {"type": "security_event", "timestamp_iso": e.timestamp_iso, "camera_id": e.camera_id, "alert_type": e.alert_type, "details": e.details}
+                for e in events
+            ]
+            timeline.sort(key=lambda item: item["timestamp_iso"])
+
+            return {
+                "global_id": global_id,
+                "target": self._target_to_dict(target) if target else None,
+                "timeline": timeline,
+            }
+
+    @staticmethod
+    def _target_to_dict(row: TrackedTarget) -> Dict[str, Any]:
+        return {
+            "global_id": row.global_id,
+            "class_name": row.class_name,
+            "first_seen_camera_id": row.first_seen_camera_id,
+            "first_seen_at": row.first_seen_at,
+            "current_camera_id": row.current_camera_id,
+            "last_seen_at": row.last_seen_at,
+            "predicted_next_camera_id": row.predicted_next_camera_id,
+            "predicted_arrival_min_s": row.predicted_arrival_min_s,
+            "predicted_arrival_max_s": row.predicted_arrival_max_s,
+            "velocity_px_s": row.velocity_px_s,
+            "heading": row.heading,
+            "camera_history": json.loads(row.camera_history_json or "[]"),
+        }
+
+    # -- analytics -------------------------------------------------------------
+
+    def get_analytics_overview(self) -> Dict[str, Any]:
+        with self._session() as session:
+            since_7d = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+            recent_incidents = session.execute(
+                select(Incident).where(Incident.created_at >= since_7d)
+            ).scalars().all()
+
+            by_day: Dict[str, int] = {}
+            by_severity: Dict[str, int] = {}
+            for inc in recent_incidents:
+                day = (inc.created_at or "")[:10]
+                by_day[day] = by_day.get(day, 0) + 1
+                by_severity[inc.severity or "INFO"] = by_severity.get(inc.severity or "INFO", 0) + 1
+
+            confirmed = sum(1 for inc in recent_incidents if inc.status == "CONFIRMED")
+            dismissed = sum(1 for inc in recent_incidents if inc.status == "DISMISSED_FP")
+            total_reviewed = confirmed + dismissed
+            false_alarm_rate = round(dismissed / total_reviewed, 3) if total_reviewed else 0.0
+
+            camera_rows = session.execute(select(Camera)).scalars().all()
+            online = sum(1 for cam in camera_rows if cam.status == "ONLINE")
+            camera_uptime_pct = round(100.0 * online / len(camera_rows), 1) if camera_rows else 100.0
+
+        return {
+            "weekly_alert_distribution": [{"date": day, "count": count} for day, count in sorted(by_day.items())],
+            "severity_breakdown": by_severity,
+            "false_alarm_rate": false_alarm_rate,
+            "confirmed_count": confirmed,
+            "dismissed_count": dismissed,
+            "camera_uptime_pct": camera_uptime_pct,
+            "camera_count": len(camera_rows),
+            "cameras_online": online,
+        }
+
+    # -- QRT dispatch ------------------------------------------------------------
+
+    def dispatch_incident(self, incident_id: str, unit: str = "QRT-1", notes: Optional[str] = None) -> Dict[str, Any]:
+        incident = self.get_incident(incident_id)
+        if not incident:
+            raise ValueError(f"Incident {incident_id} not found")
+        timestamp = utc_now_iso()
+        with self._session() as session:
+            session.add(
+                OperatorAuditLog(
+                    action="qrt_dispatch",
+                    actor="operator",
+                    payload_json=json.dumps({"incident_id": incident_id, "unit": unit, "notes": notes}),
+                    created_at=timestamp,
+                )
+            )
+        return {"incident_id": incident_id, "unit": unit, "dispatched_at": timestamp, "status": "DISPATCHED"}
+
+    # -- settings ------------------------------------------------------------
+
+    def get_setting(self, key: str, default: Optional[str] = None) -> Optional[str]:
+        with self._session() as session:
+            row = session.get(SystemSetting, key)
+            return row.value if row else default
+
+    def set_setting(self, key: str, value: str) -> Dict[str, Any]:
+        timestamp = utc_now_iso()
+        with self._session() as session:
+            row = session.get(SystemSetting, key)
+            if row:
+                row.value = value
+                row.updated_at = timestamp
+            else:
+                session.add(SystemSetting(key=key, value=value, updated_at=timestamp))
+        return {"key": key, "value": value, "updated_at": timestamp}
 
     def simulate_handoff(self) -> Dict[str, Any]:
         base = datetime.now(timezone.utc).replace(microsecond=0)

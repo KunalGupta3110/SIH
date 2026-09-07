@@ -214,6 +214,17 @@ class OperatorAuditLog(Base):
 # Watchlist — backs the Flutter app's /enrollment/people.
 # ---------------------------------------------------------------------------
 
+class SystemSetting(Base):
+    """Generic key/value store for operator-tunable settings (siren
+    threshold, etc.) — small and extensible rather than one column per
+    setting."""
+    __tablename__ = "system_settings"
+
+    key: Mapped[str] = mapped_column(String, primary_key=True)
+    value: Mapped[str] = mapped_column(Text, nullable=False)
+    updated_at: Mapped[str] = mapped_column(String, default=_utc_now_iso)
+
+
 class EnrolledPerson(Base):
     __tablename__ = "enrolled_people"
 
