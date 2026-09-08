@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./components/LandingPage.jsx";
 import ConsoleDashboard from "./components/ConsoleDashboard.jsx";
+import LoginPage from "./components/LoginPage.jsx";
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -62,6 +63,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/console" element={<ConsoleDashboard initialNav="watchfloor" />} />
           <Route path="/surveillance" element={<ConsoleDashboard initialNav="surveillance" />} />
           <Route path="/incidents" element={<ConsoleDashboard initialNav="incidents" />} />

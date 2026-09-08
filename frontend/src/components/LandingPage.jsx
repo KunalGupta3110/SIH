@@ -34,6 +34,7 @@ import {
   X,
   Crosshair,
   RotateCcw,
+  LogIn,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -355,6 +356,14 @@ export default function LandingPage() {
               {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
             </button>
             <Link
+              to="/login"
+              onClick={click}
+              className="press hidden items-center gap-1.5 border border-white/40 px-3.5 py-2 text-[11px] font-bold uppercase tracking-wide text-white/80 hover:bg-white hover:text-black sm:flex"
+            >
+              <LogIn size={12} />
+              Login
+            </Link>
+            <Link
               to="/console"
               onClick={click}
               className="press group hidden items-center gap-2 border border-white bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-black hover:bg-black hover:text-white sm:flex"
@@ -374,7 +383,10 @@ export default function LandingPage() {
                 {label}
               </a>
             ))}
-            <Link to="/console" className="mt-2 block border border-white bg-white px-4 py-2 text-center text-[11px] font-bold uppercase text-black">
+            <Link to="/login" onClick={() => setMenu(false)} className="mt-2 block border border-white/40 px-4 py-2 text-center text-[11px] font-bold uppercase text-white/80">
+              Login
+            </Link>
+            <Link to="/console" onClick={() => setMenu(false)} className="mt-2 block border border-white bg-white px-4 py-2 text-center text-[11px] font-bold uppercase text-black">
               Launch Console
             </Link>
           </div>
