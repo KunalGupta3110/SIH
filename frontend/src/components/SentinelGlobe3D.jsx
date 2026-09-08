@@ -6,10 +6,15 @@ import SentinelGlobe from "./SentinelGlobe.jsx";
 
 /* ═══════════════════════════════════════════════════════════════════════
    SentinelGlobe3D — the hero "tap to open" globe: a real textured earth
-   (public/models/earth.glb, ~1.4 MB, 2048px WebP). The 2D SentinelGlobe
-   renders underneath and fades out once the GL context is live, so there
-   is always something on screen — and a clean fallback if WebGL, the GPU,
-   or the model is unavailable (older phones, low memory, context loss).
+   (public/models/earth.glb, ~1 MB, ≤1024px WebP, no Draco). Built to run
+   on *any* smartphone:
+     • WebGL1 or WebGL2, texture-size gate at 1024 (every real phone GPU)
+     • no MSAA / DPR ≤ 1.5 / powerPreference "default" on mobile
+     • webglcontextlost → permanent clean 2D fallback for the session
+     • the 2D SentinelGlobe stays on screen until the model has actually
+       rendered (not just until the canvas exists) — so slow connections
+       never see a blank gap
+     • a hard timeout also falls back to 2D if the model never arrives
    ═══════════════════════════════════════════════════════════════════════ */
 
 const MODEL = "/models/earth.glb";
@@ -18,10 +23,13 @@ useGLTF.preload(MODEL);
 function webglSupport() {
   try {
     const c = document.createElement("canvas");
-    const gl = c.getContext("webgl2") || c.getContext("webgl") || c.getContext("experimental-webgl");
+    const gl =
+      c.getContext("webgl2") ||
+      c.getContext("webgl") ||
+      c.getContext("experimental-webgl");
     if (!gl) return false;
-    // some mobile GPUs report a context but cap textures below what we need
-    return (gl.getParameter(gl.MAX_TEXTURE_SIZE) || 0) >= 2048;
+    // 1024 is below every real smartphone GPU's cap; keeps the door open wide
+    return (gl.getParameter(gl.MAX_TEXTURE_SIZE) || 0) >= 1024;
   } catch {
     return false;
   }
@@ -40,7 +48,7 @@ class Boundary extends Component {
   }
 }
 
-function Earth({ spin = true }) {
+function Earth({ spin = true, onReady }) {
   const { scene } = useGLTF(MODEL);
   const ref = useRef(null);
 
@@ -56,6 +64,13 @@ function Earth({ spin = true }) {
     return s;
   }, [scene]);
 
+  // useGLTF has already suspended until the model is decoded — by the time
+  // this effect runs the earth is in the scene graph, so it's safe to fade
+  // the 2D globe out.
+  useEffect(() => {
+    onReady?.();
+  }, [onReady]);
+
   useFrame((_, dt) => {
     if (spin && ref.current) ref.current.rotation.y += Math.min(dt, 0.05) * 0.1;
   });
@@ -70,11 +85,21 @@ function Earth({ spin = true }) {
 export default function SentinelGlobe3D({ className = "", onTap }) {
   const [ok] = useState(() => typeof window !== "undefined" && webglSupport());
   const [failed, setFailed] = useState(false);
-  const [live, setLive] = useState(false);
+  const [live, setLive] = useState(false); // model rendered → fade the 2D globe
   const [dragging, setDragging] = useState(false);
   const down = useRef(null);
   const moved = useRef(false);
-  const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 640px)").matches;
+
+  // if the model has not shown up in 12s (dead connection, decode failure),
+  // give up on the 3D layer and keep the 2D globe
+  useEffect(() => {
+    if (!ok || live || failed) return undefined;
+    const t = window.setTimeout(() => setFailed(true), 12000);
+    return () => window.clearTimeout(t);
+  }, [ok, live, failed]);
 
   if (!ok || failed) return <SentinelGlobe className={className} />;
 
@@ -120,11 +145,15 @@ export default function SentinelGlobe3D({ className = "", onTap }) {
         <Canvas
           dpr={isMobile ? [1, 1.5] : [1, 2]}
           camera={{ position: [0, 0, 3.4], fov: 34 }}
-          gl={{ antialias: !isMobile, alpha: true, powerPreference: "default", failIfMajorPerformanceCaveat: false }}
+          gl={{
+            antialias: !isMobile,
+            alpha: true,
+            powerPreference: "default",
+            failIfMajorPerformanceCaveat: false,
+          }}
           className="!absolute inset-0"
           style={{ background: "transparent" }}
           onCreated={({ gl }) => {
-            window.setTimeout(() => setLive(true), 450);
             gl.domElement.addEventListener(
               "webglcontextlost",
               (ev) => {
@@ -139,7 +168,7 @@ export default function SentinelGlobe3D({ className = "", onTap }) {
           <directionalLight position={[3, 2, 4]} intensity={2.2} />
           <directionalLight position={[-4, -1, -3]} intensity={0.4} color="#5f7fd0" />
           <Suspense fallback={null}>
-            <Earth spin={!dragging} />
+            <Earth spin={!dragging} onReady={() => setLive(true)} />
           </Suspense>
           <OrbitControls
             enablePan={false}

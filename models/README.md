@@ -13,7 +13,7 @@ decoder dependency and no decode cost on mobile GPUs).
 
 | Source file | ~size | Optimised as | Used by |
 |---|---|---|---|
-| `earth.glb` | 22 MB (8192px JPEG → ~400 MB VRAM) | `earth.glb` (~1.4 MB) | `SentinelGlobe3D` — landing hero globe |
+| `earth.glb` | 22 MB (8192px JPEG → ~400 MB VRAM) | `earth.glb` (~0.9 MB, 1024px → ~8 MB VRAM) | `SentinelGlobe3D` — landing hero globe |
 | `glacier_national_park_montana_usa_-_3d_map.glb` | 33 MB | `terrain_map.glb` (~1.2 MB) | `gis/BorderTerrainModal` / `BorderTerrainPanel` — sector terrain |
 | `drone.glb` | 9.7 MB | `drone.glb` (~1.8 MB) | `PatrolDrone` — UAV-01 |
 | `security_camera.glb` | 41 MB | `cctv_camera.glb` (~3.1 MB) | CCTV node model |
