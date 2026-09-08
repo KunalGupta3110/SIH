@@ -403,15 +403,16 @@ export default function LandingPage() {
             </Reveal>
 
             <Reveal as="h1" delay={70} className="font-display mt-6 text-[2.7rem] font-light leading-[1.04] tracking-tight text-white sm:text-6xl [text-wrap:balance]">
-              Cloud Border<br />
-              <span className="italic">Surveillance Analytics</span>
+              Intelligent Border<br />
+              <span className="italic">Video Analytics</span>
             </Reveal>
 
             <Reveal as="p" delay={140} className="mt-6 max-w-lg text-[15px] leading-relaxed text-white/65">
-              A hosted, multi-tenant platform. Agencies connect their existing
-              camera feeds; our cloud correlates raw detections into unified,
-              explainable threat incidents with tamper-evident evidence capture on
-              every incident.
+              A software-defined surveillance platform that extracts actionable
+              intelligence from the CCTV a sector already runs — detection,
+              tracking, cross-camera re-identification, virtual-fence intrusion and
+              tamper-evident evidence — with no dedicated hardware, delivered as
+              scalable cloud software.
             </Reveal>
 
             <Reveal delay={210} className="mt-8 flex flex-wrap items-center gap-3">
@@ -429,15 +430,66 @@ export default function LandingPage() {
             </Reveal>
 
             <Reveal delay={280} className="mt-10 grid max-w-md grid-cols-2 gap-x-6 gap-y-5 border-t border-white/12 pt-6">
-              <Spec label="Delivery" value="Cloud SaaS · multi-tenant" />
+              <Spec label="Delivery" value="Cloud software · no field hardware" />
               <Spec label="Detection & tracking" value="YOLOv8n + ByteTrack" />
-              <Spec label="Appearance embeddings" value="OSNet (torchreid)" />
+              <Spec label="Cross-camera Re-ID" value="OSNet embeddings" />
               <Spec label="Evidence integrity" value="SHA-256 chained" />
             </Reveal>
           </div>
 
-          {/* terrain panel */}
-          <Reveal delay={120} className="relative border border-white/15 bg-black">
+          {/* 3D earth globe */}
+          <Reveal delay={120} className="w-full justify-self-stretch">
+            <button
+              type="button"
+              onClick={() => { click(); setGlobeOpen(true); }}
+              className="press group relative mx-auto block aspect-square w-full max-w-md lg:max-w-none"
+              aria-label="Open the 3D sector terrain model"
+            >
+              <Corners />
+              <div className="absolute inset-0">
+                <WhenVisible fallback={<GlobeShell />}>
+                  <Suspense fallback={<GlobeShell />}>
+                    <SentinelGlobe3D onTap={() => { click(); setGlobeOpen(true); }} />
+                  </Suspense>
+                </WhenVisible>
+              </div>
+              <span className="pointer-events-none absolute left-3 top-3 font-mono text-[9px] text-white/40">
+                Sector 4-B · terrain model
+              </span>
+              <span className="pointer-events-none absolute bottom-3 right-3 hidden font-mono text-[9px] text-white/45 sm:block">
+                32.04°N&nbsp;·&nbsp;75.40°E
+              </span>
+              <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-mono text-[9px] text-white/50 transition-colors sm:text-white/0 sm:group-hover:text-white/55">
+                tap to open 3D terrain →
+              </span>
+            </button>
+          </Reveal>
+        </div>
+      </header>
+
+      {/* ── NATIONAL CONTEXT ────────────────────────────────────── */}
+      <section className="border-t border-white/10 bg-black py-20 sm:py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 lg:grid-cols-[1fr_1.05fr]">
+          <Reveal>
+            <Eyebrow>Scale of the problem</Eyebrow>
+            <h2 className="font-display mt-4 text-3xl font-light leading-[1.08] tracking-tight sm:text-[2.5rem] [text-wrap:balance]">
+              One 42&nbsp;km sector of a 3,323&nbsp;km line.
+            </h2>
+            <p className="mt-5 max-w-md text-[14px] leading-relaxed text-white/65">
+              Sentinel's MVP is modelled on the SSB Gurdaspur stretch of the
+              India–Pakistan border using recorded and simulated feeds. Nothing about
+              the pipeline is sector-specific — the same correlation, transit-time
+              estimator and hash-chained evidence store are provisioned per sector
+              from a single tenant, no new install per site.
+            </p>
+            <div className="mt-8 grid max-w-md grid-cols-3 gap-6 border-t border-white/12 pt-6">
+              <Stat value={3323} label="km land border" />
+              <Stat value={6} label="sectors mapped" />
+              <Stat value={1} label="tenant, all sectors" />
+            </div>
+          </Reveal>
+
+          <Reveal delay={120} className="relative w-full justify-self-stretch border border-white/15 bg-black">
             <Corners />
             <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] text-white/45">
               <span>Sector 4-B · Camera Topology Model</span>
@@ -476,93 +528,80 @@ export default function LandingPage() {
             </div>
           </Reveal>
         </div>
-      </header>
-
-      {/* ── NATIONAL CONTEXT ────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-black py-20 sm:py-24">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 lg:grid-cols-[1fr_1.05fr]">
-          <Reveal>
-            <Eyebrow>Scale of the problem</Eyebrow>
-            <h2 className="font-display mt-4 text-3xl font-light leading-[1.08] tracking-tight sm:text-[2.5rem] [text-wrap:balance]">
-              One 42&nbsp;km sector of a 3,323&nbsp;km line.
-            </h2>
-            <p className="mt-5 max-w-md text-[14px] leading-relaxed text-white/65">
-              Sentinel's MVP is modelled on the SSB Gurdaspur stretch of the
-              India–Pakistan border using recorded and simulated feeds. Nothing about
-              the pipeline is sector-specific — the same correlation, transit-time
-              estimator and hash-chained evidence store are provisioned per sector
-              from a single tenant, no new install per site.
-            </p>
-            <div className="mt-8 grid max-w-md grid-cols-3 gap-6 border-t border-white/12 pt-6">
-              <Stat value={3323} label="km land border" />
-              <Stat value={6} label="sectors mapped" />
-              <Stat value={1} label="tenant, all sectors" />
-            </div>
-          </Reveal>
-
-          <Reveal delay={120} className="w-full justify-self-stretch">
-            <button
-              type="button"
-              onClick={() => { click(); setGlobeOpen(true); }}
-              className="press group relative mx-auto block aspect-square w-full max-w-md lg:max-w-none"
-              aria-label="Open the 3D sector terrain model"
-            >
-              <Corners />
-              <div className="absolute inset-0">
-                <WhenVisible fallback={<GlobeShell />}>
-                  <Suspense fallback={<GlobeShell />}>
-                    <SentinelGlobe3D onTap={() => { click(); setGlobeOpen(true); }} />
-                  </Suspense>
-                </WhenVisible>
-              </div>
-              <span className="pointer-events-none absolute left-3 top-3 font-mono text-[9px] text-white/40">
-                Sector 4-B · terrain model
-              </span>
-              <span className="pointer-events-none absolute bottom-3 right-3 hidden font-mono text-[9px] text-white/45 sm:block">
-                32.04°N&nbsp;·&nbsp;75.40°E
-              </span>
-              <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-mono text-[9px] text-white/50 transition-colors sm:text-white/0 sm:group-hover:text-white/55">
-                tap to open 3D terrain →
-              </span>
-            </button>
-          </Reveal>
-        </div>
       </section>
 
       {/* ── CAPABILITIES ────────────────────────────────────────── */}
       <section className="border-t border-white/10 bg-black py-24 sm:py-28">
         <div className="mx-auto max-w-6xl px-6">
           <Reveal>
-            <Eyebrow>What the MVP does</Eyebrow>
+            <Eyebrow>Platform capabilities · PS-26187</Eyebrow>
             <h2 className="font-display mt-4 max-w-2xl text-3xl font-light leading-tight tracking-tight sm:text-[2.75rem]">
-              Four capabilities, each independently verifiable.
+              Eight analytics capabilities on the CCTV a sector already has.
             </h2>
+            <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-white/50">
+              IBVAP is software-defined — no dedicated surveillance hardware, no new
+              cameras. Four capabilities run in the current MVP; four are scoped for
+              the next phase.
+            </p>
           </Reveal>
           <div className="mt-14 grid gap-px border border-white/12 bg-white/12 sm:grid-cols-2 lg:grid-cols-4">
             {[
               [
-                "Managed Detection",
-                "YOLOv8n (COCO-pretrained), filtered to the person and vehicle classes, run in our cloud — no model install or GPU on the customer side.",
-                "YOLOv8n · hosted",
+                "Human detection & tracking",
+                "YOLOv8n person detection with ByteTrack persistent IDs — every subject held across the frame and written to the event log.",
+                "YOLOv8n + ByteTrack",
+                true,
               ],
               [
-                "Dual-Camera Re-Identification (MVP)",
-                "OSNet / ResNet appearance embeddings matched across two synchronized angles, gated by a distance-and-speed transit-time window.",
-                "OSNet · 2-cam testbed",
+                "Vehicle detection & classification",
+                "COCO vehicle classes — car, truck, bus, two-wheeler — detected and tracked per camera, with type recorded on the incident.",
+                "YOLOv8n · COCO vehicles",
+                true,
               ],
               [
-                "Explainable Threat Scoring",
-                "A transparent rule-based correlation engine that itemizes every threat point (+30 boundary breach, +20 directional violation) — no black-box model in the decision path.",
-                "Rule correlator · 0–100",
+                "Virtual-fence intrusion detection",
+                "Operator-drawn no-go zones and boundary lines. A crossing — or a wrong-direction crossing — opens an incident immediately.",
+                "Zone + direction rules",
+                true,
               ],
               [
-                "Tamper-Evident Evidence Chain",
-                "SHA-256 sequential hash-chaining across incident capsules so any edit to one capsule breaks verification of every capsule after it.",
-                "SHA-256 · chain-of-custody",
+                "Real-time alerts & event logging",
+                "Detections, zone events and operator actions stream to an append-only event log with push alerts to the watchfloor.",
+                "Append-only log · push",
+                true,
               ],
-            ].map(([t, d, tag], i) => (
-              <Reveal key={t} delay={i * 70} className="flex flex-col bg-black p-7">
-                <div className="font-mono text-[11px] text-white/35">0{i + 1}</div>
+              [
+                "Face detection & recognition",
+                "Face-crop extraction and watch-list gallery matching for named individuals of interest.",
+                "Planned",
+                false,
+              ],
+              [
+                "Automatic number-plate recognition",
+                "Plate OCR feeding vehicle-of-interest and blacklist matching against the tracked vehicle stream.",
+                "Planned",
+                false,
+              ],
+              [
+                "Suspicious-activity detection",
+                "Loitering, abandoned-object and crowd-formation models beyond the current movement rules.",
+                "Planned",
+                false,
+              ],
+              [
+                "Night-time movement detection",
+                "LWIR / thermal fusion for reliable detection in low-light and zero-light conditions.",
+                "Planned",
+                false,
+              ],
+            ].map(([t, d, tag, live], i) => (
+              <Reveal key={t} delay={i * 55} className="flex flex-col bg-black p-7">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] text-white/35">0{i + 1}</span>
+                  <span className={`font-mono text-[9.5px] ${live ? "text-[#3ff09a]" : "text-white/35"}`}>
+                    {live ? "Live in MVP" : "Roadmap"}
+                  </span>
+                </div>
                 <h3 className="mt-3 text-[15px] font-bold leading-snug">{t}</h3>
                 <p className="mt-2 flex-1 text-[12.5px] leading-relaxed text-white/60">{d}</p>
                 <div className="mt-5 border-t border-white/12 pt-3 font-mono text-[10px] text-white/40">
@@ -963,10 +1002,10 @@ export default function LandingPage() {
           </Reveal>
           <div className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              ["01", "Connect & ingest", "Point existing RTSP / ONVIF cameras at the tenant. YOLOv8n (COCO, person/vehicle filter) runs in our cloud."],
-              ["02", "Track & hand off", "ByteTrack assigns local track IDs; a distance/speed transit-time estimator cues the next camera across blind gaps."],
-              ["03", "Score & explain", "Additive 0–100 threat, every point traceable to a rule and a detection."],
-              ["04", "Seal & certify", "SHA-256 hash-chained evidence capsules + a Section 65B certificate template."],
+              ["01", "Connect existing CCTV", "RTSP / ONVIF feeds point at the tenant — no new cameras. YOLOv8n detects people and vehicles frame by frame in our cloud."],
+              ["02", "Track & re-identify", "ByteTrack holds IDs within a camera; OSNet appearance embeddings re-identify the same subject on the next camera across a blind gap."],
+              ["03", "Detect intrusion & score", "Virtual-fence and direction rules flag the crossing; an additive 0–100 threat score itemises every contributing rule."],
+              ["04", "Alert, log & seal", "The watchfloor is alerted in real time, the event log is appended, and evidence is sealed into a SHA-256 chain with a Section 65B certificate."],
             ].map(([n, t, d], i) => (
               <Reveal key={n} delay={i * 80} className="group border-t-2 border-white pt-5">
                 <div className="font-display text-5xl font-light text-white/35 transition-colors group-hover:text-white">{n}</div>
@@ -984,17 +1023,18 @@ export default function LandingPage() {
           <Reveal>
             <Eyebrow>Engineering specification</Eyebrow>
             <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-white/50">
-              Architectural facts, not measured field metrics. The MVP is tested on
-              public datasets (MOT17, VisDrone) and recorded synchronized two-angle
-              simulation feeds — not on live tactical CCTV.
+              Architectural facts, not measured field metrics. IBVAP is a software
+              layer over standard CCTV — the MVP is validated on public datasets
+              (MOT17, VisDrone) and recorded synchronized two-angle feeds, not on
+              live tactical cameras.
             </p>
           </Reveal>
           <Reveal delay={80} className="mt-10 grid grid-cols-2 divide-y divide-white/12 border-y border-white/15 md:grid-cols-4 md:divide-y-0 md:divide-x">
             {[
-              { v: "YOLOv8n", l: "Detector", s: "COCO-pretrained · person/vehicle filter · cloud-hosted" },
-              { v: "ByteTrack", l: "Tracker", s: "local multi-object track IDs" },
-              { v: "OSNet / ResNet", l: "Re-ID", s: "512-d cosine · 2-camera testbed" },
-              { v: "SHA-256", l: "Evidence", s: "sequential hash-chained capsules" },
+              { v: "YOLOv8n", l: "Detection", s: "COCO person + vehicle classes · cloud-hosted inference" },
+              { v: "ByteTrack", l: "Tracking", s: "per-camera multi-object track IDs" },
+              { v: "OSNet", l: "Cross-camera Re-ID", s: "512-d cosine · 2-camera synchronized testbed" },
+              { v: "SHA-256", l: "Evidence + 65B", s: "sequential hash-chained capsules · certificate template" },
             ].map((m) => (
               <div key={m.l} className="p-6 md:p-8">
                 <div className="font-mono text-xl font-semibold leading-tight sm:text-2xl">{m.v}</div>
@@ -1023,10 +1063,11 @@ export default function LandingPage() {
               </div>
               <ul className="mt-6 space-y-3 text-[13px] leading-relaxed text-white/70">
                 {[
-                  "Cloud-hosted YOLOv8n (COCO) + ByteTrack detection and tracking",
-                  "Explainable rule-based incident correlator (0–100)",
+                  "Human + vehicle detection and tracking (YOLOv8n + ByteTrack, cloud-hosted)",
+                  "Virtual-fence intrusion & wrong-direction rules with real-time alerts",
+                  "Dual-camera OSNet cross-camera Re-ID testbed (2 synchronized angles)",
+                  "Explainable rule-based threat correlator (0–100) + append-only event log",
                   "SHA-256 hash-chained evidence capsules + Section 65B template",
-                  "Dual-camera OSNet Re-ID testbed (2 synchronized angles)",
                 ].map((x) => (
                   <li key={x} className="flex gap-2.5">
                     <Check size={14} className="mt-0.5 shrink-0 text-white" />
@@ -1042,10 +1083,11 @@ export default function LandingPage() {
               </div>
               <ul className="mt-6 space-y-3 text-[13px] leading-relaxed text-white/50">
                 {[
-                  "LWIR / thermal sensor integration for low-light and night",
-                  "Optional in-region / VPC inference for restricted deployments",
-                  "ANPR integration for vehicle-of-interest matching",
-                  "SSO, per-agency RBAC and audit export",
+                  "Face detection & watch-list recognition",
+                  "ANPR for vehicle-of-interest and blacklist matching",
+                  "Suspicious-activity models — loitering, abandoned object, crowding",
+                  "Night-time detection via LWIR / thermal fusion",
+                  "C2 integration hooks, SSO, per-agency RBAC and audit export",
                 ].map((x) => (
                   <li key={x} className="flex gap-2.5">
                     <ArrowRight size={14} className="mt-0.5 shrink-0 text-white/40" />
