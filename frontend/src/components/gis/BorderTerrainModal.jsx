@@ -541,31 +541,27 @@ function ReidPath({ active }) {
 }
 
 /* ── autonomous patrol drone (UAV-01) ────────────────────────────────────
-   Loops a CatmullRom flight path over the ridline with a downward scan
-   beam + a ground reticle that tracks its ground track. Tap → UAV panel.  */
+   ONE <group>. useFrame writes only droneGroup.position + .quaternion along
+   the flight curve — the model, the UV scan cone, the ground reticle and
+   the HUD tag are fixed-transform children, so they can never detach. The
+   only per-frame child write is the beam's own Z-axis scanning sweep.     */
 const DRONE_WAYPOINTS = [
   [-10, 8, -6], [0, 9, -8], [10, 8, 2], [5, 7.5, 8], [-8, 8, 4],
 ];
 const DRONE_SPEED = 0.017;
+const DRONE_YAW = Math.PI; // model-forward correction
+const UV = "#00F0FF"; // UV / thermal scan tint
 
 // tap on the drone (3D mesh or HUD tag) → DOM event; the outer modal/panel
 // listens for this (crosses the drei <Html> React-root boundary cleanly).
 const fireUavSelect = () => window.dispatchEvent(new CustomEvent("uav-select"));
 
-const BEAM_H = 10;
-const DRONE_YAW = Math.PI; // model-forward correction
-
 function PatrolDrone() {
-  const terrain = useContext(TerrainCtx);
-  const rig = useRef(null); // follows the flight path (level)
-  const tilt = useRef(null); // heading + banking (drone body only)
-  const beam = useRef(null);
-  const core = useRef(null);
-  const reticle = useRef(null);
+  const droneGroupRef = useRef(null); // the single synchronized unit
+  const beamRef = useRef(null); // scanning-optics Z-sweep only (rotation, not position)
   const [hovered, setHovered] = useState(false);
 
-  const glowHot = useMemo(() => new THREE.Color(CYAN).multiplyScalar(4), []);
-
+  const uvGlow = useMemo(() => new THREE.Color(UV).multiplyScalar(2), []);
   const curve = useMemo(
     () =>
       new THREE.CatmullRomCurve3(
@@ -578,42 +574,28 @@ function PatrolDrone() {
   );
   const pos = useMemo(() => new THREE.Vector3(), []);
   const tan = useMemo(() => new THREE.Vector3(), []);
+  const qTarget = useMemo(() => new THREE.Quaternion(), []);
+  const eTmp = useMemo(() => new THREE.Euler(), []);
 
   useFrame((state) => {
-    if (!rig.current) return;
+    const g = droneGroupRef.current;
+    if (!g) return;
     const time = state.clock.getElapsedTime();
     const t = (time * DRONE_SPEED) % 1;
-    curve.getPointAt(t, pos);
-    curve.getTangentAt(t, tan);
+    curve.getPoint(t, pos);
+    curve.getTangent(t, tan);
 
-    const bob = Math.sin(time * 3) * 0.25;
-    rig.current.position.set(pos.x, pos.y + bob, pos.z);
+    // (1) the whole unit rides the curve — position + a gentle bob
+    g.position.set(pos.x, pos.y + Math.sin(time * 3) * 0.22, pos.z);
 
-    if (tilt.current) {
-      const heading = Math.atan2(tan.x, tan.z) + DRONE_YAW;
-      tilt.current.rotation.set(
-        Math.sin(time * 2.3) * 0.08,
-        heading,
-        Math.sin(time * 3) * 0.16
-      );
-    }
+    // (2) …and yaws to face travel direction (quaternion only, kept upright
+    //     so the scan cone stays pointed straight down)
+    const heading = Math.atan2(tan.x, tan.z) + DRONE_YAW;
+    qTarget.setFromEuler(eTmp.set(Math.sin(time * 2.3) * 0.05, heading, Math.sin(time * 3) * 0.06));
+    g.quaternion.slerp(qTarget, 0.12);
 
-    const gy = sampleY(terrain, pos.x, pos.z, 0);
-    const h = Math.max(3, pos.y + bob - gy);
-    if (beam.current) {
-      beam.current.position.y = -h / 2 - 0.4;
-      beam.current.scale.set(1, h / BEAM_H, 1);
-      beam.current.material.opacity = 0.14 + (Math.sin(time * 2.4) + 1) * 0.035;
-    }
-    if (core.current) {
-      core.current.material.opacity = 0.55 + (Math.sin(time * 5) + 1) * 0.22;
-    }
-    if (reticle.current) {
-      reticle.current.position.set(pos.x, gy + 0.15, pos.z);
-      const s = 2.6 + Math.sin(time * 2) * 0.5;
-      reticle.current.scale.setScalar(s);
-      reticle.current.material.opacity = 0.22 + (Math.sin(time * 2) + 1) * 0.07;
-    }
+    // (3) the ONLY child write — the beam's active-scanning sweep on Z
+    if (beamRef.current) beamRef.current.rotation.z = Math.sin(time * 0.55) * 0.22;
   });
 
   const tap = (e) => { e.stopPropagation(); fireUavSelect(); };
@@ -621,53 +603,63 @@ function PatrolDrone() {
   const hoverOut = () => { setHovered(false); document.body.style.cursor = ""; };
 
   return (
-    <>
-      <group ref={rig}>
-        <group ref={tilt}>
-          <group scale={hovered ? 1.12 : 1} position={[0, -0.5, 0]} onClick={tap} onPointerOver={hoverIn} onPointerOut={hoverOut}>
-            <Suspense fallback={null}>
-              <GlbInstance url={MODELS.drone} targetSize={5} />
-            </Suspense>
-          </group>
-        </group>
-
-        <mesh onClick={tap} onPointerOver={hoverIn} onPointerOut={hoverOut}>
-          <sphereGeometry args={[4, 12, 12]} />
-          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-        </mesh>
-
-        <mesh ref={core} position={[0, -0.55, 0]}>
-          <sphereGeometry args={[0.18, 14, 14]} />
-          <meshBasicMaterial color={glowHot} transparent opacity={0.7} toneMapped={false} />
-        </mesh>
-        <mesh position={[0, -0.62, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.5, 32]} />
-          <meshBasicMaterial color={CYAN} transparent opacity={0.35} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
-        </mesh>
-
-        <pointLight color={CYAN} intensity={hovered ? 6 : 4} distance={16} decay={2} />
-
-        <mesh ref={beam}>
-          <coneGeometry args={[2.6, BEAM_H, 44, 1, true]} />
-          <meshBasicMaterial color="#00f0ff" transparent opacity={0.15} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
-        </mesh>
-
-        <Html position={[0, 2.6, 0]} center zIndexRange={[30, 0]}>
-          <button
-            onClick={fireUavSelect}
-            className="pointer-events-auto flex items-center gap-1.5 whitespace-nowrap border border-[#3fe0d6]/60 bg-black/85 px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-widest text-[#3fe0d6] hover:bg-[#3fe0d6]/15"
-          >
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#3fe0d6]" />
-            [UAV-01 // PATROL SCANNING]
-          </button>
-        </Html>
+    <group ref={droneGroupRef}>
+      {/* ── drone chassis ── */}
+      <group rotation={[0, DRONE_YAW, 0]} scale={hovered ? 1.12 : 1} onClick={tap} onPointerOver={hoverIn} onPointerOut={hoverOut}>
+        <Suspense fallback={null}>
+          <GlbInstance url={MODELS.drone} targetSize={5} />
+        </Suspense>
       </group>
 
-      <mesh ref={reticle} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.78, 1.0, 56]} />
-        <meshBasicMaterial color={CYAN} transparent opacity={0.25} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+      {/* generous invisible hit target */}
+      <mesh onClick={tap} onPointerOver={hoverIn} onPointerOut={hoverOut}>
+        <sphereGeometry args={[4, 12, 12]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
-    </>
+
+      <pointLight color={UV} intensity={hovered ? 6 : 4} distance={18} decay={2} />
+
+      {/* ── attached UV / thermal scanning rig — mounted under the chassis ── */}
+      <group ref={beamRef} position={[0, -0.2, 0]}>
+        {/* emitter */}
+        <mesh position={[0, -0.35, 0]}>
+          <sphereGeometry args={[0.2, 14, 14]} />
+          <meshBasicMaterial color={uvGlow} transparent opacity={0.75} toneMapped={false} />
+        </mesh>
+        {/* volumetric UV cone — apex at the emitter, opening toward the terrain */}
+        <mesh position={[0, -4.6, 0]}>
+          <coneGeometry args={[3.4, 9, 44, 1, true]} />
+          <meshBasicMaterial color={UV} transparent opacity={0.18} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+        </mesh>
+        {/* projected ground target reticle (fixed offset — moves with the rig) */}
+        <group position={[0, -8.4, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh>
+            <ringGeometry args={[2.2, 2.55, 60]} />
+            <meshBasicMaterial color={UV} transparent opacity={0.32} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+          </mesh>
+          <mesh>
+            <ringGeometry args={[0.35, 0.5, 32]} />
+            <meshBasicMaterial color={UV} transparent opacity={0.4} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+          </mesh>
+          {/* sweep spoke — reads as a scan line inside the reticle */}
+          <mesh position={[1.1, 0, 0]}>
+            <planeGeometry args={[2.2, 0.06]} />
+            <meshBasicMaterial color={UV} transparent opacity={0.5} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+          </mesh>
+        </group>
+      </group>
+
+      {/* ── telemetry badge (child of the group) ── */}
+      <Html position={[0, 1.2, 0]} distanceFactor={14} center zIndexRange={[30, 0]}>
+        <button
+          onClick={fireUavSelect}
+          className="pointer-events-auto flex items-center gap-1.5 whitespace-nowrap border border-[#00f0ff]/60 bg-black/85 px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-widest text-[#00f0ff] hover:bg-[#00f0ff]/15"
+        >
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#00f0ff]" />
+          [UAV-01 // THERMAL UV SCANNING]
+        </button>
+      </Html>
+    </group>
   );
 }
 
