@@ -24,7 +24,7 @@ import {
    Replaces the former 2D SVG tactical map.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const CYAN = "#3fe0d6";
+const CYAN = "#3ff09a";
 const RED = "#ff2233";
 
 export default function BorderTerrainPanel() {
@@ -64,7 +64,7 @@ export default function BorderTerrainPanel() {
         </div>
         <button
           onClick={() => setBreach((b) => !b)}
-          className="flex items-center gap-1.5 rounded border px-3 py-1.5 font-sans text-[12px] font-semibold transition-colors"
+          className="flex items-center gap-1.5 rounded border px-3 py-1.5 font-hud text-[12px] font-semibold transition-colors"
           style={{
             borderColor: breach ? RED : "rgba(255,255,255,0.25)",
             background: breach ? RED : "transparent",
@@ -94,7 +94,7 @@ export default function BorderTerrainPanel() {
             </Suspense>
           </SceneBoundary>
         ) : (
-          <div className="grid h-full place-items-center px-6 text-center font-sans text-[13px] leading-relaxed text-white/45">
+          <div className="grid h-full place-items-center px-6 text-center font-hud text-[13px] leading-relaxed text-white/45">
             WebGL is unavailable in this browser — the camera roster is still live in the rail
           </div>
         )}
@@ -121,7 +121,7 @@ export default function BorderTerrainPanel() {
 
         <BreachBanner show={breach} />
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden text-center font-sans text-[11px] text-white/35 sm:block">
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden text-center font-hud text-[11px] text-white/35 sm:block">
           Drag to orbit · scroll to zoom · tap a camera or the UAV for its feed
         </div>
 

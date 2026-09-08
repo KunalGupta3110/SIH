@@ -28,6 +28,8 @@ export default {
       fontFamily: {
         display: ["'Fraunces'", "'Times New Roman'", "Georgia", "serif"],
         sans: ["'Manrope'", "system-ui", "-apple-system", "sans-serif"],
+        // technical UI face for the 3D / console HUD
+        hud: ["'IBM Plex Sans'", "'Manrope'", "system-ui", "sans-serif"],
         mono: ["'JetBrains Mono'", "'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       letterSpacing: {
