@@ -33,14 +33,14 @@ function Corners() {
 function Field({ icon: Icon, label, hint, ...props }) {
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+      <span className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400">
         <Icon size={11} /> {label}
       </span>
       <input
         {...props}
         className="w-full border border-white/20 bg-black px-3 py-2.5 font-mono text-[13px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-white"
       />
-      {hint && <span className="mt-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-white/25">{hint}</span>}
+      {hint && <span className="mt-1 block text-[10px] text-zinc-500">{hint}</span>}
     </label>
   );
 }
@@ -104,7 +104,7 @@ export default function LoginPage() {
       <div className="relative mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-14">
         <Link
           to="/"
-          className="press mb-8 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/45 hover:text-white"
+          className="press mb-8 inline-flex items-center gap-2 text-[12px] font-medium text-zinc-400 hover:text-white"
         >
           <ArrowLeft size={12} /> Back to site
         </Link>
@@ -117,14 +117,14 @@ export default function LoginPage() {
               <Shield size={17} />
             </span>
             <div className="leading-none">
-              <div className="text-[14px] font-bold tracking-wide">IBVAP SENTINEL</div>
-              <div className="mt-1 font-mono text-[8.5px] uppercase tracking-[0.22em] text-white/45">
+              <div className="text-[14px] font-semibold tracking-tight text-zinc-100">IBVAP Sentinel</div>
+              <div className="mt-1 text-[10px] text-zinc-500">
                 Command Console · Operator Sign-in
               </div>
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between border-y border-white/10 py-2 font-mono text-[9px] uppercase tracking-[0.16em] text-white/35">
+          <div className="mt-4 flex items-center justify-between border-y border-white/10 py-2 text-[10.5px] text-zinc-500">
             <span className="flex items-center gap-1.5">
               <Lock size={9} /> Restricted · SSB / MHA
             </span>
@@ -162,7 +162,7 @@ export default function LoginPage() {
             />
 
             {err && (
-              <p className="border border-white/25 bg-white/5 px-3 py-2 font-mono text-[10px] uppercase tracking-wide text-white/70">
+              <p className="border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[12px] text-rose-300">
                 {err}
               </p>
             )}
@@ -170,7 +170,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={busy}
-              className="press group flex w-full items-center justify-center gap-2 border border-white bg-white px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-black transition-colors hover:bg-black hover:text-white disabled:opacity-70"
+              className="press group flex w-full items-center justify-center gap-2 border border-white bg-white px-4 py-3 text-[11px] font-bold text-black transition-colors hover:bg-black hover:text-white disabled:opacity-70"
             >
               {busy ? (
                 <>
@@ -185,7 +185,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-5 flex flex-col gap-2 border-t border-white/10 pt-3 font-mono text-[9px] uppercase tracking-[0.14em] text-white/30 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-5 flex flex-col gap-2 border-t border-white/10 pt-3 text-[10.5px] text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() => navigate("/console")}
@@ -197,7 +197,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="mt-4 border border-white/10 bg-white/[0.02] px-3 py-2.5 text-center font-mono text-[8.5px] uppercase leading-relaxed tracking-[0.12em] text-white/30">
+        <div className="mt-4 border border-white/10 bg-white/[0.02] px-3 py-2.5 text-center text-[10.5px] leading-relaxed text-zinc-500">
           Demo build · client-side operator directory (src/lib/operators.js).
           <br />
           Try <span className="text-white/60">SSB-GDP-04</span> / <span className="text-white/60">Ravi-Sector-4471</span>

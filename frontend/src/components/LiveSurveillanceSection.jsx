@@ -690,7 +690,7 @@ export default function LiveSurveillanceSection({
               </div>
 
               <div className="flex items-center justify-between px-1 pt-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
                   <Video size={13} className="text-sky-400" />
                   <span>{filteredScenarios.length} Examples</span>
                 </span>
@@ -1157,7 +1157,7 @@ export default function LiveSurveillanceSection({
                   {/* Bottom Rule Flag */}
                   <div className="rounded bg-black/90 p-2 text-[10px] text-slate-200 border border-white/10 font-mono">
                     <div
-                      className={`font-bold uppercase tracking-wider mb-0.5 flex items-center justify-between ${
+                      className={`font-bold mb-0.5 flex items-center justify-between ${
                         simulatedDistance <= sirenDistanceThreshold
                           ? "text-red-400"
                           : scenario.isLiveInference
@@ -1296,7 +1296,7 @@ export default function LiveSurveillanceSection({
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 <Crosshair size={14} className={scenario.isLiveInference ? "text-emerald-400" : "text-sky-400"} />
-                <span className="font-bold text-white uppercase tracking-wider">
+                <span className="font-bold text-white">
                   {scenario.isLiveInference
                     ? `Live YOLOv8n Ingress Telemetry · Frame ${currentFrameNum} / 257`
                     : "Target Vehicle Approach & Proximity Telemetry"}
@@ -1370,7 +1370,7 @@ export default function LiveSurveillanceSection({
                 <div className="flex items-center justify-between border-b border-white/10 pb-2 flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <GitBranch size={15} className="text-sky-400" />
-                    <span className="font-bold text-white text-xs uppercase tracking-wider">
+                    <span className="font-bold text-white text-xs">
                       Genuine 2-Camera Cross-Corridor Re-ID Analysis (ResNet-18)
                     </span>
                   </div>
@@ -1602,7 +1602,7 @@ export default function LiveSurveillanceSection({
 
           {/* Fine-Tuned Classes Table */}
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-300">
               Custom Trained Tactical Classes:
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">

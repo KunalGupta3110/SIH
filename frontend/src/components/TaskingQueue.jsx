@@ -158,7 +158,7 @@ export default function TaskingQueue({ incidents, error, onAcknowledge }) {
 
                 {isDismissing && (
                   <div className="mt-3.5 border-t border-white/10 pt-3 bg-black/30 p-3 rounded">
-                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-sky-400">
+                    <div className="mb-2 text-[11px] font-semibold text-sky-400">
                       Select Root Cause for Site Calibration:
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
@@ -205,7 +205,7 @@ export default function TaskingQueue({ incidents, error, onAcknowledge }) {
 
         <div className="flex flex-col gap-4">
           <div className="rounded-lg border border-white/10 bg-black/40 p-4">
-            <div className="mb-3 flex items-center justify-between text-[11px] font-medium uppercase tracking-wide text-slate-500">
+            <div className="mb-3 flex items-center justify-between text-[11px] font-medium text-slate-500">
               <span>Triage Queue</span>
               <span className="font-mono text-slate-300">{stats.pending} pending</span>
             </div>
@@ -223,7 +223,7 @@ export default function TaskingQueue({ incidents, error, onAcknowledge }) {
           </div>
 
           <div className="rounded-lg border border-white/10 bg-black/40 p-4">
-            <div className="mb-3 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-sky-400">
+            <div className="mb-3 flex items-center gap-1.5 text-[11px] font-medium text-sky-400">
               <SlidersHorizontal size={13} />
               <span>Site-Specific Calibration</span>
             </div>

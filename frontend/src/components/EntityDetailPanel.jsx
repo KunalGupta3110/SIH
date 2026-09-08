@@ -41,24 +41,24 @@ export default function EntityDetailPanel({ kind, entity, onClose, onAcknowledge
         </div>
         <div className="px-4 py-4 space-y-3 text-[11.5px]">
           <div>
-            <div className="text-slate-500 text-[10.5px] uppercase tracking-wide">Name</div>
+            <div className="text-slate-500 text-[10.5px]">Name</div>
             <div className="text-slate-200">{entity.name || entity.camera_id}</div>
           </div>
           <div className="flex items-start gap-1.5">
             <MapPin size={12} className="text-slate-500 mt-0.5 shrink-0" />
             <div>
-              <div className="text-slate-500 text-[10.5px] uppercase tracking-wide">Location</div>
+              <div className="text-slate-500 text-[10.5px]">Location</div>
               <div className="text-slate-200">{entity.location || "Border Sector"}</div>
             </div>
           </div>
           <div>
-            <div className="text-slate-500 text-[10.5px] uppercase tracking-wide">Status</div>
+            <div className="text-slate-500 text-[10.5px]">Status</div>
             <div className={entity.status === "ONLINE" ? "text-emerald-400 font-semibold" : entity.status === "FAULT" ? "text-red-400 font-semibold" : "text-amber-400 font-semibold"}>
               {entity.status}
             </div>
           </div>
           <div>
-            <div className="text-slate-500 text-[10.5px] uppercase tracking-wide">Detail</div>
+            <div className="text-slate-500 text-[10.5px]">Detail</div>
             <div className="text-slate-300">{entity.details}</div>
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function EntityDetailPanel({ kind, entity, onClose, onAcknowledge
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="mb-2 flex items-center gap-1.5 text-[10.5px] font-medium uppercase tracking-wide text-slate-500">
+        <div className="mb-2 flex items-center gap-1.5 text-[10.5px] font-medium text-slate-500">
           <Clock size={11} /> Event Timeline
         </div>
         <div className="space-y-3 border-l border-white/10 pl-3">
@@ -170,7 +170,7 @@ export default function EntityDetailPanel({ kind, entity, onClose, onAcknowledge
 
       {!acknowledged && showReasons && (
         <div className="border-t border-white/10 p-3">
-          <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-wide text-slate-500">Root cause (site calibration)</div>
+          <div className="mb-2 text-[10.5px] font-semibold text-slate-500">Root cause (site calibration)</div>
           <div className="flex flex-col gap-1 mb-2">
             {DISMISS_REASONS.map((r) => (
               <label key={r.id} className={`flex items-center gap-2 rounded px-2 py-1.5 text-[11px] cursor-pointer ${reason === r.id ? "bg-sky-500/10 text-white" : "text-slate-400"}`}>

@@ -53,7 +53,7 @@ export default function ModelZooPanel() {
 
       <div className="rounded-[4px] border border-line bg-panel overflow-hidden">
         <table className="w-full text-left font-mono text-[11.5px]">
-          <thead className="border-b border-line bg-panel2 text-[10.5px] uppercase tracking-wider text-faint">
+          <thead className="border-b border-line bg-panel2 text-[10.5px] text-faint">
             <tr>
               <th className="px-4 py-3">Model</th>
               <th className="px-4 py-3">Task Role</th>
@@ -81,7 +81,7 @@ export default function ModelZooPanel() {
       </div>
 
       <div className="rounded-[4px] border border-line bg-panel p-4">
-        <div className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-faint">
+        <div className="mb-2 font-mono text-[11px] font-semibold text-faint">
           Active Fixed Edge Hyperparameters (Deterministic Rulebook)
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-[11.5px]">

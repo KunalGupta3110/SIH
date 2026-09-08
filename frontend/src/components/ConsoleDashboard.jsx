@@ -674,11 +674,11 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           <div className="flex items-center gap-3">
             <span className="h-3 w-3 rounded-full bg-red-500 animate-ping shrink-0" />
             <div className="flex items-center gap-2">
-              <span className="font-mono font-extrabold text-sm text-red-200 tracking-wider">
-                🚨 CRITICAL PERIMETER BREACH ACTIVE
+              <span className="font-mono font-extrabold text-sm text-red-200">
+                Critical perimeter breach · active
               </span>
               <span className="hidden sm:inline text-xs font-mono bg-red-950/80 px-2 py-0.5 rounded border border-red-500/60 text-red-300">
-                SECTOR 4-B • THREAT SCORE 87/100
+                Sector 4-B · threat score 87/100
               </span>
             </div>
             {/* Audio Wave Visualizer */}
@@ -695,7 +695,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-mono text-red-200 hidden lg:inline">
-              ACOUSTIC HORN: 115 dB ACTIVE
+              Acoustic horn · 115 dB active
             </span>
             <button
               onClick={handleSilence}
@@ -721,7 +721,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
         <div className="bg-emerald-950/90 border-b border-emerald-500/60 text-emerald-200 px-4 py-2 flex items-center justify-between text-xs font-mono z-50">
           <div className="flex items-center gap-2">
             <Check size={15} className="text-emerald-400" />
-            <span>SIREN SILENCED BY DUTY COMMANDER — SYSTEM MONITORING ACTIVE</span>
+            <span>Siren silenced by duty commander — system monitoring active</span>
           </div>
           <span className="text-[10px] text-emerald-400">Section 65B Audit Log Recorded</span>
         </div>
@@ -744,11 +744,11 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-extrabold tracking-wider text-white">IBVAP SENTINEL</span>
+                <span className="text-sm font-extrabold text-white">IBVAP Sentinel</span>
                 <span className="text-base" title="Sashastra Seema Bal / Ministry of Home Affairs">🇮🇳</span>
               </div>
-              <div className="text-[9px] font-bold uppercase tracking-widest text-white/55 font-mono">
-                AI BORDER SURVEILLANCE SYSTEM
+              <div className="text-[9px] font-bold text-white/55 font-mono">
+                AI border surveillance system
               </div>
             </div>
           </Link>
@@ -947,7 +947,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* Bottom pinned decorative watchtower illustration & ministry credit */}
           <div className="mt-4 pt-3 border-t border-white/12">
             <div className="relative rounded-xl overflow-hidden bg-gradient-to-b from-[#000000] to-[#000000] border border-white/12 p-2 text-center mb-2">
-              <div className="space-y-0.5 font-mono text-[8.5px] uppercase tracking-[0.25em] text-white/55">
+              <div className="space-y-0.5 font-mono text-[8.5px] text-white/55">
                 <div>VIGILANCE</div>
                 <div>INTEGRITY</div>
                 <div>SECURITY</div>
@@ -1040,7 +1040,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       <Shield size={20} />
                     </div>
                     <div>
-                      <div className="text-xs font-bold font-mono text-emerald-400 tracking-wider">
+                      <div className="text-xs font-bold font-mono text-emerald-400">
                         {armedState ? "SYSTEM ARMED" : "SYSTEM DISARMED"}
                       </div>
                       <div className="text-[11px] text-white">
@@ -1140,7 +1140,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       </div>
                       <span className="text-sm font-bold text-white">Active Alert</span>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full bg-red-950/80 border border-red-500/60 text-[10px] font-extrabold text-red-200 uppercase tracking-wide">
+                    <span className="px-2.5 py-1 rounded-full bg-red-950/80 border border-red-500/60 text-[10px] font-extrabold text-red-200">
                       CRITICAL
                     </span>
                   </div>
@@ -1173,7 +1173,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           <span className="text-2xl font-extrabold font-mono text-white leading-none">{currentIncident.threat}</span>
                         </div>
                       </div>
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-white/55 mt-1 font-mono">THREAT SCORE</span>
+                      <span className="text-[9px] font-bold text-white/55 mt-1 font-mono">Threat score</span>
                     </div>
                   </div>
 
@@ -1235,7 +1235,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
-                        <tr className="border-b border-white/12 text-[10px] font-mono text-white/55 uppercase">
+                        <tr className="border-b border-white/12 text-[10px] text-white/55">
                           <th className="pb-2 font-medium">ID</th>
                           <th className="pb-2 font-medium">TIME</th>
                           <th className="pb-2 font-medium">CAMERA(S)</th>
@@ -1505,7 +1505,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                             Distance to Physical CCTV / Geofence: <strong className="text-white text-sm">{ingressDistance} meters</strong>
                           </span>
                           <span className={`font-bold ${ingressCalculatedThreat >= alarmThreshold ? "text-red-400 animate-pulse" : "text-amber-400"}`}>
-                            THREAT SCORE: {ingressCalculatedThreat} / 100 {ingressCalculatedThreat >= alarmThreshold ? "🚨 [SIREN ACTIVE]" : ""}
+                            Threat score: {ingressCalculatedThreat} / 100 {ingressCalculatedThreat >= alarmThreshold ? "🚨 [SIREN ACTIVE]" : ""}
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -1910,7 +1910,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     </div>
 
                     <div className="p-2.5 rounded-xl bg-[#000000] border border-white/12 flex items-center justify-between font-mono text-xs">
-                      <span className="text-white/55">THREAT SCORE:</span>
+                      <span className="text-white/55">Threat score:</span>
                       <span className={`text-base font-extrabold ${inc.color}`}>{inc.threat} / 100</span>
                     </div>
 
@@ -1942,7 +1942,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {activeNav === "map" && (
             <Suspense
               fallback={
-                <div className="grid h-[68vh] place-items-center rounded-2xl border border-white/12 bg-[#000000] font-mono text-[11px] uppercase tracking-[0.2em] text-white/45">
+                <div className="grid h-[68vh] place-items-center rounded-2xl border border-white/12 bg-[#000000] font-mono text-[11px] text-white/45">
                   loading terrain map…
                 </div>
               }
@@ -2393,7 +2393,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* ── FOOTER ───────────────────────────────────────────── */}
           <footer className="pt-3 border-t border-white/12 flex flex-col sm:flex-row items-center justify-between text-[11px] text-white/55 gap-2">
             <div className="flex items-center gap-3">
-              <span className="font-semibold text-white">IBVAP SENTINEL v1.0.0</span>
+              <span className="font-semibold text-white">IBVAP Sentinel v1.0.0</span>
               <span>|</span>
               <span>Sashastra Seema Bal (SSB)</span>
               <span>|</span>
@@ -2484,8 +2484,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
             <div className="p-4 rounded-xl bg-[#000000] border border-white/12 space-y-3 text-xs font-mono text-white max-h-[60vh] overflow-y-auto">
               <div className="text-center space-y-0.5 border-b border-white/12 pb-2">
-                <div className="text-amber-300 text-[10px] font-bold tracking-widest">SPECIMEN TEMPLATE · AUTO-GENERATED BY IBVAP SENTINEL · NOT AN ISSUED CERTIFICATE</div>
-                <div className="font-bold text-white uppercase text-sm">SECTION 65B(4) CERTIFICATE — DRAFT</div>
+                <div className="text-amber-300 text-[10px] font-bold">Specimen template · auto-generated by IBVAP Sentinel · not an issued certificate</div>
+                <div className="font-bold text-white text-sm">Section 65B(4) Certificate — Draft</div>
                 <div className="text-white">Indian Evidence Act, 1872 · to be reviewed and signed by the lawful officer</div>
                 <div className="text-white/55 text-[10px]">TEMPLATE REF: SENTINEL/EVD/2026/09/0042</div>
               </div>
@@ -2574,14 +2574,14 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <div className="p-2 text-center text-xs text-white font-mono">BOP Bravo Exit (t=8.5s)</div>
                 </div>
                 <div className="rounded-xl bg-[#000000] border border-white/12 p-4 space-y-2">
-                  <div className="text-xs font-bold text-white uppercase tracking-wider">Correlation Metric</div>
+                  <div className="text-xs font-bold text-white">Correlation Metric</div>
                   <div className="text-2xl font-bold font-mono text-white">0.914 cosine</div>
                   <div className="text-xs text-white/55">OSNet / ResNet 512-d appearance similarity across a 1.33s blind-corridor gap (2-camera testbed).</div>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-xl bg-[#000000] border border-white/12 space-y-1">
-                <div className="text-[10.5px] font-bold text-white/55 uppercase tracking-wider">SHA-256 Hash-Chain Proof</div>
+                <div className="text-[10.5px] font-bold text-white/55">SHA-256 Hash-Chain Proof</div>
                 <div className="font-mono text-xs text-white break-all">{currentIncident.hash}</div>
               </div>
 

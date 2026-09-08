@@ -93,7 +93,7 @@ export default function ApiTestbenchPanel() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-5">
         {/* Endpoint Action List */}
         <div className="flex flex-col gap-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-faint mb-1">
+          <div className="text-[11px] font-semibold text-faint mb-1">
             Available Platform Operations
           </div>
           {ENDPOINTS.map((ep, idx) => (
@@ -139,7 +139,7 @@ export default function ApiTestbenchPanel() {
           <div className="flex items-center justify-between border-b border-[#1A2230] pb-2.5 mb-3">
             <div className="flex items-center gap-2 text-dim">
               <Terminal size={14} className="text-amber" />
-              <span className="text-[11px] uppercase tracking-wider">Live Response Payload</span>
+              <span className="text-[11px]">Live Response Payload</span>
             </div>
             {responseLog && (
               <div className="flex items-center gap-2 text-[10.5px]">

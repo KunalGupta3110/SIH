@@ -384,12 +384,8 @@ function CctvNode({ cam, selected, breach, onSelect }) {
             <Video size={11} />
           </span>
           <span
-            className="flex items-center gap-1 whitespace-nowrap rounded border px-1.5 py-0.5 font-hud text-[11px] font-semibold"
-            style={{
-              borderColor: alert ? RED : selected ? CYAN : "rgba(255,255,255,0.28)",
-              background: "rgba(6,12,16,0.8)",
-              color: alert ? RED : selected ? CYAN : "#dfe8ec",
-            }}
+            className="flex items-center gap-1 whitespace-nowrap rounded border border-zinc-800 bg-zinc-950/80 px-2 py-0.5 font-mono text-[10px] font-medium backdrop-blur-md"
+            style={{ color: alert ? RED : selected ? CYAN : "#d4d4d8" }}
           >
             {cam.id}
           </span>
@@ -530,8 +526,8 @@ function ReidPath({ active }) {
       ))}
       <Html position={[mid.x, mid.y + 1.8, mid.z]} center distanceFactor={32} zIndexRange={[15, 0]}>
         <div
-          className="whitespace-nowrap rounded border bg-black/80 px-2 py-0.5 font-hud text-[11px] font-semibold"
-          style={{ borderColor: active ? RED : "rgba(63,240,154,0.5)", color: active ? RED : CYAN }}
+          className="whitespace-nowrap rounded border border-zinc-800 bg-zinc-950/80 px-2 py-0.5 font-mono text-[10px] font-medium backdrop-blur-md"
+          style={{ color: active ? RED : CYAN }}
         >
           Re-ID track · A→B→C
         </div>
@@ -657,7 +653,7 @@ function PatrolDrone() {
       <Html position={[0, 5, 0]} distanceFactor={14} center zIndexRange={[30, 0]}>
         <button
           onClick={fireUavSelect}
-          className="pointer-events-auto flex items-center gap-1.5 whitespace-nowrap rounded border border-[#3ff09a]/60 bg-black/85 px-2 py-1 font-hud text-[11px] font-semibold text-[#3ff09a] hover:bg-[#3ff09a]/15"
+          className="pointer-events-auto flex items-center gap-1.5 whitespace-nowrap rounded border border-zinc-800 bg-zinc-950/80 px-2 py-0.5 font-mono text-[10px] font-medium text-zinc-300 backdrop-blur-md hover:border-[#3ff09a]/50"
         >
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#3ff09a]" />
           UAV-01 · Thermal UV scanning
@@ -911,7 +907,7 @@ export function DetailPanel({ cam, onClose, className = "" }) {
                 <animate attributeName="x" values="34;48;34" dur="4s" repeatCount="indefinite" />
               </rect>
             </svg>
-            <span className="pointer-events-none absolute left-1/2 top-2.5 -translate-x-1/2 whitespace-nowrap rounded border border-[#ff2233] bg-black/80 px-1.5 py-0.5 font-hud text-[10px] font-semibold text-[#ff2233]">
+            <span className="pointer-events-none absolute left-1/2 top-2.5 -translate-x-1/2 whitespace-nowrap rounded border border-rose-500/60 bg-zinc-950/80 px-2 py-0.5 font-mono text-[10px] font-medium text-rose-300 backdrop-blur-md">
               Track #{cam.track ?? 7} · Person · Flagged
             </span>
           </>

@@ -70,17 +70,17 @@ function WhenVisible({ children, fallback, rootMargin = "300px" }) {
 
 function Eyebrow({ children }) {
   return (
-    <div className="font-mono text-[11px] uppercase tracking-[0.24em] text-white/45">{children}</div>
+    <div className="text-[12px] font-medium text-zinc-500">{children}</div>
   );
 }
 
 function Stat({ value, label, decimals = 0, prefix = "", suffix = "" }) {
   return (
     <div>
-      <div className="font-mono text-3xl font-semibold text-white tabular-nums leading-none">
+      <div className="font-mono text-3xl font-semibold text-zinc-100 tabular-nums leading-none">
         <CountUp value={value} decimals={decimals} prefix={prefix} suffix={suffix} />
       </div>
-      <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/45">{label}</div>
+      <div className="mt-2 text-[12px] text-zinc-500">{label}</div>
     </div>
   );
 }
@@ -89,7 +89,7 @@ function Stat({ value, label, decimals = 0, prefix = "", suffix = "" }) {
 function Spec({ label, value }) {
   return (
     <div>
-      <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/45">{label}</div>
+      <div className="text-[11px] font-medium text-zinc-500">{label}</div>
       <div className="mt-1.5 font-mono text-[15px] font-semibold leading-tight text-white">{value}</div>
     </div>
   );
@@ -124,7 +124,7 @@ function Ring({ value, label, sub, size = 96 }) {
       </div>
       <div>
         <div className="text-[13px] font-semibold text-white">{label}</div>
-        <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/40">{sub}</div>
+        <div className="font-mono text-[10.5px] text-white/40">{sub}</div>
       </div>
     </div>
   );
@@ -141,7 +141,7 @@ function Spark({ label, value, data }) {
   return (
     <div>
       <div className="flex items-baseline justify-between">
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/45">{label}</span>
+        <span className="font-mono text-[10.5px] text-white/45">{label}</span>
         <span className="font-mono text-[11px] tabular-nums text-white">{value}</span>
       </div>
       <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="mt-1.5 w-full" style={{ height: h }}>
@@ -332,9 +332,9 @@ export default function LandingPage() {
               <Shield size={16} />
             </span>
             <span className="leading-none">
-              <span className="block text-[13px] font-bold tracking-wide">IBVAP SENTINEL</span>
-              <span className="mt-1 block font-mono text-[8.5px] uppercase tracking-[0.24em] text-white/45">
-                Edge-First Surveillance Analytics
+              <span className="block text-[13px] font-semibold tracking-tight text-zinc-100">IBVAP Sentinel</span>
+              <span className="mt-0.5 block text-[10px] font-medium text-zinc-500">
+                Edge-first surveillance analytics
               </span>
             </span>
           </Link>
@@ -358,7 +358,7 @@ export default function LandingPage() {
             <Link
               to="/login"
               onClick={click}
-              className="press hidden items-center gap-1.5 border border-white/40 px-3.5 py-2 text-[11px] font-bold uppercase tracking-wide text-white/80 hover:bg-white hover:text-black sm:flex"
+              className="press hidden items-center gap-1.5 border border-white/40 px-3.5 py-2 text-[11px] font-bold text-white/80 hover:bg-white hover:text-black sm:flex"
             >
               <LogIn size={12} />
               Login
@@ -366,7 +366,7 @@ export default function LandingPage() {
             <Link
               to="/console"
               onClick={click}
-              className="press group hidden items-center gap-2 border border-white bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-black hover:bg-black hover:text-white sm:flex"
+              className="press group hidden items-center gap-2 border border-white bg-white px-4 py-2 text-[11px] font-bold text-black hover:bg-black hover:text-white sm:flex"
             >
               Launch Console
               <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
@@ -383,10 +383,10 @@ export default function LandingPage() {
                 {label}
               </a>
             ))}
-            <Link to="/login" onClick={() => setMenu(false)} className="mt-2 block border border-white/40 px-4 py-2 text-center text-[11px] font-bold uppercase text-white/80">
+            <Link to="/login" onClick={() => setMenu(false)} className="mt-2 block border border-white/40 px-4 py-2 text-center text-[11px] font-bold text-white/80">
               Login
             </Link>
-            <Link to="/console" onClick={() => setMenu(false)} className="mt-2 block border border-white bg-white px-4 py-2 text-center text-[11px] font-bold uppercase text-black">
+            <Link to="/console" onClick={() => setMenu(false)} className="mt-2 block border border-white bg-white px-4 py-2 text-center text-[11px] font-bold text-black">
               Launch Console
             </Link>
           </div>
@@ -397,7 +397,7 @@ export default function LandingPage() {
       <header className="relative mx-auto max-w-6xl px-6 pb-20 pt-32 sm:pt-40">
         <div className="grid items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
-            <Reveal className="inline-flex items-center gap-2.5 border border-white/25 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/55">
+            <Reveal className="inline-flex items-center gap-2.5 border border-white/25 px-3 py-1 font-mono text-[10.5px] text-white/55">
               <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
               SIH 2026 · PS-26187 · SSB Gurdaspur Sector
             </Reveal>
@@ -418,12 +418,12 @@ export default function LandingPage() {
               <Link
                 to="/console"
                 onClick={click}
-                className="press group flex items-center gap-2 border border-white bg-white px-6 py-3 text-[12px] font-bold uppercase tracking-wide text-black hover:bg-black hover:text-white"
+                className="press group flex items-center gap-2 border border-white bg-white px-6 py-3 text-[12px] font-bold text-black hover:bg-black hover:text-white"
               >
                 Open Command Console
                 <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
               </Link>
-              <a href="#operations" onClick={click} className="press border border-white/40 px-6 py-3 text-[12px] font-bold uppercase tracking-wide text-white/80 hover:border-white hover:text-white">
+              <a href="#operations" onClick={click} className="press border border-white/40 px-6 py-3 text-[12px] font-bold text-white/80 hover:border-white hover:text-white">
                 See it running
               </a>
             </Reveal>
@@ -439,7 +439,7 @@ export default function LandingPage() {
           {/* terrain panel */}
           <Reveal delay={120} className="relative border border-white/15 bg-black">
             <Corners />
-            <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+            <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] text-white/45">
               <span>Sector 4-B · Camera Topology Model</span>
               <span className="flex items-center gap-1.5 text-amber-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" /> Simulation
@@ -447,19 +447,19 @@ export default function LandingPage() {
             </div>
             <div className="relative">
               <IsometricTerrain mode="hero" />
-              <span className="pointer-events-none absolute left-3 bottom-3 font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/35">
+              <span className="pointer-events-none absolute left-3 bottom-3 font-mono text-[8.5px] text-white/35">
                 FOV model · 5 nodes
               </span>
               <div className="animate-drift absolute left-3 top-3 border border-white/20 bg-black/80 px-2.5 py-1.5 backdrop-blur-sm">
-                <div className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/45">Detector</div>
+                <div className="font-mono text-[8.5px] text-white/45">Detector</div>
                 <div className="font-mono text-base font-semibold">YOLOv8n</div>
               </div>
               <div className="animate-drift absolute right-3 top-10 border border-white/20 bg-black/80 px-2.5 py-1.5 backdrop-blur-sm" style={{ animationDelay: "-2s" }}>
-                <div className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/45">Classes</div>
+                <div className="font-mono text-[8.5px] text-white/45">Classes</div>
                 <div className="font-mono text-base font-semibold">person · vehicle</div>
               </div>
               <div className="animate-drift absolute bottom-3 right-4 border border-white/20 bg-black/80 px-2.5 py-1.5 backdrop-blur-sm" style={{ animationDelay: "-4s" }}>
-                <div className="font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/45">Feed source</div>
+                <div className="font-mono text-[8.5px] text-white/45">Feed source</div>
                 <div className="font-mono text-base font-semibold text-amber-400">Recorded</div>
               </div>
             </div>
@@ -515,13 +515,13 @@ export default function LandingPage() {
                   </Suspense>
                 </WhenVisible>
               </div>
-              <span className="pointer-events-none absolute left-3 top-3 font-mono text-[9px] uppercase tracking-[0.16em] text-white/40">
+              <span className="pointer-events-none absolute left-3 top-3 font-mono text-[9px] text-white/40">
                 Sector 4-B · terrain model
               </span>
-              <span className="pointer-events-none absolute bottom-3 right-3 hidden font-mono text-[9px] uppercase tracking-[0.14em] text-white/45 sm:block">
+              <span className="pointer-events-none absolute bottom-3 right-3 hidden font-mono text-[9px] text-white/45 sm:block">
                 32.04°N&nbsp;·&nbsp;75.40°E
               </span>
-              <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-mono text-[9px] uppercase tracking-[0.16em] text-white/50 transition-colors sm:text-white/0 sm:group-hover:text-white/55">
+              <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-mono text-[9px] text-white/50 transition-colors sm:text-white/0 sm:group-hover:text-white/55">
                 tap to open 3D terrain →
               </span>
             </button>
@@ -565,7 +565,7 @@ export default function LandingPage() {
                 <div className="font-mono text-[11px] text-white/35">0{i + 1}</div>
                 <h3 className="mt-3 text-[15px] font-bold leading-snug">{t}</h3>
                 <p className="mt-2 flex-1 text-[12.5px] leading-relaxed text-white/60">{d}</p>
-                <div className="mt-5 border-t border-white/12 pt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/40">
+                <div className="mt-5 border-t border-white/12 pt-3 font-mono text-[10px] text-white/40">
                   {tag}
                 </div>
               </Reveal>
@@ -595,7 +595,7 @@ export default function LandingPage() {
                 <p className="mt-2 text-[13px] leading-relaxed text-white/60">{d}</p>
                 <div className="mt-6 flex items-baseline gap-2 border-t border-white/12 pt-4">
                   <span className="font-mono text-2xl font-semibold tabular-nums">{stat}</span>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/40">{statlabel}</span>
+                  <span className="font-mono text-[10px] text-white/40">{statlabel}</span>
                 </div>
               </Reveal>
             ))}
@@ -614,7 +614,7 @@ export default function LandingPage() {
             <span className="font-mono text-[11px] text-white/45">YOLOv8n (COCO · person/vehicle) · ByteTrack · CPU inference</span>
           </Reveal>
 
-          <Reveal delay={60} className="mt-4 flex items-center gap-2 border border-white/12 bg-white/[0.03] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+          <Reveal delay={60} className="mt-4 flex items-center gap-2 border border-white/12 bg-white/[0.03] px-3 py-2 font-mono text-[10px] text-white/45">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
             Mode: dual-angle synchronized simulation (VisDrone + recorded testbed feeds) · target pipeline: CPU edge node
           </Reveal>
@@ -635,7 +635,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <div className="border-t border-white/12 p-4 font-mono sm:border-l sm:border-t-0">
-                  <div className="text-[10px] uppercase tracking-[0.16em] text-white/45">Active tracks · ByteTrack</div>
+                  <div className="text-[10px] text-white/45">Active tracks · ByteTrack</div>
                   <table className="mt-3 w-full text-[11px]">
                     <thead>
                       <tr className="text-white/35">
@@ -670,7 +670,7 @@ export default function LandingPage() {
             </div>
 
             <Reveal delay={120} className="space-y-6 border border-white/12 p-5">
-              <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/45">Sector telemetry</div>
+              <div className="font-mono text-[10.5px] text-white/45">Sector telemetry</div>
               <Ring value={78} label="Scan coverage" sub="perimeter sweep" />
               <Ring value={64} label="Channel load" sub="6 of 8 active" />
               <div className="space-y-5 border-t border-white/12 pt-5">
@@ -701,7 +701,7 @@ export default function LandingPage() {
             </p>
           </Reveal>
 
-          <Reveal delay={40} className="mt-4 flex items-center gap-2 border border-white/12 bg-white/[0.03] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+          <Reveal delay={40} className="mt-4 flex items-center gap-2 border border-white/12 bg-white/[0.03] px-3 py-2 font-mono text-[10px] text-white/45">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
             Validated pair: CAM_ALPHA ↔ CAM_BRAVO (2 synchronized angles) · the four-node trail below illustrates the target camera topology
           </Reveal>
@@ -710,7 +710,7 @@ export default function LandingPage() {
           <Reveal delay={80} className="mt-12 flex flex-wrap items-center gap-4 border-y border-white/12 py-3">
             <button
               onClick={reidPlaying ? () => setReidPlaying(false) : runReid}
-              className="press flex items-center gap-2 border border-white bg-white px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wide text-black hover:bg-black hover:text-white"
+              className="press flex items-center gap-2 border border-white bg-white px-4 py-2 font-mono text-[11px] font-bold text-black hover:bg-black hover:text-white"
             >
               {reidPlaying ? <Pause size={13} /> : <Play size={13} />}
               {reidPlaying ? "Pause" : "Reconstruct trail"}
@@ -718,7 +718,7 @@ export default function LandingPage() {
             <button onClick={() => { click(); setReidStep(0); setReidPlaying(false); }} className="press grid h-9 w-9 place-items-center border border-white/40 text-white/60 hover:border-white hover:text-white">
               <RotateCcw size={13} />
             </button>
-            <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/45">
+            <div className="flex items-center gap-2 font-mono text-[10.5px] text-white/45">
               <Crosshair size={12} /> Target Alpha-7
               <span className="text-white/25">·</span>
               hop {Math.min(reidStep + 1, REID_HOPS.length)} / {REID_HOPS.length}
@@ -742,7 +742,7 @@ export default function LandingPage() {
                       isHere ? "border-white shadow-[0_0_0_2px_rgba(255,255,255,0.25)]" : reached ? "border-white/40" : "border-white/12 opacity-45"
                     }`}
                   >
-                    <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/50">
+                    <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] text-white/50">
                       <span>{hop.cam} · {hop.role}</span>
                       <span>t = {hop.t}</span>
                     </div>
@@ -776,7 +776,7 @@ export default function LandingPage() {
             ].map(([v, l]) => (
               <div key={l} className="bg-black px-4 py-5 text-center">
                 <div className="font-mono text-xl font-semibold tabular-nums">{v}</div>
-                <div className="mt-1.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-white/40">{l}</div>
+                <div className="mt-1.5 font-mono text-[9.5px] text-white/40">{l}</div>
               </div>
             ))}
           </Reveal>
@@ -799,7 +799,7 @@ export default function LandingPage() {
           <div className="mt-14 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
             {/* interactive breakdown */}
             <Reveal className="border border-white/15 p-6">
-              <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/45">Contributing factors</div>
+              <div className="font-mono text-[10.5px] text-white/45">Contributing factors</div>
               <div className="mt-4 space-y-2">
                 {THREAT_FACTORS.map(([label, pts, detail], i) => {
                   const on = factors[i];
@@ -829,7 +829,7 @@ export default function LandingPage() {
 
             {/* score readout */}
             <Reveal delay={120} className="flex flex-col items-center justify-center border border-white p-6 text-center">
-              <span className={`border px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.16em] ${band.cls}`}>
+              <span className={`border px-3 py-1 font-mono text-[10px] font-bold ${band.cls}`}>
                 {band.label}
               </span>
               <div className="relative my-5 h-36 w-36">
@@ -848,7 +848,7 @@ export default function LandingPage() {
                 <div className="absolute inset-0 grid place-items-center">
                   <div>
                     <div className="font-mono text-4xl font-semibold tabular-nums leading-none">{score}</div>
-                    <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-white/40">/ 100</div>
+                    <div className="mt-1 font-mono text-[10px] text-white/40">/ 100</div>
                   </div>
                 </div>
               </div>
@@ -858,7 +858,7 @@ export default function LandingPage() {
 
           {/* perimeter terrain */}
           <Reveal delay={100} className="mt-4 border border-white/15 bg-black">
-            <div className="flex items-center gap-3 border-b border-white/12 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+            <div className="flex items-center gap-3 border-b border-white/12 px-3 py-2 font-mono text-[10px] text-white/45">
               <span className="text-white">Perimeter overlay</span>
               <span>·</span><span>Restricted geofence · River Bend</span>
             </div>
@@ -866,7 +866,7 @@ export default function LandingPage() {
               <IsometricTerrain mode="perimeter" />
               <div className="absolute right-4 top-4 w-64 border border-red-500/50 bg-black/85 backdrop-blur-sm">
                 <Corners />
-                <div className="flex items-center justify-between border-b border-red-500/30 px-3 py-2 font-mono text-[10.5px] font-bold uppercase tracking-[0.14em] text-red-400">
+                <div className="flex items-center justify-between border-b border-red-500/30 px-3 py-2 font-mono text-[10.5px] font-bold text-red-400">
                   <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Zone breach</span>
                   <span>CRITICAL</span>
                 </div>
@@ -926,14 +926,14 @@ export default function LandingPage() {
               ].map(([b, h, t, critical], i, arr) => (
                 <div key={b} className="flex items-stretch">
                   <div className={`w-52 border p-4 ${critical ? "border-red-500/60" : "border-white/15"}`}>
-                    <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em]">
+                    <div className="flex items-center justify-between font-mono text-[10px]">
                       <span className={critical ? "text-red-400" : "text-white/50"}>{b}</span>
                       <span className="text-white/35">{t}</span>
                     </div>
                     <div className="mt-3 font-mono text-[11px] text-white/70">HASH</div>
                     <div className="font-mono text-[12px] text-white">{h}</div>
                     {critical && (
-                      <div className="mt-3 border border-red-500/50 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-red-300">
+                      <div className="mt-3 border border-red-500/50 px-1.5 py-0.5 font-mono text-[9px] text-red-300">
                         INC-0042 · CRITICAL
                       </div>
                     )}
@@ -998,7 +998,7 @@ export default function LandingPage() {
             ].map((m) => (
               <div key={m.l} className="p-6 md:p-8">
                 <div className="font-mono text-xl font-semibold leading-tight sm:text-2xl">{m.v}</div>
-                <div className="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-white">{m.l}</div>
+                <div className="mt-2 font-mono text-[11px] text-white">{m.l}</div>
                 <div className="mt-1 font-mono text-[10px] leading-relaxed text-white/40">{m.s}</div>
               </div>
             ))}
@@ -1017,7 +1017,7 @@ export default function LandingPage() {
           </Reveal>
           <div className="mt-14 grid gap-px border border-white/12 bg-white/12 md:grid-cols-2">
             <Reveal className="bg-black p-8">
-              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white">
+              <div className="flex items-center gap-2 font-mono text-[10px] text-white">
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
                 Phase 1 — current MVP
               </div>
@@ -1036,7 +1036,7 @@ export default function LandingPage() {
               </ul>
             </Reveal>
             <Reveal delay={100} className="bg-black p-8">
-              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+              <div className="flex items-center gap-2 font-mono text-[10px] text-white/45">
                 <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
                 Phase 2 &amp; future scope
               </div>
@@ -1068,7 +1068,7 @@ export default function LandingPage() {
             <Link
               to="/console"
               onClick={click}
-              className="press group inline-flex items-center gap-2.5 border border-white bg-white px-8 py-3.5 text-[12px] font-bold uppercase tracking-wide text-black hover:bg-black hover:text-white"
+              className="press group inline-flex items-center gap-2.5 border border-white bg-white px-8 py-3.5 text-[12px] font-bold text-black hover:bg-black hover:text-white"
             >
               Launch Command Console
               <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
@@ -1088,7 +1088,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-5">
             <span>SIH 2026 · PS-26187</span>
-            <Link to="/console" onClick={click} className="press border border-white bg-white px-3 py-1.5 font-bold uppercase text-black hover:bg-black hover:text-white">
+            <Link to="/console" onClick={click} className="press border border-white bg-white px-3 py-1.5 font-bold text-black hover:bg-black hover:text-white">
               Console →
             </Link>
           </div>

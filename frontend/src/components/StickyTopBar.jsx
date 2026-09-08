@@ -98,7 +98,7 @@ export default function StickyTopBar({
 
             {showDemoMenu && (
               <div className="absolute right-0 mt-2 w-52 rounded-xl border border-white/15 bg-[#090f1a] p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs animate-fadeIn">
-                <div className="px-2 py-1 text-[10px] text-slate-400 font-semibold uppercase tracking-wider border-b border-white/10">
+                <div className="px-2 py-1 text-[10px] text-slate-400 font-semibold border-b border-white/10">
                   System Status
                 </div>
                 <div className="px-2 py-1 text-slate-300 text-[11px] flex justify-between">
@@ -114,7 +114,7 @@ export default function StickyTopBar({
                   <span className="text-sky-300 font-medium">Simulation</span>
                 </div>
 
-                <div className="px-2 pt-1 text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                <div className="px-2 pt-1 text-[10px] text-slate-400 font-semibold">
                   Testing Controls
                 </div>
                 {onPopulateDemo && (

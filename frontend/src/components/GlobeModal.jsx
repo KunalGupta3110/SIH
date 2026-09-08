@@ -284,7 +284,7 @@ export default function GlobeModal({ onClose }) {
     <div className="fixed inset-0 z-[100] flex flex-col bg-black">
       {/* header */}
       <div className="flex items-center justify-between border-b border-white/12 px-5 py-3">
-        <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/60">
+        <div className="font-mono text-[11px] text-white/60">
           Planned Sensor Topology <span className="text-white">· {online} / {CAMERAS.length} nodes</span>
           <span className="ml-2 text-amber-400/80">simulation</span>
         </div>
@@ -297,7 +297,7 @@ export default function GlobeModal({ onClose }) {
         {/* globe */}
         <div className="relative min-h-0 flex-1">
           <canvas ref={canvasRef} className="h-full w-full cursor-grab active:cursor-grabbing touch-none" />
-          <div className="pointer-events-none absolute left-4 bottom-4 font-mono text-[9px] uppercase tracking-[0.16em] text-white/35">
+          <div className="pointer-events-none absolute left-4 bottom-4 font-mono text-[9px] text-white/35">
             drag to rotate · scroll to zoom
           </div>
         </div>
@@ -308,7 +308,7 @@ export default function GlobeModal({ onClose }) {
             <div className="border-b border-white/12 p-4 font-mono">
               <div className="flex items-center justify-between">
                 <span className="text-[13px] font-bold text-white">{selected.id}</span>
-                <span className={`text-[10px] uppercase tracking-[0.14em] ${
+                <span className={`text-[10px] ${
                   selected.status === "ONLINE" ? "text-white" : selected.status === "STALE" ? "text-amber-400" : "text-red-400"
                 }`}>{selected.status}</span>
               </div>
@@ -317,7 +317,7 @@ export default function GlobeModal({ onClose }) {
                 <div className="flex justify-between"><span>Position</span><span className="text-white">{selected.lat.toFixed(2)}°N · {selected.lon.toFixed(2)}°E</span></div>
                 <div className="flex justify-between"><span>Role</span><span className="text-white">{selected.note}</span></div>
               </div>
-              <a href="/console" className="mt-3 flex items-center justify-center gap-1.5 border border-white bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-black">
+              <a href="/console" className="mt-3 flex items-center justify-center gap-1.5 border border-white bg-white px-3 py-1.5 text-[10px] font-bold text-black">
                 <Radio size={11} /> Open in console
               </a>
             </div>

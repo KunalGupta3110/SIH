@@ -185,7 +185,7 @@ export default function ChainOfCustody({ blockchain, error }) {
           <div className="mt-5 flex flex-col gap-5 animate-fadeIn">
             <div className="rounded-xl border border-sky-500/30 bg-black/60 p-4 text-xs flex flex-col gap-3">
               <div className="flex items-center justify-between text-slate-400 border-b border-white/10 pb-2">
-                <span className="font-bold text-sky-300 uppercase tracking-wider flex items-center gap-2">
+                <span className="font-bold text-sky-300 flex items-center gap-2">
                   <Lock size={14} />
                   NIST FIPS 180-4 Cryptographic Hash Chain Architecture
                 </span>
@@ -240,7 +240,7 @@ export default function ChainOfCustody({ blockchain, error }) {
             {/* ── IMMUTABLE EVIDENCE CAPSULES (SELF-CONTAINED PACKAGES) ──── */}
             <div className="flex flex-col gap-3.5">
               <div className="flex items-center justify-between text-xs text-slate-400">
-                <span className="font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                <span className="font-bold text-slate-300 flex items-center gap-2">
                   <Archive size={14} className="text-sky-400" />
                   <span>Evidence Capsules ({blocks.length} Sealed Envelopes)</span>
                 </span>
@@ -344,7 +344,7 @@ export default function ChainOfCustody({ blockchain, error }) {
                   {/* Canonical JSON Payload Inspector */}
                   {isInspecting && (
                     <div className="rounded-xl bg-[#020509] border border-white/10 p-4 text-xs text-emerald-400 overflow-x-auto animate-fadeIn">
-                      <div className="text-[10px] text-slate-400 uppercase mb-2 font-bold tracking-wider">
+                      <div className="text-[10px] text-slate-400 mb-2 font-bold">
                         CANONICAL JSON (SORTED KEYS, ZERO WHITESPACE):
                       </div>
                       <pre className="font-mono text-[11px] whitespace-pre-wrap break-all leading-relaxed">

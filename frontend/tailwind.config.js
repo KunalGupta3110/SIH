@@ -26,11 +26,10 @@ export default {
         blue: "#ffffff",
       },
       fontFamily: {
-        display: ["'Fraunces'", "'Times New Roman'", "Georgia", "serif"],
-        sans: ["'Manrope'", "system-ui", "-apple-system", "sans-serif"],
-        // technical UI face for the 3D / console HUD
-        hud: ["'IBM Plex Sans'", "'Manrope'", "system-ui", "sans-serif"],
-        mono: ["'JetBrains Mono'", "'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"],
+        display: ["'Fraunces'", "Georgia", "serif"],
+        sans: ["'Geist'", "'Inter'", "-apple-system", "BlinkMacSystemFont", "system-ui", "sans-serif"],
+        hud: ["'Geist'", "'Inter'", "system-ui", "sans-serif"],
+        mono: ["'JetBrains Mono'", "'Geist Mono'", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       letterSpacing: {
         micro: "0.22em",

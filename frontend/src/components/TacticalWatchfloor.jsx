@@ -490,7 +490,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
         {engine === "3d" ? (
           <Suspense
             fallback={
-              <div className="absolute inset-0 grid place-items-center bg-black font-mono text-[10px] uppercase tracking-[0.3em] text-white/60">
+              <div className="absolute inset-0 grid place-items-center bg-black font-mono text-[10px] text-white/60">
                 <span><span className="mr-2 inline-block h-2 w-2 animate-pulse bg-white align-middle" />booting GIS engine…</span>
               </div>
             }
@@ -527,7 +527,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
             style={{ willChange: "transform" }}
           >
             <div
-              className={`flex items-center gap-1.5 border px-2 py-1 font-mono text-[10px] tracking-wider backdrop-blur-sm ${
+              className={`flex items-center gap-1.5 border px-2 py-1 font-mono text-[10px] backdrop-blur-sm ${
                 tw.id === "CAM-02"
                   ? "border-[#ef4444]/50 bg-[#ef4444]/10 text-[#ef4444]"
                   : "border-white/25 bg-black/70 text-white"
@@ -561,7 +561,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
               </div>
               <div className="leading-tight">
                 <div className="font-display text-sm font-semibold tracking-wide text-white">
-                  IBVAP SENTINEL <span className="text-white/40">// AI WATCHFLOOR</span>
+                  IBVAP Sentinel <span className="text-white/40">// AI watchfloor</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-mono text-[10px] text-white/50">
                   <span
@@ -569,7 +569,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
                       breach ? "bg-[#ef4444]" : "bg-white"
                     } animate-pulse`}
                   />
-                  {breach ? "ALERT STATE · PERIMETER BREACH" : "ALERT STATE · ELEVATED"}
+                  {breach ? "Alert state · perimeter breach" : "Alert state · elevated"}
                 </div>
               </div>
             </div>
@@ -584,7 +584,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
 
             <div className="flex items-center gap-2">
               {/* engine toggle: 2D canvas ↔ 3D R3F GIS */}
-              <div className="pointer-events-auto flex items-center border border-white/20 font-mono text-[10px] font-bold tracking-widest">
+              <div className="pointer-events-auto flex items-center border border-white/20 font-mono text-[10px] font-bold">
                 <button
                   onClick={() => setEngine("2d")}
                   className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors ${
@@ -607,14 +607,14 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
 
               <button
                 onClick={() => setBreach((b) => !b)}
-                className={`pointer-events-auto flex items-center gap-1.5 border px-3 py-1.5 font-mono text-[10px] font-bold tracking-widest transition-all ${
+                className={`pointer-events-auto flex items-center gap-1.5 border px-3 py-1.5 font-mono text-[10px] font-bold transition-all ${
                   breach
                     ? "border-[#ff2233] bg-[#ff2233] text-black"
                     : "border-white/30 bg-black text-white hover:bg-white hover:text-black"
                 }`}
               >
                 <AlertTriangle size={12} />
-                {breach ? "CLEAR BREACH" : "SIMULATE BREACH"}
+                {breach ? "Clear breach" : "Simulate breach"}
               </button>
             </div>
           </div>
@@ -623,7 +623,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
           <div className="flex flex-1 items-stretch justify-between gap-3 overflow-hidden p-3">
             {/* left — live multi-camera matrix */}
             <div className="pointer-events-auto hidden w-60 shrink-0 flex-col gap-2.5 overflow-y-auto lg:flex">
-              <PanelTitle icon={Radio}>CAMERA MATRIX · SIM</PanelTitle>
+              <PanelTitle icon={Radio}>Camera matrix · sim</PanelTitle>
               {TOWERS.map((tw) => {
                 const alert = tw.id === "CAM-02";
                 return (
@@ -665,7 +665,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
                     </div>
                     <div className="space-y-0.5 px-2 py-1.5">
                       <div className={`font-mono text-[10px] font-bold ${alert ? "text-[#ef4444]" : "text-white"}`}>
-                        {alert ? "INTRUDER · RE-ID MATCH (TESTBED)" : tw.cam}
+                        {alert ? "Intruder · Re-ID match (testbed)" : tw.cam}
                       </div>
                       <div className="font-mono text-[8.5px] text-white/45">{tw.sector}</div>
                       <div className="font-mono text-[8.5px] text-white/45">LAT 32.7266°N · LON 74.8570°E</div>
@@ -677,7 +677,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
 
             {/* right — real-time intel + threat feed */}
             <div className="pointer-events-auto ml-auto hidden w-72 shrink-0 flex-col gap-2.5 overflow-y-auto md:flex">
-              <PanelTitle icon={Activity}>INCIDENT CORRELATOR</PanelTitle>
+              <PanelTitle icon={Activity}>Incident correlator</PanelTitle>
 
               {/* radar micro-widget */}
               <div className="flex items-center gap-3 border border-white/12 bg-black/70 p-2.5 backdrop-blur-md">
@@ -695,7 +695,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
                   <span className="absolute left-[70%] top-[38%] h-1 w-1 rounded-full bg-white animate-pulse" />
                 </div>
                 <div className="font-mono text-[9px] leading-relaxed text-white/60">
-                  <div className="text-white">SECTOR SWEEP · SIMULATED</div>
+                  <div className="text-white">Sector sweep · simulated</div>
                   <div>4 camera nodes · 1 flagged track</div>
                   <div>rule-based correlation</div>
                 </div>
@@ -711,7 +711,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
                 >
                   <div className="flex items-center justify-between">
                     <span
-                      className={`font-mono text-[8.5px] font-bold tracking-widest ${
+                      className={`font-mono text-[8.5px] font-bold ${
                         inc.pri === "CRITICAL"
                           ? "text-[#ef4444]"
                           : inc.pri === "WARNING"
@@ -762,7 +762,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
             className="absolute left-1/2 top-14 z-40 -translate-x-1/2 border border-[#ef4444] bg-black px-5 py-2 text-center"
             style={{ animation: "fade-up 0.35s ease both" }}
           >
-            <div className="font-mono text-xs font-bold tracking-widest text-[#ef4444]">
+            <div className="font-mono text-xs font-bold text-[#ef4444]">
               ⚠ PERIMETER BREACH DETECTED · SECTOR 4-B / WEST RIDGE
             </div>
             <div className="mt-0.5 font-mono text-[9px] text-white/50">
@@ -795,7 +795,7 @@ function Telem({ label, value }) {
 
 function PanelTitle({ icon: Icon, children }) {
   return (
-    <div className="flex items-center gap-1.5 border-b border-white/12 pb-1.5 font-mono text-[9px] font-bold tracking-[0.2em] text-white/70">
+    <div className="flex items-center gap-1.5 border-b border-white/12 pb-1.5 font-mono text-[9px] font-bold text-white/70">
       <Icon size={11} />
       {children}
     </div>
@@ -805,7 +805,7 @@ function PanelTitle({ icon: Icon, children }) {
 function MetricCard({ icon: Icon, label, value, unit }) {
   return (
     <div className="border border-white/12 bg-black p-3">
-      <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-white/45">
+      <div className="flex items-center gap-1.5 font-mono text-[9px] text-white/45">
         <Icon size={11} />
         {label}
       </div>

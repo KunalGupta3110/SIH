@@ -146,7 +146,7 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
         />
         {/* Incident Switcher Pills */}
         <div className="flex items-center gap-1.5 self-start sm:self-center">
-          <span className="text-xs text-slate-400 mr-1 uppercase font-semibold">Incident:</span>
+          <span className="text-xs text-slate-400 mr-1 font-semibold">Incident:</span>
           {incidents.slice(0, 3).map((inc) => (
             <button
               key={inc.incident_id}
@@ -192,10 +192,10 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
                     <span className="text-lg font-bold text-white tracking-wide font-mono">
                       {currentIncident.incident_id}
                     </span>
-                    <span className="rounded-md bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 text-[10.5px] font-bold text-sky-300 uppercase">
+                    <span className="rounded-md bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 text-[10.5px] font-bold text-sky-300">
                       Correlated Incident Track
                     </span>
-                    <span className="rounded-md bg-black/60 px-2 py-0.5 text-[10.5px] text-slate-300 border border-white/10 uppercase font-medium">
+                    <span className="rounded-md bg-black/60 px-2 py-0.5 text-[10.5px] text-slate-300 border border-white/10 font-medium">
                       Target: {currentIncident.target_class || "Person"}
                     </span>
                     {isPending ? (
@@ -221,13 +221,13 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
 
               <div className="flex items-center gap-3">
                 <div className={`rounded-xl border px-3.5 py-1.5 text-center ${sev.bg} ${sev.border}`}>
-                  <div className="text-[10px] uppercase font-semibold text-slate-400">Threat Score</div>
+                  <div className="text-[10px] font-semibold text-slate-400">Threat Score</div>
                   <div className={`text-base font-bold font-mono ${sev.text}`}>
                     {currentIncident.threat_score}/100
                   </div>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/40 px-3.5 py-1.5 text-center">
-                  <div className="text-[10px] uppercase font-semibold text-slate-400">AI Confidence</div>
+                  <div className="text-[10px] font-semibold text-slate-400">AI Confidence</div>
                   <div className="text-base font-bold font-mono text-sky-300">
                     {(currentIncident.confidence ? currentIncident.confidence * 100 : 91).toFixed(0)}%
                   </div>
@@ -250,7 +250,7 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
                   <GitBranch size={16} />
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Camera Handoff</div>
+                  <div className="text-[10px] font-bold text-sky-400">Camera Handoff</div>
                   <div className="text-sm font-bold text-white flex items-center gap-2 flex-wrap font-mono mt-0.5">
                     <span className="text-sky-300">Camera 1 ➔ Camera 2</span>
                     <span className="text-slate-500 font-sans font-normal text-xs">·</span>
@@ -281,7 +281,7 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
             {showHandoffCalc && (
               <div className="rounded-xl border border-sky-500/30 bg-black/60 p-4 animate-fadeIn flex flex-col gap-3">
                 <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
-                  <span className="font-bold text-sky-300 uppercase tracking-wider flex items-center gap-2">
+                  <span className="font-bold text-sky-300 flex items-center gap-2">
                     <Navigation size={14} />
                     7-Point Multi-Camera Spatial Handoff Telemetry
                   </span>
@@ -336,7 +336,7 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
             {showCorridorPresets && (
               <div className="rounded-xl border border-white/10 bg-black/60 p-4 animate-fadeIn flex flex-col gap-3">
                 <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
-                  <span className="font-bold text-slate-300 uppercase tracking-wider">
+                  <span className="font-bold text-slate-300">
                     Blind Corridor Presets & Spatial Transit Simulator
                   </span>
                   <span className="text-[11px] text-slate-400 font-mono">3 Calibrated Sectors</span>
@@ -392,7 +392,7 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
                 <div className="lg:col-span-7 flex flex-col gap-4">
                   <div className="rounded-xl border border-white/10 bg-black/40 p-4 flex flex-col gap-3">
                     <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
-                      <span className="font-bold text-sky-300 uppercase tracking-wider flex items-center gap-2">
+                      <span className="font-bold text-sky-300 flex items-center gap-2">
                         <Clock size={14} />
                         Chronological Spatio-Temporal Progression
                       </span>
@@ -425,7 +425,7 @@ export default function TrackBoard({ incidents = [], error, onAcknowledge }) {
                 <div className="lg:col-span-5 flex flex-col gap-4">
                   <div className="rounded-xl border border-white/10 bg-black/40 p-4 flex flex-col gap-3">
                     <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/10 pb-2">
-                      <span className="font-bold uppercase tracking-wider text-slate-300">
+                      <span className="font-bold text-slate-300">
                         Why This Score
                       </span>
                       <span className="text-slate-400 font-mono text-[11px]">Total: {currentIncident.threat_score} pts</span>

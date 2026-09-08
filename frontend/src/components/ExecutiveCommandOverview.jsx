@@ -129,7 +129,7 @@ export default function ExecutiveCommandOverview({
               </svg>
               <div className="absolute flex flex-col items-center justify-center text-center">
                 <span className="font-bold text-xl text-white font-mono tracking-tight">{threatScore}</span>
-                <span className="text-[9px] uppercase font-bold text-slate-400">/ 100</span>
+                <span className="text-[9px] font-bold text-slate-400">/ 100</span>
               </div>
             </div>
 
@@ -213,7 +213,7 @@ export default function ExecutiveCommandOverview({
             <Radio size={18} />
           </div>
           <div>
-            <div className="text-[10px] text-slate-400 uppercase font-semibold">Cameras</div>
+            <div className="text-[10px] text-slate-400 font-semibold">Cameras</div>
             <div className="text-white font-bold text-sm font-mono">{cameraCount || 4}/4 online</div>
           </div>
         </div>
@@ -223,7 +223,7 @@ export default function ExecutiveCommandOverview({
             <Activity size={18} />
           </div>
           <div>
-            <div className="text-[10px] text-slate-400 uppercase font-semibold">Alerts</div>
+            <div className="text-[10px] text-slate-400 font-semibold">Alerts</div>
             <div className="text-white font-bold text-sm font-mono">{openIncidents.length || 1} Active · 1 Critical</div>
             <div className="text-[10.5px] text-red-400">Person Detected (ID: P17)</div>
           </div>
@@ -234,7 +234,7 @@ export default function ExecutiveCommandOverview({
             <Navigation size={18} />
           </div>
           <div>
-            <div className="text-[10px] text-slate-400 uppercase font-semibold">Camera Handoff</div>
+            <div className="text-[10px] text-slate-400 font-semibold">Camera Handoff</div>
             <div className="text-white font-bold text-sm font-mono">Camera 1 ➔ Camera 2</div>
             <div className="text-[10.5px] text-sky-400">Predicted correctly in 8.5 seconds</div>
           </div>
@@ -245,7 +245,7 @@ export default function ExecutiveCommandOverview({
             <ShieldCheck size={18} />
           </div>
           <div>
-            <div className="text-[10px] text-slate-400 uppercase font-semibold">Evidence</div>
+            <div className="text-[10px] text-slate-400 font-semibold">Evidence</div>
             <div className="text-white font-bold text-sm font-mono">2 Records Sealed</div>
             <div className="text-[10.5px] text-emerald-400 font-semibold">Verified & Secured</div>
           </div>

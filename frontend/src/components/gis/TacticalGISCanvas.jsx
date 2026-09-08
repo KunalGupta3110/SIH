@@ -47,7 +47,7 @@ class GLBoundary extends Component {
 function Loader() {
   return (
     <Html center>
-      <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/70">
+      <div className="font-mono text-[10px] text-white/70">
         <span className="inline-block h-2 w-2 animate-pulse bg-white" /> loading terrain mesh…
       </div>
     </Html>
@@ -83,7 +83,7 @@ export default function TacticalGISCanvas({
   if (!webgl) {
     return (
       <div className="absolute inset-0 grid place-items-center bg-black">
-        <div className="max-w-xs text-center font-mono text-[10px] uppercase leading-relaxed tracking-[0.2em] text-white/45">
+        <div className="max-w-xs text-center font-mono text-[10px] leading-relaxed text-white/45">
           WebGL unavailable in this browser · switch the engine toggle to 2D
         </div>
       </div>

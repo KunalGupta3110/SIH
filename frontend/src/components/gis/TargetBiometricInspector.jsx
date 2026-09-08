@@ -25,10 +25,10 @@ const MODEL = "/models/suspect_biometric.glb";
 useGLTF.preload(MODEL);
 
 const HOTSPOTS = [
-  { y: 1.32, tone: CRIMSON, label: "CONCEALMENT DETECTED", detail: "FACE COVERING · 94.2%" },
-  { y: 0.24, tone: CYAN, label: "ATTIRE · DARK TACTICAL JACKET", detail: "BACKPACK CONFIRMED" },
-  { y: -0.62, tone: AMBER, label: "GAIT SPEED · 1.4 M/S", detail: "SUSPICIOUS LOITERING VECTOR" },
-  { y: -1.34, tone: CYAN, label: "ESTIMATED HEIGHT", detail: "181.4 CM (±2 CM)" },
+  { y: 1.32, tone: CRIMSON, label: "Concealment detected", detail: "Face covering · 94.2%" },
+  { y: 0.24, tone: CYAN, label: "Attire · dark tactical jacket", detail: "Backpack confirmed" },
+  { y: -0.62, tone: AMBER, label: "Gait speed · 1.4 m/s", detail: "Suspicious loitering vector" },
+  { y: -1.34, tone: CYAN, label: "Estimated height", detail: "181.4 cm (±2 cm)" },
 ];
 
 const TRAIL = [
@@ -121,7 +121,7 @@ function SubjectHologram() {
               style={{ transform: `translate(${left ? "-100%" : "0"}, -50%)` }}
             >
               <div
-                className={`pointer-events-none w-[120px] bg-black/85 px-1.5 py-1 font-mono text-[7px] uppercase leading-tight tracking-wide backdrop-blur-sm ${left ? "border-r-2 text-right" : "border-l-2"}`}
+                className={`pointer-events-none w-[120px] bg-black/85 px-1.5 py-1 font-mono text-[8px] leading-tight backdrop-blur-md ${left ? "border-r-2 text-right" : "border-l-2"}`}
                 style={{ borderColor: h.tone, color: h.tone }}
               >
                 <div className="font-bold">{h.label}</div>
@@ -142,7 +142,7 @@ class GLBoundary extends Component {
   static getDerivedStateFromError() { return { dead: true }; }
   render() {
     return this.state.dead
-      ? <div className="grid h-full place-items-center font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">hologram offline</div>
+      ? <div className="grid h-full place-items-center font-mono text-[10px] text-white/40">Hologram offline</div>
       : this.props.children;
   }
 }
@@ -200,10 +200,10 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
             <div className="border-b border-white/10 bg-[#0B0F19]/80 px-4 py-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="leading-tight">
-                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+                  <div className="font-mono text-[10px] font-bold text-white">
                     Tactical Target Re-ID Dossier
                   </div>
-                  <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[#3ff09a]">
+                  <div className="mt-0.5 font-mono text-[10px] text-[#3ff09a]">
                     // Subject #{id}
                   </div>
                 </div>
@@ -215,10 +215,10 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
                 </button>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="flex items-center gap-1 border border-[#ff2233] bg-[#ff2233]/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest text-[#ff2233]">
+                <span className="flex items-center gap-1 border border-[#ff2233] bg-[#ff2233]/15 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#ff2233]">
                   <ShieldAlert size={10} /> Threat: High [Armed / Restricted Zone]
                 </span>
-                <span className="font-mono text-[9px] uppercase tracking-wider text-white/45">
+                <span className="font-mono text-[9px] text-white/45">
                   SHA256: {hash}
                 </span>
               </div>
@@ -239,11 +239,11 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
                     </Canvas>
                   </GLBoundary>
                 ) : (
-                  <div className="grid h-full place-items-center font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+                  <div className="grid h-full place-items-center font-mono text-[10px] text-white/40">
                     biometric hologram · webgl unavailable
                   </div>
                 )}
-                <div className="pointer-events-none absolute left-3 top-3 font-mono text-[8px] uppercase tracking-[0.2em] text-[#3ff09a]/70">
+                <div className="pointer-events-none absolute left-3 top-3 font-mono text-[8px] text-[#3ff09a]/70">
                   ● biometric profiling · active
                 </div>
                 <div className="pointer-events-none absolute inset-3 border border-[#3ff09a]/15" />
@@ -251,7 +251,7 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
 
               {/* cross-camera match trail */}
               <div className="border-b border-white/10 px-4 py-3">
-                <div className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-white/55">
+                <div className="mb-2 font-mono text-[9px] font-bold text-white/55">
                   Multi-camera cross-match trail
                 </div>
                 <ol className="space-y-2.5">
@@ -285,7 +285,7 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
 
               {/* AI inference metrics */}
               <div className="px-4 py-3">
-                <div className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-white/55">
+                <div className="mb-2 font-mono text-[9px] font-bold text-white/55">
                   Real-time AI inference
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-[9.5px]">
@@ -299,21 +299,21 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
 
             {/* actions */}
             <div className="space-y-1.5 border-t border-white/10 bg-[#0B0F19]/80 px-4 py-3">
-              <button className="flex w-full items-center justify-center gap-2 border border-[#ff2233] bg-[#ff2233]/15 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-widest text-[#ff2233] animate-pulse hover:bg-[#ff2233] hover:text-black hover:animate-none">
+              <button className="flex w-full items-center justify-center gap-2 border border-[#ff2233] bg-[#ff2233]/15 px-3 py-2 font-mono text-[10px] font-bold text-[#ff2233] animate-pulse hover:bg-[#ff2233] hover:text-black hover:animate-none">
                 <ShieldAlert size={12} /> [!] Broadcast sector lockdown
               </button>
               <div className="flex gap-1.5">
-                <button className="flex flex-1 items-center justify-center gap-1.5 border border-[#3ff09a]/40 px-2 py-2 font-mono text-[9px] font-bold uppercase tracking-widest text-[#3ff09a] hover:bg-[#3ff09a]/15">
+                <button className="flex flex-1 items-center justify-center gap-1.5 border border-[#3ff09a]/40 px-2 py-2 font-mono text-[9px] font-bold text-[#3ff09a] hover:bg-[#3ff09a]/15">
                   <Send size={11} /> [+] Dispatch UAV-01
                 </button>
                 <button
                   onClick={onClose}
-                  className="flex flex-1 items-center justify-center gap-1.5 border border-white/20 px-2 py-2 font-mono text-[9px] font-bold uppercase tracking-widest text-white/55 hover:text-white"
+                  className="flex flex-1 items-center justify-center gap-1.5 border border-white/20 px-2 py-2 font-mono text-[9px] font-bold text-white/55 hover:text-white"
                 >
                   <Archive size={11} /> [X] Dismiss
                 </button>
               </div>
-              <div className="pt-1 text-center font-mono text-[8px] uppercase tracking-[0.2em] text-white/25">
+              <div className="pt-1 text-center font-mono text-[8px] text-white/25">
                 simulated dossier · demo · Re-ID validated on CAM_ALPHA↔CAM_BRAVO
               </div>
             </div>
@@ -329,7 +329,7 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
 function Metric({ k, v, sub, tone = "#ffffff" }) {
   return (
     <div>
-      <div className="text-[8px] uppercase tracking-widest text-white/35">{k}</div>
+      <div className="text-[8px] text-white/35">{k}</div>
       <div className="font-bold tabular-nums" style={{ color: tone }}>{v}</div>
       {sub && <div className="text-[8px] text-white/35">{sub}</div>}
     </div>
