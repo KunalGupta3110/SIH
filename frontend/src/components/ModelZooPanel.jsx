@@ -2,14 +2,14 @@ import SectionHeader from "./SectionHeader.jsx";
 
 const MODEL_SPECS = [
   {
-    name: "YOLOv8s Tactical Edge",
+    name: "YOLOv8s Tactical",
     role: "Real-Time Object Detection",
     arch: "CSPDarknet + PANet FPN",
     params: "11.2M FP16",
     latency: "14.2 ms",
     fps: "70.4 FPS",
     mAP: "44.9% mAP@50-95",
-    target: "NVIDIA Jetson Orin / TensorRT INT8",
+    target: "Cloud GPU · TensorRT INT8",
   },
   {
     name: "ByteTrack Tracker",
@@ -19,7 +19,7 @@ const MODEL_SPECS = [
     latency: "2.1 ms",
     fps: "476.0 FPS",
     mAP: "78.4% MOTA (Zero ID Swaps)",
-    target: "Edge CPU / ARM Cortex-A78AE",
+    target: "Cloud CPU · ONNX Runtime",
   },
   {
     name: "OSNet-IBVAP Re-ID",
@@ -48,7 +48,7 @@ export default function ModelZooPanel() {
     <div className="flex flex-col gap-5">
       <SectionHeader
         title="AI Neural Model Architecture & Benchmarks"
-        sub="Quantized edge-optimized neural network specifications and documented hardware execution profiles."
+        sub="Quantized model specifications and documented inference profiles."
       />
 
       <div className="rounded-[4px] border border-line bg-panel overflow-hidden">

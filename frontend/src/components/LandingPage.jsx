@@ -334,7 +334,7 @@ export default function LandingPage() {
             <span className="leading-none">
               <span className="block text-[13px] font-semibold tracking-tight text-zinc-100">IBVAP Sentinel</span>
               <span className="mt-0.5 block text-[10px] font-medium text-zinc-500">
-                Edge-first surveillance analytics
+                Cloud surveillance analytics
               </span>
             </span>
           </Link>
@@ -403,15 +403,15 @@ export default function LandingPage() {
             </Reveal>
 
             <Reveal as="h1" delay={70} className="font-display mt-6 text-[2.7rem] font-light leading-[1.04] tracking-tight text-white sm:text-6xl [text-wrap:balance]">
-              Edge-First Border<br />
+              Cloud Border<br />
               <span className="italic">Surveillance Analytics</span>
             </Reveal>
 
             <Reveal as="p" delay={140} className="mt-6 max-w-lg text-[15px] leading-relaxed text-white/65">
-              A lightweight, multi-camera correlation platform that aggregates raw edge
-              detections into unified, explainable threat incidents. Runs on CPU with no
-              GPU dependency, offline-first, with tamper-evident evidence capture on every
-              incident.
+              A hosted, multi-tenant platform. Agencies connect their existing
+              camera feeds; our cloud correlates raw detections into unified,
+              explainable threat incidents with tamper-evident evidence capture on
+              every incident.
             </Reveal>
 
             <Reveal delay={210} className="mt-8 flex flex-wrap items-center gap-3">
@@ -429,7 +429,7 @@ export default function LandingPage() {
             </Reveal>
 
             <Reveal delay={280} className="mt-10 grid max-w-md grid-cols-2 gap-x-6 gap-y-5 border-t border-white/12 pt-6">
-              <Spec label="Target hardware" value="CPU-first edge" />
+              <Spec label="Delivery" value="Cloud SaaS · multi-tenant" />
               <Spec label="Detection & tracking" value="YOLOv8n + ByteTrack" />
               <Spec label="Appearance embeddings" value="OSNet (torchreid)" />
               <Spec label="Evidence integrity" value="SHA-256 chained" />
@@ -489,14 +489,14 @@ export default function LandingPage() {
             <p className="mt-5 max-w-md text-[14px] leading-relaxed text-white/65">
               Sentinel's MVP is modelled on the SSB Gurdaspur stretch of the
               India–Pakistan border using recorded and simulated feeds. Nothing about
-              the pipeline is sector-specific — the same CPU edge stack, transit-time
-              estimator and hash-chained evidence store are designed to drop onto any
-              marked sector without a cloud round-trip.
+              the pipeline is sector-specific — the same correlation, transit-time
+              estimator and hash-chained evidence store are provisioned per sector
+              from a single tenant, no new install per site.
             </p>
             <div className="mt-8 grid max-w-md grid-cols-3 gap-6 border-t border-white/12 pt-6">
               <Stat value={3323} label="km land border" />
               <Stat value={6} label="sectors mapped" />
-              <Stat value={0} label="cloud hops" />
+              <Stat value={1} label="tenant, all sectors" />
             </div>
           </Reveal>
 
@@ -541,9 +541,9 @@ export default function LandingPage() {
           <div className="mt-14 grid gap-px border border-white/12 bg-white/12 sm:grid-cols-2 lg:grid-cols-4">
             {[
               [
-                "Lightweight Edge Vision",
-                "Runs CPU-optimized YOLOv8n (COCO-pretrained), filtered to the person and vehicle classes, with no dedicated GPU required.",
-                "YOLOv8n · CPU",
+                "Managed Detection",
+                "YOLOv8n (COCO-pretrained), filtered to the person and vehicle classes, run in our cloud — no model install or GPU on the customer side.",
+                "YOLOv8n · hosted",
               ],
               [
                 "Dual-Camera Re-Identification (MVP)",
@@ -611,12 +611,12 @@ export default function LandingPage() {
               <Eyebrow>01 — Operations</Eyebrow>
               <h2 className="font-display mt-4 text-3xl font-light tracking-tight sm:text-[2.75rem]">Every feed, one watchfloor</h2>
             </div>
-            <span className="font-mono text-[11px] text-white/45">YOLOv8n (COCO · person/vehicle) · ByteTrack · CPU inference</span>
+            <span className="font-mono text-[11px] text-white/45">YOLOv8n (COCO · person/vehicle) · ByteTrack · cloud inference</span>
           </Reveal>
 
           <Reveal delay={60} className="mt-4 flex items-center gap-2 border border-white/12 bg-white/[0.03] px-3 py-2 font-mono text-[10px] text-white/45">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
-            Mode: dual-angle synchronized simulation (VisDrone + recorded testbed feeds) · target pipeline: CPU edge node
+            Mode: dual-angle synchronized simulation (VisDrone + recorded testbed feeds) · target pipeline: hosted cloud
           </Reveal>
 
           <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_280px]">
@@ -963,7 +963,7 @@ export default function LandingPage() {
           </Reveal>
           <div className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              ["01", "Edge ingest", "CPU-optimized YOLOv8n (COCO, person/vehicle filter) on the sector node. Raw video never leaves the sector."],
+              ["01", "Connect & ingest", "Point existing RTSP / ONVIF cameras at the tenant. YOLOv8n (COCO, person/vehicle filter) runs in our cloud."],
               ["02", "Track & hand off", "ByteTrack assigns local track IDs; a distance/speed transit-time estimator cues the next camera across blind gaps."],
               ["03", "Score & explain", "Additive 0–100 threat, every point traceable to a rule and a detection."],
               ["04", "Seal & certify", "SHA-256 hash-chained evidence capsules + a Section 65B certificate template."],
@@ -991,7 +991,7 @@ export default function LandingPage() {
           </Reveal>
           <Reveal delay={80} className="mt-10 grid grid-cols-2 divide-y divide-white/12 border-y border-white/15 md:grid-cols-4 md:divide-y-0 md:divide-x">
             {[
-              { v: "YOLOv8n", l: "Detector", s: "COCO-pretrained · person/vehicle filter · CPU" },
+              { v: "YOLOv8n", l: "Detector", s: "COCO-pretrained · person/vehicle filter · cloud-hosted" },
               { v: "ByteTrack", l: "Tracker", s: "local multi-object track IDs" },
               { v: "OSNet / ResNet", l: "Re-ID", s: "512-d cosine · 2-camera testbed" },
               { v: "SHA-256", l: "Evidence", s: "sequential hash-chained capsules" },
@@ -1023,7 +1023,7 @@ export default function LandingPage() {
               </div>
               <ul className="mt-6 space-y-3 text-[13px] leading-relaxed text-white/70">
                 {[
-                  "CPU YOLOv8n (COCO) + ByteTrack detection and tracking",
+                  "Cloud-hosted YOLOv8n (COCO) + ByteTrack detection and tracking",
                   "Explainable rule-based incident correlator (0–100)",
                   "SHA-256 hash-chained evidence capsules + Section 65B template",
                   "Dual-camera OSNet Re-ID testbed (2 synchronized angles)",
@@ -1043,9 +1043,9 @@ export default function LandingPage() {
               <ul className="mt-6 space-y-3 text-[13px] leading-relaxed text-white/50">
                 {[
                   "LWIR / thermal sensor integration for low-light and night",
-                  "Physical edge deployment (Jetson / Raspberry Pi 5)",
+                  "Optional in-region / VPC inference for restricted deployments",
                   "ANPR integration for vehicle-of-interest matching",
-                  "Distributed message brokering for multi-sector fan-out",
+                  "SSO, per-agency RBAC and audit export",
                 ].map((x) => (
                   <li key={x} className="flex gap-2.5">
                     <ArrowRight size={14} className="mt-0.5 shrink-0 text-white/40" />

@@ -579,7 +579,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
               <Telem label="UTC" value={utc} />
               <Telem label="FEEDS" value="4 SIM" />
               <Telem label="RE-ID" value="2-CAM TESTBED" />
-              <Telem label="NODE" value="CPU EDGE" />
+              <Telem label="Runtime" value="Cloud" />
             </div>
 
             <div className="flex items-center gap-2">

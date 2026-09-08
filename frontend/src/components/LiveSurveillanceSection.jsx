@@ -885,7 +885,7 @@ export default function LiveSurveillanceSection({
               </div>
 
               <div className="text-[11px] text-slate-400 leading-relaxed">
-                Connect external IP surveillance cameras, RTSP streams converted to HLS/MP4, or test videos to evaluate edge analytics in real time.
+                Connect external IP surveillance cameras, RTSP streams converted to HLS/MP4, or test videos to evaluate the analytics in real time.
               </div>
 
               <button
@@ -1589,9 +1589,9 @@ export default function LiveSurveillanceSection({
               <span className="text-slate-500 text-[10px]">High IoU Tight Boxes</span>
             </div>
             <div className="rounded-xl border border-white/10 bg-black/50 p-3 flex flex-col gap-1">
-              <span className="text-slate-400 text-[11px]">Edge Latency:</span>
+              <span className="text-slate-400 text-[11px]">Inference latency:</span>
               <span className="text-amber-300 font-bold text-base">11.4 ms</span>
-              <span className="text-slate-500 text-[10px]">NVIDIA Jetson / Orin</span>
+              <span className="text-slate-500 text-[10px]">Cloud GPU (T4)</span>
             </div>
             <div className="rounded-xl border border-white/10 bg-black/50 p-3 flex flex-col gap-1">
               <span className="text-slate-400 text-[11px]">Weights Backbone:</span>

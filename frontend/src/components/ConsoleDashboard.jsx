@@ -331,7 +331,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       await api.setArmState(nextState);
       setActionNotice(nextState ? "System armed — all perimeter sensors active" : "System disarmed — standby mode");
     } catch {
-      setActionNotice(nextState ? "System ARMED (Local Edge Override)" : "System DISARMED");
+      setActionNotice(nextState ? "System armed (manual override)" : "System disarmed");
     }
     setTimeout(() => setActionNotice(null), 4000);
   };
@@ -470,7 +470,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       hash: "42a8b910dc81273645e901fa32948cbb8192384a719283ba82910384759281a4",
       factors: [
         { label: "+8 Fence Motion", reason: "Low-level motion detected near the fence line in the optical feed." },
-        { label: "+4 Edge Noise", reason: "Vegetation sway filtered by site calibration engine." },
+        { label: "+4 Sensor noise", reason: "Vegetation sway filtered by site calibration engine." },
       ],
     },
   ]);
@@ -570,7 +570,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           videoWebcamRef.current.srcObject = stream;
         }
         setWebcamActive(true);
-        setActionNotice("Live Hardware Webcam Stream Initialized: Edge YOLOv8 tracking engaged.");
+        setActionNotice("Live webcam stream initialized · YOLOv8 tracking engaged.");
         setTimeout(() => setActionNotice(null), 4000);
       } catch (err) {
         console.warn("Webcam access unavailable:", err);
@@ -1379,7 +1379,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <Video size={18} className="text-white" />
                     <span>Perimeter Surveillance & AI Inference Testbed</span>
                   </h2>
-                  <p className="text-xs text-white/55">Sector 4-B High-Security Northern Corridor • Live Feeds & Edge Simulation</p>
+                  <p className="text-xs text-white/55">Sector 4-B High-Security Northern Corridor • Live feeds & cloud simulation</p>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -1470,7 +1470,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/12 hover:bg-white text-black text-xs font-mono font-bold flex items-center gap-1.5 transition-colors shadow-md"
                         >
                           <Cpu size={13} />
-                          <span>{trainingActive ? "Retraining Edge..." : "Fine-Tune YOLOv8"}</span>
+                          <span>{trainingActive ? "Fine-tuning..." : "Fine-tune YOLOv8"}</span>
                         </button>
                       </div>
                     </div>
@@ -1604,8 +1604,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           <span className="text-white">Lat 32.5621, Long 75.1234</span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span>VELOCITY: <strong className="text-emerald-400">{ingressScenario === "vehicle" ? "42.0 km/h" : "5.2 km/h"}</strong></span>
-                          <span>RUNTIME: <strong className="text-white">CPU edge</strong></span>
+                          <span>Velocity <strong className="ml-1 text-emerald-400">{ingressScenario === "vehicle" ? "42.0 km/h" : "5.2 km/h"}</strong></span>
+                          <span>Runtime <strong className="ml-1 text-white">cloud</strong></span>
                         </div>
                       </div>
                     </div>
@@ -1616,7 +1616,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         <div className="flex items-center justify-between border-b border-white/12 pb-2">
                           <span className="text-xs font-bold font-mono text-white flex items-center gap-1.5">
                             <Terminal size={14} className="text-white" />
-                            <span>Edge training &amp; telemetry</span>
+                            <span>Model fine-tuning &amp; telemetry</span>
                           </span>
                           <span className="text-[10px] text-amber-300 font-mono">SIMULATION · PHASE 2</span>
                         </div>
@@ -1648,7 +1648,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
                         {/* Training Terminal Log Box */}
                         <div className="h-36 rounded-xl bg-[#000000] border border-white/12 p-2.5 font-mono text-[10.5px] text-white overflow-y-auto space-y-1">
-                          <div className="text-white/55">// Edge Terminal Console Stream</div>
+                          <div className="text-white/55">// Cloud training log stream</div>
                           {trainingLogs.map((log, idx) => (
                             <div key={idx} className="text-white">{log}</div>
                           ))}
@@ -2198,32 +2198,32 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <Cpu size={18} className="text-white" />
-                    <span>Edge Deployment & GPIO Relay Interface</span>
+                    <span>Site integrations & field actuators</span>
                   </h2>
-                  <p className="text-xs text-white/55">Phase 2 roadmap • physical relay layer simulated in the MVP</p>
+                  <p className="text-xs text-white/55">Phase 2 roadmap • on-site actuators are simulated in the MVP</p>
                 </div>
                 <div className="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono">
                   Simulated — not wired to hardware
                 </div>
               </div>
 
-              {/* Planned edge-target reference specs (illustrative) */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center font-mono">
+              {/* Platform reference facts (illustrative) */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div className="p-4 rounded-2xl bg-[#000000] border border-white/12">
-                  <div className="text-2xl font-bold text-white">CPU-first</div>
-                  <div className="text-xs text-white/55 mt-1">MVP RUNTIME TARGET</div>
+                  <div className="text-2xl font-bold text-white">Cloud SaaS</div>
+                  <div className="text-xs text-zinc-500 mt-1">Delivery model</div>
                 </div>
                 <div className="p-4 rounded-2xl bg-[#000000] border border-white/12">
-                  <div className="text-2xl font-bold text-white">Jetson / RPi 5</div>
-                  <div className="text-xs text-white/55 mt-1">PHASE 2 EDGE TARGET</div>
+                  <div className="text-2xl font-bold text-white">Auto-scaling</div>
+                  <div className="text-xs text-zinc-500 mt-1">Inference pool</div>
                 </div>
                 <div className="p-4 rounded-2xl bg-[#000000] border border-white/12">
                   <div className="text-2xl font-bold text-white">ONNX Runtime</div>
-                  <div className="text-xs text-white/55 mt-1">INFERENCE RUNTIME</div>
+                  <div className="text-xs text-zinc-500 mt-1">Inference runtime</div>
                 </div>
                 <div className="p-4 rounded-2xl bg-[#000000] border border-white/12">
-                  <div className="text-2xl font-bold text-white">GPIO relays</div>
-                  <div className="text-xs text-white/55 mt-1">PLANNED ACTUATION</div>
+                  <div className="text-2xl font-bold text-white">Webhook / relay</div>
+                  <div className="text-xs text-zinc-500 mt-1">On-site actuation</div>
                 </div>
               </div>
 
@@ -2495,7 +2495,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <strong>1. Identification of Electronic Record:</strong> Video surveillance stream, timestamped bounding box telemetry, and cross-camera OSNet / ResNet appearance embeddings recorded on <strong>05 September 2026 at 20:49:02 IST</strong>.
                 </p>
                 <p>
-                  <strong>2. Machine &amp; Device Architecture:</strong> CPU edge node (reference build) running the IBVAP Sentinel pipeline on Ubuntu 22.04 LTS, offline / air-gapped from public networks.
+                  <strong>2. Machine &amp; Device Architecture:</strong> IBVAP Sentinel cloud pipeline (hosted reference environment, Ubuntu 22.04 LTS), with per-tenant isolation and access logging.
                 </p>
                 <p>
                   <strong>3. Cryptographic Hash Signature (SHA-256):</strong>
