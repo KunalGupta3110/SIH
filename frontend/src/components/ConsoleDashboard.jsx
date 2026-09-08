@@ -368,8 +368,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       threat: 87,
       severity: "CRITICAL",
       status: "Critical",
-      color: "text-red-400",
-      badge: "bg-red-500/20 text-red-400 border-red-500/40",
+      color: "text-rose-400",
+      badge: "bg-rose-500/10 text-rose-400 border-rose-500/20",
       target: "Person Detected",
       sub: "Near Restricted Zone",
       cam: "CAM_BRAVO (Sector 4-B)",
@@ -393,7 +393,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       severity: "HIGH",
       status: "High",
       color: "text-amber-400",
-      badge: "bg-amber-500/20 text-amber-400 border-amber-500/40",
+      badge: "bg-amber-500/10 text-amber-400 border-amber-500/20",
       target: "Vehicle Acceleration",
       sub: "Patrol Road Approach",
       cam: "CAM_CHARLIE (Sector 4-B)",
@@ -416,7 +416,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       severity: "HIGH",
       status: "High",
       color: "text-amber-400",
-      badge: "bg-amber-500/20 text-amber-400 border-amber-500/40",
+      badge: "bg-amber-500/10 text-amber-400 border-amber-500/20",
       target: "Group Movement",
       sub: "Near Secondary Fence",
       cam: "CAM_DELTA (Sector 4-B)",
@@ -461,7 +461,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       severity: "LOW",
       status: "Low",
       color: "text-emerald-400",
-      badge: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40",
+      badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
       target: "Wildlife Motion",
       sub: "Perimeter Vegetation",
       cam: "CAM_ALPHA (Sector 4-B)",
@@ -1257,14 +1257,14 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                               }}
                               className={`hover:bg-black/40 cursor-pointer transition-colors ${isRowSelected ? "bg-[#000000]" : ""}`}
                             >
-                              <td className={`py-2.5 font-mono text-[11px] font-semibold ${inc.color}`}>{inc.id}</td>
+                              <td className="py-2.5 font-mono text-[11px] font-semibold text-zinc-300">{inc.id}</td>
                               <td className="py-2.5 font-mono text-[11px] text-zinc-500 tabular-nums">{inc.time}</td>
                               <td className="py-2.5 text-zinc-200">{inc.cameras}</td>
                               <td className="py-2.5 text-zinc-200">{inc.type}</td>
-                              <td className={`py-2.5 font-mono font-semibold tabular-nums ${inc.color}`}>{inc.threat}</td>
+                              <td className="py-2.5 font-mono font-semibold tabular-nums text-zinc-200">{inc.threat}</td>
                               <td className="py-2.5">
-                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-sans font-semibold border ${inc.badge}`}>
-                                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-sans font-medium border ${inc.badge}`}>
+                                  <span className={`h-1.5 w-1.5 rounded-full bg-current ${inc.status === "Critical" ? "animate-pulse" : ""}`} />
                                   {inc.status}
                                 </span>
                               </td>

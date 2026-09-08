@@ -598,13 +598,13 @@ export default function LandingPage() {
               <Reveal key={t} delay={i * 55} className="flex flex-col bg-black p-7">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[11px] text-white/35">0{i + 1}</span>
-                  <span className={`font-mono text-[9.5px] ${live ? "text-[#3ff09a]" : "text-white/35"}`}>
+                  <span className={`text-[10px] font-medium ${live ? "text-[#3ff09a]" : "text-white/35"}`}>
                     {live ? "Live in MVP" : "Roadmap"}
                   </span>
                 </div>
                 <h3 className="mt-3 text-[15px] font-bold leading-snug">{t}</h3>
                 <p className="mt-2 flex-1 text-[12.5px] leading-relaxed text-white/60">{d}</p>
-                <div className="mt-5 border-t border-white/12 pt-3 font-mono text-[10px] text-white/40">
+                <div className="mt-5 border-t border-white/12 pt-3 text-[11px] text-white/40">
                   {tag}
                 </div>
               </Reveal>
@@ -903,29 +903,32 @@ export default function LandingPage() {
             </div>
             <div className="relative">
               <IsometricTerrain mode="perimeter" />
-              <div className="absolute right-4 top-4 w-64 border border-red-500/50 bg-black/85 backdrop-blur-sm">
+              <div className={`absolute right-4 top-4 w-64 border bg-black/85 backdrop-blur-sm ${score >= 75 ? "border-red-500/50" : "border-white/20"}`}>
                 <Corners />
-                <div className="flex items-center justify-between border-b border-red-500/30 px-3 py-2 font-mono text-[10.5px] font-bold text-red-400">
-                  <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Zone breach</span>
-                  <span>CRITICAL</span>
+                <div className={`flex items-center justify-between border-b px-3 py-2 font-mono text-[10.5px] font-bold ${score >= 75 ? "border-red-500/30 text-red-400" : "border-white/12 text-white/70"}`}>
+                  <span className="flex items-center gap-2">
+                    <span className={`h-1.5 w-1.5 rounded-full ${score >= 75 ? "bg-red-500 animate-pulse" : "bg-white/40"}`} />
+                    {score >= 75 ? "Zone breach" : "Zone monitor"}
+                  </span>
+                  <span>{band.label}</span>
                 </div>
                 <div className="space-y-1.5 px-3 py-2.5 font-mono text-[10.5px] text-white/55">
                   <div className="flex justify-between"><span>Zone</span><span className="text-white">Alpha-Red · River Bend</span></div>
                   <div className="flex justify-between"><span>Camera</span><span className="text-white">CAM-03</span></div>
-                  <div className="flex justify-between"><span>Threat</span><span className="text-red-400">87 / 100</span></div>
+                  <div className="flex justify-between"><span>Threat</span><span className={score >= 75 ? "text-red-400" : score >= 45 ? "text-amber-400" : "text-white"}>{score} / 100</span></div>
                   {/* dwell progress bar */}
                   <div className="pt-1">
-                    <div className="flex justify-between"><span>Dwell</span><span className="text-white">00:41 / 01:00</span></div>
+                    <div className="flex justify-between"><span>Dwell</span><span className="text-white">{score >= 75 ? "00:41 / 01:00" : "—"}</span></div>
                     <div className="mt-1 h-1 w-full bg-white/10">
-                      <div className="h-full bg-red-500" style={{ width: "68%" }} />
+                      <div className={`h-full transition-all ${score >= 75 ? "bg-red-500" : score >= 45 ? "bg-amber-400" : "bg-white/40"}`} style={{ width: `${Math.min(score, 100)}%` }} />
                     </div>
                   </div>
                 </div>
                 {/* entities inside the zone */}
-                <div className="border-t border-red-500/20 px-3 py-2 font-mono text-[10px]">
-                  <div className="text-white/40">Entities in zone · 2</div>
-                  <div className="mt-1.5 space-y-1">
-                    <div className="flex items-center justify-between text-red-300">
+                <div className={`border-t px-3 py-2 font-mono text-[10px] ${score >= 75 ? "border-red-500/20" : "border-white/10"}`}>
+                  <div className="text-white/40">Entities in zone · {score >= 45 ? 2 : 0}</div>
+                  <div className={`mt-1.5 space-y-1 ${score >= 45 ? "" : "hidden"}`}>
+                    <div className={`flex items-center justify-between ${score >= 75 ? "text-red-300" : "text-white/70"}`}>
                       <span>· TRACK #14 · person</span><span className="tabular-nums">0.87</span>
                     </div>
                     <div className="flex items-center justify-between text-white/60">
@@ -960,20 +963,20 @@ export default function LandingPage() {
                 ["BLOCK #1", "sector::genesis", "00:00:00"],
                 ["BLOCK #2", "a4f8…bb04", "20:14:07"],
                 ["BLOCK #3", "c1d9…7e22", "20:14:08"],
-                ["BLOCK #4", "9f02…41ac", "20:15:33", true],
+                ["BLOCK #4", "9f02…41ac", "20:15:33", "INC-0042"],
                 ["BLOCK #5", "e77b…0d90", "20:22:10"],
-              ].map(([b, h, t, critical], i, arr) => (
+              ].map(([b, h, t, incident], i, arr) => (
                 <div key={b} className="flex items-stretch">
-                  <div className={`w-52 border p-4 ${critical ? "border-red-500/60" : "border-white/15"}`}>
+                  <div className="w-52 border border-white/15 p-4">
                     <div className="flex items-center justify-between font-mono text-[10px]">
-                      <span className={critical ? "text-red-400" : "text-white/50"}>{b}</span>
+                      <span className="text-white/50">{b}</span>
                       <span className="text-white/35">{t}</span>
                     </div>
                     <div className="mt-3 font-mono text-[11px] text-white/70">HASH</div>
                     <div className="font-mono text-[12px] text-white">{h}</div>
-                    {critical && (
-                      <div className="mt-3 border border-red-500/50 px-1.5 py-0.5 font-mono text-[9px] text-red-300">
-                        INC-0042 · CRITICAL
+                    {incident && (
+                      <div className="mt-3 border border-white/20 px-1.5 py-0.5 font-mono text-[9px] text-white/50">
+                        {incident} sealed
                       </div>
                     )}
                   </div>
