@@ -10,6 +10,7 @@ import {
   Fingerprint,
   Loader2,
 } from "lucide-react";
+import { authenticate } from "../lib/operators.js";
 
 /* ═══════════════════════════════════════════════════════════════════════
    LoginPage — operator sign-in for the IBVAP Sentinel command console.
@@ -71,8 +72,21 @@ export default function LoginPage() {
       return;
     }
     setBusy(true);
-    // no live directory in this build — accept any non-empty credentials
-    window.setTimeout(() => navigate("/console"), 850);
+    // client-side demo directory (src/lib/operators.js) — no auth backend
+    window.setTimeout(() => {
+      const res = authenticate(id, pass, token);
+      if (!res.ok) {
+        setBusy(false);
+        setErr(res.error);
+        return;
+      }
+      try {
+        sessionStorage.setItem("ibvap.operator", JSON.stringify(res.operator));
+      } catch {
+        /* private mode — non-fatal */
+      }
+      navigate("/console");
+    }, 650);
   };
 
   return (
@@ -183,10 +197,14 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="mt-4 text-center font-mono text-[8.5px] uppercase leading-relaxed tracking-[0.14em] text-white/25">
-          Demo build · no live personnel directory — any non-empty credentials continue.
-          Authorised use only · all sessions are logged under Section 65B.
-        </p>
+        <div className="mt-4 border border-white/10 bg-white/[0.02] px-3 py-2.5 text-center font-mono text-[8.5px] uppercase leading-relaxed tracking-[0.12em] text-white/30">
+          Demo build · client-side operator directory (src/lib/operators.js).
+          <br />
+          Try <span className="text-white/60">SSB-GDP-04</span> / <span className="text-white/60">Ravi-Sector-4471</span>
+          {" · MFA "}<span className="text-white/60">118605</span>
+          <br />
+          Authorised use only · sessions logged under Section 65B.
+        </div>
       </div>
     </div>
   );
