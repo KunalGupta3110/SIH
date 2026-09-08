@@ -64,7 +64,7 @@ export default function BorderTerrainPanel() {
         </div>
         <button
           onClick={() => setBreach((b) => !b)}
-          className="flex items-center gap-1.5 border px-3 py-1.5 font-mono text-[10px] font-bold tracking-widest transition-colors"
+          className="flex items-center gap-1.5 rounded border px-3 py-1.5 font-sans text-[12px] font-semibold transition-colors"
           style={{
             borderColor: breach ? RED : "rgba(255,255,255,0.25)",
             background: breach ? RED : "transparent",
@@ -72,7 +72,7 @@ export default function BorderTerrainPanel() {
           }}
         >
           <AlertTriangle size={12} />
-          {breach ? "CLEAR BREACH" : "SIMULATE BREACH"}
+          {breach ? "Clear alert" : "Simulate breach"}
         </button>
       </div>
 
@@ -94,8 +94,8 @@ export default function BorderTerrainPanel() {
             </Suspense>
           </SceneBoundary>
         ) : (
-          <div className="grid h-full place-items-center px-6 text-center font-mono text-[11px] uppercase leading-relaxed tracking-[0.2em] text-white/45">
-            WebGL unavailable in this browser — camera roster still live in the rail
+          <div className="grid h-full place-items-center px-6 text-center font-sans text-[13px] leading-relaxed text-white/45">
+            WebGL is unavailable in this browser — the camera roster is still live in the rail
           </div>
         )}
 
@@ -121,8 +121,8 @@ export default function BorderTerrainPanel() {
 
         <BreachBanner show={breach} />
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden text-center font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 sm:block">
-          drag to orbit · scroll to zoom · tap a camera or the UAV for its feed
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden text-center font-sans text-[11px] text-white/35 sm:block">
+          Drag to orbit · scroll to zoom · tap a camera or the UAV for its feed
         </div>
 
         <AnimatePresence mode="wait">

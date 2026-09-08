@@ -384,7 +384,7 @@ function CctvNode({ cam, selected, breach, onSelect }) {
             <Video size={11} />
           </span>
           <span
-            className="flex items-center gap-1 whitespace-nowrap border px-1.5 py-0.5 font-mono text-[9px] tracking-wide"
+            className="flex items-center gap-1 whitespace-nowrap rounded border px-1.5 py-0.5 font-sans text-[11px] font-semibold"
             style={{
               borderColor: alert ? RED : selected ? CYAN : "rgba(255,255,255,0.28)",
               background: "rgba(6,12,16,0.8)",
@@ -530,7 +530,7 @@ function ReidPath({ active }) {
       ))}
       <Html position={[mid.x, mid.y + 1.8, mid.z]} center distanceFactor={32} zIndexRange={[15, 0]}>
         <div
-          className="whitespace-nowrap border bg-black/80 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-widest"
+          className="whitespace-nowrap rounded border bg-black/80 px-2 py-0.5 font-sans text-[11px] font-semibold"
           style={{ borderColor: active ? RED : "rgba(63,224,214,0.5)", color: active ? RED : CYAN }}
         >
           Re-ID track · A→B→C
@@ -657,10 +657,10 @@ function PatrolDrone() {
       <Html position={[0, 5, 0]} distanceFactor={14} center zIndexRange={[30, 0]}>
         <button
           onClick={fireUavSelect}
-          className="pointer-events-auto flex items-center gap-1.5 whitespace-nowrap border border-[#00f0ff]/60 bg-black/85 px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-widest text-[#00f0ff] hover:bg-[#00f0ff]/15"
+          className="pointer-events-auto flex items-center gap-1.5 whitespace-nowrap rounded border border-[#00f0ff]/60 bg-black/85 px-2 py-1 font-sans text-[11px] font-semibold text-[#00f0ff] hover:bg-[#00f0ff]/15"
         >
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#00f0ff]" />
-          [UAV-01 // THERMAL UV SCANNING]
+          UAV-01 · Thermal UV scanning
         </button>
       </Html>
     </group>
@@ -679,7 +679,7 @@ export function BreachBanner({ show, node = "CAM_BRAVO" }) {
           transition={{ type: "spring", stiffness: 300, damping: 26 }}
           className="pointer-events-none absolute inset-x-0 top-4 z-40 flex justify-center px-4"
         >
-          <div className="flex items-center gap-2.5 border border-[#ff2233] bg-[#ff2233]/12 px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-[#ff2233] shadow-[0_0_28px_rgba(255,34,51,0.28)] backdrop-blur-md">
+          <div className="flex items-center gap-2.5 rounded border border-[#ff2233] bg-[#ff2233]/12 px-4 py-2 font-sans text-[12.5px] font-semibold text-[#ff2233] shadow-[0_0_28px_rgba(255,34,51,0.28)] backdrop-blur-md">
             <AlertTriangle size={14} className="shrink-0 animate-pulse" />
             <span>Critical alert · restricted zone breached · {node}</span>
           </div>
@@ -693,9 +693,9 @@ export function BreachBanner({ show, node = "CAM_BRAVO" }) {
 export function TacticalLoader() {
   return (
     <div className="grid h-full w-full place-items-center bg-[#0a1017]">
-      <div className="flex flex-col items-center gap-3 font-mono text-[10px] uppercase tracking-[0.3em] text-[#3fe0d6]/70">
+      <div className="flex flex-col items-center gap-3 font-sans text-[12px] font-medium text-[#3fe0d6]/70">
         <span className="h-6 w-6 animate-spin rounded-full border border-[#3fe0d6]/25 border-t-[#3fe0d6]" />
-        loading terrain assets…
+        Loading terrain assets…
       </div>
     </div>
   );
@@ -801,8 +801,8 @@ export class SceneBoundary extends Component {
   render() {
     if (this.state.dead)
       return (
-        <div className="grid h-full place-items-center font-mono text-[11px] uppercase tracking-[0.2em] text-white/50">
-          terrain engine failed to start
+        <div className="grid h-full place-items-center font-sans text-[13px] text-white/50">
+          Terrain engine failed to start
         </div>
       );
     return this.props.children;
@@ -845,11 +845,11 @@ function RingGauge({ label, value, color }) {
             style={{ transition: "stroke-dashoffset 0.6s ease" }}
           />
         </svg>
-        <span className="absolute inset-0 grid place-items-center font-mono text-[10px] font-bold text-white tabular-nums">
+        <span className="absolute inset-0 grid place-items-center font-sans text-[12px] font-bold text-white tabular-nums">
           {Math.round(v)}
         </span>
       </div>
-      <span className="font-mono text-[8px] uppercase tracking-widest text-white/40">{label}</span>
+      <span className="font-sans text-[10px] font-medium text-white/45">{label}</span>
     </div>
   );
 }
@@ -867,17 +867,17 @@ export function DetailPanel({ cam, onClose, className = "" }) {
         lite ? "absolute inset-x-0 bottom-0 w-full rounded-t-xl" : `w-[320px] ${className || "absolute right-4 top-20"}`
       }`}
     >
-      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 font-mono text-[11px] tracking-wide">
-        <span className="flex items-center gap-1.5 text-white">
-          <Radio size={12} className="text-[#3fe0d6]" />
-          {cam.id} <span className="text-white/35">[LIVE]</span>
+      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 font-sans text-[13px]">
+        <span className="flex items-center gap-1.5 font-semibold text-white">
+          <Radio size={13} className="text-[#3fe0d6]" />
+          {cam.id} <span className="font-normal text-white/40">· Live</span>
         </span>
         <span
-          className="flex items-center gap-1 text-[10px] font-bold"
+          className="flex items-center gap-1 text-[11px] font-semibold capitalize"
           style={{ color: alert ? RED : "#3fe0d6" }}
         >
           {alert && <AlertTriangle size={11} />}
-          {cam.status}
+          {cam.status.toLowerCase()}
         </span>
       </div>
 
@@ -897,12 +897,12 @@ export function DetailPanel({ cam, onClose, className = "" }) {
               "repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 1px,transparent 3px)",
           }}
         />
-        <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 bg-black/70 px-1.5 py-0.5 font-mono text-[8px] text-white/80">
+        <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 font-sans text-[10px] font-medium text-white/85">
           <span
-            className="h-1 w-1 animate-pulse rounded-full"
+            className="h-1.5 w-1.5 animate-pulse rounded-full"
             style={{ background: alert ? RED : "#3fe0d6" }}
           />
-          LIVE
+          Live
         </div>
         {alert && (
           <>
@@ -911,8 +911,8 @@ export function DetailPanel({ cam, onClose, className = "" }) {
                 <animate attributeName="x" values="34;48;34" dur="4s" repeatCount="indefinite" />
               </rect>
             </svg>
-            <span className="pointer-events-none absolute left-1/2 top-2.5 -translate-x-1/2 whitespace-nowrap border border-[#ff2233] bg-black/80 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-widest text-[#ff2233]">
-              TRK #{cam.track ?? 7} · person · flagged
+            <span className="pointer-events-none absolute left-1/2 top-2.5 -translate-x-1/2 whitespace-nowrap rounded border border-[#ff2233] bg-black/80 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-[#ff2233]">
+              Track #{cam.track ?? 7} · Person · Flagged
             </span>
           </>
         )}
@@ -922,10 +922,10 @@ export function DetailPanel({ cam, onClose, className = "" }) {
       {alert && (
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("open-biometric", { detail: { id: `ALPHA-0${cam.track ?? 49}` } }))}
-          className="flex w-full items-center justify-center gap-2 border-b border-[#ff2233]/40 bg-[#ff2233]/12 py-2.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff2233] transition-colors hover:bg-[#ff2233] hover:text-black"
+          className="flex w-full items-center justify-center gap-2 border-b border-[#ff2233]/40 bg-[#ff2233]/12 py-2.5 font-sans text-[12px] font-semibold text-[#ff2233] transition-colors hover:bg-[#ff2233] hover:text-black"
         >
-          <ScanFace size={13} className="shrink-0" />
-          Tap for full Re-ID dossier
+          <ScanFace size={14} className="shrink-0" />
+          Open full Re-ID dossier
           <span aria-hidden>→</span>
         </button>
       )}
@@ -937,41 +937,41 @@ export function DetailPanel({ cam, onClose, className = "" }) {
         <RingGauge label="Health" value={cam.health ?? 92} color={alert ? RED : "#3fe0d6"} />
       </div>
 
-      <div className="space-y-1.5 px-3 py-3 font-mono text-[10.5px] text-white/60">
+      <div className="space-y-1.5 px-3 py-3 font-sans text-[12px] text-white/65">
         <Row k="Sector" v={cam.sector} />
-        <Row k="GPS" v={`${cam.lat} · ${cam.lon}`} />
-        <Row k="Link ping" v={`${cam.ping} ms`} />
-        <Row k="Frame rate" v={`${(cam.fps ?? 29.8).toFixed(1)} fps`} />
+        <Row k="GPS" v={`${cam.lat}, ${cam.lon}`} mono />
+        <Row k="Link ping" v={`${cam.ping} ms`} mono />
+        <Row k="Frame rate" v={`${(cam.fps ?? 29.8).toFixed(1)} fps`} mono />
         <div className="pt-1">
-          <div className="mb-0.5 flex items-center gap-1 text-[9px] uppercase tracking-widest text-white/35">
-            <Activity size={9} /> detections / min · last hour
+          <div className="mb-1 flex items-center gap-1.5 text-[11px] text-white/40">
+            <Activity size={11} /> Detections / min · last hour
           </div>
           <Spark color={alert ? RED : "#3fe0d6"} />
         </div>
       </div>
 
-      <div className="flex border-t border-white/10">
+      <div className="flex border-t border-white/10 font-sans text-[12px] font-semibold">
         <a
           href="/console"
-          className="flex flex-1 items-center justify-center gap-1.5 py-2 font-mono text-[10px] font-bold uppercase tracking-widest text-[#3fe0d6] transition-colors hover:bg-[#3fe0d6] hover:text-black"
+          className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-[#3fe0d6] transition-colors hover:bg-[#3fe0d6] hover:text-black"
         >
-          <ExternalLink size={11} /> open in console
+          <ExternalLink size={12} /> Open in console
         </a>
         <button
           onClick={onClose}
-          className="border-l border-white/10 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white"
+          className="border-l border-white/10 px-3 py-2.5 font-normal text-white/55 hover:text-white"
         >
-          back to orbit
+          Back to orbit
         </button>
       </div>
     </motion.div>
   );
 }
-function Row({ k, v }) {
+function Row({ k, v, mono }) {
   return (
     <div className="flex justify-between gap-3">
-      <span className="text-white/35">{k}</span>
-      <span className="text-right text-white/75">{v}</span>
+      <span className="text-white/40">{k}</span>
+      <span className={`text-right text-white/80 ${mono ? "font-mono text-[11px] tabular-nums" : ""}`}>{v}</span>
     </div>
   );
 }
@@ -992,14 +992,14 @@ export function DronePanel({ onClose, className = "" }) {
         lite ? "absolute inset-x-0 bottom-0 w-full rounded-t-xl" : `w-[320px] ${className || "absolute right-4 top-20"}`
       }`}
     >
-      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 font-mono text-[11px] tracking-wide">
-        <span className="flex items-center gap-1.5 text-white">
-          <Radio size={12} className="text-[#3fe0d6]" />
-          UAV-01 <span className="text-white/35">[PATROL]</span>
+      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 font-sans text-[13px]">
+        <span className="flex items-center gap-1.5 font-semibold text-white">
+          <Radio size={13} className="text-[#3fe0d6]" />
+          UAV-01 <span className="font-normal text-white/40">· Patrol</span>
         </span>
-        <span className="flex items-center gap-1 text-[10px] font-bold text-[#3fe0d6]">
+        <span className="flex items-center gap-1 text-[11px] font-semibold text-[#3fe0d6]">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#3fe0d6]" />
-          SCANNING
+          Scanning
         </span>
       </div>
 
@@ -1016,9 +1016,9 @@ export function DronePanel({ onClose, className = "" }) {
           className="pointer-events-none absolute inset-0 opacity-20"
           style={{ backgroundImage: "repeating-linear-gradient(0deg,#3fe0d6 0,#3fe0d6 1px,transparent 1px,transparent 3px)" }}
         />
-        <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 bg-black/70 px-1.5 py-0.5 font-mono text-[8px] text-white/80">
-          <span className="h-1 w-1 animate-pulse rounded-full bg-[#3fe0d6]" />
-          {feed === "uav" ? "UAV OPTICS · SIM" : "CCTV GRID · SIM"}
+        <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 font-sans text-[10px] font-medium text-white/85">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#3fe0d6]" />
+          {feed === "uav" ? "UAV optics · Sim" : "CCTV grid · Sim"}
         </div>
         <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 56">
           <circle cx="50" cy="28" r="9" fill="none" stroke="#3fe0d6" strokeWidth="0.4" strokeDasharray="2 2">
@@ -1029,35 +1029,35 @@ export function DronePanel({ onClose, className = "" }) {
         </svg>
       </div>
 
-      <div className="space-y-1 border-b border-white/10 px-3 py-2.5 font-mono text-[10.5px] text-white/60">
-        <div className="mb-1 text-[9px] uppercase tracking-widest text-white/35">Autonomous drone patrol</div>
-        <Row k="Battery" v="84%" />
-        <Row k="Altitude" v="420 m" />
-        <Row k="Speed" v="54 km/h" />
+      <div className="space-y-1 border-b border-white/10 px-3 py-2.5 font-sans text-[12px] text-white/65">
+        <div className="mb-1 text-[11px] text-white/40">Autonomous drone patrol</div>
+        <Row k="Battery" v="84%" mono />
+        <Row k="Altitude" v="420 m" mono />
+        <Row k="Speed" v="54 km/h" mono />
       </div>
 
-      <div className="flex border-b border-white/10 font-mono text-[9px] font-bold uppercase tracking-widest">
+      <div className="flex border-b border-white/10 font-sans text-[11px] font-semibold">
         <button
           onClick={() => setFeed("cams")}
-          className={`flex-1 py-2 transition-colors ${feed === "cams" ? "bg-[#3fe0d6] text-black" : "text-white/50 hover:text-white"}`}
+          className={`flex-1 py-2.5 transition-colors ${feed === "cams" ? "bg-[#3fe0d6] text-black" : "text-white/55 hover:text-white"}`}
         >
           Surveillance cams
         </button>
         <button
           onClick={() => setFeed("uav")}
-          className={`flex-1 border-l border-white/10 py-2 transition-colors ${feed === "uav" ? "bg-[#3fe0d6] text-black" : "text-white/50 hover:text-white"}`}
+          className={`flex-1 border-l border-white/10 py-2.5 transition-colors ${feed === "uav" ? "bg-[#3fe0d6] text-black" : "text-white/55 hover:text-white"}`}
         >
           UAV optics feed
         </button>
       </div>
 
-      <div className="flex items-center justify-between border-t border-white/10">
-        <span className="px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-white/35">roadmap · not deployed</span>
+      <div className="flex items-center justify-between border-t border-white/10 font-sans text-[11px]">
+        <span className="px-3 py-2.5 text-white/35">Roadmap · not deployed</span>
         <button
           onClick={onClose}
-          className="border-l border-white/10 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-white/50 hover:text-white"
+          className="border-l border-white/10 px-3 py-2.5 font-semibold text-white/55 hover:text-white"
         >
-          back to orbit
+          Back to orbit
         </button>
       </div>
     </motion.div>
@@ -1078,12 +1078,12 @@ export function CameraRail({ cameras, selected, onSelect, className = "" }) {
           <button
             key={c.id}
             onClick={() => onSelect(c)}
-            className={`flex shrink-0 items-center gap-1.5 border px-2 py-1 font-mono text-[10px] transition-colors ${
-              selected?.id === c.id ? "border-[#3fe0d6] bg-white/10 text-white" : "border-white/15 text-white/60"
+            className={`flex shrink-0 items-center gap-1.5 rounded border px-2 py-1 font-sans text-[11px] font-medium transition-colors ${
+              selected?.id === c.id ? "border-[#3fe0d6] bg-white/10 text-white" : "border-white/15 text-white/65"
             }`}
           >
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: STATUS_INK[c.status] || CYAN }} />
-            {c.id.replace("CAM_", "")}
+            {c.id.replace("CAM_", "Cam ")}
           </button>
         ))}
       </div>
@@ -1092,24 +1092,25 @@ export function CameraRail({ cameras, selected, onSelect, className = "" }) {
 
   return (
     <div className={`${GLASS} ${className}`}>
-      <div className="border-b border-white/10 px-3 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/55">
-        CCTV Network · {liveN}/{cameras.length} live
+      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 font-sans text-[12px] font-semibold text-white/80">
+        <span>CCTV Network</span>
+        <span className="text-[11px] font-normal text-white/45">{liveN}/{cameras.length} online</span>
       </div>
       <ul>
         {cameras.map((c) => (
           <li key={c.id}>
             <button
               onClick={() => onSelect(c)}
-              className={`flex w-full items-center gap-2 border-l-2 px-3 py-1.5 text-left font-mono text-[10px] transition-colors ${
+              className={`flex w-full items-center gap-2.5 border-l-2 px-3 py-2 text-left font-sans text-[12.5px] transition-colors ${
                 selected?.id === c.id
                   ? "border-[#3fe0d6] bg-white/[0.06] text-white"
-                  : "border-transparent text-white/55 hover:bg-white/[0.03] hover:text-white"
+                  : "border-transparent text-white/60 hover:bg-white/[0.03] hover:text-white"
               }`}
             >
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: STATUS_INK[c.status] || CYAN }} />
-              <span className="flex-1 truncate">{c.id}</span>
-              <span className="text-[8px] uppercase tracking-wider" style={{ color: STATUS_INK[c.status] || "rgba(255,255,255,0.35)" }}>
-                {c.status}
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: STATUS_INK[c.status] || CYAN }} />
+              <span className="flex-1 truncate font-medium tracking-tight">{c.id}</span>
+              <span className="text-[10.5px] font-medium capitalize" style={{ color: STATUS_INK[c.status] || "rgba(255,255,255,0.4)" }}>
+                {c.status.toLowerCase()}
               </span>
             </button>
           </li>
@@ -1163,10 +1164,10 @@ export default function BorderTerrainModal({ onClose }) {
             <MapPin size={14} />
           </span>
           <div className="min-w-0 leading-tight">
-            <div className="truncate font-mono text-[11px] font-bold tracking-[0.12em] sm:text-[12px] sm:tracking-[0.15em]">
-              SECTOR 4-B <span className="hidden sm:inline">· LIVE TERRAIN MODEL</span>
+            <div className="truncate font-sans text-[13px] font-semibold tracking-tight sm:text-[14px]">
+              Sector 4-B <span className="hidden font-normal text-white/55 sm:inline">· Live Terrain Model</span>
             </div>
-            <div className="truncate font-mono text-[9px] uppercase tracking-[0.16em] text-white/45 sm:tracking-[0.2em]">
+            <div className="truncate font-sans text-[11px] text-white/45">
               {cameras.length} nodes · {online} live · SSB Gurdaspur
             </div>
           </div>
@@ -1174,7 +1175,7 @@ export default function BorderTerrainModal({ onClose }) {
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             onClick={() => setBreach((b) => !b)}
-            className="flex items-center gap-1.5 border px-2.5 py-1.5 font-mono text-[10px] font-bold tracking-widest transition-colors sm:px-3"
+            className="flex items-center gap-1.5 rounded border px-2.5 py-1.5 font-sans text-[11px] font-semibold transition-colors sm:px-3"
             style={{
               borderColor: breach ? RED : "rgba(255,255,255,0.25)",
               background: breach ? RED : "transparent",
@@ -1182,8 +1183,8 @@ export default function BorderTerrainModal({ onClose }) {
             }}
           >
             <AlertTriangle size={12} />
-            <span className="hidden sm:inline">{breach ? "CLEAR" : "SIMULATE BREACH"}</span>
-            <span className="sm:hidden">{breach ? "CLEAR" : "BREACH"}</span>
+            <span className="hidden sm:inline">{breach ? "Clear alert" : "Simulate breach"}</span>
+            <span className="sm:hidden">{breach ? "Clear" : "Breach"}</span>
           </button>
           <button
             onClick={onClose}
@@ -1212,8 +1213,8 @@ export default function BorderTerrainModal({ onClose }) {
             </Suspense>
           </SceneBoundary>
         ) : (
-          <div className="grid h-full place-items-center px-6 text-center font-mono text-[11px] uppercase leading-relaxed tracking-[0.2em] text-white/45">
-            WebGL unavailable in this browser
+          <div className="grid h-full place-items-center px-6 text-center font-sans text-[13px] leading-relaxed text-white/45">
+            WebGL is unavailable in this browser
           </div>
         )}
 
@@ -1225,8 +1226,8 @@ export default function BorderTerrainModal({ onClose }) {
           )}
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden text-center font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 sm:block">
-          drag to orbit · scroll to zoom · tap a camera or the UAV for its feed
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden text-center font-sans text-[11px] text-white/35 sm:block">
+          Drag to orbit · scroll to zoom · tap a camera or the UAV for its feed
         </div>
 
         <CameraRail
