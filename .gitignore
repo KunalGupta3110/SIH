@@ -27,3 +27,6 @@ env/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Node (root Capacitor project)
+node_modules/

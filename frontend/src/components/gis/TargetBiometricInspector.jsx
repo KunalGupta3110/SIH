@@ -18,7 +18,7 @@ import { X, ShieldAlert, Crosshair, Radio, Send, Archive } from "lucide-react";
    is a real capability, validated on the CAM_ALPHA ↔ CAM_BRAVO pair.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const CYAN = "#3fe0d6";
+const CYAN = "#3ff09a";
 const AMBER = "#f5b544";
 const CRIMSON = "#ff2233";
 const MODEL = "/models/suspect_biometric.glb";
@@ -182,14 +182,14 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[120] flex justify-end bg-black/55 font-sans backdrop-blur-[2px]"
+          className="fixed inset-0 z-[120] flex justify-end bg-black/55 font-hud backdrop-blur-[2px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
           <motion.aside
-            className="flex h-full w-full max-w-[440px] flex-col border-l border-[#3fe0d6]/20 bg-[#050508] text-white shadow-[0_0_60px_rgba(0,0,0,0.7)]"
+            className="flex h-full w-full max-w-[440px] flex-col border-l border-[#3ff09a]/20 bg-[#050508] text-white shadow-[0_0_60px_rgba(0,0,0,0.7)]"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -203,7 +203,7 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
                   <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white">
                     Tactical Target Re-ID Dossier
                   </div>
-                  <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[#3fe0d6]">
+                  <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[#3ff09a]">
                     // Subject #{id}
                   </div>
                 </div>
@@ -243,10 +243,10 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
                     biometric hologram · webgl unavailable
                   </div>
                 )}
-                <div className="pointer-events-none absolute left-3 top-3 font-mono text-[8px] uppercase tracking-[0.2em] text-[#3fe0d6]/70">
+                <div className="pointer-events-none absolute left-3 top-3 font-mono text-[8px] uppercase tracking-[0.2em] text-[#3ff09a]/70">
                   ● biometric profiling · active
                 </div>
-                <div className="pointer-events-none absolute inset-3 border border-[#3fe0d6]/15" />
+                <div className="pointer-events-none absolute inset-3 border border-[#3ff09a]/15" />
               </div>
 
               {/* cross-camera match trail */}
@@ -303,7 +303,7 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
                 <ShieldAlert size={12} /> [!] Broadcast sector lockdown
               </button>
               <div className="flex gap-1.5">
-                <button className="flex flex-1 items-center justify-center gap-1.5 border border-[#3fe0d6]/40 px-2 py-2 font-mono text-[9px] font-bold uppercase tracking-widest text-[#3fe0d6] hover:bg-[#3fe0d6]/15">
+                <button className="flex flex-1 items-center justify-center gap-1.5 border border-[#3ff09a]/40 px-2 py-2 font-mono text-[9px] font-bold uppercase tracking-widest text-[#3ff09a] hover:bg-[#3ff09a]/15">
                   <Send size={11} /> [+] Dispatch UAV-01
                 </button>
                 <button
