@@ -17,7 +17,7 @@ import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 import gsap from "gsap";
-import { X, Radio, MapPin, Activity, ExternalLink, AlertTriangle, Video } from "lucide-react";
+import { X, Radio, MapPin, Activity, ExternalLink, AlertTriangle, Video, ScanFace } from "lucide-react";
 import api from "../../lib/api.js";
 
 // biometric Re-ID dossier drawer — split (its own hologram canvas), only
@@ -915,15 +915,24 @@ export function DetailPanel({ cam, onClose, className = "" }) {
                 <animate attributeName="x" values="34;48;34" dur="4s" repeatCount="indefinite" />
               </rect>
             </svg>
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent("open-biometric", { detail: { id: `ALPHA-0${cam.track ?? 49}` } }))}
-              className="pointer-events-auto absolute left-1/2 top-2.5 -translate-x-1/2 whitespace-nowrap border border-[#ff2233] bg-black/80 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-widest text-[#ff2233] transition-colors hover:bg-[#ff2233] hover:text-black"
-            >
-              TRK #{cam.track ?? 7} · person · flagged →
-            </button>
+            <span className="pointer-events-none absolute left-1/2 top-2.5 -translate-x-1/2 whitespace-nowrap border border-[#ff2233] bg-black/80 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-widest text-[#ff2233]">
+              TRK #{cam.track ?? 7} · person · flagged
+            </span>
           </>
         )}
       </div>
+
+      {/* flagged target → full Re-ID dossier */}
+      {alert && (
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("open-biometric", { detail: { id: `ALPHA-0${cam.track ?? 49}` } }))}
+          className="flex w-full items-center justify-center gap-2 border-b border-[#ff2233]/40 bg-[#ff2233]/12 py-2.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff2233] transition-colors hover:bg-[#ff2233] hover:text-black"
+        >
+          <ScanFace size={13} className="shrink-0" />
+          Tap for full Re-ID dossier
+          <span aria-hidden>→</span>
+        </button>
+      )}
 
       {/* circular gauges — live signal / uptime / health from /cameras/health */}
       <div className="flex items-center justify-around border-b border-white/10 px-3 py-2.5">
