@@ -1074,12 +1074,12 @@ export function CameraRail({ cameras, selected, onSelect, className = "" }) {
           <button
             key={c.id}
             onClick={() => onSelect(c)}
-            className={`flex shrink-0 items-center gap-1.5 rounded border px-2 py-1 font-hud text-[11px] font-medium transition-colors ${
-              selected?.id === c.id ? "border-[#3ff09a] bg-white/10 text-white" : "border-white/15 text-white/65"
+            className={`flex shrink-0 items-center gap-1.5 rounded border px-2 py-1 font-mono text-[10px] transition-colors ${
+              selected?.id === c.id ? "border-[#3ff09a] bg-white/10 text-zinc-100" : "border-white/15 text-zinc-400"
             }`}
           >
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: STATUS_INK[c.status] || CYAN }} />
-            {c.id.replace("CAM_", "Cam ")}
+            {c.id.replace("CAM_", "")}
           </button>
         ))}
       </div>
@@ -1088,25 +1088,25 @@ export function CameraRail({ cameras, selected, onSelect, className = "" }) {
 
   return (
     <div className={`${GLASS} ${className}`}>
-      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 font-hud text-[12px] font-semibold text-white/80">
-        <span>CCTV Network</span>
-        <span className="text-[11px] font-normal text-white/45">{liveN}/{cameras.length} online</span>
+      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 text-[12px]">
+        <span className="font-semibold text-zinc-200">CCTV network</span>
+        <span className="font-mono text-[11px] text-zinc-500 tabular-nums">{liveN}/{cameras.length}</span>
       </div>
       <ul>
         {cameras.map((c) => (
           <li key={c.id}>
             <button
               onClick={() => onSelect(c)}
-              className={`flex w-full items-center gap-2.5 border-l-2 px-3 py-2 text-left font-hud text-[12.5px] transition-colors ${
+              className={`flex w-full items-center gap-2.5 border-l-2 px-3 py-1.5 text-left transition-colors ${
                 selected?.id === c.id
-                  ? "border-[#3ff09a] bg-white/[0.06] text-white"
-                  : "border-transparent text-white/60 hover:bg-white/[0.03] hover:text-white"
+                  ? "border-[#3ff09a] bg-white/[0.06]"
+                  : "border-transparent hover:bg-white/[0.03]"
               }`}
             >
-              <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: STATUS_INK[c.status] || CYAN }} />
-              <span className="flex-1 truncate font-medium tracking-tight">{c.id}</span>
-              <span className="text-[10.5px] font-medium capitalize" style={{ color: STATUS_INK[c.status] || "rgba(255,255,255,0.4)" }}>
-                {c.status.toLowerCase()}
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: STATUS_INK[c.status] || CYAN }} />
+              <span className={`flex-1 truncate font-mono text-[11px] ${selected?.id === c.id ? "text-zinc-100" : "text-zinc-400"}`}>{c.id}</span>
+              <span className="font-mono text-[10px] font-medium" style={{ color: STATUS_INK[c.status] || "#71717a" }}>
+                {c.status}
               </span>
             </button>
           </li>

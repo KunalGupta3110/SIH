@@ -747,7 +747,7 @@ export default function LiveSurveillanceSection({
                           {isLiveModel ? (
                             <span className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[9.5px] font-bold font-mono bg-emerald-500/25 border border-emerald-400/60 text-emerald-200 shadow-sm">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                              <span>LIVE INFERENCE</span>
+                              <span>Live inference</span>
                             </span>
                           ) : (
                             <span className="rounded px-1.5 py-0.5 text-[9px] font-mono border border-white/15 bg-white/5 text-slate-400">
@@ -1176,7 +1176,7 @@ export default function LiveSurveillanceSection({
                           ? "RESNET-18 SPATIO-TEMPORAL RE-ID ACTIVE"
                           : scenario.isLiveInference
                           ? "YOLOv8n + BYTETRACK INGRESS TRACKING (TRACK #1)"
-                          : "VEHICLE TRACKING ACTIVE"}
+                          : "Vehicle tracking active"}
                       </span>
                       <span>
                         {scenario.isReidScenario

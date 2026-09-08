@@ -329,7 +329,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
     setArmedState(nextState);
     try {
       await api.setArmState(nextState);
-      setActionNotice(nextState ? "System ARMED: All perimeter sensors active" : "System DISARMED: Standby mode");
+      setActionNotice(nextState ? "System armed — all perimeter sensors active" : "System disarmed — standby mode");
     } catch {
       setActionNotice(nextState ? "System ARMED (Local Edge Override)" : "System DISARMED");
     }
@@ -806,7 +806,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
             {modalType === "notifications" && (
               <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-[#000000] border border-white/12 p-3 shadow-2xl z-50 animate-fadeIn">
                 <div className="flex items-center justify-between pb-2 border-b border-white/12 text-xs font-bold text-white">
-                  <span>ACTIVE ALERTS (3)</span>
+                  <span>Active alerts (3)</span>
                   <button onClick={() => setModalType(null)} className="text-white/55 hover:text-white">
                     <X size={13} />
                   </button>
@@ -948,9 +948,9 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           <div className="mt-4 pt-3 border-t border-white/12">
             <div className="relative rounded-xl overflow-hidden bg-gradient-to-b from-[#000000] to-[#000000] border border-white/12 p-2 text-center mb-2">
               <div className="space-y-0.5 font-mono text-[8.5px] text-white/55">
-                <div>VIGILANCE</div>
-                <div>INTEGRITY</div>
-                <div>SECURITY</div>
+                <div>Vigilance</div>
+                <div>Integrity</div>
+                <div>Security</div>
               </div>
             </div>
 
@@ -1041,7 +1041,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     </div>
                     <div>
                       <div className="text-xs font-bold font-mono text-emerald-400">
-                        {armedState ? "SYSTEM ARMED" : "SYSTEM DISARMED"}
+                        {armedState ? "System armed" : "System disarmed"}
                       </div>
                       <div className="text-[11px] text-white">
                         {armedState ? "All sensors operational" : "Perimeter standby"}
@@ -1235,16 +1235,16 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
-                        <tr className="border-b border-white/12 text-[10px] text-white/55">
-                          <th className="pb-2 font-medium">ID</th>
-                          <th className="pb-2 font-medium">TIME</th>
-                          <th className="pb-2 font-medium">CAMERA(S)</th>
-                          <th className="pb-2 font-medium">TYPE</th>
-                          <th className="pb-2 font-medium">THREAT</th>
-                          <th className="pb-2 font-medium">STATUS</th>
+                        <tr className="border-b border-white/12 text-[11px] font-medium text-zinc-500">
+                          <th className="pb-2">ID</th>
+                          <th className="pb-2">Time</th>
+                          <th className="pb-2">Cameras</th>
+                          <th className="pb-2">Type</th>
+                          <th className="pb-2">Threat</th>
+                          <th className="pb-2">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/10 font-mono">
+                      <tbody className="divide-y divide-white/10">
                         {filteredIncidents.map((inc) => {
                           const isRowSelected = selectedIncidentId === inc.id;
                           return (
@@ -1257,11 +1257,11 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                               }}
                               className={`hover:bg-black/40 cursor-pointer transition-colors ${isRowSelected ? "bg-[#000000]" : ""}`}
                             >
-                              <td className={`py-2.5 font-bold ${inc.color}`}>{inc.id}</td>
-                              <td className="py-2.5 text-white/55 font-sans">{inc.time}</td>
-                              <td className="py-2.5 text-white font-sans">{inc.cameras}</td>
-                              <td className="py-2.5 text-white font-sans">{inc.type}</td>
-                              <td className={`py-2.5 font-bold ${inc.color}`}>{inc.threat}</td>
+                              <td className={`py-2.5 font-mono text-[11px] font-semibold ${inc.color}`}>{inc.id}</td>
+                              <td className="py-2.5 font-mono text-[11px] text-zinc-500 tabular-nums">{inc.time}</td>
+                              <td className="py-2.5 text-zinc-200">{inc.cameras}</td>
+                              <td className="py-2.5 text-zinc-200">{inc.type}</td>
+                              <td className={`py-2.5 font-mono font-semibold tabular-nums ${inc.color}`}>{inc.threat}</td>
                               <td className="py-2.5">
                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-sans font-semibold border ${inc.badge}`}>
                                   <span className="h-1.5 w-1.5 rounded-full bg-current" />
@@ -1572,7 +1572,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           <span>AI INFERENCE STREAM · 1920x1080 @ 25 FPS · TENSORRT INT8</span>
                         </span>
                         <span className={`px-2.5 py-1 rounded border font-bold ${ingressCalculatedThreat >= alarmThreshold ? "bg-red-950/90 border-red-500 text-red-200 animate-pulse" : "bg-black/80 border-white/12 text-white"}`}>
-                          {ingressCalculatedThreat >= alarmThreshold ? "PERIMETER TRIPWIRE BREACH" : "MONITORING PERIMETER"}
+                          {ingressCalculatedThreat >= alarmThreshold ? "Perimeter tripwire breach" : "Monitoring perimeter"}
                         </span>
                       </div>
 
@@ -1600,7 +1600,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       {/* Bottom Telemetry Bar */}
                       <div className="absolute bottom-3 inset-x-3 flex items-center justify-between text-xs font-mono bg-black/80 p-2.5 rounded-xl border border-white/12 text-white pointer-events-none">
                         <div>
-                          <span>TARGET COORDS: </span>
+                          <span>Target coords </span>
                           <span className="text-white">Lat 32.5621, Long 75.1234</span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -1616,7 +1616,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         <div className="flex items-center justify-between border-b border-white/12 pb-2">
                           <span className="text-xs font-bold font-mono text-white flex items-center gap-1.5">
                             <Terminal size={14} className="text-white" />
-                            <span>EDGE TRAINING & TELEMETRY</span>
+                            <span>Edge training &amp; telemetry</span>
                           </span>
                           <span className="text-[10px] text-amber-300 font-mono">SIMULATION · PHASE 2</span>
                         </div>
@@ -1756,7 +1756,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                               {activeCam.name} · {activeCam.tag}
                             </span>
                             <span className="bg-black/80 px-3 py-1 rounded border border-white/12 text-white">
-                              ZOOM: {ptzZoomLevel.toFixed(1)}x · PAN: {ptzPan.x}px, {ptzPan.y}px
+                              Zoom {ptzZoomLevel.toFixed(1)}x · Pan {ptzPan.x}px, {ptzPan.y}px
                             </span>
                           </div>
                         </>
@@ -2137,7 +2137,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       <span className="text-white/55 select-none">SHA-256 HASH: </span>{b.hash}
                     </div>
                     <div className="text-white/55 text-[11px] truncate">
-                      PREV HASH: {b.prev}
+                      Prev hash {b.prev}
                     </div>
                   </div>
                 ))}
@@ -2231,7 +2231,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
               <div className="p-5 rounded-2xl bg-[#000000] border border-white/12 space-y-3">
                 <div className="text-sm font-bold text-white font-mono flex items-center gap-2">
                   <SlidersHorizontal size={16} className="text-white" />
-                  <span>PHYSICAL PERIMETER GPIO RELAYS</span>
+                  <span>Physical perimeter GPIO relays</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
@@ -2254,7 +2254,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <div>
                       <div className="text-white font-bold">Xenon Strobe (Pin 23)</div>
                       <div className={relays.strobeLight ? "text-amber-400" : "text-white/55"}>
-                        {relays.strobeLight ? "FLASHING" : "OFF"}
+                        {relays.strobeLight ? "Flashing" : "Off"}
                       </div>
                     </div>
                     <button
@@ -2416,19 +2416,19 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
             <div className="flex items-center justify-between border-b border-white/12 pb-3">
               <div className="flex items-center gap-2">
                 <Radio size={20} className="text-white" />
-                <h3 className="text-base font-bold text-white">DEPLOY QUICK REACTION TEAM (QRT)</h3>
+                <h3 className="text-base font-semibold tracking-tight text-white">Deploy quick reaction team (QRT)</h3>
               </div>
               <button onClick={() => setModalType(null)} className="text-white/55 hover:text-white">
                 <X size={16} />
               </button>
             </div>
 
-            <div className="space-y-2 text-xs font-mono">
-              <div className="p-3 rounded-xl bg-[#000000] border border-white/12 space-y-1">
-                <div>TARGET: <strong className="text-red-400">{currentIncident.id} ({currentIncident.target})</strong></div>
-                <div>SECTOR LOCATION: <span className="text-white">{currentIncident.cam}</span></div>
-                <div>COORDINATES: <span className="text-white">{currentIncident.coords}</span></div>
-                <div>THREAT LEVEL: <strong className="text-red-400">{currentIncident.threat} / 100 (CRITICAL)</strong></div>
+            <div className="space-y-2 text-xs">
+              <div className="p-3 rounded-xl bg-[#000000] border border-white/12 space-y-1 text-zinc-400">
+                <div>Target <span className="ml-1 font-mono font-semibold text-rose-400">{currentIncident.id} ({currentIncident.target})</span></div>
+                <div>Sector location <span className="ml-1 text-zinc-100">{currentIncident.cam}</span></div>
+                <div>Coordinates <span className="ml-1 font-mono text-zinc-100">{currentIncident.coords}</span></div>
+                <div>Threat level <span className="ml-1 font-mono font-semibold text-rose-400">{currentIncident.threat} / 100</span> · Critical</div>
               </div>
 
               <div className="space-y-1">
@@ -2438,8 +2438,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <button
                       key={u}
                       onClick={() => { triggerSound("click"); setDispatchUnit(u); }}
-                      className={`p-2.5 rounded-xl border text-left text-[11px] transition-colors ${
-                        dispatchUnit === u ? "bg-white/[0.06] border-white/12 text-white font-bold" : "bg-[#000000] border-white/12 text-white/55 hover:text-white"
+                      className={`p-2.5 rounded-xl border text-left font-sans text-[12px] transition-colors ${
+                        dispatchUnit === u ? "bg-white/[0.06] border-white/12 text-white font-semibold" : "bg-[#000000] border-white/12 text-zinc-400 hover:text-white"
                       }`}
                     >
                       {u}
@@ -2510,7 +2510,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
               <div className="pt-2 border-t border-white/12 flex justify-between items-end text-[11px]">
                 <div>
-                  <div>SEAL OF THE COMMAND POST</div>
+                  <div>Seal of the command post</div>
                   <div className="text-white font-bold">SSB SECTOR 4-B · DEFENSE CLEARANCE 3</div>
                 </div>
                 <div className="text-right">
@@ -2552,7 +2552,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 </div>
                 <div>
                   <div className="text-sm font-bold text-white flex items-center gap-2">
-                    <span>INCIDENT INVESTIGATION WORKSPACE</span>
+                    <span>Incident investigation workspace</span>
                     <span className="font-mono text-red-400">{currentIncident.id}</span>
                   </div>
                   <div className="text-[11px] text-white/55">Sector 4-B Northern Border Corridor • Checked & Correlated</div>
