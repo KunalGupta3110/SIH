@@ -604,35 +604,39 @@ function PatrolDrone() {
 
   return (
     <group ref={droneGroupRef}>
-      {/* ── drone chassis ── */}
-      <group rotation={[0, DRONE_YAW, 0]} scale={hovered ? 1.12 : 1} onClick={tap} onPointerOver={hoverIn} onPointerOut={hoverOut}>
+      {/* ── drone chassis — sits ON TOP, clear of the rays ── */}
+      <group position={[0, 2.2, 0]} rotation={[0, DRONE_YAW, 0]} scale={hovered ? 1.14 : 1} onClick={tap} onPointerOver={hoverIn} onPointerOut={hoverOut}>
         <Suspense fallback={null}>
-          <GlbInstance url={MODELS.drone} targetSize={5} />
+          <GlbInstance url={MODELS.drone} targetSize={6} />
         </Suspense>
       </group>
 
       {/* generous invisible hit target */}
-      <mesh onClick={tap} onPointerOver={hoverIn} onPointerOut={hoverOut}>
-        <sphereGeometry args={[4, 12, 12]} />
+      <mesh position={[0, 2.4, 0]} onClick={tap} onPointerOver={hoverIn} onPointerOut={hoverOut}>
+        <sphereGeometry args={[4.5, 12, 12]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
-      <pointLight color={UV} intensity={hovered ? 6 : 4} distance={18} decay={2} />
+      <pointLight color={UV} intensity={hovered ? 6 : 4} distance={20} decay={2} position={[0, 1.5, 0]} />
 
-      {/* ── attached UV / thermal scanning rig — mounted under the chassis ── */}
-      <group ref={beamRef} position={[0, -0.2, 0]}>
-        {/* emitter */}
-        <mesh position={[0, -0.35, 0]}>
-          <sphereGeometry args={[0.2, 14, 14]} />
-          <meshBasicMaterial color={uvGlow} transparent opacity={0.75} toneMapped={false} />
+      {/* ── attached UV / thermal scanning rig — emitted from under the drone ── */}
+      <group ref={beamRef}>
+        {/* emitter nozzle just below the drone belly */}
+        <mesh position={[0, 1.2, 0]}>
+          <sphereGeometry args={[0.24, 16, 16]} />
+          <meshBasicMaterial color={uvGlow} transparent opacity={0.8} toneMapped={false} />
         </mesh>
-        {/* volumetric UV cone — apex at the emitter, opening toward the terrain */}
-        <mesh position={[0, -4.6, 0]}>
-          <coneGeometry args={[3.4, 9, 44, 1, true]} />
-          <meshBasicMaterial color={UV} transparent opacity={0.18} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+        <mesh position={[0, 1.15, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.55, 32]} />
+          <meshBasicMaterial color={UV} transparent opacity={0.45} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+        </mesh>
+        {/* volumetric UV cone — apex at the nozzle, fanning down to the ground */}
+        <mesh position={[0, -3.85, 0]}>
+          <coneGeometry args={[3.6, 10, 44, 1, true]} />
+          <meshBasicMaterial color={UV} transparent opacity={0.16} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
         </mesh>
         {/* projected ground target reticle (fixed offset — moves with the rig) */}
-        <group position={[0, -8.4, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <group position={[0, -8.9, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <mesh>
             <ringGeometry args={[2.2, 2.55, 60]} />
             <meshBasicMaterial color={UV} transparent opacity={0.32} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
@@ -650,7 +654,7 @@ function PatrolDrone() {
       </group>
 
       {/* ── telemetry badge (child of the group) ── */}
-      <Html position={[0, 1.2, 0]} distanceFactor={14} center zIndexRange={[30, 0]}>
+      <Html position={[0, 5, 0]} distanceFactor={14} center zIndexRange={[30, 0]}>
         <button
           onClick={fireUavSelect}
           className="pointer-events-auto flex items-center gap-1.5 whitespace-nowrap border border-[#00f0ff]/60 bg-black/85 px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-widest text-[#00f0ff] hover:bg-[#00f0ff]/15"
