@@ -3,14 +3,23 @@ import { Link } from "react-router-dom";
 import siren from "../lib/audioSiren.js";
 import { Reveal, CountUp } from "../lib/motion.jsx";
 import IsometricTerrain from "./IsometricTerrain.jsx";
-import SentinelGlobe from "./SentinelGlobe.jsx";
 
 // The 3D terrain diorama pulls in three.js — code-split so it only loads
 // when the operator taps the sector map open.
 const BorderTerrainModal = lazy(() => import("./gis/BorderTerrainModal.jsx"));
-// Textured earth globe (react-three-fiber + a 22 MB .glb) — also split, and
+// Textured earth globe (react-three-fiber + a ~1 MB .glb) — also split, and
 // only mounted once the hero globe scrolls into view.
 const SentinelGlobe3D = lazy(() => import("./SentinelGlobe3D.jsx"));
+
+// neutral placeholder while the globe chunk / model loads — a faint ring,
+// never the old 2D dot-globe.
+function GlobeShell() {
+  return (
+    <div className="absolute inset-0 grid place-items-center">
+      <div className="aspect-square w-[72%] rounded-full border border-white/[0.07]" />
+    </div>
+  );
+}
 import {
   Shield,
   ArrowRight,
@@ -488,8 +497,8 @@ export default function LandingPage() {
             >
               <Corners />
               <div className="absolute inset-0">
-                <WhenVisible fallback={<SentinelGlobe />}>
-                  <Suspense fallback={<SentinelGlobe />}>
+                <WhenVisible fallback={<GlobeShell />}>
+                  <Suspense fallback={<GlobeShell />}>
                     <SentinelGlobe3D onTap={() => { click(); setGlobeOpen(true); }} />
                   </Suspense>
                 </WhenVisible>

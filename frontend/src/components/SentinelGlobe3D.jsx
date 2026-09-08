@@ -2,19 +2,17 @@ import { Component, Suspense, useEffect, useMemo, useRef, useState } from "react
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
-import SentinelGlobe from "./SentinelGlobe.jsx";
 
 /* ═══════════════════════════════════════════════════════════════════════
    SentinelGlobe3D — the hero "tap to open" globe: a real textured earth
-   (public/models/earth.glb, ~1 MB, ≤1024px WebP, no Draco). Built to run
-   on *any* smartphone:
-     • WebGL1 or WebGL2, texture-size gate at 1024 (every real phone GPU)
+   (public/models/earth.glb, ~0.9 MB, 1024px WebP, no Draco) and nothing
+   else. The old 2D dot-globe is gone: while the model loads (or if WebGL
+   is unavailable) all that shows is a faint framing ring.
+
+   Built to run on any smartphone:
+     • WebGL1 or WebGL2, texture-size gate at 1024
      • no MSAA / DPR ≤ 1.5 / powerPreference "default" on mobile
-     • webglcontextlost → permanent clean 2D fallback for the session
-     • the 2D SentinelGlobe stays on screen until the model has actually
-       rendered (not just until the canvas exists) — so slow connections
-       never see a blank gap
-     • a hard timeout also falls back to 2D if the model never arrives
+     • webglcontextlost → the framing ring, for the rest of the session
    ═══════════════════════════════════════════════════════════════════════ */
 
 const MODEL = "/models/earth.glb";
@@ -28,11 +26,19 @@ function webglSupport() {
       c.getContext("webgl") ||
       c.getContext("experimental-webgl");
     if (!gl) return false;
-    // 1024 is below every real smartphone GPU's cap; keeps the door open wide
     return (gl.getParameter(gl.MAX_TEXTURE_SIZE) || 0) >= 1024;
   } catch {
     return false;
   }
+}
+
+// faint framing ring — the only thing shown before the earth renders
+function Ring() {
+  return (
+    <div className="absolute inset-0 grid place-items-center">
+      <div className="aspect-square w-[72%] rounded-full border border-white/[0.07]" />
+    </div>
+  );
 }
 
 class Boundary extends Component {
@@ -48,7 +54,7 @@ class Boundary extends Component {
   }
 }
 
-function Earth({ spin = true, onReady }) {
+function Earth({ spin = true }) {
   const { scene } = useGLTF(MODEL);
   const ref = useRef(null);
 
@@ -64,13 +70,6 @@ function Earth({ spin = true, onReady }) {
     return s;
   }, [scene]);
 
-  // useGLTF has already suspended until the model is decoded — by the time
-  // this effect runs the earth is in the scene graph, so it's safe to fade
-  // the 2D globe out.
-  useEffect(() => {
-    onReady?.();
-  }, [onReady]);
-
   useFrame((_, dt) => {
     if (spin && ref.current) ref.current.rotation.y += Math.min(dt, 0.05) * 0.1;
   });
@@ -85,7 +84,6 @@ function Earth({ spin = true, onReady }) {
 export default function SentinelGlobe3D({ className = "", onTap }) {
   const [ok] = useState(() => typeof window !== "undefined" && webglSupport());
   const [failed, setFailed] = useState(false);
-  const [live, setLive] = useState(false); // model rendered → fade the 2D globe
   const [dragging, setDragging] = useState(false);
   const down = useRef(null);
   const moved = useRef(false);
@@ -93,21 +91,13 @@ export default function SentinelGlobe3D({ className = "", onTap }) {
     typeof window !== "undefined" &&
     window.matchMedia("(max-width: 640px)").matches;
 
-  // if the model has not shown up in 12s (dead connection, decode failure),
-  // give up on the 3D layer and keep the 2D globe
-  useEffect(() => {
-    if (!ok || live || failed) return undefined;
-    const t = window.setTimeout(() => setFailed(true), 12000);
-    return () => window.clearTimeout(t);
-  }, [ok, live, failed]);
-
-  if (!ok || failed) return <SentinelGlobe className={className} />;
-
-  const fallback2D = (
-    <div className="absolute inset-0">
-      <SentinelGlobe />
+  const shell = (
+    <div className={`relative h-full w-full ${className}`}>
+      <Ring />
     </div>
   );
+
+  if (!ok || failed) return shell;
 
   return (
     <div
@@ -134,14 +124,9 @@ export default function SentinelGlobe3D({ className = "", onTap }) {
         if (!moved.current) onTap?.();
       }}
     >
-      <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-700"
-        style={{ opacity: live ? 0 : 1 }}
-      >
-        <SentinelGlobe />
-      </div>
+      <Ring />
 
-      <Boundary fallback={fallback2D}>
+      <Boundary fallback={<Ring />}>
         <Canvas
           dpr={isMobile ? [1, 1.5] : [1, 2]}
           camera={{ position: [0, 0, 3.4], fov: 34 }}
@@ -168,7 +153,7 @@ export default function SentinelGlobe3D({ className = "", onTap }) {
           <directionalLight position={[3, 2, 4]} intensity={2.2} />
           <directionalLight position={[-4, -1, -3]} intensity={0.4} color="#5f7fd0" />
           <Suspense fallback={null}>
-            <Earth spin={!dragging} onReady={() => setLive(true)} />
+            <Earth spin={!dragging} />
           </Suspense>
           <OrbitControls
             enablePan={false}
