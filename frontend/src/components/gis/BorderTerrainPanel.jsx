@@ -12,6 +12,7 @@ import {
   BreachBanner,
   TacticalLoader,
   useCameras,
+  useIsMobile,
   hasWebGL,
   SceneBoundary,
 } from "./BorderTerrainModal.jsx";
@@ -32,6 +33,7 @@ export default function BorderTerrainPanel() {
   const [drone, setDrone] = useState(false);
   const [breach, setBreach] = useState(false);
   const [webgl] = useState(() => hasWebGL());
+  const lite = useIsMobile();
   const selCam = selected ? cameras.find((c) => c.id === selected.id) || selected : null;
   const live = cameras.filter((c) => c.status === "ONLINE" || c.status === "ALERT").length;
   const pickCam = (c) => { setDrone(false); setSelected(c); };
@@ -74,14 +76,14 @@ export default function BorderTerrainPanel() {
         </button>
       </div>
 
-      <div className="relative h-[68vh] w-full overflow-hidden rounded-2xl border border-white/12 bg-[#0a1017]">
+      <div className="relative h-[60vh] min-h-[360px] w-full overflow-hidden rounded-2xl border border-white/12 bg-[#0a1017] md:h-[68vh]">
         {webgl ? (
           <SceneBoundary>
             <Suspense fallback={<TacticalLoader />}>
               <Canvas
-                shadows
-                dpr={[1, 2]}
-                gl={{ antialias: true, powerPreference: "high-performance" }}
+                shadows={!lite}
+                dpr={lite ? [1, 1.5] : [1, 2]}
+                gl={{ antialias: !lite, powerPreference: lite ? "default" : "high-performance", failIfMajorPerformanceCaveat: false }}
                 camera={{ position: [42, 34, 48], fov: 40, near: 0.1, far: 600 }}
                 onPointerMissed={() => { setSelected(null); setDrone(false); }}
               >
@@ -110,12 +112,16 @@ export default function BorderTerrainPanel() {
           cameras={cameras}
           selected={selected}
           onSelect={pickCam}
-          className="pointer-events-auto absolute left-4 top-4 z-20 w-52"
+          className={
+            lite
+              ? "pointer-events-auto absolute inset-x-2 top-2 z-20"
+              : "pointer-events-auto absolute left-4 top-4 z-20 w-52"
+          }
         />
 
         <BreachBanner show={breach} />
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-white/35">
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden text-center font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 sm:block">
           drag to orbit · scroll to zoom · tap a camera or the UAV for its feed
         </div>
 

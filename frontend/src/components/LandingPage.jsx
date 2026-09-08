@@ -479,26 +479,28 @@ export default function LandingPage() {
             </div>
           </Reveal>
 
-          <Reveal delay={120} className="justify-self-center lg:justify-self-stretch">
+          <Reveal delay={120} className="w-full justify-self-stretch">
             <button
               type="button"
               onClick={() => { click(); setGlobeOpen(true); }}
-              className="press group relative block aspect-square w-full max-w-md lg:max-w-none"
+              className="press group relative mx-auto block aspect-square w-full max-w-md lg:max-w-none"
               aria-label="Open the 3D sector terrain model"
             >
               <Corners />
-              <WhenVisible fallback={<SentinelGlobe />}>
-                <Suspense fallback={<SentinelGlobe />}>
-                  <SentinelGlobe3D onTap={() => { click(); setGlobeOpen(true); }} />
-                </Suspense>
-              </WhenVisible>
+              <div className="absolute inset-0">
+                <WhenVisible fallback={<SentinelGlobe />}>
+                  <Suspense fallback={<SentinelGlobe />}>
+                    <SentinelGlobe3D onTap={() => { click(); setGlobeOpen(true); }} />
+                  </Suspense>
+                </WhenVisible>
+              </div>
               <span className="pointer-events-none absolute left-3 top-3 font-mono text-[9px] uppercase tracking-[0.16em] text-white/40">
                 Sector 4-B · terrain model
               </span>
-              <span className="pointer-events-none absolute bottom-3 right-3 font-mono text-[9px] uppercase tracking-[0.14em] text-white/45">
+              <span className="pointer-events-none absolute bottom-3 right-3 hidden font-mono text-[9px] uppercase tracking-[0.14em] text-white/45 sm:block">
                 32.04°N&nbsp;·&nbsp;75.40°E
               </span>
-              <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-mono text-[9px] uppercase tracking-[0.16em] text-white/0 transition-colors group-hover:text-white/55">
+              <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-mono text-[9px] uppercase tracking-[0.16em] text-white/50 transition-colors sm:text-white/0 sm:group-hover:text-white/55">
                 tap to open 3D terrain →
               </span>
             </button>

@@ -53,6 +53,21 @@ useGLTF.preload(MODELS.drone);
 const GLASS =
   "border border-white/10 bg-black/60 backdrop-blur-md shadow-[0_0_28px_rgba(0,0,0,0.5)]";
 
+// phones: skip shadow maps + post-processing + heavy DPR so the scene
+// actually renders on mobile GPUs instead of losing the WebGL context.
+export function useIsMobile() {
+  const [m, setM] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 820px)").matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 820px)");
+    const on = () => setM(mq.matches);
+    mq.addEventListener?.("change", on);
+    return () => mq.removeEventListener?.("change", on);
+  }, []);
+  return m;
+}
+
 const _scaleV = new THREE.Vector3(); // scratch for per-frame scale lerps
 const _ray = new THREE.Raycaster();
 const _origin = new THREE.Vector3();
@@ -692,6 +707,7 @@ export function TacticalLoader() {
 
 export function Scene({ cameras, selected, breach, onSelect }) {
   const controlsRef = useRef(null);
+  const lite = useIsMobile();
   const [terrain, setTerrain] = useState(null);
   const onReady = useCallback((obj) => setTerrain(obj), []);
 
@@ -702,16 +718,16 @@ export function Scene({ cameras, selected, breach, onSelect }) {
     <>
       <color attach="background" args={["#0b131c"]} />
       <fog attach="fog" args={["#0b131c", 110, 240]} />
-      <ambientLight intensity={1.0} />
-      <hemisphereLight args={["#dbe8f2", "#2b2721", 0.85]} />
+      <ambientLight intensity={lite ? 1.25 : 1.0} />
+      <hemisphereLight args={["#dbe8f2", "#2b2721", lite ? 1.05 : 0.85]} />
       {/* crisp directional sunlight — upper-left, soft shadows over the ridges */}
       <directionalLight
         position={[-38, 54, 30]}
         intensity={2.5}
         color="#fff3e0"
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        castShadow={!lite}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
         shadow-bias={-0.0004}
         shadow-normalBias={0.03}
         shadow-camera-near={1}
@@ -759,10 +775,12 @@ export function Scene({ cameras, selected, breach, onSelect }) {
         target={[0, 2, 0]}
       />
 
-      <EffectComposer disableNormalPass>
-        <Bloom intensity={breach ? 1.8 : 1.3} luminanceThreshold={0.82} luminanceSmoothing={0.3} mipmapBlur radius={0.75} />
-        <Vignette eskil={false} offset={0.3} darkness={0.5} />
-      </EffectComposer>
+      {!lite && (
+        <EffectComposer disableNormalPass>
+          <Bloom intensity={breach ? 1.8 : 1.3} luminanceThreshold={0.82} luminanceSmoothing={0.3} mipmapBlur radius={0.75} />
+          <Vignette eskil={false} offset={0.3} darkness={0.5} />
+        </EffectComposer>
+      )}
     </>
   );
 }
@@ -842,13 +860,16 @@ function RingGauge({ label, value, color }) {
 
 export function DetailPanel({ cam, onClose, className = "" }) {
   const alert = cam.status === "ALERT";
+  const lite = useIsMobile();
   return (
     <motion.div
-      initial={{ x: 40, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 40, opacity: 0 }}
+      initial={lite ? { y: 60, opacity: 0 } : { x: 40, opacity: 0 }}
+      animate={lite ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
+      exit={lite ? { y: 60, opacity: 0 } : { x: 40, opacity: 0 }}
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className={`pointer-events-auto z-30 w-[320px] ${GLASS} ${className || "absolute right-4 top-20"}`}
+      className={`pointer-events-auto z-30 max-h-[70vh] overflow-y-auto ${GLASS} ${
+        lite ? "absolute inset-x-0 bottom-0 w-full rounded-t-xl" : `w-[320px] ${className || "absolute right-4 top-20"}`
+      }`}
     >
       <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 font-mono text-[11px] tracking-wide">
         <span className="flex items-center gap-1.5 text-white">
@@ -955,13 +976,16 @@ function Row({ k, v }) {
    nominal placeholders, flagged "roadmap · not deployed".               */
 export function DronePanel({ onClose, className = "" }) {
   const [feed, setFeed] = useState("uav"); // "uav" | "cams"
+  const lite = useIsMobile();
   return (
     <motion.div
-      initial={{ x: 40, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 40, opacity: 0 }}
+      initial={lite ? { y: 60, opacity: 0 } : { x: 40, opacity: 0 }}
+      animate={lite ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
+      exit={lite ? { y: 60, opacity: 0 } : { x: 40, opacity: 0 }}
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className={`pointer-events-auto z-30 w-[320px] ${GLASS} ${className || "absolute right-4 top-20"}`}
+      className={`pointer-events-auto z-30 max-h-[70vh] overflow-y-auto ${GLASS} ${
+        lite ? "absolute inset-x-0 bottom-0 w-full rounded-t-xl" : `w-[320px] ${className || "absolute right-4 top-20"}`
+      }`}
     >
       <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 font-mono text-[11px] tracking-wide">
         <span className="flex items-center gap-1.5 text-white">
@@ -1038,10 +1062,33 @@ export function DronePanel({ onClose, className = "" }) {
 const STATUS_INK = { ONLINE: CYAN, STALE: "#f5b544", OFFLINE: "#8a8f94", ALERT: RED };
 
 export function CameraRail({ cameras, selected, onSelect, className = "" }) {
+  const lite = useIsMobile();
+  const liveN = cameras.filter((c) => c.status === "ONLINE" || c.status === "ALERT").length;
+
+  if (lite) {
+    // phones: a compact horizontal scroll strip along the top
+    return (
+      <div className={`${GLASS} flex items-center gap-1.5 overflow-x-auto rounded-lg p-1.5 ${className}`}>
+        {cameras.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => onSelect(c)}
+            className={`flex shrink-0 items-center gap-1.5 border px-2 py-1 font-mono text-[10px] transition-colors ${
+              selected?.id === c.id ? "border-[#3fe0d6] bg-white/10 text-white" : "border-white/15 text-white/60"
+            }`}
+          >
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: STATUS_INK[c.status] || CYAN }} />
+            {c.id.replace("CAM_", "")}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className={`${GLASS} ${className}`}>
       <div className="border-b border-white/10 px-3 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/55">
-        CCTV Network · {cameras.filter((c) => c.status === "ONLINE" || c.status === "ALERT").length}/{cameras.length} live
+        CCTV Network · {liveN}/{cameras.length} live
       </div>
       <ul>
         {cameras.map((c) => (
@@ -1075,6 +1122,7 @@ export default function BorderTerrainModal({ onClose }) {
   const [bio, setBio] = useState(null);
   const [breach, setBreach] = useState(false);
   const [webgl] = useState(() => hasWebGL());
+  const lite = useIsMobile();
   const online = cameras.filter((c) => c.status === "ONLINE" || c.status === "ALERT").length;
 
   const selCam = selected ? cameras.find((c) => c.id === selected.id) || selected : null;
@@ -1104,24 +1152,24 @@ export default function BorderTerrainModal({ onClose }) {
 
   const body = (
     <div className="fixed inset-0 z-[100] flex flex-col bg-[#0a1017] font-sans text-white">
-      <div className="z-30 flex items-center justify-between border-b border-[#3fe0d6]/15 bg-[#0a1016]/55 px-5 py-3 backdrop-blur-xl backdrop-saturate-150">
-        <div className="flex items-center gap-3">
-          <span className="grid h-7 w-7 place-items-center border border-[#3fe0d6]/50 text-[#3fe0d6]">
+      <div className="z-30 flex items-center justify-between gap-2 border-b border-[#3fe0d6]/15 bg-[#0a1016]/70 px-3 py-2.5 backdrop-blur-xl backdrop-saturate-150 sm:px-5 sm:py-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <span className="grid h-7 w-7 shrink-0 place-items-center border border-[#3fe0d6]/50 text-[#3fe0d6]">
             <MapPin size={14} />
           </span>
-          <div className="leading-tight">
-            <div className="font-mono text-[12px] font-bold tracking-[0.15em]">
-              SECTOR 4-B · LIVE TERRAIN MODEL
+          <div className="min-w-0 leading-tight">
+            <div className="truncate font-mono text-[11px] font-bold tracking-[0.12em] sm:text-[12px] sm:tracking-[0.15em]">
+              SECTOR 4-B <span className="hidden sm:inline">· LIVE TERRAIN MODEL</span>
             </div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/45">
+            <div className="truncate font-mono text-[9px] uppercase tracking-[0.16em] text-white/45 sm:tracking-[0.2em]">
               {cameras.length} nodes · {online} live · SSB Gurdaspur
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             onClick={() => setBreach((b) => !b)}
-            className="flex items-center gap-1.5 border px-3 py-1.5 font-mono text-[10px] font-bold tracking-widest transition-colors"
+            className="flex items-center gap-1.5 border px-2.5 py-1.5 font-mono text-[10px] font-bold tracking-widest transition-colors sm:px-3"
             style={{
               borderColor: breach ? RED : "rgba(255,255,255,0.25)",
               background: breach ? RED : "transparent",
@@ -1129,11 +1177,12 @@ export default function BorderTerrainModal({ onClose }) {
             }}
           >
             <AlertTriangle size={12} />
-            {breach ? "CLEAR" : "SIMULATE BREACH"}
+            <span className="hidden sm:inline">{breach ? "CLEAR" : "SIMULATE BREACH"}</span>
+            <span className="sm:hidden">{breach ? "CLEAR" : "BREACH"}</span>
           </button>
           <button
             onClick={onClose}
-            className="grid h-9 w-9 place-items-center border border-white/30 text-white/70 hover:bg-white hover:text-black"
+            className="grid h-9 w-9 shrink-0 place-items-center border border-white/30 text-white/70 hover:bg-white hover:text-black"
           >
             <X size={16} />
           </button>
@@ -1145,9 +1194,9 @@ export default function BorderTerrainModal({ onClose }) {
           <SceneBoundary>
             <Suspense fallback={<TacticalLoader />}>
               <Canvas
-                shadows
-                dpr={[1, 2]}
-                gl={{ antialias: true, powerPreference: "high-performance" }}
+                shadows={!lite}
+                dpr={lite ? [1, 1.5] : [1, 2]}
+                gl={{ antialias: !lite, powerPreference: lite ? "default" : "high-performance", failIfMajorPerformanceCaveat: false }}
                 camera={{ position: [42, 34, 48], fov: 40, near: 0.1, far: 600 }}
                 onPointerMissed={() => { setSelected(null); setDrone(false); }}
               >
@@ -1171,7 +1220,7 @@ export default function BorderTerrainModal({ onClose }) {
           )}
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-white/35">
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden text-center font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 sm:block">
           drag to orbit · scroll to zoom · tap a camera or the UAV for its feed
         </div>
 
@@ -1179,7 +1228,11 @@ export default function BorderTerrainModal({ onClose }) {
           cameras={cameras}
           selected={selected}
           onSelect={pickCam}
-          className="pointer-events-auto absolute left-4 top-20 z-20 w-52"
+          className={
+            lite
+              ? "pointer-events-auto absolute inset-x-2 top-16 z-20"
+              : "pointer-events-auto absolute left-4 top-20 z-20 w-52"
+          }
         />
 
         <BreachBanner show={breach} />

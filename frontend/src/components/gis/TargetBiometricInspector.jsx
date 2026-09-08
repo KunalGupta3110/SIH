@@ -229,7 +229,7 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
               <div className="relative h-80 border-b border-white/10 bg-gradient-to-b from-[#04141644] to-[#050508]">
                 {webgl ? (
                   <GLBoundary>
-                    <Canvas dpr={[1, 2]} camera={{ position: [0, 0.15, 5.6], fov: 34 }} gl={{ antialias: true, alpha: true }}>
+                    <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0.15, 5.6], fov: 34 }} gl={{ antialias: true, alpha: true, powerPreference: "default", failIfMajorPerformanceCaveat: false }}>
                       <ambientLight intensity={0.7} />
                       <pointLight position={[3, 3, 4]} intensity={1.4} color={CYAN} />
                       <Suspense fallback={null}>

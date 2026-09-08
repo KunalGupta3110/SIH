@@ -68,6 +68,7 @@ import {
   Wifi,
   WifiOff,
   Disc,
+  Menu,
 } from "lucide-react";
 
 export default function ConsoleDashboard({ initialNav = "dashboard" }) {
@@ -84,6 +85,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
   // Active navigation tab
   const [activeNav, setActiveNav] = useState(urlTab || initialNav);
+  // mobile: the sidebar collapses into a slide-over drawer
+  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
     if (urlTab) setActiveNav(urlTab);
@@ -727,7 +730,14 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       {/* ── TOP HEADER BAR (Duty Commander / Command Operator) ────── */}
       <header className="h-16 w-full border-b border-white/12 bg-[#000000] px-5 flex items-center justify-between shrink-0 sticky top-0 z-40">
         {/* Left branding */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => setNavOpen(true)}
+            className="md:hidden grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/12 text-white/80"
+            aria-label="Open navigation"
+          >
+            <Menu size={18} />
+          </button>
           <Link to="/" onClick={() => triggerSound("click")} className="flex items-center gap-3 group">
             <div className="h-9 w-9 rounded-xl bg-white/10 border border-white/12 flex items-center justify-center text-white shadow-none group-hover:scale-105 transition-transform">
               <Shield size={20} />
@@ -864,8 +874,20 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
       {/* ── BODY: LEFT SIDEBAR + MAIN CONTENT CANVAS ───────────── */}
       <div className="flex-1 flex overflow-hidden">
-        {/* ── LEFT SIDEBAR (EXACT MATCH TO media_1788630611463.png) ─ */}
-        <aside className="w-56 bg-[#000000] border-r border-white/12 flex flex-col justify-between shrink-0 p-3 select-none">
+        {/* mobile backdrop */}
+        {navOpen && (
+          <button
+            aria-label="Close navigation"
+            onClick={() => setNavOpen(false)}
+            className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-fadeIn"
+          />
+        )}
+        {/* ── LEFT SIDEBAR ── desktop: static column · mobile: slide-over drawer */}
+        <aside
+          className={`bg-[#000000] border-r border-white/12 flex flex-col justify-between shrink-0 p-3 select-none w-64 md:w-56 md:static md:translate-x-0 fixed inset-y-0 left-0 z-50 overflow-y-auto transition-transform duration-200 ${
+            navOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
           {/* Navigation Items */}
           <nav className="space-y-1">
             {[
@@ -889,6 +911,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   key={item.id}
                   onClick={() => {
                     setActiveNav(item.id);
+                    setNavOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all group ${
                     isActive

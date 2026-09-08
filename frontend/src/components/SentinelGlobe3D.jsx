@@ -1,25 +1,27 @@
-import { Component, Suspense, useMemo, useRef, useState } from "react";
+import { Component, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import SentinelGlobe from "./SentinelGlobe.jsx";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SentinelGlobe3D — the hero "tap to open" globe, now a real textured
-   earth (public/models/earth.glb) instead of the B&W dot-sphere.
-   Behaviour is unchanged: the canvas is pointer-transparent so the tap
-   falls through to the parent <button> that opens BorderTerrainModal.
-   The 2D SentinelGlobe renders underneath and fades out once the GL
-   context is live, so there is always something on screen (and a clean
-   fallback if WebGL or the model is unavailable).
+   SentinelGlobe3D — the hero "tap to open" globe: a real textured earth
+   (public/models/earth.glb, ~1.4 MB, 2048px WebP). The 2D SentinelGlobe
+   renders underneath and fades out once the GL context is live, so there
+   is always something on screen — and a clean fallback if WebGL, the GPU,
+   or the model is unavailable (older phones, low memory, context loss).
    ═══════════════════════════════════════════════════════════════════════ */
 
 const MODEL = "/models/earth.glb";
+useGLTF.preload(MODEL);
 
-function hasWebGL() {
+function webglSupport() {
   try {
     const c = document.createElement("canvas");
-    return !!(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl")));
+    const gl = c.getContext("webgl2") || c.getContext("webgl") || c.getContext("experimental-webgl");
+    if (!gl) return false;
+    // some mobile GPUs report a context but cap textures below what we need
+    return (gl.getParameter(gl.MAX_TEXTURE_SIZE) || 0) >= 2048;
   } catch {
     return false;
   }
@@ -55,7 +57,7 @@ function Earth({ spin = true }) {
   }, [scene]);
 
   useFrame((_, dt) => {
-    if (spin && ref.current) ref.current.rotation.y += dt * 0.1;
+    if (spin && ref.current) ref.current.rotation.y += Math.min(dt, 0.05) * 0.1;
   });
 
   return (
@@ -64,16 +66,17 @@ function Earth({ spin = true }) {
     </group>
   );
 }
-useGLTF.preload(MODEL);
 
 export default function SentinelGlobe3D({ className = "", onTap }) {
-  const [ok] = useState(() => typeof window !== "undefined" && hasWebGL());
+  const [ok] = useState(() => typeof window !== "undefined" && webglSupport());
+  const [failed, setFailed] = useState(false);
   const [live, setLive] = useState(false);
   const [dragging, setDragging] = useState(false);
   const down = useRef(null);
   const moved = useRef(false);
+  const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
 
-  if (!ok) return <SentinelGlobe className={className} />;
+  if (!ok || failed) return <SentinelGlobe className={className} />;
 
   const fallback2D = (
     <div className="absolute inset-0">
@@ -91,7 +94,7 @@ export default function SentinelGlobe3D({ className = "", onTap }) {
       }}
       onPointerMoveCapture={(e) => {
         if (!down.current) return;
-        if (Math.hypot(e.clientX - down.current[0], e.clientY - down.current[1]) > 6) {
+        if (Math.hypot(e.clientX - down.current[0], e.clientY - down.current[1]) > 8) {
           moved.current = true;
           setDragging(true);
         }
@@ -115,12 +118,22 @@ export default function SentinelGlobe3D({ className = "", onTap }) {
 
       <Boundary fallback={fallback2D}>
         <Canvas
-          dpr={[1, 2]}
+          dpr={isMobile ? [1, 1.5] : [1, 2]}
           camera={{ position: [0, 0, 3.4], fov: 34 }}
-          gl={{ antialias: true, alpha: true }}
+          gl={{ antialias: !isMobile, alpha: true, powerPreference: "default", failIfMajorPerformanceCaveat: false }}
           className="!absolute inset-0"
           style={{ background: "transparent" }}
-          onCreated={() => window.setTimeout(() => setLive(true), 450)}
+          onCreated={({ gl }) => {
+            window.setTimeout(() => setLive(true), 450);
+            gl.domElement.addEventListener(
+              "webglcontextlost",
+              (ev) => {
+                ev.preventDefault();
+                setFailed(true);
+              },
+              { once: true }
+            );
+          }}
         >
           <ambientLight intensity={1.15} />
           <directionalLight position={[3, 2, 4]} intensity={2.2} />
@@ -133,7 +146,7 @@ export default function SentinelGlobe3D({ className = "", onTap }) {
             enableZoom={false}
             enableDamping
             dampingFactor={0.08}
-            rotateSpeed={0.45}
+            rotateSpeed={0.4}
             minPolarAngle={Math.PI * 0.12}
             maxPolarAngle={Math.PI * 0.88}
           />
