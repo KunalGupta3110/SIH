@@ -27,6 +27,7 @@ export default {
       },
       fontFamily: {
         display: ["'Fraunces'", "Georgia", "serif"],
+        heading: ["'Chakra Petch'", "'Geist'", "'Inter'", "system-ui", "sans-serif"],
         sans: ["'Geist'", "'Inter'", "-apple-system", "BlinkMacSystemFont", "system-ui", "sans-serif"],
         hud: ["'Geist'", "'Inter'", "system-ui", "sans-serif"],
         mono: ["'JetBrains Mono'", "'Geist Mono'", "ui-monospace", "SFMono-Regular", "monospace"],

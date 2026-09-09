@@ -297,7 +297,7 @@ export default function GlobeModal({ onClose }) {
         {/* globe */}
         <div className="relative min-h-0 flex-1">
           <canvas ref={canvasRef} className="h-full w-full cursor-grab active:cursor-grabbing touch-none" />
-          <div className="pointer-events-none absolute left-4 bottom-4 font-mono text-[9px] text-white/35">
+          <div className="pointer-events-none absolute left-4 bottom-4 font-hud text-[9px] font-medium text-white/35">
             drag to rotate · scroll to zoom
           </div>
         </div>

@@ -560,7 +560,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
                 <Shield size={15} />
               </div>
               <div className="leading-tight">
-                <div className="font-display text-sm font-semibold tracking-wide text-white">
+                <div className="font-heading text-sm font-bold tracking-wide text-white">
                   IBVAP Sentinel <span className="text-white/40">// AI watchfloor</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-mono text-[10px] text-white/50">
@@ -664,7 +664,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
                       <div className="absolute right-1.5 top-1.5 font-mono text-[8px] text-white/60">{tw.id}</div>
                     </div>
                     <div className="space-y-0.5 px-2 py-1.5">
-                      <div className={`font-mono text-[10px] font-bold ${alert ? "text-[#ef4444]" : "text-white"}`}>
+                      <div className={`font-mono text-[10px] font-medium ${alert ? "text-[#ef4444]" : "text-white"}`}>
                         {alert ? "Intruder · Re-ID match (testbed)" : tw.cam}
                       </div>
                       <div className="font-mono text-[8.5px] text-white/45">{tw.sector}</div>
@@ -711,7 +711,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
                 >
                   <div className="flex items-center justify-between">
                     <span
-                      className={`font-mono text-[8.5px] font-bold ${
+                      className={`font-mono text-[8.5px] font-semibold ${
                         inc.pri === "CRITICAL"
                           ? "text-[#ef4444]"
                           : inc.pri === "WARNING"
@@ -724,7 +724,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
                     <span className="font-mono text-[8.5px] text-white/40">{inc.t} IST</span>
                   </div>
                   <div className="mt-1 flex items-center gap-2 font-mono text-[10px] text-white">
-                    <span className="font-bold">{inc.id}</span>
+                    <span className="font-semibold">{inc.id}</span>
                     <span className="text-white/40">·</span>
                     <span>{inc.cam}</span>
                     <span className="ml-auto flex items-center gap-1 text-white/50 group-hover:text-white">
@@ -732,22 +732,22 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
                       <ChevronRight size={11} />
                     </span>
                   </div>
-                  <div className="mt-1 font-mono text-[8.5px] leading-relaxed text-white/45">{inc.text}</div>
+                  <div className="mt-1 font-sans text-[8.5px] font-medium leading-relaxed text-white/45">{inc.text}</div>
                 </button>
               ))}
             </div>
           </div>
 
           {/* bottom: selected tower readout + scene hint */}
-          <div className="z-30 flex items-center justify-between gap-3 border-t border-white/12 bg-black/70 px-4 py-2 font-mono text-[10px] text-white/60 backdrop-blur-md">
+          <div className="z-30 flex items-center justify-between gap-3 border-t border-white/12 bg-black/70 px-4 py-2 font-hud text-[10px] font-medium text-white/60 backdrop-blur-md">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5 text-white">
                 <Crosshair size={12} />
-                {selTower?.id} · {selTower?.cam}
+                <span className="font-mono">{selTower?.id} · {selTower?.cam}</span>
               </span>
               <span className="hidden sm:inline">{selTower?.sector}</span>
               <span className="hidden md:inline">
-                FOV 62° · AZ {String(Math.round(((TOWERS.indexOf(selTower) + 1) * 78) % 360)).padStart(3, "0")}°
+                FOV <span className="font-mono">62°</span> · AZ <span className="font-mono">{String(Math.round(((TOWERS.indexOf(selTower) + 1) * 78) % 360)).padStart(3, "0")}°</span>
               </span>
             </div>
             <span className="hidden text-white/35 sm:inline">
@@ -762,7 +762,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
             className="absolute left-1/2 top-14 z-40 -translate-x-1/2 border border-[#ef4444] bg-black px-5 py-2 text-center"
             style={{ animation: "fade-up 0.35s ease both" }}
           >
-            <div className="font-mono text-xs font-bold text-[#ef4444]">
+            <div className="font-heading text-xs font-bold text-[#ef4444]">
               ⚠ PERIMETER BREACH DETECTED · SECTOR 4-B / WEST RIDGE
             </div>
             <div className="mt-0.5 font-mono text-[9px] text-white/50">
@@ -795,7 +795,7 @@ function Telem({ label, value }) {
 
 function PanelTitle({ icon: Icon, children }) {
   return (
-    <div className="flex items-center gap-1.5 border-b border-white/12 pb-1.5 font-mono text-[9px] font-bold text-white/70">
+    <div className="flex items-center gap-1.5 border-b border-white/12 pb-1.5 font-heading text-[9px] font-semibold text-white/70">
       <Icon size={11} />
       {children}
     </div>
@@ -805,13 +805,13 @@ function PanelTitle({ icon: Icon, children }) {
 function MetricCard({ icon: Icon, label, value, unit }) {
   return (
     <div className="border border-white/12 bg-black p-3">
-      <div className="flex items-center gap-1.5 font-mono text-[9px] text-white/45">
+      <div className="flex items-center gap-1.5 font-mono text-[9px] font-medium text-white/45">
         <Icon size={11} />
         {label}
       </div>
-      <div className="mt-1 font-mono text-xl font-bold tabular-nums text-white">
+      <div className="mt-1 font-mono text-xl font-semibold tabular-nums text-white">
         {value}
-        <span className="ml-1 text-[10px] font-normal text-white/40">{unit}</span>
+        <span className="ml-1 text-[10px] font-medium text-white/40">{unit}</span>
       </div>
     </div>
   );

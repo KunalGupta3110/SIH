@@ -773,7 +773,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-extrabold text-white">IBVAP Sentinel</span>
+                <span className="font-heading text-sm font-bold text-white">IBVAP Sentinel</span>
                 <span className="text-base" title="Sashastra Seema Bal / Ministry of Home Affairs">🇮🇳</span>
               </div>
               <div className="text-[9px] font-bold text-white/55 font-mono">
@@ -958,7 +958,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     ) : (
                       <Icon size={17} className={isActive ? "text-white" : "text-white/55 group-hover:text-white"} />
                     )}
-                    <span className={isActive ? "text-white font-semibold" : "text-white/55 group-hover:text-white"}>
+                    <span className={`font-heading font-semibold ${isActive ? "text-white" : "text-white/55 group-hover:text-white"}`}>
                       {item.label}
                     </span>
                   </div>

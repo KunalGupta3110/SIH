@@ -21,6 +21,21 @@ body {
   letter-spacing: -0.02em;
 }
 
+/* Console/app typography floors — nothing in the operator UI renders below 500.
+   Kept in @layer base so Tailwind's font-weight utilities still win where set. */
+@layer base {
+  .sentinel-console {
+    font-weight: 500;
+  }
+  .sentinel-console .font-mono {
+    font-weight: 500;
+  }
+  /* Chakra Petch reads a touch wide; a hair of negative tracking on headings. */
+  .sentinel-console .font-heading {
+    letter-spacing: -0.005em;
+  }
+}
+
 ::selection {
   background: rgba(255, 255, 255, 0.16);
   color: #ffffff;

@@ -453,13 +453,13 @@ export default function LandingPage() {
                   </Suspense>
                 </WhenVisible>
               </div>
-              <span className="pointer-events-none absolute left-3 top-3 font-mono text-[9px] text-white/40">
+              <span className="pointer-events-none absolute left-3 top-3 font-sans text-[9px] font-medium text-white/40">
                 Sector 4-B · terrain model
               </span>
               <span className="pointer-events-none absolute bottom-3 right-3 hidden font-mono text-[9px] text-white/45 sm:block">
                 32.04°N&nbsp;·&nbsp;75.40°E
               </span>
-              <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-mono text-[9px] text-white/50 transition-colors sm:text-white/0 sm:group-hover:text-white/55">
+              <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-sans text-[9px] font-medium text-white/50 transition-colors sm:text-white/0 sm:group-hover:text-white/55">
                 tap to open 3D terrain →
               </span>
             </button>
@@ -499,7 +499,7 @@ export default function LandingPage() {
             </div>
             <div className="relative">
               <IsometricTerrain mode="hero" />
-              <span className="pointer-events-none absolute left-3 bottom-3 font-mono text-[8.5px] text-white/35">
+              <span className="pointer-events-none absolute left-3 bottom-3 font-sans text-[8.5px] font-medium text-white/35">
                 FOV model · 5 nodes
               </span>
               <div className="animate-drift absolute left-3 top-3 border border-white/20 bg-black/80 px-2.5 py-1.5 backdrop-blur-sm">

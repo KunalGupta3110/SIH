@@ -142,7 +142,7 @@ class GLBoundary extends Component {
   static getDerivedStateFromError() { return { dead: true }; }
   render() {
     return this.state.dead
-      ? <div className="grid h-full place-items-center font-mono text-[10px] text-white/40">Hologram offline</div>
+      ? <div className="grid h-full place-items-center font-hud text-[10px] font-medium text-white/40">Hologram offline</div>
       : this.props.children;
   }
 }
@@ -239,7 +239,7 @@ export default function TargetBiometricInspector({ open, onClose, subject = {} }
                     </Canvas>
                   </GLBoundary>
                 ) : (
-                  <div className="grid h-full place-items-center font-mono text-[10px] text-white/40">
+                  <div className="grid h-full place-items-center font-hud text-[10px] font-medium text-white/40">
                     biometric hologram · webgl unavailable
                   </div>
                 )}
