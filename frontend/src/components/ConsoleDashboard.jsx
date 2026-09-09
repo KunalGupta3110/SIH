@@ -5,10 +5,12 @@ import siren from "../lib/audioSiren.js";
 import { useIncidentStream } from "../lib/useIncidentStream.js";
 import { CountUp } from "../lib/motion.jsx";
 import TacticalWatchfloor from "./TacticalWatchfloor.jsx";
+import AnalyticsSummary from "./AnalyticsSummary.jsx";
 
 // 3D border-terrain map — code-split (pulls in three.js) so it only loads
 // when the operator opens the Border Map view.
 const BorderTerrainMapPanel = lazy(() => import("./gis/BorderTerrainPanel.jsx"));
+const GeoFenceCanvas = lazy(() => import("./gis/GeoFenceCanvas.jsx"));
 import {
   Shield,
   Search,
@@ -171,6 +173,9 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
   // Geofence corridor distance slider (meters)
   const [geofenceDistance, setGeofenceDistance] = useState(100);
+
+  // Border Map sub-view: 3D terrain model vs. the zone editor
+  const [mapTab, setMapTab] = useState("terrain"); // 'terrain' | 'zones'
 
   // Live CCTV Threat Ingress Lab State (Interactive car / intruder moving towards camera)
   const [ingressScenario, setIngressScenario] = useState("vehicle"); // 'vehicle' | 'person'
@@ -1980,15 +1985,43 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           {/* VIEW 4: BORDER MAP (Full GIS Command Center)           */}
           {/* ══════════════════════════════════════════════════════ */}
           {activeNav === "map" && (
-            <Suspense
-              fallback={
-                <div className="grid h-[68vh] place-items-center rounded-2xl border border-white/12 bg-[#000000] font-mono text-[11px] text-white/45">
-                  loading terrain map…
-                </div>
-              }
-            >
-              <BorderTerrainMapPanel />
-            </Suspense>
+            <div className="space-y-4 animate-fadeIn">
+              <div className="flex items-center gap-1.5 rounded-xl border border-white/12 bg-[#000000] p-1 w-fit">
+                {[
+                  ["terrain", "3D Terrain Model"],
+                  ["zones", "Geo-Fence Editor"],
+                ].map(([id, label]) => (
+                  <button
+                    key={id}
+                    onClick={() => { triggerSound("click"); setMapTab(id); }}
+                    className={`px-3.5 py-1.5 rounded-lg font-heading text-[12px] font-semibold transition-colors ${
+                      mapTab === id ? "bg-white/[0.06] text-white border border-white/12" : "text-white/55 hover:text-white border border-transparent"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <Suspense
+                fallback={
+                  <div className="grid h-[68vh] place-items-center rounded-2xl border border-white/12 bg-[#000000] text-[11px] font-medium text-white/45">
+                    loading {mapTab === "zones" ? "zone editor" : "terrain map"}…
+                  </div>
+                }
+              >
+                {mapTab === "terrain" ? (
+                  <BorderTerrainMapPanel />
+                ) : (
+                  <GeoFenceCanvas
+                    onDeploy={(zones) =>
+                      setActionNotice(
+                        `${zones.length} geo-fence zone${zones.length === 1 ? "" : "s"} staged for the correlation engine`
+                      )
+                    }
+                  />
+                )}
+              </Suspense>
+            </div>
           )}
 
           {/* ══════════════════════════════════════════════════════ */}
@@ -2226,6 +2259,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   </div>
                 </div>
               </div>
+
+              <AnalyticsSummary />
             </div>
           )}
 
