@@ -11,11 +11,13 @@ import {
   CameraRail,
   BreachBanner,
   TacticalLoader,
+  SectorSwitcher,
   useCameras,
   useIsMobile,
   hasWebGL,
   SceneBoundary,
 } from "./BorderTerrainModal.jsx";
+import { getSector, DEFAULT_SECTOR_ID } from "../../config/terrains.js";
 
 /* ═══════════════════════════════════════════════════════════════════════
    BorderTerrainPanel — the console's Border Map view.
@@ -28,16 +30,28 @@ const CYAN = "#3ff09a";
 const RED = "#ff2233";
 
 export default function BorderTerrainPanel() {
-  const cameras = useCameras();
+  const [sectorId, setSectorId] = useState(DEFAULT_SECTOR_ID);
+  const sector = getSector(sectorId);
+  const cameras = useCameras(sector);
   const [selected, setSelected] = useState(null);
   const [drone, setDrone] = useState(false);
   const [breach, setBreach] = useState(false);
+  const [loadingSector, setLoadingSector] = useState(false);
   const [webgl] = useState(() => hasWebGL());
   const lite = useIsMobile();
   const selCam = selected ? cameras.find((c) => c.id === selected.id) || selected : null;
   const live = cameras.filter((c) => c.status === "ONLINE" || c.status === "ALERT").length;
   const pickCam = (c) => { setDrone(false); setSelected(c); };
   const [bio, setBio] = useState(null);
+
+  const switchSector = (id) => {
+    if (id === sectorId) return;
+    setSelected(null);
+    setDrone(false);
+    setBreach(false);
+    setLoadingSector(true);
+    setSectorId(id);
+  };
 
   useEffect(() => {
     const onUav = () => { setSelected(null); setDrone(true); };
@@ -56,10 +70,10 @@ export default function BorderTerrainPanel() {
         <div>
           <h2 className="text-base font-bold text-white flex items-center gap-2">
             <MapIcon size={18} className="text-white" />
-            <span>Sector 4-B · 3D Terrain Map &amp; Sensor Topology</span>
+            <span>{sector.sectorCode} · {sector.name} · 3D Terrain &amp; Sensor Topology</span>
           </h2>
           <p className="text-xs text-white/55">
-            {cameras.length} camera nodes · {live} live · geofenced corridor · live status from edge
+            {cameras.length} camera nodes · {live} live · {sector.agency} · live status from edge
           </p>
         </div>
         <button
@@ -88,7 +102,14 @@ export default function BorderTerrainPanel() {
                 onPointerMissed={() => { setSelected(null); setDrone(false); }}
               >
                 <Suspense fallback={null}>
-                  <Scene cameras={cameras} selected={selected} breach={breach} onSelect={pickCam} />
+                  <Scene
+                    sector={sector}
+                    cameras={cameras}
+                    selected={selected}
+                    breach={breach}
+                    onSelect={pickCam}
+                    onTerrainReady={() => setLoadingSector(false)}
+                  />
                 </Suspense>
               </Canvas>
             </Suspense>
@@ -96,6 +117,21 @@ export default function BorderTerrainPanel() {
         ) : (
           <div className="grid h-full place-items-center px-6 text-center font-hud text-[13px] leading-relaxed text-white/45">
             WebGL is unavailable in this browser — the camera roster is still live in the rail
+          </div>
+        )}
+
+        <SectorSwitcher
+          active={sectorId}
+          onSelect={switchSector}
+          className="pointer-events-auto absolute left-1/2 top-3 z-20 -translate-x-1/2"
+        />
+
+        {loadingSector && (
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 -translate-y-1/2 text-center">
+            <span className="inline-flex items-center gap-2 border border-[#3ff09a]/30 bg-black/70 px-3 py-1.5 font-hud text-[11px] text-white/70 backdrop-blur-md">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#3ff09a]" />
+              Loading {sector.name} · {sector.sectorCode}
+            </span>
           </div>
         )}
 
@@ -114,8 +150,8 @@ export default function BorderTerrainPanel() {
           onSelect={pickCam}
           className={
             lite
-              ? "pointer-events-auto absolute inset-x-2 top-2 z-20"
-              : "pointer-events-auto absolute left-4 top-4 z-20 w-52"
+              ? "pointer-events-auto absolute inset-x-2 top-16 z-20"
+              : "pointer-events-auto absolute left-4 top-14 z-20 w-52"
           }
         />
 

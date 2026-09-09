@@ -19,6 +19,7 @@ import * as THREE from "three";
 import gsap from "gsap";
 import { X, Radio, MapPin, Activity, ExternalLink, AlertTriangle, Video, ScanFace } from "lucide-react";
 import api from "../../lib/api.js";
+import { TERRAIN_SECTORS, DEFAULT_SECTOR_ID, getSector } from "../../config/terrains.js";
 
 // biometric Re-ID dossier drawer — split (its own hologram canvas), only
 // loaded when a flagged target is opened.
@@ -38,16 +39,15 @@ const RED = "#ff2233";
 // diorama footprint (world units) + how far the tactical layout is spread
 const WORLD = 58;
 const SPREAD = 2.4;
-const Y_EXAG = 2.4; // vertical exaggeration — the source DEM is very flat
 
 const MODELS = {
-  terrain: "/models/terrain_map.glb",
   cctv: "/models/cctv_camera.glb",
   drone: "/models/drone.glb",
 };
-useGLTF.preload(MODELS.terrain);
 useGLTF.preload(MODELS.cctv);
 useGLTF.preload(MODELS.drone);
+// the default sector's terrain eagerly; the rest load on first switch
+useGLTF.preload(getSector(DEFAULT_SECTOR_ID).model);
 
 // glassmorphic HUD surface — floating panels over the terrain
 const GLASS =
@@ -75,62 +75,88 @@ const _DOWN = new THREE.Vector3(0, -1, 0);
 
 const worldXZ = (pos) => [pos[0] * SPREAD, pos[1] * SPREAD];
 
-// drop a ray straight down and return the terrain surface height at x,z
+// drop a ray straight down and return the terrain surface height at x,z.
+// If the exact point is off the mesh (thin/narrow terrains like a bridge
+// span), pull the sample progressively toward the centre until it lands —
+// so nodes still plant on a real surface instead of floating at y=0.
 function sampleY(terrain, x, z, fallback = 0) {
   if (!terrain) return fallback;
-  _ray.set(_origin.set(x, 800, z), _DOWN);
-  _ray.far = 2000;
-  const hits = _ray.intersectObject(terrain, true);
-  return hits.length ? hits[0].point.y : fallback;
+  terrain.updateWorldMatrix(true, true); // ensure the mesh transform is current
+  _ray.far = 4000;
+  for (const t of [1, 0.85, 0.7, 0.55, 0.4, 0.25, 0.12, 0]) {
+    _ray.set(_origin.set(x * t, 2000, z * t), _DOWN);
+    const hits = _ray.intersectObject(terrain, true);
+    if (hits.length) return hits[0].point.y;
+  }
+  return fallback;
 }
 
 /* ── terrain surface context (set once the GLB has mounted) ───────────── */
 const TerrainCtx = createContext(null);
 function useTerrainY(x, z, fallback = 0) {
   const terrain = useContext(TerrainCtx);
-  return useMemo(() => sampleY(terrain, x, z, fallback), [terrain, x, z, fallback]);
+  const [y, setY] = useState(fallback);
+  const locked = useRef(false);
+  useEffect(() => {
+    locked.current = false;
+    setY(fallback);
+  }, [terrain, x, z, fallback]);
+  // re-sample every frame until a real surface hit lands — the terrain
+  // mesh's world matrix isn't reliably settled the instant onReady fires.
+  useFrame(() => {
+    if (locked.current || !terrain) return;
+    const h = sampleY(terrain, x, z, null);
+    if (h != null && Number.isFinite(h)) {
+      setY(h);
+      locked.current = true;
+    }
+  });
+  return y;
 }
 
 /* ── CCTV network ───────────────────────────────────────────────────────
-   Live status (ONLINE / STALE / OFFLINE / ALERT) comes from the backend
-   GET /cameras/health via useCameras(). The backend does not yet expose
-   per-camera geo or stream URLs, so the diorama position, lat/lon and the
-   feed clip are a local overlay keyed by camera_id.                       */
-const CAMERA_GEO = {
-  CAM_ALPHA: { pos: [-9, -4], sector: "North pass · ingress", feed: "/data/ibvap_real_yolo_demo.mp4", lat: "32.0412°N", lon: "75.3980°E" },
-  CAM_BRAVO: { pos: [1, 2], sector: "Restricted saddle", feed: "/data/people_surveillance_web.mp4", lat: "32.1021°N", lon: "75.2841°E", forceAlert: true },
-  CAM_CHARLIE: { pos: [8, -3], sector: "East ridge overwatch", feed: "/data/cross_cam_real_demo_web.mp4", lat: "32.0930°N", lon: "75.1502°E" },
-  CAM_DELTA: { pos: [-4, 6], sector: "Valley approach", feed: "/data/detected_output_web.mp4", lat: "32.0088°N", lon: "75.4410°E" },
-  CAM_ECHO: { pos: [6, 8], sector: "South corridor", feed: "/data/vtest_surveillance_output_web.mp4", lat: "31.9721°N", lon: "75.0980°E" },
-};
-const ORDER = ["CAM_ALPHA", "CAM_BRAVO", "CAM_CHARLIE", "CAM_DELTA", "CAM_ECHO"];
-
-function buildCameras(healthRows) {
+   Roster + diorama layout come from the active terrain sector
+   (src/config/terrains.js). Live status (ONLINE / STALE / OFFLINE /
+   ALERT) is overlaid from the backend GET /cameras/health when that
+   sector's camera ids are known to the backend; otherwise the sector's
+   declared status stands.                                                */
+function buildCameras(sector, healthRows) {
   const byId = {};
   (healthRows || []).forEach((r) => {
     byId[r.camera_id || r.id] = r;
   });
-  return ORDER.filter((id) => CAMERA_GEO[id]).map((id) => {
-    const geo = CAMERA_GEO[id];
-    const h = byId[id] || {};
+  return (sector?.cameras || []).map((cam) => {
+    const h = byId[cam.id] || {};
+    const known = Object.keys(h).length > 0;
     const faulted = h.simulated_fault || h.status === "FAULT" || h.status === "OFFLINE";
     const stale = h.status === "STALE" || (h.seconds_since_heartbeat ?? 0) > 8;
-    const status = faulted ? "OFFLINE" : geo.forceAlert ? "ALERT" : stale ? "STALE" : "ONLINE";
-    const fps = h.fps ?? 29.8;
-    const health = Math.round(h.health_score ?? (status === "OFFLINE" ? 0 : status === "STALE" ? 71 : 92 + ((id.charCodeAt(4) * 3) % 7)));
+    const status = known
+      ? faulted
+        ? "OFFLINE"
+        : cam.status === "ALERT"
+        ? "ALERT"
+        : stale
+        ? "STALE"
+        : "ONLINE"
+      : cam.status;
+    const cc = cam.id.charCodeAt(cam.id.length - 1);
+    const fps = h.fps ?? (status === "OFFLINE" ? 0 : status === "STALE" ? 21.4 : 29.8);
+    const health = Math.round(
+      h.health_score ?? (status === "OFFLINE" ? 0 : status === "STALE" ? 71 : 92 + ((cc * 3) % 7))
+    );
     return {
-      id,
-      pos: geo.pos,
-      sector: geo.sector,
-      lat: geo.lat,
-      lon: geo.lon,
-      video: geo.feed,
+      id: cam.id,
+      name: h.name || cam.name || cam.id,
+      pos: cam.pos,
+      sector: cam.sector,
+      lat: cam.lat,
+      lon: cam.lon,
+      video: cam.feed,
       status,
-      name: h.name || id,
-      ping: Math.round(h.latency_ms ?? (14 + ((id.charCodeAt(4) * 7) % 12))),
+      ping: Math.round(h.latency_ms ?? (14 + ((cc * 7) % 12))),
       fps,
       health,
-      track: 10 + ((id.charCodeAt(4) * 7) % 88),
+      track: 10 + ((cc * 7) % 88),
       // signal % from live frame-rate; uptime % from heartbeat freshness
       signalPct: Math.max(0, Math.min(100, Math.round((fps / 30) * 100))),
       uptimePct: status === "OFFLINE" ? 0 : status === "STALE" ? 88 : Math.min(99.9, 99.9 - (h.seconds_since_heartbeat ?? 2) * 0.15),
@@ -138,15 +164,17 @@ function buildCameras(healthRows) {
   });
 }
 
-// Live camera roster — polls the edge; falls back to the local overlay only.
-export function useCameras(pollMs = 6000) {
-  const [cameras, setCameras] = useState(() => buildCameras(null));
+// Live camera roster for a sector — polls the backend; falls back to the
+// sector's declared roster. Resets immediately when the sector changes.
+export function useCameras(sector, pollMs = 6000) {
+  const [cameras, setCameras] = useState(() => buildCameras(sector, null));
   useEffect(() => {
+    setCameras(buildCameras(sector, null));
     let alive = true;
     const pull = async () => {
       try {
         const res = await api.getCameraHealth();
-        if (alive && res?.cameras) setCameras(buildCameras(res.cameras));
+        if (alive && res?.cameras) setCameras(buildCameras(sector, res.cameras));
       } catch {
         /* offline — keep the local roster */
       }
@@ -157,7 +185,7 @@ export function useCameras(pollMs = 6000) {
       alive = false;
       clearInterval(t);
     };
-  }, [pollMs]);
+  }, [sector, pollMs]);
   return cameras;
 }
 
@@ -211,9 +239,9 @@ function GlbInstance({ url, targetSize = 1, scale = 1, rotation }) {
   );
 }
 
-/* ── central terrain: the mountain GLB ─────────────────────────────────── */
-function TerrainGLB({ onReady }) {
-  const { scene } = useGLTF(MODELS.terrain);
+/* ── central terrain: the active sector's GLB ──────────────────────────── */
+function TerrainGLB({ model, yExag = 2.4, onReady }) {
+  const { scene } = useGLTF(model);
   const ref = useRef(null);
 
   const obj = useMemo(() => {
@@ -222,9 +250,9 @@ function TerrainGLB({ onReady }) {
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     const k = WORLD / (Math.max(size.x, size.z) || 1);
-    s.scale.set(k, k * Y_EXAG, k);
+    s.scale.set(k, k * yExag, k);
     // sit the terrain's lowest point at local y=0 (predictable base plane)
-    s.position.set(-center.x * k, -box.min.y * k * Y_EXAG, -center.z * k);
+    s.position.set(-center.x * k, -box.min.y * k * yExag, -center.z * k);
     s.traverse((o) => {
       if (o.isMesh) {
         o.receiveShadow = true;
@@ -233,10 +261,11 @@ function TerrainGLB({ onReady }) {
       }
     });
     return s;
-  }, [scene]);
+  }, [scene, yExag]);
 
   useEffect(() => {
     if (ref.current) onReady(ref.current);
+    return () => onReady(null); // clear the surface ref while the next terrain loads
   }, [obj, onReady]);
 
   return (
@@ -459,23 +488,24 @@ function FocusRig({ target, controlsRef, terrain }) {
    The project's Re-ID is validated on the CAM_ALPHA ↔ CAM_BRAVO pair
    (2-cam testbed); this spline contours the terrain surface between the
    tracked cameras with travelling pulses, and goes crimson on breach.    */
-function ReidPath({ active }) {
+function ReidPath({ active, chain = [] }) {
   const terrain = useContext(TerrainCtx);
   const p0 = useRef(null);
   const p1 = useRef(null);
   const p2 = useRef(null);
   const pulses = [p0, p1, p2];
   const clock = useRef(0);
+  const key = chain.map((p) => p.join()).join("|");
 
   const curve = useMemo(() => {
-    const chain = ["CAM_ALPHA", "CAM_BRAVO", "CAM_CHARLIE"]
-      .map((id) => CAMERA_GEO[id])
-      .filter(Boolean)
-      .map((g) => worldXZ(g.pos));
+    const nodes = chain.map((p) => worldXZ(p));
+    if (nodes.length < 2) {
+      return new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3(0, 0, 1)]);
+    }
     const pts = [];
-    for (let i = 0; i < chain.length - 1; i++) {
-      const [ax, az] = chain[i];
-      const [bx, bz] = chain[i + 1];
+    for (let i = 0; i < nodes.length - 1; i++) {
+      const [ax, az] = nodes[i];
+      const [bx, bz] = nodes[i + 1];
       for (let s = 0; s < 12; s++) {
         const t = s / 12;
         const x = ax + (bx - ax) * t;
@@ -483,10 +513,11 @@ function ReidPath({ active }) {
         pts.push(new THREE.Vector3(x, sampleY(terrain, x, zz, 0) + 1.4, zz));
       }
     }
-    const [lx, lz] = chain[chain.length - 1];
+    const [lx, lz] = nodes[nodes.length - 1];
     pts.push(new THREE.Vector3(lx, sampleY(terrain, lx, lz, 0) + 1.4, lz));
     return new THREE.CatmullRomCurve3(pts);
-  }, [terrain]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [terrain, key]);
 
   const linePts = useMemo(() => curve.getPoints(90), [curve]);
   const mid = useMemo(() => curve.getPoint(0.5), [curve]);
@@ -506,6 +537,8 @@ function ReidPath({ active }) {
       r.current.material.opacity = 0.3 + fade * 0.7;
     });
   });
+
+  if (chain.length < 2) return null;
 
   return (
     <group>
@@ -542,31 +575,38 @@ function ReidPath({ active }) {
    the HUD tag are fixed-transform children, so they can never detach. The
    only per-frame child write is the beam's own Z-axis scanning sweep.     */
 const DRONE_WAYPOINTS = [
-  [-10, 8, -6], [0, 9, -8], [10, 8, 2], [5, 7.5, 8], [-8, 8, 4],
+  [-9, 8, -3], [0, 9, -4.5], [9, 8, 1], [5, 7.5, 4], [-7, 8, 2.5],
 ];
 const DRONE_SPEED = 0.017;
 const DRONE_YAW = Math.PI; // model-forward correction
+// hover above whatever the terrain surface is directly below — keeps the
+// UV scan cone + ground reticle (fixed children at local y ≈ -8.9) landing
+// exactly on the surface on any terrain, flat bridge span included.
+const DRONE_HOVER = 8.9;
 const UV = "#3ff09a"; // UV / thermal scan tint
 
 // tap on the drone (3D mesh or HUD tag) → DOM event; the outer modal/panel
 // listens for this (crosses the drei <Html> React-root boundary cleanly).
 const fireUavSelect = () => window.dispatchEvent(new CustomEvent("uav-select"));
 
-function PatrolDrone() {
+function PatrolDrone({ path }) {
   const droneGroupRef = useRef(null); // the single synchronized unit
   const beamRef = useRef(null); // scanning-optics Z-sweep only (rotation, not position)
   const [hovered, setHovered] = useState(false);
+  const terrain = useContext(TerrainCtx);
+  const flyY = useRef(null); // smoothed surface-follow altitude
+  const waypoints = path && path.length >= 3 ? path : DRONE_WAYPOINTS;
 
   const uvGlow = useMemo(() => new THREE.Color(UV).multiplyScalar(2), []);
   const curve = useMemo(
     () =>
       new THREE.CatmullRomCurve3(
-        DRONE_WAYPOINTS.map(([x, y, z]) => new THREE.Vector3(x * SPREAD, y * 1.5, z * SPREAD)),
+        waypoints.map(([x, y, z]) => new THREE.Vector3(x * SPREAD, y * 1.5, z * SPREAD)),
         true,
         "catmullrom",
         0.4
       ),
-    []
+    [waypoints]
   );
   const pos = useMemo(() => new THREE.Vector3(), []);
   const tan = useMemo(() => new THREE.Vector3(), []);
@@ -581,8 +621,11 @@ function PatrolDrone() {
     curve.getPoint(t, pos);
     curve.getTangent(t, tan);
 
-    // (1) the whole unit rides the curve — position + a gentle bob
-    g.position.set(pos.x, pos.y + Math.sin(time * 3) * 0.22, pos.z);
+    // (1) the whole unit rides the curve in X/Z, but its altitude follows the
+    //     terrain surface directly below so the scan cone always hits ground
+    const targetY = sampleY(terrain, pos.x, pos.z, 0) + DRONE_HOVER;
+    flyY.current = flyY.current == null ? targetY : flyY.current + (targetY - flyY.current) * 0.06;
+    g.position.set(pos.x, flyY.current + Math.sin(time * 3) * 0.22, pos.z);
 
     // (2) …and yaws to face travel direction (quaternion only, kept upright
     //     so the scan cone stays pointed straight down)
@@ -697,26 +740,33 @@ export function TacticalLoader() {
   );
 }
 
-export function Scene({ cameras, selected, breach, onSelect }) {
+export function Scene({ sector, cameras, selected, breach, onSelect, onTerrainReady }) {
   const controlsRef = useRef(null);
   const lite = useIsMobile();
   const [terrain, setTerrain] = useState(null);
-  const onReady = useCallback((obj) => setTerrain(obj), []);
+  const onReady = useCallback(
+    (obj) => {
+      setTerrain(obj);
+      if (obj) onTerrainReady?.();
+    },
+    [onTerrainReady]
+  );
 
   const alertCam = cameras.find((c) => c.status === "ALERT");
   const focusTarget = selected || (breach && alertCam ? alertCam : null);
+  const reidChain = useMemo(() => cameras.slice(0, 3).map((c) => c.pos), [cameras]);
 
   return (
     <>
-      <color attach="background" args={["#0b131c"]} />
-      <fog attach="fog" args={["#0b131c", 110, 240]} />
-      <ambientLight intensity={lite ? 1.25 : 1.0} />
-      <hemisphereLight args={["#dbe8f2", "#2b2721", lite ? 1.05 : 0.85]} />
+      <color attach="background" args={[sector.bg]} />
+      <fog attach="fog" args={[sector.fog, 110, 240]} />
+      <ambientLight intensity={lite ? 1.25 : 1.0} color={sector.ambient} />
+      <hemisphereLight args={[sector.ambient, "#2b2721", lite ? 1.05 : 0.85]} />
       {/* crisp directional sunlight — upper-left, soft shadows over the ridges */}
       <directionalLight
         position={[-38, 54, 30]}
         intensity={2.5}
-        color="#fff3e0"
+        color={sector.sun}
         castShadow={!lite}
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
@@ -735,7 +785,7 @@ export function Scene({ cameras, selected, breach, onSelect }) {
 
       <TerrainCtx.Provider value={terrain}>
         <Suspense fallback={null}>
-          <TerrainGLB onReady={onReady} />
+          <TerrainGLB key={sector.model} model={sector.model} yExag={sector.yExag} onReady={onReady} />
         </Suspense>
 
         {terrain && (
@@ -749,9 +799,9 @@ export function Scene({ cameras, selected, breach, onSelect }) {
                 onSelect={onSelect}
               />
             ))}
-            <ReidPath active={breach} />
+            <ReidPath active={breach} chain={reidChain} />
             <PerimeterFence breach={breach} />
-            <PatrolDrone />
+            <PatrolDrone path={sector.dronePath} />
           </>
         )}
       </TerrainCtx.Provider>
@@ -1116,19 +1166,67 @@ export function CameraRail({ cameras, selected, onSelect, className = "" }) {
   );
 }
 
+/* ── tactical multi-terrain switcher ──────────────────────────────────── */
+export function SectorSwitcher({ active, onSelect, className = "" }) {
+  // warm the other terrain GLBs once the switcher is on screen
+  useEffect(() => {
+    const t = setTimeout(() => {
+      TERRAIN_SECTORS.forEach((s) => {
+        if (s.id !== active) useGLTF.preload(s.model);
+      });
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [active]);
+
+  return (
+    <div className={`flex items-center gap-1 border border-white/12 bg-black/70 p-1 backdrop-blur-md ${className}`}>
+      {TERRAIN_SECTORS.map((s) => {
+        const on = s.id === active;
+        return (
+          <button
+            key={s.id}
+            onClick={() => onSelect(s.id)}
+            title={`${s.sectorCode} · ${s.name}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 font-hud text-[11px] font-semibold transition-colors ${
+              on ? "bg-[#3ff09a]/15 text-[#3ff09a]" : "text-white/55 hover:text-white"
+            }`}
+          >
+            {on && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#3ff09a]" />}
+            <span className="hidden sm:inline">{s.name}</span>
+            <span className="sm:hidden">{s.sectorCode}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════════ */
 export default function BorderTerrainModal({ onClose }) {
-  const cameras = useCameras();
+  const [sectorId, setSectorId] = useState(DEFAULT_SECTOR_ID);
+  const sector = getSector(sectorId);
+  const cameras = useCameras(sector);
   const [selected, setSelected] = useState(null);
   const [drone, setDrone] = useState(false);
   const [bio, setBio] = useState(null);
   const [breach, setBreach] = useState(false);
+  const [loadingSector, setLoadingSector] = useState(false);
   const [webgl] = useState(() => hasWebGL());
   const lite = useIsMobile();
   const online = cameras.filter((c) => c.status === "ONLINE" || c.status === "ALERT").length;
 
   const selCam = selected ? cameras.find((c) => c.id === selected.id) || selected : null;
   const pickCam = (c) => { setDrone(false); setSelected(c); };
+
+  const switchSector = useCallback((id) => {
+    if (id === sectorId) return;
+    setSelected(null);
+    setDrone(false);
+    setBio(null);
+    setBreach(false);
+    setLoadingSector(true);
+    setSectorId(id);
+  }, [sectorId]);
 
   useEffect(() => {
     const onUav = () => { setSelected(null); setDrone(true); };
@@ -1161,10 +1259,10 @@ export default function BorderTerrainModal({ onClose }) {
           </span>
           <div className="min-w-0 leading-tight">
             <div className="truncate font-hud text-[13px] font-semibold tracking-tight sm:text-[14px]">
-              Sector 4-B <span className="hidden font-normal text-white/55 sm:inline">· Live Terrain Model</span>
+              {sector.sectorCode} <span className="hidden font-normal text-white/55 sm:inline">· Live Terrain Model</span>
             </div>
             <div className="truncate font-hud text-[11px] text-white/45">
-              {cameras.length} nodes · {online} live · SSB Gurdaspur
+              {cameras.length} nodes · {online} live · {sector.agency}
             </div>
           </div>
         </div>
@@ -1203,7 +1301,14 @@ export default function BorderTerrainModal({ onClose }) {
                 onPointerMissed={() => { setSelected(null); setDrone(false); }}
               >
                 <Suspense fallback={null}>
-                  <Scene cameras={cameras} selected={selected} breach={breach} onSelect={pickCam} />
+                  <Scene
+                    sector={sector}
+                    cameras={cameras}
+                    selected={selected}
+                    breach={breach}
+                    onSelect={pickCam}
+                    onTerrainReady={() => setLoadingSector(false)}
+                  />
                 </Suspense>
               </Canvas>
             </Suspense>
@@ -1225,6 +1330,21 @@ export default function BorderTerrainModal({ onClose }) {
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden text-center font-hud text-[11px] text-white/35 sm:block">
           Drag to orbit · scroll to zoom · tap a camera or the UAV for its feed
         </div>
+
+        <SectorSwitcher
+          active={sectorId}
+          onSelect={switchSector}
+          className="pointer-events-auto absolute left-1/2 top-4 z-20 -translate-x-1/2"
+        />
+
+        {loadingSector && (
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 -translate-y-1/2 text-center">
+            <span className="inline-flex items-center gap-2 border border-[#3ff09a]/30 bg-black/70 px-3 py-1.5 font-hud text-[11px] text-white/70 backdrop-blur-md">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#3ff09a]" />
+              Loading {sector.name} · {sector.sectorCode}
+            </span>
+          </div>
+        )}
 
         <CameraRail
           cameras={cameras}

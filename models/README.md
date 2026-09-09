@@ -3,13 +3,14 @@
 Original, uncompressed `.glb` downloads — the **source of truth** for the 3D
 assets used across the app. Tracked with **Git LFS** (`models/*.glb`).
 
-The app does **not** load these directly. Web-optimised copies (Draco geometry
-compression + WebP textures, produced with `@gltf-transform/cli optimize`) live
-in [`frontend/public/models/`](../frontend/public/models) and are what the
+The app does **not** load these directly. Web-optimised copies (WebP textures +
+meshopt geometry where needed, produced with `@gltf-transform/cli optimize`)
+live in [`frontend/public/models/`](../frontend/public/models) and are what the
 Vite build ships.
 
-All optimised copies: **WebP textures ≤ 2048 px, no Draco** (so no external
-decoder dependency and no decode cost on mobile GPUs).
+All optimised copies: **WebP textures ≤ 2048 px, never Draco** — geometry is
+left raw or **meshopt**-compressed (drei bundles the meshopt decoder, so there
+is no external CDN dependency and no mobile-GPU decode cost).
 
 | Source file | ~size | Optimised as | Used by |
 |---|---|---|---|
@@ -20,10 +21,29 @@ decoder dependency and no decode cost on mobile GPUs).
 | `3d_human_body_wireframe_model.glb` | 6.4 MB | `suspect_biometric.glb` (~0.9 MB) | `gis/TargetBiometricInspector` — Re-ID hologram |
 | `bunker_v_b87c.glb` | 125 MB | — (feature removed) | not currently used |
 
+### Multi-terrain sectors — `models/terrains/` → `frontend/public/models/terrains/`
+
+Switchable border sectors in the 3D terrain view (`src/config/terrains.js`).
+These sources are **geometry-heavy**, so they use **meshopt** compression
+(bundled decoder — no external dependency, unlike Draco) plus mesh
+simplification.
+
+| Source file | ~size | Optimised as | Sector |
+|---|---|---|---|
+| `death_valley_-_terrain.glb` | 71 MB | `terrains/desert.glb` (~2 MB) | Sector 8-A · Thar Desert Frontier |
+| `old_bridge_and_riverbank.glb` | 81 MB | `terrains/riverine.glb` (~3.4 MB) | Sector 2-C · River Bridge Crossing |
+
 ## Re-optimising
 
 ```bash
+# small textures, no geometry compression (models with light meshes)
 npx @gltf-transform/cli@4 optimize models/<source>.glb \
   frontend/public/models/<name>.glb \
   --compress false --texture-compress webp --texture-size 2048
+
+# geometry-heavy terrains: meshopt + simplify
+npx @gltf-transform/cli@4 optimize models/terrains/<source>.glb \
+  frontend/public/models/terrains/<name>.glb \
+  --compress meshopt --texture-compress webp --texture-size 2048 \
+  --simplify-error 0.01
 ```
