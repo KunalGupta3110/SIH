@@ -9,13 +9,16 @@ Description: Explainable rule-based alert generation engine, severity tiering,
 from dataclasses import asdict
 from datetime import datetime, timezone
 import json
+import logging
 import os
 from pathlib import Path
 import sqlite3
 import sys
 import time
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 import uuid
+
+logger = logging.getLogger("ibvap.alerts")
 
 # Ensure project root is in sys.path
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -211,12 +214,16 @@ class AlertEngine:
         db: Optional[EventDatabase] = None,
         thumbnail_dir: str = "data/thumbnails",
         alert_cooldown_sec: float = 3.0,
+        event_sink: Optional[Callable[[SecurityEvent], Any]] = None,
     ):
         self.zone_manager = zone_manager
         self.db = db if db is not None else EventDatabase()
         self.thumbnail_dir = thumbnail_dir
         self.alert_cooldown_ms = alert_cooldown_sec * 1000.0
         self.threat_analyzer = BorderThreatAnalyzer()
+        # Optional downstream consumer (e.g. gateway forwarder). Called once per
+        # generated event; failures here must never disturb the detection loop.
+        self.event_sink = event_sink
         os.makedirs(self.thumbnail_dir, exist_ok=True)
 
         # camera_id -> Dict[track_id, TrackState]
@@ -456,6 +463,15 @@ class AlertEngine:
             for ev in events:
                 if ev.severity in (AlertSeverity.CRITICAL, AlertSeverity.WARNING):
                     send_mobile_alert(ev)
+
+        # Hand each event to the optional downstream sink (gateway forwarder).
+        # Isolated so a slow/broken sink can never stall or crash the pipeline.
+        if events and self.event_sink is not None:
+            for ev in events:
+                try:
+                    self.event_sink(ev)
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("event_sink failed for %s: %s", ev.event_id, exc)
 
         return events
 

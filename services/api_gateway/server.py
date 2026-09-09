@@ -6,22 +6,27 @@ evidence-chain audit, mobile token registration, and safe hardware simulation.
 The heavier camera/CV stack is imported lazily only for stream endpoints.
 """
 
+import asyncio
 from datetime import datetime, timezone
+import logging
 import os
 from pathlib import Path
 import sys
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
+
+logger = logging.getLogger("ibvap.gateway")
 
 from core.backend_service import get_backend
 from services.hardware_bridge.serial_controller import get_hardware_controller
@@ -50,6 +55,81 @@ if not STATIC_HTML.exists():
     STATIC_HTML = ROOT_DIR / "apps" / "web_command_center" / "static" / "index.html"
 
 CURRENT_ARM_STATE = {"arm_state": "armed"}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Real-time incident stream (WebSocket push, not polling)
+# ─────────────────────────────────────────────────────────────────────────────
+class IncidentStreamManager:
+    """Tracks connected dashboard clients and pushes incident updates to them."""
+
+    def __init__(self) -> None:
+        self._clients: set[WebSocket] = set()
+        self._lock = asyncio.Lock()
+
+    async def connect(self, websocket: WebSocket) -> None:
+        await websocket.accept()
+        async with self._lock:
+            self._clients.add(websocket)
+        logger.info("incident stream: client connected (%d total)", len(self._clients))
+
+    async def disconnect(self, websocket: WebSocket) -> None:
+        async with self._lock:
+            self._clients.discard(websocket)
+        logger.info("incident stream: client disconnected (%d total)", len(self._clients))
+
+    async def broadcast(self, message: Dict[str, Any]) -> None:
+        async with self._lock:
+            targets = list(self._clients)
+        dead: List[WebSocket] = []
+        for websocket in targets:
+            try:
+                await websocket.send_json(message)
+            except Exception:  # noqa: BLE001 - a dead socket must never break ingestion
+                dead.append(websocket)
+        if dead:
+            async with self._lock:
+                for websocket in dead:
+                    self._clients.discard(websocket)
+
+
+incident_stream = IncidentStreamManager()
+
+
+async def broadcast_incident_update(incident: Optional[Dict[str, Any]]) -> None:
+    """Push a single correlated incident to every connected dashboard client."""
+    if not incident or not incident.get("incident_id"):
+        return
+    await incident_stream.broadcast({"type": "incident_update", "payload": incident})
+
+
+async def _broadcast_from_ingest_result(result: Optional[Dict[str, Any]]) -> None:
+    """Resolve an incident from an ingest_event() result and broadcast it."""
+    if not result:
+        return
+    incident = result.get("incident")
+    if not incident and result.get("incident_id"):
+        incident = await run_in_threadpool(get_backend().get_incident, result["incident_id"])
+    await broadcast_incident_update(incident)
+
+
+@app.websocket("/ws/incidents")
+async def incidents_websocket(websocket: WebSocket) -> None:
+    await incident_stream.connect(websocket)
+    try:
+        await websocket.send_json(
+            {"type": "connected", "payload": {"ts": datetime.now(timezone.utc).isoformat()}}
+        )
+        # The dashboard is a passive consumer; this loop just keeps the socket open
+        # and lets us notice a client-side disconnect promptly.
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        pass
+    except Exception:  # noqa: BLE001
+        pass
+    finally:
+        await incident_stream.disconnect(websocket)
 
 
 class ArmStateRequest(BaseModel):
@@ -143,12 +223,16 @@ def set_arm_state(req: ArmStateRequest):
 
 @app.post("/events")
 @app.post("/v1/events")
-def ingest_event(event: EventIn):
+@app.post("/events/ingest")
+async def ingest_event(event: EventIn):
     try:
-        result = get_backend().ingest_event(event.model_dump(exclude_none=True))
-        return {"ok": True, **result}
+        result = await run_in_threadpool(
+            get_backend().ingest_event, event.model_dump(exclude_none=True)
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    await _broadcast_from_ingest_result(result)
+    return {"ok": True, **result}
 
 
 @app.get("/incidents")
@@ -217,20 +301,24 @@ def register_device_token(payload: RegisterTokenRequest):
 
 @app.post("/events/simulate-handoff")
 @app.post("/v1/events/simulate-handoff")
-def simulate_handoff():
-    return {"ok": True, **get_backend().simulate_handoff()}
+async def simulate_handoff():
+    result = await run_in_threadpool(get_backend().simulate_handoff)
+    for entry in result.get("events", []):
+        await _broadcast_from_ingest_result(entry)
+    return {"ok": True, **result}
 
 
 @app.post("/events/run-live-inference")
 @app.post("/v1/events/run-live-inference")
-def run_live_inference_endpoint():
+async def run_live_inference_endpoint():
     """Run genuine YOLOv8 model inference on demo footage and ingest breach incident."""
     from backend.live_inference import run_live_yolo_inference
     try:
-        result = run_live_yolo_inference()
-        return {"ok": True, **result}
+        result = await run_in_threadpool(run_live_yolo_inference)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+    await _broadcast_from_ingest_result(result)
+    return {"ok": True, **result}
 
 
 @app.get("/events/live-detections")

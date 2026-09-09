@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } fro
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../lib/api.js";
 import siren from "../lib/audioSiren.js";
+import { useIncidentStream } from "../lib/useIncidentStream.js";
 import { CountUp } from "../lib/motion.jsx";
 import TacticalWatchfloor from "./TacticalWatchfloor.jsx";
 
@@ -122,6 +123,23 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
   const [actionNotice, setActionNotice] = useState(null);
   const [armedState, setArmedState] = useState(true);
   const [alarmThreshold, setAlarmThreshold] = useState(75);
+
+  // Real-time incident push from the gateway (/ws/incidents). Falls back to
+  // static demo data when no backend is reachable (e.g. the Vercel deploy).
+  const { connected: liveConnected, incidents: liveIncidents, latestIncident, alertedCameraIds } =
+    useIncidentStream();
+  const seenLiveIncidentRef = useRef(null);
+  useEffect(() => {
+    if (!latestIncident) return;
+    const key = `${latestIncident.incident_id}:${latestIncident.threat_score}`;
+    if (seenLiveIncidentRef.current === key) return;
+    seenLiveIncidentRef.current = key;
+    const cams = (latestIncident.cameras_involved || []).join(" → ") || "perimeter";
+    setActionNotice(
+      `⚡ Live: ${latestIncident.incident_id} · ${cams} · threat ${latestIncident.threat_score}/100 (${latestIncident.severity})`,
+    );
+    setTimeout(() => setActionNotice(null), 5000);
+  }, [latestIncident]);
 
   // PTZ Control State
   const [ptzZoomLevel, setPtzZoomLevel] = useState(1.0);
@@ -337,7 +355,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
   };
 
   // Camera list (6 cameras matching reference image)
-  const displayCameras = useMemo(() => {
+  const baseCameras = useMemo(() => {
     return [
       { id: "CAM_ALPHA", name: "CAM_ALPHA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/sample_border_web.mp4", hasDetection: false, tag: "Perimeter Ingress", fps: "25.0", bitrate: "4.1 Mbps", res: "1920x1080", fov: "60°", azimuth: "042°", temp: "38.2°C" },
       { id: "CAM_BRAVO", name: "CAM_BRAVO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/people_surveillance_web.mp4", hasDetection: true, label: "Person", conf: "0.94", tag: "Active Breach", fps: "24.8", bitrate: "4.4 Mbps", res: "1920x1080", fov: "65°", azimuth: "078°", temp: "39.4°C" },
@@ -347,6 +365,17 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
       { id: "CAM_FOXTROT", name: "CAM_FOXTROT", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/threat_group_breach_web.mp4", hasDetection: false, tag: "Open Ground", fps: "25.0", bitrate: "4.3 Mbps", res: "1920x1080", fov: "80°", azimuth: "240°", temp: "39.0°C" },
     ];
   }, []);
+
+  // Fold the live incident stream into camera status: a camera named in a
+  // recent WebSocket incident flips to ALERT with no refresh.
+  const displayCameras = useMemo(() => {
+    if (!alertedCameraIds || alertedCameraIds.size === 0) return baseCameras;
+    return baseCameras.map((cam) =>
+      alertedCameraIds.has(cam.id)
+        ? { ...cam, status: "ALERT", hasDetection: true, live: true, tag: "Zone intrusion (live)" }
+        : cam,
+    );
+  }, [baseCameras, alertedCameraIds]);
 
   // Tracked Targets list
   const trackedTargets = [
@@ -1065,6 +1094,12 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                       <span className="text-sm font-bold text-white">Live Surveillance</span>
                       <span className="text-xs text-white font-mono ml-1">6 Cameras</span>
+                      {liveConnected && (
+                        <span className="ml-1 inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+                          Realtime
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-1 text-xs bg-[#000000] p-1 rounded-lg border border-white/12">
                       <button
@@ -1091,12 +1126,15 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     {displayCameras.map((cam) => {
                       const isSelected = selectedCameraId === cam.id;
+                      const isAlert = cam.status === "ALERT";
                       return (
                         <div
                           key={cam.id}
                           onClick={() => { triggerSound("click"); setSelectedCameraId(cam.id); }}
                           className={`group relative aspect-video rounded-xl overflow-hidden bg-black border transition-all cursor-pointer ${
-                            isSelected
+                            isAlert
+                              ? "border-rose-500/60 ring-1 ring-rose-500/40"
+                              : isSelected
                               ? "border-white/12 shadow-none ring-1 ring-white/20"
                               : "border-white/12 hover:border-white/30"
                           }`}
@@ -1111,7 +1149,9 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                           />
                           <div className="absolute top-0 inset-x-0 h-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent px-2 flex items-center justify-between text-[10px] font-mono">
                             <span className="text-white font-semibold">{cam.name} <span className="text-white/55 font-normal">{cam.sector}</span></span>
-                            <span className="flex items-center gap-1 text-white/60"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />REC</span>
+                            {isAlert
+                              ? <span className="flex items-center gap-1 text-rose-400 font-semibold"><span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />ALERT</span>
+                              : <span className="flex items-center gap-1 text-white/60"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />REC</span>}
                           </div>
                           {cam.hasDetection && (
                             <div className="absolute top-[20%] left-[38%] w-[24%] h-[60%] border-2 border-red-500 rounded-sm pointer-events-none shadow-[0_0_10px_rgba(239,68,68,0.6)] flex flex-col justify-start">

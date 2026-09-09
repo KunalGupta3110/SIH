@@ -30,3 +30,11 @@ Thumbs.db
 
 # Node (root Capacitor project)
 node_modules/
+
+# SQLite write-ahead-log sidecars (the .db itself is tracked as demo data)
+data/*.db-wal
+data/*.db-shm
+
+# Local dev env for the Vite frontend
+frontend/.env.local
+frontend/.env.*.local

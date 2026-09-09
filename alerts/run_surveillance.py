@@ -30,6 +30,7 @@ import cv2
 import numpy as np
 
 from alerts.events import AlertEngine, EventDatabase
+from alerts.gateway_forwarder import GatewayForwarder
 from alerts.schema import AlertSeverity, AlertType, SecurityEvent
 from alerts.sound_alerts import play_alert
 from alerts.zones import Zone, ZoneManager, ZoneType
@@ -98,6 +99,8 @@ def run_surveillance_pipeline(
     db_path: str = "data/events.db",
     device: Optional[str] = None,
     show: bool = True,
+    gateway_url: Optional[str] = None,
+    forward_to_gateway: bool = True,
 ):
     """
     Executes the Master Unified Border Surveillance Engine across all threat scenarios.
@@ -134,7 +137,20 @@ def run_surveillance_pipeline(
     # Initialize Tracker, DB, and Alert Engine
     tracker = BorderTracker(model_path=model_path, device=device)
     db = EventDatabase(db_path=db_path)
-    alert_engine = AlertEngine(zone_manager=zone_manager, db=db, thumbnail_dir="data/thumbnails", alert_cooldown_sec=2.0)
+
+    event_sink = None
+    if forward_to_gateway:
+        forwarder = GatewayForwarder(base_url=gateway_url, enabled=True)
+        event_sink = forwarder.forward
+        print(f"[IBVAP] Forwarding zone events to gateway: {forwarder.base_url}/events")
+
+    alert_engine = AlertEngine(
+        zone_manager=zone_manager,
+        db=db,
+        thumbnail_dir="data/thumbnails",
+        alert_cooldown_sec=2.0,
+        event_sink=event_sink,
+    )
 
     writer = None
     if output_path:
@@ -238,6 +254,11 @@ def main():
     parser.add_argument("--device", type=str, default=None, help="'cpu', 'cuda', etc.")
     parser.add_argument("--show", action="store_true", default=True, help="Show real-time GUI window (default: True)")
     parser.add_argument("--no-show", action="store_true", help="Disable live GUI window")
+    parser.add_argument("--gateway-url", type=str, default=None,
+                        help="FastAPI gateway base URL for real-time event forwarding "
+                             "(default: $IBVAP_GATEWAY_URL or http://127.0.0.1:8000)")
+    parser.add_argument("--no-forward", action="store_true",
+                        help="Do not POST zone events to the gateway (local SQLite logging only)")
     args = parser.parse_args()
 
     source = int(args.source) if args.source.isdigit() else args.source
@@ -252,6 +273,8 @@ def main():
         db_path=args.db,
         device=args.device,
         show=show_gui,
+        gateway_url=args.gateway_url,
+        forward_to_gateway=not args.no_forward,
     )
 
 
