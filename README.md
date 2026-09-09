@@ -65,7 +65,7 @@ SIH/
 │   └── server.py                   # REST endpoints (/incidents, /edge/status)
 ├── dashboard/                      # Web Command & Control Center
 │   └── app.py                      # Streamlit dashboard with 2D GIS Border Map
-├── sentinel_admin_app/             # Cross-platform Flutter Admin Client
+├── apps/mobile_admin/              # Cross-platform Flutter Admin Client
 │   ├── lib/                        # Riverpod features (Dashboard, Incidents, Alerts)
 │   └── pubspec.yaml                # Flutter project dependencies
 ├── data/                           # Video samples, thumbnails, SQLite database
@@ -96,7 +96,7 @@ python run_ecosystem.py
 
 ### 3. Launch Flutter Admin Mobile App
 ```bash
-cd sentinel_admin_app
+cd apps/mobile_admin
 flutter pub get
 flutter run
 ```

@@ -284,7 +284,7 @@ IBVAP Sentinel Ecosystem
 │  │  ├─ Operator Triage Interface
 │  │  └─ Evidence Chain Viewer
 │  │
-│  └─ Flutter Mobile Admin App (sentinel_admin_app/)
+│  └─ Flutter Mobile Admin App (apps/mobile_admin/)
 │     ├─ Incident Feed UI
 │     ├─ Arm/Disarm Controls
 │     ├─ Push Notification Handler
@@ -932,7 +932,7 @@ Interactive Streamlit-based command center for operators.
 
 ---
 
-### 7. Flutter Mobile Admin App (`sentinel_admin_app/`)
+### 7. Flutter Mobile Admin App (`apps/mobile_admin/`)
 
 #### Platform Support
 - **Android:** Minimum API 21 (Lollipop), Target API 34+
@@ -1012,7 +1012,7 @@ TabBar (Bottom Navigation):
 
 #### Development Setup
 ```bash
-cd sentinel_admin_app
+cd apps/mobile_admin
 flutter pub get
 flutter run          # Debug on emulator
 flutter build apk    # Android release
@@ -1745,7 +1745,7 @@ python run_ecosystem.py --threat-demo
 
 ### Step 8: Deploy Flutter Mobile App
 ```bash
-cd sentinel_admin_app
+cd apps/mobile_admin
 
 # Android
 flutter build apk --release
