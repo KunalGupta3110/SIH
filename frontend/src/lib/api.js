@@ -2,15 +2,17 @@
 // Supports all live endpoints with fallback for static/offline preview.
 
 const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+export const API_BASE = BASE;
 
 let mockArmState = "armed";
 let mockNetworkDown = false;
 let mockQueuedCount = 0;
 let mockCameraHealth = [
-  { camera_id: "CAM_ALPHA", status: "ONLINE", seconds_since_heartbeat: 4.2, simulated_fault: false },
-  { camera_id: "CAM_BRAVO", status: "ONLINE", seconds_since_heartbeat: 8.5, simulated_fault: false },
-  { camera_id: "CAM_CHARLIE", status: "ONLINE", seconds_since_heartbeat: 12.1, simulated_fault: false },
-  { camera_id: "CAM_DELTA", status: "ONLINE", seconds_since_heartbeat: 15.0, simulated_fault: false },
+  { camera_id: "CAM_WEBCAM", status: "OFFLINE", seconds_since_heartbeat: 0, simulated_fault: false, details: "Preview mode — backend unreachable, webcam not probed", fps: 0 },
+  { camera_id: "CAM_ALPHA", status: "ONLINE", seconds_since_heartbeat: 4.2, simulated_fault: false, fps: 29.8 },
+  { camera_id: "CAM_BRAVO", status: "ONLINE", seconds_since_heartbeat: 8.5, simulated_fault: false, fps: 30.0 },
+  { camera_id: "CAM_CHARLIE", status: "ONLINE", seconds_since_heartbeat: 12.1, simulated_fault: false, fps: 25.0 },
+  { camera_id: "CAM_DELTA", status: "ONLINE", seconds_since_heartbeat: 15.0, simulated_fault: false, fps: 28.5 },
 ];
 let mockCalibration = {
   total_dismissed: 4,

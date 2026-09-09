@@ -35,68 +35,60 @@ class CameraHealthMonitor:
     """
 
     def __init__(self):
+        # Every camera starts as CONNECTING with fps=0.0 — not a hardcoded
+        # "nominal" fiction. Status only moves to ONLINE once record_frame()
+        # receives a real frame from core.vision.live_stream, or to OFFLINE
+        # if that worker can't open its source at all. A UI polling this
+        # before the first real frame arrives sees an honest "connecting"
+        # state, never fabricated FPS/latency numbers.
+        now_iso = datetime.now(timezone.utc).isoformat()
         self.cameras: Dict[str, CameraHealthRecord] = {
             "CAM_ALPHA": CameraHealthRecord(
-                camera_id="CAM_ALPHA",
-                name="Checkpost Alpha Main Gate",
-                location="Sector 4 Northern Crossing",
-                status="ONLINE",
-                fps=29.8,
-                last_heartbeat_iso=datetime.now(timezone.utc).isoformat(),
-                frame_hash="",
-                latency_ms=11.4,
-                details="Nominal optical video stream"
+                camera_id="CAM_ALPHA", name="Checkpost Alpha Main Gate", location="Sector 4 Northern Crossing",
+                status="CONNECTING", fps=0.0, last_heartbeat_iso=now_iso, frame_hash="", latency_ms=0.0,
+                details="Awaiting first frame from recorded feed",
             ),
             "CAM_BRAVO": CameraHealthRecord(
-                camera_id="CAM_BRAVO",
-                name="BOP Bravo Outer Perimeter",
-                location="Eastern Fence Corridor",
-                status="ONLINE",
-                fps=30.0,
-                last_heartbeat_iso=datetime.now(timezone.utc).isoformat(),
-                frame_hash="",
-                latency_ms=14.2,
-                details="Nominal optical video stream"
+                camera_id="CAM_BRAVO", name="BOP Bravo Outer Perimeter", location="Eastern Fence Corridor",
+                status="CONNECTING", fps=0.0, last_heartbeat_iso=now_iso, frame_hash="", latency_ms=0.0,
+                details="Awaiting first frame from recorded feed",
             ),
             "CAM_CHARLIE": CameraHealthRecord(
-                camera_id="CAM_CHARLIE",
-                name="Tower Charlie Thermal Pan",
-                location="Ridge Watchpoint 7",
-                status="ONLINE",
-                fps=25.0,
-                last_heartbeat_iso=datetime.now(timezone.utc).isoformat(),
-                frame_hash="",
-                latency_ms=18.5,
-                details="Nominal thermal LWIR stream"
+                camera_id="CAM_CHARLIE", name="Tower Charlie Thermal Pan", location="Ridge Watchpoint 7",
+                status="CONNECTING", fps=0.0, last_heartbeat_iso=now_iso, frame_hash="", latency_ms=0.0,
+                details="Awaiting first frame from recorded feed",
             ),
             "CAM_DELTA": CameraHealthRecord(
-                camera_id="CAM_DELTA",
-                name="Riverine Sentry Delta",
-                location="Creek Sector 2",
-                status="ONLINE",
-                fps=28.5,
-                last_heartbeat_iso=datetime.now(timezone.utc).isoformat(),
-                frame_hash="",
-                latency_ms=15.0,
-                details="Nominal day/night stream"
+                camera_id="CAM_DELTA", name="Riverine Sentry Delta", location="Creek Sector 2",
+                status="CONNECTING", fps=0.0, last_heartbeat_iso=now_iso, frame_hash="", latency_ms=0.0,
+                details="Awaiting first frame from recorded feed",
+            ),
+            "CAM_WEBCAM": CameraHealthRecord(
+                camera_id="CAM_WEBCAM", name="Operator Device Webcam (Live)", location="Local operator machine",
+                status="CONNECTING", fps=0.0, last_heartbeat_iso=now_iso, frame_hash="", latency_ms=0.0,
+                details="Awaiting first frame from physical webcam",
             ),
         }
 
     def record_frame(self, camera_id: str, frame_bytes: Optional[bytes] = None) -> CameraHealthRecord:
-        """Updates health stats based on incoming frame bytes."""
+        """Updates health stats from a real incoming frame. fps/latency are
+        measured from actual wall-clock inter-frame timing, not fabricated —
+        the first call after a camera starts has no prior timestamp to
+        measure against, so it reports 0.0 rather than guessing a number."""
+        now = time.time()
         now_iso = datetime.now(timezone.utc).isoformat()
         if camera_id not in self.cameras:
             self.cameras[camera_id] = CameraHealthRecord(
-                camera_id=camera_id,
-                name=f"Camera {camera_id}",
-                location="Unknown Sector",
-                status="ONLINE",
-                fps=30.0,
-                last_heartbeat_iso=now_iso,
-                frame_hash="",
+                camera_id=camera_id, name=f"Camera {camera_id}", location="Unknown Sector",
+                status="CONNECTING", fps=0.0, last_heartbeat_iso=now_iso, frame_hash="",
             )
 
         cam = self.cameras[camera_id]
+        prev_heartbeat = datetime.fromisoformat(cam.last_heartbeat_iso)
+        elapsed_s = max(1e-3, (datetime.now(timezone.utc) - prev_heartbeat).total_seconds())
+        if cam.frame_count > 0:
+            cam.fps = round(1.0 / elapsed_s, 1)
+            cam.latency_ms = round(elapsed_s * 1000, 1)
         cam.last_heartbeat_iso = now_iso
         cam.frame_count += 1
 
@@ -116,10 +108,14 @@ class CameraHealthMonitor:
         return cam
 
     def mark_offline(self, camera_id: str, reason: str = "Stream disconnected"):
-        if camera_id in self.cameras:
-            self.cameras[camera_id].status = "OFFLINE"
-            self.cameras[camera_id].fps = 0.0
-            self.cameras[camera_id].details = reason
+        if camera_id not in self.cameras:
+            self.cameras[camera_id] = CameraHealthRecord(
+                camera_id=camera_id, name=f"Camera {camera_id}", location="Unknown Sector",
+                status="OFFLINE", fps=0.0, last_heartbeat_iso=datetime.now(timezone.utc).isoformat(), frame_hash="",
+            )
+        self.cameras[camera_id].status = "OFFLINE"
+        self.cameras[camera_id].fps = 0.0
+        self.cameras[camera_id].details = reason
 
     def simulate_fault(self, camera_id: str, reason: str = "Operator-triggered fault simulation") -> Optional[CameraHealthRecord]:
         """Operator/demo hook: force a camera into FAULT state without a real feed."""

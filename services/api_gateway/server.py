@@ -558,18 +558,21 @@ def toggle_network():
     }
 
 
-def _stream_manager():
-    from core.vision.multi_stream_engine import get_stream_manager
+def _live_stream_manager():
+    from core.vision.live_stream import get_live_stream_manager
 
-    return get_stream_manager()
+    # Shares this gateway's existing CameraHealthMonitor instance so
+    # /cameras/health reflects each stream's real, measured state instead of
+    # tracking a second, disconnected copy.
+    return get_live_stream_manager(health_monitor=get_camera_health_monitor())
 
 
 def frame_generator(camera_id: str):
-    cam_proc = _stream_manager().get_camera(camera_id)
-    if not cam_proc:
+    worker = _live_stream_manager().get_worker(camera_id)
+    if not worker:
         return
     while True:
-        jpg_bytes = cam_proc.get_jpeg_frame()
+        jpg_bytes = worker.get_jpeg_frame()
         if jpg_bytes:
             yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + jpg_bytes + b"\r\n"
         time.sleep(0.033)
@@ -577,6 +580,8 @@ def frame_generator(camera_id: str):
 
 @app.get("/stream/{camera_id}")
 def stream_camera(camera_id: str):
+    if not _live_stream_manager().get_worker(camera_id):
+        raise HTTPException(status_code=404, detail=f"Unknown camera_id: {camera_id}")
     return StreamingResponse(frame_generator(camera_id), media_type="multipart/x-mixed-replace; boundary=frame")
 
 
