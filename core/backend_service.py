@@ -2,28 +2,64 @@
 IBVAP Sentinel backend service.
 
 This module keeps the production-facing backend logic in one readable place:
-SQLite schema setup, deterministic threat scoring, idempotent event ingestion,
-incident correlation, evidence ledger verification, FCM token storage, and
-safe hardware simulation hooks.
+deterministic threat scoring, idempotent event ingestion, incident
+correlation, evidence ledger verification, FCM token storage, and safe
+hardware simulation hooks.
+
+Persistence is SQLAlchemy + Alembic (core/db/) as of the ORM migration —
+schema lives in core/db/models.py, migrations in alembic/versions/, and
+core.db.migrate.ensure_schema() self-upgrades the database file to the
+latest revision on every SentinelBackend() construction. The public API on
+SentinelBackend is unchanged from the raw-sqlite3 version on purpose: the
+correlation/scoring/hash-chain logic below is already written and tested,
+this migration only changes how it talks to the database.
 """
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
 from pathlib import Path
 import sqlite3
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
+from sqlalchemy import desc, func, inspect, select, update
+from sqlalchemy.orm import Session, sessionmaker
+
+from core.camera_topology import get_transit_window_either_direction
+from core.db.base import build_engine, resolve_db_path
+from core.db.migrate import ensure_schema
+from core.db.models import (
+    Camera,
+    CameraAdjacency,
+    Detection,
+    EnrolledPerson,
+    EvidenceBlock,
+    FcmToken,
+    Incident,
+    IncidentEvent,
+    OperatorAuditLog,
+    SystemSetting,
+    SecurityEvent,
+    TrackedTarget,
+)
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = ROOT_DIR / "data" / "events.db"
 GENESIS_SEED = "sentinel::genesis::ssb-gurdaspur::2026"
 IST = timezone(timedelta(hours=5, minutes=30))
+# Fallback handoff window used when the two cameras aren't adjacent nodes in
+# core.camera_topology (e.g. ad hoc demo camera ids) — topology windows are
+# preferred whenever the pair is known.
 HANDOFF_MIN_SEC = 6.0
 HANDOFF_MAX_SEC = 14.0
+# Extra slack applied around a topology-derived window, matching the
+# tolerance used by core.rules.predictive_handoff's arrival check.
+HANDOFF_TOLERANCE_BEFORE_SEC = 2.0
+HANDOFF_TOLERANCE_AFTER_SEC = 4.0
 
 
 def utc_now_iso() -> str:
@@ -106,208 +142,102 @@ def calculate_threat_score(
 
 
 class SentinelBackend:
-    """Small SQLite-backed backend service for FastAPI and tests."""
+    """SQLAlchemy-backed backend service for FastAPI and tests."""
 
     def __init__(self, db_path: str | os.PathLike[str] = DEFAULT_DB_PATH):
-        self.db_path = Path(db_path)
-        if not self.db_path.is_absolute():
-            self.db_path = ROOT_DIR / self.db_path
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._init_db()
+        self.db_path = resolve_db_path(db_path)
+        ensure_schema(self.db_path)
+        self._engine = build_engine(self.db_path)
+        self._SessionLocal: sessionmaker[Session] = sessionmaker(
+            bind=self._engine, autoflush=False, expire_on_commit=False, future=True
+        )
+        self._ensure_genesis_block()
 
     def connect(self) -> sqlite3.Connection:
+        """
+        A raw sqlite3 connection to the same file, for tools/tests that need
+        to inspect or deliberately corrupt a row below the ORM (e.g. tamper-
+        evidence tests). Everything in this class itself uses self._session().
+        """
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys=ON")
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
         return conn
 
-    def _init_db(self) -> None:
-        with self.connect() as conn:
-            conn.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS security_events (
-                    event_id TEXT PRIMARY KEY,
-                    timestamp_iso TEXT NOT NULL,
-                    timestamp_ms REAL,
-                    camera_id TEXT NOT NULL,
-                    track_id INTEGER,
-                    class_name TEXT,
-                    alert_type TEXT,
-                    severity TEXT,
-                    zone_id TEXT,
-                    zone_name TEXT,
-                    details TEXT,
-                    bbox_json TEXT,
-                    centroid_json TEXT,
-                    rule_name TEXT,
-                    rule_metrics_json TEXT,
-                    confidence REAL DEFAULT 0.85,
-                    operator_status TEXT DEFAULT 'UNREVIEWED',
-                    operator_notes TEXT,
-                    operator_updated_at TEXT,
-                    thumbnail_path TEXT
-                );
+    @contextmanager
+    def _session(self) -> Iterator[Session]:
+        session = self._SessionLocal()
+        try:
+            yield session
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
 
-                CREATE TABLE IF NOT EXISTS incidents (
-                    incident_id TEXT PRIMARY KEY,
-                    created_at TEXT NOT NULL,
-                    closed_at TEXT,
-                    status TEXT DEFAULT 'open',
-                    threat_score INTEGER DEFAULT 0,
-                    confidence REAL DEFAULT 0.85,
-                    primary_object_id TEXT,
-                    target_class TEXT,
-                    severity TEXT,
-                    cameras_json TEXT DEFAULT '[]',
-                    story_summary TEXT,
-                    score_breakdown_json TEXT DEFAULT '[]',
-                    cryptographic_hash TEXT
-                );
-
-                CREATE TABLE IF NOT EXISTS incident_events (
-                    incident_id TEXT NOT NULL,
-                    event_id TEXT NOT NULL,
-                    contribution_weight REAL DEFAULT 1.0,
-                    created_at TEXT NOT NULL,
-                    PRIMARY KEY (incident_id, event_id),
-                    FOREIGN KEY (incident_id) REFERENCES incidents(incident_id),
-                    FOREIGN KEY (event_id) REFERENCES security_events(event_id)
-                );
-
-                CREATE TABLE IF NOT EXISTS audit_ledger (
-                    block_index INTEGER PRIMARY KEY,
-                    previous_hash TEXT NOT NULL,
-                    data_hash TEXT NOT NULL,
-                    current_hash TEXT NOT NULL,
-                    payload_json TEXT NOT NULL,
-                    timestamp TEXT NOT NULL
-                );
-
-                CREATE TABLE IF NOT EXISTS fcm_tokens (
-                    token TEXT PRIMARY KEY,
-                    device_id TEXT,
-                    platform TEXT,
-                    registered_at TEXT NOT NULL
-                );
-
-                CREATE TABLE IF NOT EXISTS system_audit (
-                    audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    action TEXT NOT NULL,
-                    payload_json TEXT DEFAULT '{}',
-                    created_at TEXT NOT NULL
-                );
-
-                CREATE INDEX IF NOT EXISTS idx_security_events_cam_time
-                    ON security_events(camera_id, timestamp_iso);
-                CREATE INDEX IF NOT EXISTS idx_security_events_status
-                    ON security_events(operator_status);
-                CREATE INDEX IF NOT EXISTS idx_security_events_severity
-                    ON security_events(severity);
-                CREATE INDEX IF NOT EXISTS idx_incidents_status
-                    ON incidents(status);
-                CREATE INDEX IF NOT EXISTS idx_incidents_object
-                    ON incidents(primary_object_id);
-                CREATE INDEX IF NOT EXISTS idx_incident_events_event
-                    ON incident_events(event_id);
-                CREATE INDEX IF NOT EXISTS idx_fcm_tokens_device
-                    ON fcm_tokens(device_id);
-                """
+    def _ensure_genesis_block(self) -> None:
+        with self._session() as session:
+            if session.get(EvidenceBlock, 0):
+                return
+            payload = {"genesis": GENESIS_SEED, "timestamp": "2026-01-01T00:00:00+00:00"}
+            payload_json = canonical_json(payload)
+            data_hash = sha256_text(payload_json)
+            current_hash = sha256_text("0" * 64 + data_hash)
+            session.add(
+                EvidenceBlock(
+                    block_index=0,
+                    previous_hash="0" * 64,
+                    data_hash=data_hash,
+                    current_hash=current_hash,
+                    payload_json=payload_json,
+                    timestamp=payload["timestamp"],
+                    operator_action="genesis",
+                )
             )
-            self._migrate_existing_db(conn)
-            self._ensure_genesis_block(conn)
-
-    def _migrate_existing_db(self, conn: sqlite3.Connection) -> None:
-        required_event_columns = {
-            "operator_updated_at": "TEXT",
-        }
-        existing = {row["name"] for row in conn.execute("PRAGMA table_info(security_events)")}
-        for column, column_type in required_event_columns.items():
-            if column not in existing:
-                conn.execute(f"ALTER TABLE security_events ADD COLUMN {column} {column_type}")
-
-    def _ensure_genesis_block(self, conn: sqlite3.Connection) -> None:
-        row = conn.execute("SELECT block_index FROM audit_ledger WHERE block_index = 0").fetchone()
-        if row:
-            return
-        payload = {
-            "genesis": GENESIS_SEED,
-            "timestamp": "2026-01-01T00:00:00+00:00",
-        }
-        payload_json = canonical_json(payload)
-        data_hash = sha256_text(payload_json)
-        current_hash = sha256_text("0" * 64 + data_hash)
-        conn.execute(
-            """
-            INSERT INTO audit_ledger
-                (block_index, previous_hash, data_hash, current_hash, payload_json, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (0, "0" * 64, data_hash, current_hash, payload_json, payload["timestamp"]),
-        )
 
     def get_table_names(self) -> List[str]:
-        with self.connect() as conn:
-            rows = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-            ).fetchall()
-            return [row["name"] for row in rows]
+        return sorted(inspect(self._engine).get_table_names())
 
     def ingest_event(self, event: Dict[str, Any]) -> Dict[str, Any]:
         event_id = str(event.get("event_id") or "").strip()
         if not event_id:
             raise ValueError("event_id is required")
 
-        with self.connect() as conn:
-            existing = conn.execute(
-                """
-                SELECT ie.incident_id
-                FROM security_events se
-                LEFT JOIN incident_events ie ON ie.event_id = se.event_id
-                WHERE se.event_id = ?
-                LIMIT 1
-                """,
-                (event_id,),
-            ).fetchone()
+        with self._session() as session:
+            existing = session.get(SecurityEvent, event_id)
             if existing:
-                incident = self.get_incident(existing["incident_id"]) if existing["incident_id"] else None
+                link = session.execute(
+                    select(IncidentEvent).where(IncidentEvent.event_id == event_id)
+                ).scalars().first()
+                incident = self._incident_row_to_dict(session, session.get(Incident, link.incident_id)) if link else None
                 return {"duplicate": True, "event_id": event_id, "incident": incident}
 
             normalized = self._normalize_event(event)
-            conn.execute(
-                """
-                INSERT INTO security_events (
-                    event_id, timestamp_iso, timestamp_ms, camera_id, track_id,
-                    class_name, alert_type, severity, zone_id, zone_name, details,
-                    bbox_json, centroid_json, rule_name, rule_metrics_json,
-                    confidence, operator_status, operator_notes, thumbnail_path
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    normalized["event_id"],
-                    normalized["timestamp_iso"],
-                    normalized["timestamp_ms"],
-                    normalized["camera_id"],
-                    normalized["track_id"],
-                    normalized["class_name"],
-                    normalized["alert_type"],
-                    normalized["severity"],
-                    normalized["zone_id"],
-                    normalized["zone_name"],
-                    normalized["details"],
-                    normalized["bbox_json"],
-                    normalized["centroid_json"],
-                    normalized["rule_name"],
-                    normalized["rule_metrics_json"],
-                    normalized["confidence"],
-                    "UNREVIEWED",
-                    None,
-                    normalized["thumbnail_path"],
-                ),
+            session.add(
+                SecurityEvent(
+                    event_id=normalized["event_id"],
+                    timestamp_iso=normalized["timestamp_iso"],
+                    timestamp_ms=normalized["timestamp_ms"],
+                    camera_id=normalized["camera_id"],
+                    track_id=normalized["track_id"],
+                    class_name=normalized["class_name"],
+                    alert_type=normalized["alert_type"],
+                    severity=normalized["severity"],
+                    zone_id=normalized["zone_id"],
+                    zone_name=normalized["zone_name"],
+                    details=normalized["details"],
+                    bbox_json=normalized["bbox_json"],
+                    centroid_json=normalized["centroid_json"],
+                    rule_name=normalized["rule_name"],
+                    rule_metrics_json=normalized["rule_metrics_json"],
+                    confidence=normalized["confidence"],
+                    operator_status="UNREVIEWED",
+                    operator_notes=None,
+                    thumbnail_path=normalized["thumbnail_path"],
+                )
             )
-            incident = self._correlate_event(conn, normalized)
-            conn.commit()
+            session.flush()
+            incident = self._correlate_event(session, normalized)
 
         return {"duplicate": False, "event_id": event_id, "incident": incident}
 
@@ -370,77 +300,70 @@ class SentinelBackend:
             return str(explicit)
         return f"TRG-{int(event['track_id']):04d}" if int(event["track_id"]) else f"TRG-{event['class_name'].upper()}"
 
-    def _correlate_event(self, conn: sqlite3.Connection, event: Dict[str, Any]) -> Dict[str, Any]:
+    def _correlate_event(self, session: Session, event: Dict[str, Any]) -> Dict[str, Any]:
         primary_object_id = self._primary_object_id(event)
         event_time = datetime.fromisoformat(event["timestamp_iso"].replace("Z", "+00:00"))
         if event_time.tzinfo is None:
             event_time = event_time.replace(tzinfo=timezone.utc)
 
-        incident = self._find_matching_incident(conn, primary_object_id, event, event_time)
+        incident_row, handoff_window = self._find_matching_incident(session, primary_object_id, event, event_time)
         force_cross_camera = False
 
-        if incident is None:
-            incident_id = self._next_incident_id(conn)
+        if incident_row is None:
+            incident_id = self._next_incident_id(session)
             created_at = event["timestamp_iso"]
             cameras = [event["camera_id"]]
             event_ids: List[str] = []
+            incident_row = Incident(
+                incident_id=incident_id,
+                created_at=created_at,
+                status="open",
+                threat_score=0,
+                confidence=0.85,
+                primary_object_id=primary_object_id,
+                target_class=event["class_name"],
+                severity="INFO",
+                cameras_json=json.dumps(cameras),
+                story_summary="",
+                score_breakdown_json="[]",
+            )
+            session.add(incident_row)
+            session.flush()
         else:
-            incident_id = incident["incident_id"]
-            created_at = incident["created_at"]
-            cameras = json.loads(incident["cameras_json"] or "[]")
-            event_ids = self._incident_event_ids(conn, incident_id)
+            incident_id = incident_row.incident_id
+            created_at = incident_row.created_at
+            cameras = json.loads(incident_row.cameras_json or "[]")
+            event_ids = self._incident_event_ids(session, incident_id)
             if event["camera_id"] not in cameras:
                 cameras.append(event["camera_id"])
                 force_cross_camera = True
 
         score_input = self._event_flags(event, force_cross_camera=force_cross_camera or len(cameras) > 1)
         scoring = calculate_threat_score(**score_input)
-        story = self._build_story(primary_object_id, event, cameras, scoring)
+        story = self._build_story(primary_object_id, event, cameras, scoring, handoff_window)
         confidence = min(0.99, event["confidence"] + (len(scoring["itemized_breakdown"]) * 0.02))
 
-        conn.execute(
-            """
-            INSERT INTO incidents (
-                incident_id, created_at, status, threat_score, confidence,
-                primary_object_id, target_class, severity, cameras_json,
-                story_summary, score_breakdown_json
-            ) VALUES (?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(incident_id) DO UPDATE SET
-                threat_score = excluded.threat_score,
-                confidence = excluded.confidence,
-                severity = excluded.severity,
-                cameras_json = excluded.cameras_json,
-                story_summary = excluded.story_summary,
-                score_breakdown_json = excluded.score_breakdown_json
-            """,
-            (
-                incident_id,
-                created_at,
-                scoring["threat_score"],
-                confidence,
-                primary_object_id,
-                event["class_name"],
-                scoring["severity"],
-                json.dumps(cameras),
-                story,
-                json.dumps(scoring["itemized_breakdown"]),
-            ),
-        )
-        conn.execute(
-            """
-            INSERT OR IGNORE INTO incident_events
-                (incident_id, event_id, contribution_weight, created_at)
-            VALUES (?, ?, 1.0, ?)
-            """,
-            (incident_id, event["event_id"], utc_now_iso()),
-        )
+        incident_row.threat_score = scoring["threat_score"]
+        incident_row.confidence = confidence
+        incident_row.severity = scoring["severity"]
+        incident_row.cameras_json = json.dumps(cameras)
+        incident_row.story_summary = story
+        incident_row.score_breakdown_json = json.dumps(scoring["itemized_breakdown"])
+
+        if not session.get(IncidentEvent, (incident_id, event["event_id"])):
+            session.add(
+                IncidentEvent(
+                    incident_id=incident_id,
+                    event_id=event["event_id"],
+                    contribution_weight=1.0,
+                    created_at=utc_now_iso(),
+                )
+            )
         event_ids.append(event["event_id"])
 
-        block = self._seal_incident(conn, incident_id, scoring["threat_score"], cameras, story, event["thumbnail_path"])
-        conn.execute(
-            "UPDATE incidents SET cryptographic_hash = ? WHERE incident_id = ?",
-            (block["current_hash"], incident_id),
-        )
+        block = self._seal_incident(session, incident_id, scoring["threat_score"], cameras, story, event["thumbnail_path"])
+        incident_row.cryptographic_hash = block["current_hash"]
+        session.flush()
 
         return {
             "incident_id": incident_id,
@@ -460,68 +383,101 @@ class SentinelBackend:
 
     def _find_matching_incident(
         self,
-        conn: sqlite3.Connection,
+        session: Session,
         primary_object_id: str,
         event: Dict[str, Any],
         event_time: datetime,
-    ) -> Optional[sqlite3.Row]:
-        rows = conn.execute(
-            """
-            SELECT *
-            FROM incidents
-            WHERE status = 'open'
-              AND target_class = ?
-            ORDER BY created_at DESC
-            LIMIT 20
-            """,
-            (event["class_name"],),
-        ).fetchall()
-        for row in rows:
-            if row["primary_object_id"] == primary_object_id:
-                return row
+    ) -> Tuple[Optional[Incident], Optional[Tuple[str, float, float, float]]]:
+        """
+        Returns (matching_incident_or_None, handoff_window) where
+        handoff_window, whenever the new event lands on a camera different
+        from the incident's last-seen camera, is
+        (source_camera_id, min_transit_s, max_transit_s, actual_transit_s) —
+        used to narrate the predicted-vs-confirmed arrival in the story. This
+        is computed whether the match came from a shared primary_object_id
+        (e.g. a Re-ID engine already resolved the same global target id) or
+        purely from the topology-derived transit window.
+        """
+        rows = session.execute(
+            select(Incident)
+            .where(Incident.status == "open", Incident.target_class == event["class_name"])
+            .order_by(desc(Incident.created_at))
+            .limit(20)
+        ).scalars().all()
 
-            last_event = self._last_event_for_incident(conn, row["incident_id"])
-            if not last_event or last_event["camera_id"] == event["camera_id"]:
+        for row in rows:
+            same_object = row.primary_object_id == primary_object_id
+            last_event = self._last_event_for_incident(session, row.incident_id)
+            camera_changed = bool(last_event) and last_event.camera_id != event["camera_id"]
+
+            if same_object:
+                handoff_window = self._handoff_window_for(last_event, event, event_time) if camera_changed else None
+                return row, handoff_window
+
+            if not camera_changed:
                 continue
-            previous_time = datetime.fromisoformat(last_event["timestamp_iso"].replace("Z", "+00:00"))
-            if previous_time.tzinfo is None:
-                previous_time = previous_time.replace(tzinfo=timezone.utc)
-            gap = abs((event_time - previous_time).total_seconds())
-            if HANDOFF_MIN_SEC <= gap <= HANDOFF_MAX_SEC:
-                return row
+
+            handoff_window = self._handoff_window_for(last_event, event, event_time)
+            if handoff_window is not None:
+                return row, handoff_window
+        return None, None
+
+    def _handoff_window_for(
+        self,
+        last_event: SecurityEvent,
+        event: Dict[str, Any],
+        event_time: datetime,
+    ) -> Optional[Tuple[str, float, float, float]]:
+        """
+        (source_camera_id, min_transit_s, max_transit_s, actual_transit_s) if
+        the gap between last_event and the new event is a plausible transit
+        time between their two cameras — None if it's implausibly fast/slow.
+        """
+        previous_time = datetime.fromisoformat(last_event.timestamp_iso.replace("Z", "+00:00"))
+        if previous_time.tzinfo is None:
+            previous_time = previous_time.replace(tzinfo=timezone.utc)
+        gap = abs((event_time - previous_time).total_seconds())
+
+        velocity_px_s = float(
+            (last_event.rule_metrics_json and json.loads(last_event.rule_metrics_json).get("velocity_px_s")) or 60.0
+        )
+        window = get_transit_window_either_direction(last_event.camera_id, event["camera_id"], velocity_px_s)
+        if window:
+            min_s, max_s, _meta = window
+            if (min_s - HANDOFF_TOLERANCE_BEFORE_SEC) <= gap <= (max_s + HANDOFF_TOLERANCE_AFTER_SEC):
+                return (last_event.camera_id, min_s, max_s, round(gap, 1))
+            return None
+        if HANDOFF_MIN_SEC <= gap <= HANDOFF_MAX_SEC:
+            return (last_event.camera_id, HANDOFF_MIN_SEC, HANDOFF_MAX_SEC, round(gap, 1))
         return None
 
-    def _last_event_for_incident(self, conn: sqlite3.Connection, incident_id: str) -> Optional[sqlite3.Row]:
-        return conn.execute(
-            """
-            SELECT se.*
-            FROM incident_events ie
-            JOIN security_events se ON se.event_id = ie.event_id
-            WHERE ie.incident_id = ?
-            ORDER BY se.timestamp_iso DESC
-            LIMIT 1
-            """,
-            (incident_id,),
-        ).fetchone()
+    def _last_event_for_incident(self, session: Session, incident_id: str) -> Optional[SecurityEvent]:
+        return session.execute(
+            select(SecurityEvent)
+            .join(IncidentEvent, IncidentEvent.event_id == SecurityEvent.event_id)
+            .where(IncidentEvent.incident_id == incident_id)
+            .order_by(desc(SecurityEvent.timestamp_iso))
+            .limit(1)
+        ).scalars().first()
 
-    def _incident_event_ids(self, conn: sqlite3.Connection, incident_id: str) -> List[str]:
-        rows = conn.execute(
-            "SELECT event_id FROM incident_events WHERE incident_id = ? ORDER BY created_at",
-            (incident_id,),
-        ).fetchall()
-        return [row["event_id"] for row in rows]
+    def _incident_event_ids(self, session: Session, incident_id: str) -> List[str]:
+        return list(
+            session.execute(
+                select(IncidentEvent.event_id)
+                .where(IncidentEvent.incident_id == incident_id)
+                .order_by(IncidentEvent.created_at)
+            ).scalars().all()
+        )
 
-    def _next_incident_id(self, conn: sqlite3.Connection) -> str:
-        row = conn.execute(
-            """
-            SELECT incident_id FROM incidents
-            WHERE incident_id LIKE 'INC-%'
-            ORDER BY CAST(SUBSTR(incident_id, 5) AS INTEGER) DESC
-            LIMIT 1
-            """
-        ).fetchone()
-        next_id = 1 if row is None else int(row["incident_id"][4:]) + 1
-        return f"INC-{next_id:04d}"
+    def _next_incident_id(self, session: Session) -> str:
+        existing_ids = session.execute(select(Incident.incident_id).where(Incident.incident_id.like("INC-%"))).scalars().all()
+        max_n = 0
+        for incident_id in existing_ids:
+            try:
+                max_n = max(max_n, int(incident_id[4:]))
+            except ValueError:
+                continue
+        return f"INC-{max_n + 1:04d}"
 
     def _build_story(
         self,
@@ -529,8 +485,18 @@ class SentinelBackend:
         event: Dict[str, Any],
         cameras: List[str],
         scoring: Dict[str, Any],
+        handoff_window: Optional[Tuple[str, float, float, float]] = None,
     ) -> str:
         sequence = " -> ".join(cameras)
+
+        if handoff_window and len(cameras) > 1:
+            _source_cam, min_s, max_s, actual_s = handoff_window
+            return (
+                f"Target tracked {sequence} (expected {event['camera_id']} arrival in "
+                f"{min_s:.1f}–{max_s:.1f}s, confirmed at {actual_s:.1f}s). Latest event "
+                f"{event['alert_type']} scored {scoring['threat_score']}/100 ({scoring['severity']})."
+            )
+
         return (
             f"Target {primary_object_id} ({event['class_name']}) observed across "
             f"{len(cameras)} camera node(s): {sequence}. Latest event "
@@ -540,16 +506,15 @@ class SentinelBackend:
 
     def _seal_incident(
         self,
-        conn: sqlite3.Connection,
+        session: Session,
         incident_id: str,
         threat_score: int,
         camera_ids: List[str],
         rule_evidence: str,
         thumbnail_path: Optional[str],
+        operator_action: str = "event_ingested",
     ) -> Dict[str, Any]:
-        latest = conn.execute(
-            "SELECT * FROM audit_ledger ORDER BY block_index DESC LIMIT 1"
-        ).fetchone()
+        latest = session.execute(select(EvidenceBlock).order_by(desc(EvidenceBlock.block_index)).limit(1)).scalars().first()
         timestamp = utc_now_iso()
         payload = {
             "incident_id": incident_id,
@@ -561,17 +526,22 @@ class SentinelBackend:
         }
         payload_json = canonical_json(payload)
         data_hash = sha256_text(payload_json)
-        previous_hash = latest["current_hash"] if latest else "0" * 64
+        previous_hash = latest.current_hash if latest else "0" * 64
         current_hash = sha256_text(previous_hash + data_hash)
-        block_index = int(latest["block_index"]) + 1 if latest else 0
-        conn.execute(
-            """
-            INSERT INTO audit_ledger
-                (block_index, previous_hash, data_hash, current_hash, payload_json, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (block_index, previous_hash, data_hash, current_hash, payload_json, timestamp),
+        block_index = (latest.block_index + 1) if latest else 0
+        session.add(
+            EvidenceBlock(
+                block_index=block_index,
+                previous_hash=previous_hash,
+                data_hash=data_hash,
+                current_hash=current_hash,
+                payload_json=payload_json,
+                timestamp=timestamp,
+                linked_incident_id=incident_id,
+                operator_action=operator_action,
+            )
         )
+        session.flush()
         return {
             "block_index": block_index,
             "previous_hash": previous_hash,
@@ -583,123 +553,167 @@ class SentinelBackend:
 
     def verify_chain(self) -> Tuple[bool, Optional[int], str, List[Dict[str, Any]]]:
         logs: List[Dict[str, Any]] = []
-        with self.connect() as conn:
-            rows = conn.execute("SELECT * FROM audit_ledger ORDER BY block_index").fetchall()
+        with self._session() as session:
+            rows = session.execute(select(EvidenceBlock).order_by(EvidenceBlock.block_index)).scalars().all()
+
         if not rows:
             return False, 0, "audit_ledger is empty", logs
 
         for index, row in enumerate(rows):
-            payload_json = row["payload_json"]
-            expected_data_hash = sha256_text(payload_json)
-            if row["data_hash"] != expected_data_hash:
+            expected_data_hash = sha256_text(row.payload_json)
+            if row.data_hash != expected_data_hash:
                 reason = "modified payload or data hash"
-                logs.append({"block_index": row["block_index"], "status": "FAIL", "reason": reason})
-                return False, row["block_index"], reason, logs
+                logs.append({"block_index": row.block_index, "status": "FAIL", "reason": reason})
+                return False, row.block_index, reason, logs
 
-            expected_previous = "0" * 64 if index == 0 else rows[index - 1]["current_hash"]
-            if row["previous_hash"] != expected_previous:
+            expected_previous = "0" * 64 if index == 0 else rows[index - 1].current_hash
+            if row.previous_hash != expected_previous:
                 reason = "modified previous hash or broken chain linkage"
-                logs.append({"block_index": row["block_index"], "status": "FAIL", "reason": reason})
-                return False, row["block_index"], reason, logs
+                logs.append({"block_index": row.block_index, "status": "FAIL", "reason": reason})
+                return False, row.block_index, reason, logs
 
-            expected_current = sha256_text(row["previous_hash"] + row["data_hash"])
-            if row["current_hash"] != expected_current:
+            expected_current = sha256_text(row.previous_hash + row.data_hash)
+            if row.current_hash != expected_current:
                 reason = "modified current hash"
-                logs.append({"block_index": row["block_index"], "status": "FAIL", "reason": reason})
-                return False, row["block_index"], reason, logs
+                logs.append({"block_index": row.block_index, "status": "FAIL", "reason": reason})
+                return False, row.block_index, reason, logs
 
-            logs.append(
-                {
-                    "block_index": row["block_index"],
-                    "status": "VERIFIED",
-                    "current_hash": row["current_hash"],
-                }
-            )
+            logs.append({"block_index": row.block_index, "status": "VERIFIED", "current_hash": row.current_hash})
 
         return True, None, "chain verified", logs
 
+    def _incident_row_to_dict(self, session: Session, row: Optional[Incident]) -> Optional[Dict[str, Any]]:
+        if row is None:
+            return None
+        return {
+            "incident_id": row.incident_id,
+            "created_at": row.created_at,
+            "closed_at": row.closed_at,
+            "status": row.status,
+            "threat_score": row.threat_score,
+            "confidence": row.confidence,
+            "primary_object_id": row.primary_object_id,
+            "target_class": row.target_class,
+            "severity": row.severity,
+            "cameras_involved": json.loads(row.cameras_json or "[]"),
+            "story_summary": row.story_summary,
+            "score_breakdown": json.loads(row.score_breakdown_json or "[]"),
+            "cryptographic_hash": row.cryptographic_hash,
+            "event_ids": self._incident_event_ids(session, row.incident_id),
+            "dismiss_reason": row.dismiss_reason,
+        }
+
+    @staticmethod
+    def _event_to_dict(row: SecurityEvent) -> Dict[str, Any]:
+        return {column.name: getattr(row, column.name) for column in SecurityEvent.__table__.columns}
+
     def get_incident(self, incident_id: str) -> Optional[Dict[str, Any]]:
-        with self.connect() as conn:
-            row = conn.execute("SELECT * FROM incidents WHERE incident_id = ?", (incident_id,)).fetchone()
-            if not row:
-                return None
-            return self._incident_row_to_dict(conn, row)
+        with self._session() as session:
+            return self._incident_row_to_dict(session, session.get(Incident, incident_id))
 
     def get_incidents(self, limit: int = 50) -> List[Dict[str, Any]]:
-        with self.connect() as conn:
-            rows = conn.execute(
-                "SELECT * FROM incidents ORDER BY created_at DESC LIMIT ?",
-                (limit,),
-            ).fetchall()
-            return [self._incident_row_to_dict(conn, row) for row in rows]
+        with self._session() as session:
+            rows = session.execute(select(Incident).order_by(desc(Incident.created_at)).limit(limit)).scalars().all()
+            return [self._incident_row_to_dict(session, row) for row in rows]
 
     def get_events(self, limit: int = 50) -> List[Dict[str, Any]]:
-        with self.connect() as conn:
-            rows = conn.execute(
-                "SELECT * FROM security_events ORDER BY timestamp_iso DESC LIMIT ?",
-                (limit,),
-            ).fetchall()
-            return [dict(row) for row in rows]
+        with self._session() as session:
+            rows = session.execute(select(SecurityEvent).order_by(desc(SecurityEvent.timestamp_iso)).limit(limit)).scalars().all()
+            return [self._event_to_dict(row) for row in rows]
 
-    def _incident_row_to_dict(self, conn: sqlite3.Connection, row: sqlite3.Row) -> Dict[str, Any]:
-        return {
-            "incident_id": row["incident_id"],
-            "created_at": row["created_at"],
-            "closed_at": row["closed_at"],
-            "status": row["status"],
-            "threat_score": row["threat_score"],
-            "confidence": row["confidence"],
-            "primary_object_id": row["primary_object_id"],
-            "target_class": row["target_class"],
-            "severity": row["severity"],
-            "cameras_involved": json.loads(row["cameras_json"] or "[]"),
-            "story_summary": row["story_summary"],
-            "score_breakdown": json.loads(row["score_breakdown_json"] or "[]"),
-            "cryptographic_hash": row["cryptographic_hash"],
-            "event_ids": self._incident_event_ids(conn, row["incident_id"]),
-        }
+    def get_events_for_incident(self, incident_id: str) -> List[Dict[str, Any]]:
+        with self._session() as session:
+            rows = session.execute(
+                select(SecurityEvent)
+                .join(IncidentEvent, IncidentEvent.event_id == SecurityEvent.event_id)
+                .where(IncidentEvent.incident_id == incident_id)
+                .order_by(SecurityEvent.timestamp_iso.asc())
+            ).scalars().all()
+            return [self._event_to_dict(row) for row in rows]
 
     def acknowledge_incident(
         self,
         incident_id: str,
         status: str = "CONFIRMED",
         notes: Optional[str] = None,
+        dismiss_reason: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         if status not in {"CONFIRMED", "DISMISSED_FP"}:
             raise ValueError("status must be CONFIRMED or DISMISSED_FP")
         timestamp = utc_now_iso()
-        with self.connect() as conn:
-            row = conn.execute("SELECT incident_id FROM incidents WHERE incident_id = ?", (incident_id,)).fetchone()
+        with self._session() as session:
+            incident = session.get(Incident, incident_id)
+            if not incident:
+                return None
+            incident.status = status
+            incident.dismiss_reason = dismiss_reason if status == "DISMISSED_FP" else None
+
+            event_ids = self._incident_event_ids(session, incident_id)
+            if event_ids:
+                session.execute(
+                    update(SecurityEvent)
+                    .where(SecurityEvent.event_id.in_(event_ids))
+                    .values(operator_status=status, operator_notes=notes, operator_updated_at=timestamp)
+                )
+
+            session.add(
+                OperatorAuditLog(
+                    action="incident_acknowledge",
+                    actor="operator",
+                    payload_json=json.dumps({"incident_id": incident_id, "status": status, "dismiss_reason": dismiss_reason}),
+                    created_at=timestamp,
+                )
+            )
+        return self.get_incident(incident_id)
+
+    def get_ledger_blocks(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """Every sealed block, most recent first, with `payload` parsed as a
+        dict — what the Evidence Vault UI renders as the visual chain."""
+        with self._session() as session:
+            rows = session.execute(select(EvidenceBlock).order_by(desc(EvidenceBlock.block_index)).limit(limit)).scalars().all()
+            return [
+                {
+                    "block_index": row.block_index,
+                    "previous_hash": row.previous_hash,
+                    "data_hash": row.data_hash,
+                    "current_hash": row.current_hash,
+                    "payload": json.loads(row.payload_json),
+                    "timestamp": row.timestamp,
+                    "linked_incident_id": row.linked_incident_id,
+                    "operator_action": row.operator_action,
+                }
+                for row in rows
+            ]
+
+    def get_ledger_block_for_incident(self, incident_id: str) -> Optional[Dict[str, Any]]:
+        """The most recently sealed evidence block for this incident, for the dossier."""
+        with self._session() as session:
+            row = session.execute(
+                select(EvidenceBlock)
+                .where(EvidenceBlock.linked_incident_id == incident_id)
+                .order_by(desc(EvidenceBlock.block_index))
+                .limit(1)
+            ).scalars().first()
             if not row:
                 return None
-            conn.execute("UPDATE incidents SET status = ? WHERE incident_id = ?", (status, incident_id))
-            conn.execute(
-                """
-                UPDATE security_events
-                SET operator_status = ?, operator_notes = ?, operator_updated_at = ?
-                WHERE event_id IN (
-                    SELECT event_id FROM incident_events WHERE incident_id = ?
-                )
-                """,
-                (status, notes, timestamp, incident_id),
-            )
-            conn.execute(
-                "INSERT INTO system_audit(action, payload_json, created_at) VALUES (?, ?, ?)",
-                ("incident_acknowledge", json.dumps({"incident_id": incident_id, "status": status}), timestamp),
-            )
-            conn.commit()
-        return self.get_incident(incident_id)
+            return {
+                "block_index": row.block_index,
+                "previous_hash": row.previous_hash,
+                "data_hash": row.data_hash,
+                "current_hash": row.current_hash,
+                "payload_json": row.payload_json,
+                "timestamp": row.timestamp,
+            }
 
     def edge_status(self, arm_state: str, camera_count: int = 6) -> Dict[str, Any]:
         since = datetime.now(timezone.utc) - timedelta(hours=24)
-        with self.connect() as conn:
-            events_24h = conn.execute(
-                "SELECT COUNT(*) AS n FROM security_events WHERE timestamp_iso >= ?",
-                (since.isoformat(),),
-            ).fetchone()["n"]
-            unreviewed = conn.execute(
-                "SELECT COUNT(*) AS n FROM security_events WHERE operator_status = 'UNREVIEWED'"
-            ).fetchone()["n"]
+        with self._session() as session:
+            events_24h = session.execute(
+                select(func.count()).select_from(SecurityEvent).where(SecurityEvent.timestamp_iso >= since.isoformat())
+            ).scalar_one()
+            unreviewed = session.execute(
+                select(func.count()).select_from(SecurityEvent).where(SecurityEvent.operator_status == "UNREVIEWED")
+            ).scalar_one()
         return {
             "connection": "online",
             "online": True,
@@ -714,28 +728,252 @@ class SentinelBackend:
 
     def register_fcm_token(self, token: str, device_id: Optional[str], platform: Optional[str]) -> Dict[str, Any]:
         registered_at = utc_now_iso()
-        with self.connect() as conn:
-            conn.execute(
-                """
-                INSERT INTO fcm_tokens(token, device_id, platform, registered_at)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(token) DO UPDATE SET
-                    device_id = excluded.device_id,
-                    platform = excluded.platform,
-                    registered_at = excluded.registered_at
-                """,
-                (token, device_id, platform, registered_at),
-            )
-            conn.commit()
+        with self._session() as session:
+            existing = session.get(FcmToken, token)
+            if existing:
+                existing.device_id = device_id
+                existing.platform = platform
+                existing.registered_at = registered_at
+            else:
+                session.add(FcmToken(token=token, device_id=device_id, platform=platform, registered_at=registered_at))
         return {"token": token, "device_id": device_id, "platform": platform, "registered_at": registered_at}
 
     def record_arm_state(self, arm_state: str) -> None:
-        with self.connect() as conn:
-            conn.execute(
-                "INSERT INTO system_audit(action, payload_json, created_at) VALUES (?, ?, ?)",
-                ("arm_state", json.dumps({"arm_state": arm_state}), utc_now_iso()),
+        with self._session() as session:
+            session.add(
+                OperatorAuditLog(
+                    action="arm_state", actor="operator", payload_json=json.dumps({"arm_state": arm_state}), created_at=utc_now_iso()
+                )
             )
-            conn.commit()
+
+    def enroll_person(
+        self,
+        person_id: str,
+        name: str,
+        role: str = "authorized",
+        reference_embedding: Optional[List[float]] = None,
+        photo_path: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Add or update a watchlist/authorized-personnel entry (mobile app's /enrollment/people)."""
+        embedding_json = json.dumps(reference_embedding) if reference_embedding is not None else None
+        with self._session() as session:
+            row = session.execute(select(EnrolledPerson).where(EnrolledPerson.person_id == person_id)).scalars().first()
+            if row:
+                row.name = name
+                row.role = role
+                if embedding_json is not None:
+                    row.reference_embedding_json = embedding_json
+                if photo_path is not None:
+                    row.photo_path = photo_path
+                if notes is not None:
+                    row.notes = notes
+            else:
+                row = EnrolledPerson(
+                    person_id=person_id, name=name, role=role,
+                    reference_embedding_json=embedding_json, photo_path=photo_path, notes=notes,
+                )
+                session.add(row)
+            session.flush()
+            return self._enrolled_person_to_dict(row)
+
+    def list_enrolled_people(self) -> List[Dict[str, Any]]:
+        with self._session() as session:
+            rows = session.execute(select(EnrolledPerson).order_by(desc(EnrolledPerson.created_at))).scalars().all()
+            return [self._enrolled_person_to_dict(row) for row in rows]
+
+    @staticmethod
+    def _enrolled_person_to_dict(row: EnrolledPerson) -> Dict[str, Any]:
+        return {
+            "person_id": row.person_id,
+            "name": row.name,
+            "role": row.role,
+            "photo_path": row.photo_path,
+            "notes": row.notes,
+            "created_at": row.created_at,
+            "has_reference_embedding": row.reference_embedding_json is not None,
+        }
+
+    # -- camera management ---------------------------------------------------
+
+    def get_cameras(self) -> List[Dict[str, Any]]:
+        with self._session() as session:
+            cameras = session.execute(select(Camera)).scalars().all()
+            edges = session.execute(select(CameraAdjacency)).scalars().all()
+            edges_by_source: Dict[str, List[Dict[str, Any]]] = {}
+            for edge in edges:
+                edges_by_source.setdefault(edge.source_camera_id, []).append({
+                    "target_camera_id": edge.target_camera_id,
+                    "min_transit_s": edge.min_transit_s,
+                    "max_transit_s": edge.max_transit_s,
+                    "distance_m": edge.distance_m,
+                    "exit_heading": edge.exit_heading,
+                })
+            return [
+                {
+                    "camera_id": cam.camera_id,
+                    "name": cam.name,
+                    "location_desc": cam.location_desc,
+                    "fov_deg": cam.fov_deg,
+                    "lat": cam.lat,
+                    "lon": cam.lon,
+                    "status": cam.status,
+                    "neighbors": edges_by_source.get(cam.camera_id, []),
+                }
+                for cam in cameras
+            ]
+
+    # -- raw AI detections ----------------------------------------------------
+
+    def get_detections(self, camera_id: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
+        with self._session() as session:
+            query = select(Detection).order_by(desc(Detection.timestamp_iso)).limit(limit)
+            if camera_id:
+                query = select(Detection).where(Detection.camera_id == camera_id).order_by(desc(Detection.timestamp_iso)).limit(limit)
+            rows = session.execute(query).scalars().all()
+            return [
+                {
+                    "id": row.id,
+                    "camera_id": row.camera_id,
+                    "timestamp_iso": row.timestamp_iso,
+                    "timestamp_ms": row.timestamp_ms,
+                    "track_id": row.track_id,
+                    "class_name": row.class_name,
+                    "confidence": row.confidence,
+                    "bbox": json.loads(row.bbox_json or "[]"),
+                    "centroid": json.loads(row.centroid_json or "[]"),
+                    "global_target_id": row.global_target_id,
+                    "source": row.source,
+                }
+                for row in rows
+            ]
+
+    # -- target tracking registry ---------------------------------------------
+
+    def get_tracked_targets(self) -> List[Dict[str, Any]]:
+        with self._session() as session:
+            rows = session.execute(select(TrackedTarget).order_by(desc(TrackedTarget.last_seen_at))).scalars().all()
+            return [self._target_to_dict(row) for row in rows]
+
+    def get_target_reconstruction(self, global_id: str) -> Dict[str, Any]:
+        """Cross-camera timeline for one target: every detection plus every
+        security event tied to it, in chronological order — the "how did
+        this target move through our camera network" forensic view."""
+        with self._session() as session:
+            target = session.execute(select(TrackedTarget).where(TrackedTarget.global_id == global_id)).scalars().first()
+            detections = session.execute(
+                select(Detection).where(Detection.global_target_id == global_id).order_by(Detection.timestamp_iso)
+            ).scalars().all()
+            events = session.execute(
+                select(SecurityEvent).where(
+                    SecurityEvent.rule_metrics_json.like(f'%"reid_global_id": "{global_id}"%')
+                    | SecurityEvent.rule_metrics_json.like(f'%"reid_global_id":"{global_id}"%')
+                ).order_by(SecurityEvent.timestamp_iso)
+            ).scalars().all()
+
+            timeline = [
+                {"type": "detection", "timestamp_iso": d.timestamp_iso, "camera_id": d.camera_id, "class_name": d.class_name, "confidence": d.confidence}
+                for d in detections
+            ] + [
+                {"type": "security_event", "timestamp_iso": e.timestamp_iso, "camera_id": e.camera_id, "alert_type": e.alert_type, "details": e.details}
+                for e in events
+            ]
+            timeline.sort(key=lambda item: item["timestamp_iso"])
+
+            return {
+                "global_id": global_id,
+                "target": self._target_to_dict(target) if target else None,
+                "timeline": timeline,
+            }
+
+    @staticmethod
+    def _target_to_dict(row: TrackedTarget) -> Dict[str, Any]:
+        return {
+            "global_id": row.global_id,
+            "class_name": row.class_name,
+            "first_seen_camera_id": row.first_seen_camera_id,
+            "first_seen_at": row.first_seen_at,
+            "current_camera_id": row.current_camera_id,
+            "last_seen_at": row.last_seen_at,
+            "predicted_next_camera_id": row.predicted_next_camera_id,
+            "predicted_arrival_min_s": row.predicted_arrival_min_s,
+            "predicted_arrival_max_s": row.predicted_arrival_max_s,
+            "velocity_px_s": row.velocity_px_s,
+            "heading": row.heading,
+            "camera_history": json.loads(row.camera_history_json or "[]"),
+        }
+
+    # -- analytics -------------------------------------------------------------
+
+    def get_analytics_overview(self) -> Dict[str, Any]:
+        with self._session() as session:
+            since_7d = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+            recent_incidents = session.execute(
+                select(Incident).where(Incident.created_at >= since_7d)
+            ).scalars().all()
+
+            by_day: Dict[str, int] = {}
+            by_severity: Dict[str, int] = {}
+            for inc in recent_incidents:
+                day = (inc.created_at or "")[:10]
+                by_day[day] = by_day.get(day, 0) + 1
+                by_severity[inc.severity or "INFO"] = by_severity.get(inc.severity or "INFO", 0) + 1
+
+            confirmed = sum(1 for inc in recent_incidents if inc.status == "CONFIRMED")
+            dismissed = sum(1 for inc in recent_incidents if inc.status == "DISMISSED_FP")
+            total_reviewed = confirmed + dismissed
+            false_alarm_rate = round(dismissed / total_reviewed, 3) if total_reviewed else 0.0
+
+            camera_rows = session.execute(select(Camera)).scalars().all()
+            online = sum(1 for cam in camera_rows if cam.status == "ONLINE")
+            camera_uptime_pct = round(100.0 * online / len(camera_rows), 1) if camera_rows else 100.0
+
+        return {
+            "weekly_alert_distribution": [{"date": day, "count": count} for day, count in sorted(by_day.items())],
+            "severity_breakdown": by_severity,
+            "false_alarm_rate": false_alarm_rate,
+            "confirmed_count": confirmed,
+            "dismissed_count": dismissed,
+            "camera_uptime_pct": camera_uptime_pct,
+            "camera_count": len(camera_rows),
+            "cameras_online": online,
+        }
+
+    # -- QRT dispatch ------------------------------------------------------------
+
+    def dispatch_incident(self, incident_id: str, unit: str = "QRT-1", notes: Optional[str] = None) -> Dict[str, Any]:
+        incident = self.get_incident(incident_id)
+        if not incident:
+            raise ValueError(f"Incident {incident_id} not found")
+        timestamp = utc_now_iso()
+        with self._session() as session:
+            session.add(
+                OperatorAuditLog(
+                    action="qrt_dispatch",
+                    actor="operator",
+                    payload_json=json.dumps({"incident_id": incident_id, "unit": unit, "notes": notes}),
+                    created_at=timestamp,
+                )
+            )
+        return {"incident_id": incident_id, "unit": unit, "dispatched_at": timestamp, "status": "DISPATCHED"}
+
+    # -- settings ------------------------------------------------------------
+
+    def get_setting(self, key: str, default: Optional[str] = None) -> Optional[str]:
+        with self._session() as session:
+            row = session.get(SystemSetting, key)
+            return row.value if row else default
+
+    def set_setting(self, key: str, value: str) -> Dict[str, Any]:
+        timestamp = utc_now_iso()
+        with self._session() as session:
+            row = session.get(SystemSetting, key)
+            if row:
+                row.value = value
+                row.updated_at = timestamp
+            else:
+                session.add(SystemSetting(key=key, value=value, updated_at=timestamp))
+        return {"key": key, "value": value, "updated_at": timestamp}
 
     def simulate_handoff(self) -> Dict[str, Any]:
         base = datetime.now(timezone.utc).replace(microsecond=0)

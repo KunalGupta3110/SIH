@@ -81,32 +81,30 @@ def run_benchmark():
 
     # 4. Cryptographic SHA-256 Merkle Ledger Hashing
     print("\n[4/5] Benchmarking SHA-256 Evidence Block Sealing & Verification...")
-    from backend import evidence_ledger
+    import tempfile
+    from core.backend_service import SentinelBackend
+    bench_tmp_dir = tempfile.mkdtemp(prefix="ibvap_bench_")
+    ledger_backend = SentinelBackend(db_path=os.path.join(bench_tmp_dir, "bench_events.db"))
     seal_times = []
-    prev_hash = evidence_ledger.GENESIS_VALUE
-    blocks = []
     for i in range(100):
         t0 = time.perf_counter()
-        block = evidence_ledger.seal_incident(
-            incident_id=f"INC-{1000+i}",
-            threat_score=85,
-            camera_ids=["CAM_ALPHA", "CAM_BRAVO"],
-            rule_evidence=["Restricted Zone Penetration", "Cross-Camera Handoff"],
-            thumbnail_sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            timestamp="2026-09-04T22:00:00Z",
-            previous_hash=prev_hash,
-        )
-        prev_hash = block["current_hash"]
-        blocks.append(block)
+        ledger_backend.ingest_event({
+            "event_id": f"BENCH-EVT-{1000+i}",
+            "camera_id": "CAM_ALPHA",
+            "class_name": "person",
+            "alert_type": "ZONE_INTRUSION",
+            "in_restricted_zone": True,
+            "movement_toward_border": True,
+        })
         seal_times.append((time.perf_counter() - t0) * 1000)
 
     avg_seal_ms = np.mean(seal_times)
     t_v0 = time.perf_counter()
-    verify_res = evidence_ledger.verify_chain(blocks)
+    is_valid, _broken_index, _reason, _logs = ledger_backend.verify_chain()
     t_verify_ms = (time.perf_counter() - t_v0) * 1000
 
-    print(f" -> Block Sealing Latency: {avg_seal_ms:.4f} ms/block")
-    print(f" -> 100-Block Chain Verification Latency: {t_verify_ms:.3f} ms (Valid: {verify_res['is_valid']})")
+    print(f" -> Block Sealing Latency (ingest + score + seal): {avg_seal_ms:.4f} ms/block")
+    print(f" -> 100-Block Chain Verification Latency: {t_verify_ms:.3f} ms (Valid: {is_valid})")
 
     # 5. Summary Report
     print("\n" + "=" * 70)

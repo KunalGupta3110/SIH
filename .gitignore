@@ -38,3 +38,5 @@ data/*.db-shm
 # Local dev env for the Vite frontend
 frontend/.env.local
 frontend/.env.*.local
+data/events.db
+data/*.db

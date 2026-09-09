@@ -1,13 +1,15 @@
 """
-IBVAP Sentinel — backend/camera_topology.py
+IBVAP Sentinel — core/camera_topology.py
 
-Camera Node Graph Topology & Spatio-Temporal Transit Engine (Ported from legacy).
-Defines real inter-camera edge distances, directions, and velocity-scaled transit ETA windows.
+Camera node graph topology & spatio-temporal transit engine.
+Defines real inter-camera edge distances, directions, and velocity-scaled
+transit ETA windows, used to decide whether two events on different cameras
+are a plausible cross-camera handoff of the same target (rather than a
+coincidence) and to narrate the predicted-vs-confirmed arrival window.
 """
 
 from dataclasses import dataclass
-import math
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 
 @dataclass
@@ -16,7 +18,7 @@ class CameraNodeTopology:
     name: str
     location_desc: str
     # neighbor_cam_id -> {"min_transit_s": float, "max_transit_s": float, "distance_m": float, "exit_heading": str}
-    neighbors: Dict[str, Dict[str, any]]
+    neighbors: Dict[str, Dict[str, Any]]
 
 
 DEFAULT_TOPOLOGY: Dict[str, CameraNodeTopology] = {
@@ -62,10 +64,11 @@ def get_transit_window(
     target_cam: str,
     velocity_px_s: float = 60.0,
     topology: Optional[Dict[str, CameraNodeTopology]] = None,
-) -> Optional[Tuple[float, float, Dict]]:
+) -> Optional[Tuple[float, float, Dict[str, Any]]]:
     """
-    Returns (min_transit_s, max_transit_s, neighbor_metadata) for a pair of connected cameras,
-    dynamically scaled by the target's kinematic velocity.
+    Returns (min_transit_s, max_transit_s, neighbor_metadata) for a pair of
+    connected cameras, dynamically scaled by the target's kinematic velocity.
+    Returns None if the two cameras are not adjacent in the topology graph.
     """
     topo = topology or DEFAULT_TOPOLOGY
     source_node = topo.get(source_cam)
@@ -79,3 +82,16 @@ def get_transit_window(
     max_transit = round(params["max_transit_s"] / speed_factor, 1)
 
     return (min_transit, max_transit, params)
+
+
+def get_transit_window_either_direction(
+    cam_a: str,
+    cam_b: str,
+    velocity_px_s: float = 60.0,
+    topology: Optional[Dict[str, CameraNodeTopology]] = None,
+) -> Optional[Tuple[float, float, Dict[str, Any]]]:
+    """Same as get_transit_window, but checks both A->B and B->A edges."""
+    window = get_transit_window(cam_a, cam_b, velocity_px_s, topology)
+    if window:
+        return window
+    return get_transit_window(cam_b, cam_a, velocity_px_s, topology)

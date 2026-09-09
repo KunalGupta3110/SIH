@@ -194,7 +194,7 @@ def run_live_reid_inference() -> Dict[str, Any]:
     telemetry_path = ROOT_DIR / "data" / "demo_footage" / "ibvap_real_reid_telemetry.json"
     if not telemetry_path.exists():
         # Generate on-the-fly if not already generated
-        from backend.generate_real_reid_demo import run_reid_pipeline
+        from core.generate_real_reid_demo import run_reid_pipeline
         telemetry = run_reid_pipeline()
     else:
         with open(telemetry_path, "r", encoding="utf-8") as f:

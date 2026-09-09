@@ -21,7 +21,22 @@ except Exception:
 
 
 SUPPORTED_PORTS = ("COM3", "/dev/ttyUSB0")
-SUPPORTED_COMMANDS = {"RELAY_ON_1", "BOOM_LOCK_1", "SIREN_OFF"}
+# RELAY_ON_1/BOOM_LOCK_1/SIREN_OFF are the original barrier-breach commands
+# (kept for trigger_barrier_breach()/reset_barrier() below); the rest are the
+# named relay channels (siren, strobe, barrier, IR illuminator) the
+# /hardware/relay/{name} gateway endpoint exposes to an operator.
+SUPPORTED_COMMANDS = {
+    "RELAY_ON_1",
+    "BOOM_LOCK_1",
+    "SIREN_ON",
+    "SIREN_OFF",
+    "STROBE_ON",
+    "STROBE_OFF",
+    "BARRIER_UP",
+    "BARRIER_DOWN",
+    "IR_ON",
+    "IR_OFF",
+}
 
 
 class PhysicalBarrierController:

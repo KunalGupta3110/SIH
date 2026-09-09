@@ -16,6 +16,8 @@ imageio-ffmpeg>=0.4.9
 fastapi>=0.110.0
 uvicorn>=0.28.0
 pydantic>=2.6.0
+sqlalchemy>=2.0.0
+alembic>=1.13.0
 
 # Command Dashboard
 streamlit>=1.32.0
@@ -24,3 +26,7 @@ pandas>=2.1.0
 # Utilities
 tqdm>=4.65.0
 requests>=2.31.0
+
+# Testing (FastAPI's TestClient needs an httpx-family HTTP client installed)
+pytest>=8.0.0
+httpx2>=2.0.0

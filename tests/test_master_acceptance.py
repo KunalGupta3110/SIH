@@ -130,14 +130,15 @@ def test_tampered_historical_ledger_block_reports_exact_index(tmp_path):
     )
 
     with backend.connect() as conn:
-        row = conn.execute("SELECT payload_json FROM audit_ledger WHERE block_index = 1").fetchone()
+        row = conn.execute("SELECT payload_json FROM evidence_blocks WHERE block_index = 1").fetchone()
         payload = json.loads(row["payload_json"])
         payload["threat_score"] = 999
         conn.execute(
-            "UPDATE audit_ledger SET payload_json = ? WHERE block_index = 1",
+            "UPDATE evidence_blocks SET payload_json = ? WHERE block_index = 1",
             (json.dumps(payload, sort_keys=True),),
         )
         conn.commit()
+    conn.close()
 
     is_valid, broken_index, reason, _ = backend.verify_chain()
     assert is_valid is False

@@ -7,12 +7,13 @@ Tests:
   2. Missing Re-ID Model / Deep Weights Fallback
   3. Missing Anomaly Model Fallback
   4. Camera Feed Disconnect & Freeze Detection
-  5. Cryptographic Evidence Chain Tamper Detection
+  5. Cryptographic Evidence Chain Tamper Detection (via core.backend_service)
   6. Idempotent Event Deduplication Under Burst Loads
 """
 
 import sys
 from pathlib import Path
+import tempfile
 import unittest
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -22,7 +23,7 @@ if str(ROOT_DIR) not in sys.path:
 from core.rules.anomaly_engine import KinematicAnomalyEngine
 from core.vision.camera_health import CameraHealthMonitor
 from core.rules.explainable_scoring import ExplainableThreatScorer
-from backend import evidence_ledger, threat_engine
+from core.backend_service import SentinelBackend
 
 
 class TestSentinelFailureModes(unittest.TestCase):
@@ -72,31 +73,39 @@ class TestSentinelFailureModes(unittest.TestCase):
         self.assertTrue(len(res["triggered_factors"]) >= 4)
 
     def test_04_tamper_evident_evidence_chain(self):
-        """Requirement O: SHA-256 chain verification must catch corrupted payload."""
-        blocks = []
-        prev = evidence_ledger.GENESIS_VALUE
-        for i in range(3):
-            b = evidence_ledger.seal_incident(
-                incident_id=f"INC-{i}",
-                threat_score=80,
-                camera_ids=["CAM_ALPHA"],
-                rule_evidence=["Red Zone"],
-                thumbnail_sha256="",
-                timestamp=f"2026-09-04T12:0{i}:00Z",
-                previous_hash=prev,
-            )
-            prev = b["current_hash"]
-            blocks.append(b)
+        """
+        Requirement O: SHA-256 chain verification must catch a corrupted payload
+        at the exact block it was tampered with.
 
-        # 1. Clean verification
-        res_clean = evidence_ledger.verify_chain(blocks)
-        self.assertTrue(res_clean["is_valid"])
+        core.backend_service.SentinelBackend owns the canonical evidence ledger
+        now (see tests/test_master_acceptance.py::test_tampered_historical_ledger_block_reports_exact_index
+        for the full ingest -> tamper -> detect walkthrough); this is a
+        lighter smoke check that the same guarantee holds via the public API.
+        """
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            backend = SentinelBackend(db_path=Path(tmp_dir) / "events.db")
+            backend.ingest_event({
+                "event_id": "FAILMODE-EVT-0",
+                "camera_id": "CAM_ALPHA",
+                "class_name": "person",
+                "alert_type": "ZONE_INTRUSION",
+                "in_restricted_zone": True,
+            })
 
-        # 2. Corrupt Block #1
-        blocks[1]["payload_json"] = blocks[1]["payload_json"].replace("80", "10")
-        res_tampered = evidence_ledger.verify_chain(blocks)
-        self.assertFalse(res_tampered["is_valid"])
-        self.assertEqual(res_tampered["broken_index"], 1)
+            is_valid, broken_index, _reason, _logs = backend.verify_chain()
+            self.assertTrue(is_valid)
+            self.assertIsNone(broken_index)
+
+            with backend.connect() as conn:
+                conn.execute(
+                    "UPDATE evidence_blocks SET payload_json = '{\"tampered\":true}' WHERE block_index = 1"
+                )
+                conn.commit()
+            conn.close()
+
+            is_valid, broken_index, _reason, _logs = backend.verify_chain()
+            self.assertFalse(is_valid)
+            self.assertEqual(broken_index, 1)
 
 
 if __name__ == "__main__":
