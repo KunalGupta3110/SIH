@@ -6,6 +6,7 @@ import { useIncidentStream } from "../lib/useIncidentStream.js";
 import { CountUp } from "../lib/motion.jsx";
 import TacticalWatchfloor from "./TacticalWatchfloor.jsx";
 import AnalyticsSummary from "./AnalyticsSummary.jsx";
+import { StreamDiagnostics, RoadmapOverlays } from "./SurveillanceDiagnostics.jsx";
 
 // 3D border-terrain map — code-split (pulls in three.js) so it only loads
 // when the operator opens the Border Map view.
@@ -1721,6 +1722,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
               {/* ── SUB-VIEW: STANDARD 6 CAMERA GRID ── */}
               {activeSurveillanceView === "grid" && (
+                <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {displayCameras.map((cam) => {
                     const isSelected = selectedCameraId === cam.id;
@@ -1774,6 +1776,10 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       </div>
                     );
                   })}
+                </div>
+
+                <StreamDiagnostics cameras={displayCameras} />
+                <RoadmapOverlays />
                 </div>
               )}
 

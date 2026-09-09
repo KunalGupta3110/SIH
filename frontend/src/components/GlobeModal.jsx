@@ -34,9 +34,9 @@ const CONTINENTS = [
 ];
 
 const CAMERAS = [
-  { id: "CAM_ALPHA", lat: 32.04, lon: 75.40, sector: "Gurdaspur", primary: true, status: "ONLINE", note: "Ingress approach" },
-  { id: "CAM_BRAVO", lat: 32.10, lon: 75.28, sector: "Gurdaspur", status: "ONLINE", note: "Perimeter fence · restricted zone" },
-  { id: "CAM_CHARLIE", lat: 32.31, lon: 75.05, sector: "Gurdaspur", status: "ONLINE", note: "River bend" },
+  { id: "CAM_ALPHA", lat: 32.04, lon: 75.40, sector: "Alpine Ridge", primary: true, status: "ONLINE", note: "Ingress approach" },
+  { id: "CAM_BRAVO", lat: 32.10, lon: 75.28, sector: "Alpine Ridge", status: "ONLINE", note: "Perimeter fence · restricted zone" },
+  { id: "CAM_CHARLIE", lat: 32.31, lon: 75.05, sector: "Alpine Ridge", status: "ONLINE", note: "River bend" },
   { id: "CAM_DELTA", lat: 30.35, lon: 74.52, sector: "Fazilka", status: "ONLINE", note: "East spur" },
   { id: "CAM_ECHO", lat: 34.08, lon: 74.80, sector: "Uri", status: "ONLINE", note: "Tower pan-tilt" },
   { id: "CAM_FOXTROT", lat: 33.42, lon: 74.30, sector: "Poonch", status: "STALE", note: "Riverine sentry" },

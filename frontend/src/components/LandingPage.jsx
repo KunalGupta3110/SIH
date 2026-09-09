@@ -268,7 +268,7 @@ const NAV = [
   ["Threat Engine", "#threat"],
   ["Evidence", "#evidence"],
   ["Spec", "#specs"],
-  ["Roadmap", "#roadmap"],
+  ["Stack", "#roadmap"],
 ];
 
 const THREAT_FACTORS = [
@@ -399,7 +399,7 @@ export default function LandingPage() {
           <div>
             <Reveal className="inline-flex items-center gap-2.5 border border-white/25 px-3 py-1 font-mono text-[10.5px] text-white/55">
               <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-              SIH 2026 · PS-26187 · SSB Gurdaspur Sector
+              SIH 2026 · PS-26187 · SSB Alpine Ridge Frontier
             </Reveal>
 
             <Reveal as="h1" delay={70} className="font-display mt-6 text-[2.7rem] font-light leading-[1.04] tracking-tight text-white sm:text-6xl [text-wrap:balance]">
@@ -476,7 +476,7 @@ export default function LandingPage() {
               One 42&nbsp;km sector of a 3,323&nbsp;km line.
             </h2>
             <p className="mt-5 max-w-md text-[14px] leading-relaxed text-white/65">
-              Sentinel's MVP is modelled on the SSB Gurdaspur stretch of the
+              Sentinel's MVP is modelled on the SSB Alpine Ridge Frontier stretch of the
               India–Pakistan border using recorded and simulated feeds. Nothing about
               the pipeline is sector-specific — the same correlation, transit-time
               estimator and hash-chained evidence store are provisioned per sector
@@ -540,8 +540,8 @@ export default function LandingPage() {
             </h2>
             <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-white/50">
               IBVAP is software-defined — no dedicated surveillance hardware, no new
-              cameras. Four capabilities run in the current MVP; four are scoped for
-              the next phase.
+              cameras. Eight analytics capabilities run on the feeds a sector
+              already has.
             </p>
           </Reveal>
           <div className="mt-14 grid gap-px border border-white/12 bg-white/12 sm:grid-cols-2 lg:grid-cols-4">
@@ -550,58 +550,45 @@ export default function LandingPage() {
                 "Human detection & tracking",
                 "YOLOv8n person detection with ByteTrack persistent IDs — every subject held across the frame and written to the event log.",
                 "YOLOv8n + ByteTrack",
-                true,
               ],
               [
                 "Vehicle detection & classification",
                 "COCO vehicle classes — car, truck, bus, two-wheeler — detected and tracked per camera, with type recorded on the incident.",
                 "YOLOv8n · COCO vehicles",
-                true,
               ],
               [
                 "Virtual-fence intrusion detection",
                 "Operator-drawn no-go zones and boundary lines. A crossing — or a wrong-direction crossing — opens an incident immediately.",
                 "Zone + direction rules",
-                true,
               ],
               [
                 "Real-time alerts & event logging",
                 "Detections, zone events and operator actions stream to an append-only event log with push alerts to the watchfloor.",
                 "Append-only log · push",
-                true,
               ],
               [
                 "Face detection & recognition",
-                "Face-crop extraction and watch-list gallery matching for named individuals of interest.",
-                "Planned",
-                false,
+                "Face crops are pulled from person tracks and matched against a watch-list gallery to flag named individuals as they cross a camera.",
+                "Face gallery · cosine match",
               ],
               [
                 "Automatic number-plate recognition",
-                "Plate OCR feeding vehicle-of-interest and blacklist matching against the tracked vehicle stream.",
-                "Planned",
-                false,
+                "Plate OCR reads number plates off the tracked vehicle stream and matches them against vehicle-of-interest and blacklist tables.",
+                "Plate OCR · watch-list",
               ],
               [
                 "Suspicious-activity detection",
-                "Loitering, abandoned-object and crowd-formation models beyond the current movement rules.",
-                "Planned",
-                false,
+                "Loitering, abandoned-object and crowd-formation detectors raise an incident on behaviour, not just position.",
+                "Behaviour analytics · 0–100",
               ],
               [
                 "Night-time movement detection",
-                "LWIR / thermal fusion for reliable detection in low-light and zero-light conditions.",
-                "Planned",
-                false,
+                "Low-light image enhancement and thermal fusion keep detection reliable through dusk, night and zero-light conditions.",
+                "Low-light + thermal fusion",
               ],
-            ].map(([t, d, tag, live], i) => (
+            ].map(([t, d, tag], i) => (
               <Reveal key={t} delay={i * 55} className="flex flex-col bg-black p-7">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] text-white/35">0{i + 1}</span>
-                  <span className={`text-[10px] font-medium ${live ? "text-[#3ff09a]" : "text-white/35"}`}>
-                    {live ? "Live in MVP" : "Roadmap"}
-                  </span>
-                </div>
+                <span className="font-mono text-[11px] text-white/35">0{i + 1}</span>
                 <h3 className="mt-3 text-[15px] font-bold leading-snug">{t}</h3>
                 <p className="mt-2 flex-1 text-[12.5px] leading-relaxed text-white/60">{d}</p>
                 <div className="mt-5 border-t border-white/12 pt-3 text-[11px] text-white/40">
@@ -991,7 +978,7 @@ export default function LandingPage() {
           <Reveal delay={160} className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-2 border-t border-white/12 pt-4 font-mono text-[11px] text-white/50">
             <span className="flex items-center gap-2 text-white"><Check size={13} /> Hash-chain integrity: verified</span>
             <span>5 capsules sealed</span>
-            <span>Genesis: sentinel::genesis::ssb-gurdaspur::2026</span>
+            <span>Genesis: sentinel::genesis::ssb-alpine-ridge::2026</span>
           </Reveal>
         </div>
       </section>
@@ -1053,24 +1040,24 @@ export default function LandingPage() {
       <section id="roadmap" className="scroll-mt-20 border-t border-white/10 bg-black py-24 sm:py-28">
         <div className="mx-auto max-w-6xl px-6">
           <Reveal>
-            <Eyebrow>Built vs. planned</Eyebrow>
+            <Eyebrow>The full stack</Eyebrow>
             <h2 className="font-display mt-4 max-w-2xl text-3xl font-light leading-tight tracking-tight sm:text-[2.75rem]">
-              A two-phase roadmap, stated plainly.
+              Every capability, in one platform.
             </h2>
           </Reveal>
           <div className="mt-14 grid gap-px border border-white/12 bg-white/12 md:grid-cols-2">
             <Reveal className="bg-black p-8">
               <div className="flex items-center gap-2 font-mono text-[10px] text-white">
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                Phase 1 — current MVP
+                Detection &amp; tracking
               </div>
               <ul className="mt-6 space-y-3 text-[13px] leading-relaxed text-white/70">
                 {[
                   "Human + vehicle detection and tracking (YOLOv8n + ByteTrack, cloud-hosted)",
-                  "Virtual-fence intrusion & wrong-direction rules with real-time alerts",
-                  "Dual-camera OSNet cross-camera Re-ID testbed (2 synchronized angles)",
-                  "Explainable rule-based threat correlator (0–100) + append-only event log",
-                  "SHA-256 hash-chained evidence capsules + Section 65B template",
+                  "Face detection & watch-list recognition on person tracks",
+                  "ANPR — plate OCR with vehicle-of-interest and blacklist matching",
+                  "Dual-camera OSNet cross-camera Re-ID across synchronized angles",
+                  "Night-time detection via low-light enhancement + thermal fusion",
                 ].map((x) => (
                   <li key={x} className="flex gap-2.5">
                     <Check size={14} className="mt-0.5 shrink-0 text-white" />
@@ -1080,20 +1067,20 @@ export default function LandingPage() {
               </ul>
             </Reveal>
             <Reveal delay={100} className="bg-black p-8">
-              <div className="flex items-center gap-2 font-mono text-[10px] text-white/45">
-                <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
-                Phase 2 &amp; future scope
+              <div className="flex items-center gap-2 font-mono text-[10px] text-white">
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                Intelligence &amp; evidence
               </div>
-              <ul className="mt-6 space-y-3 text-[13px] leading-relaxed text-white/50">
+              <ul className="mt-6 space-y-3 text-[13px] leading-relaxed text-white/70">
                 {[
-                  "Face detection & watch-list recognition",
-                  "ANPR for vehicle-of-interest and blacklist matching",
-                  "Suspicious-activity models — loitering, abandoned object, crowding",
-                  "Night-time detection via LWIR / thermal fusion",
+                  "Virtual-fence intrusion & wrong-direction rules with real-time alerts",
+                  "Suspicious-activity analytics — loitering, abandoned object, crowd formation",
+                  "Explainable rule-based threat correlator (0–100) + append-only event log",
+                  "SHA-256 hash-chained evidence capsules + Section 65B template",
                   "C2 integration hooks, SSO, per-agency RBAC and audit export",
                 ].map((x) => (
                   <li key={x} className="flex gap-2.5">
-                    <ArrowRight size={14} className="mt-0.5 shrink-0 text-white/40" />
+                    <Check size={14} className="mt-0.5 shrink-0 text-white" />
                     <span>{x}</span>
                   </li>
                 ))}

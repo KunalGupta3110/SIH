@@ -6,7 +6,7 @@
    `POST /auth/login` call when the backend exposes one — the LoginPage
    only depends on the { ok, error, operator } shape it returns.
 
-   Sector codes: SSB = Sashastra Seema Bal · GDP = Gurdaspur sector ·
+   Sector codes: SSB = Sashastra Seema Bal · GDP = Alpine Ridge sector ·
    BSF = Border Security Force · IBVAP = platform service account.
    ═══════════════════════════════════════════════════════════════════════ */
 

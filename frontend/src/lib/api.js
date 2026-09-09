@@ -4,7 +4,7 @@
 const BASE = import.meta.env.VITE_API_BASE || window.location.origin;
 
 // Canonical Genesis Block Hash matching backend/evidence_ledger.py
-export const GENESIS_HASH = "sentinel::genesis::ssb-gurdaspur::2026";
+export const GENESIS_HASH = "sentinel::genesis::ssb-alpine-ridge::2026";
 
 /**
  * Real Web Crypto SHA-256 Hash Function.
