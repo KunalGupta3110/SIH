@@ -134,48 +134,44 @@ def run_tabletop_demo(camera_index=0, show=True, enable_anpr=True):
                                 db.insert_event(ev)
                                 send_mobile_alert(ev)
 
-                # ANPR on vehicle tracks
+                # ANPR on vehicle tracks or tabletop props/phones
                 plate_results = []
                 if anpr_engine:
-                    for t in tracks:
-                        if t.class_name in ("car", "truck", "bus", "motorcycle"):
-                            plate_result = anpr_engine.process_vehicle(
-                                frame=frame,
-                                vehicle_bbox=t.bbox,
-                                track_id=t.track_id,
-                                frame_idx=frame_idx,
-                                timestamp_ms=timestamp_ms,
-                                class_name=t.class_name,
-                                camera_id=camera_id,
-                            )
-                            if plate_result and plate_result.plate_text:
-                                plate_results.append(plate_result)
-                                if plate_result.is_hotlist and frame_idx % 15 == 0:
-                                    play_alert("CRITICAL")
-                                    trigger_physical_breach()
-                                    ev = SecurityEvent(
-                                        event_id=f"evt_anpr_hot_{t.track_id}_{int(timestamp_ms)}",
-                                        timestamp_iso=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                                        timestamp_ms=timestamp_ms,
-                                        camera_id=camera_id,
-                                        track_id=t.track_id,
-                                        class_name=t.class_name,
-                                        alert_type=AlertType.ANPR_HOTLIST_HIT,
-                                        severity=AlertSeverity.CRITICAL,
-                                        zone_id="CHECKPOINT_NORTH",
-                                        zone_name="Checkpoint Inspection Lane",
-                                        details=f"Watchlist Hit: Flagged vehicle {plate_result.plate_text} ({plate_result.hotlist_reason})",
-                                        bbox=t.bbox,
-                                        centroid=t.centroid,
-                                        rule_name="ANPR Watchlist Enforcement",
-                                        confidence=plate_result.ocr_confidence,
-                                        plate_text=plate_result.plate_text,
-                                        plate_confidence=plate_result.plate_confidence,
-                                        is_hotlist=True,
-                                        hotlist_reason=plate_result.hotlist_reason,
-                                    )
-                                    db.insert_event(ev)
-                                    send_mobile_alert(ev)
+                    plate_results = anpr_engine.process_frame(
+                        frame=frame,
+                        tracks=tracks,
+                        frame_idx=frame_idx,
+                        timestamp_ms=timestamp_ms,
+                        camera_id=camera_id,
+                    )
+                    for plate_result in plate_results:
+                        if plate_result and plate_result.plate_text:
+                            if plate_result.is_hotlist and frame_idx % 15 == 0:
+                                play_alert("CRITICAL")
+                                trigger_physical_breach()
+                                ev = SecurityEvent(
+                                    event_id=f"evt_anpr_hot_{plate_result.track_id}_{int(timestamp_ms)}",
+                                    timestamp_iso=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                                    timestamp_ms=timestamp_ms,
+                                    camera_id=camera_id,
+                                    track_id=plate_result.track_id,
+                                    class_name=plate_result.class_name,
+                                    alert_type=AlertType.ANPR_HOTLIST_HIT,
+                                    severity=AlertSeverity.CRITICAL,
+                                    zone_id="CHECKPOINT_NORTH",
+                                    zone_name="Checkpoint Inspection Lane",
+                                    details=f"Watchlist Hit: Flagged vehicle {plate_result.plate_text} ({plate_result.hotlist_reason})",
+                                    bbox=plate_result.plate_bbox,
+                                    centroid=[(plate_result.plate_bbox[0] + plate_result.plate_bbox[2])/2.0, (plate_result.plate_bbox[1] + plate_result.plate_bbox[3])/2.0] if plate_result.plate_bbox else [0, 0],
+                                    rule_name="ANPR Watchlist Enforcement",
+                                    confidence=plate_result.ocr_confidence,
+                                    plate_text=plate_result.plate_text,
+                                    plate_confidence=plate_result.plate_confidence,
+                                    is_hotlist=True,
+                                    hotlist_reason=plate_result.hotlist_reason,
+                                )
+                                db.insert_event(ev)
+                                send_mobile_alert(ev)
                 cached_plate_results = plate_results
 
             else:

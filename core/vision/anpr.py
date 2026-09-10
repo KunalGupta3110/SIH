@@ -36,10 +36,11 @@ PLATE_MODEL_REPOS = [
     ("keremberke/yolov8m-license-plate-detection", "best.pt"),
     ("Koushim/yolov8-license-plate-detection", "best.pt"),
 ]
-PLATE_CONF_THRESHOLD = 0.30
+PLATE_CONF_THRESHOLD = 0.20
 
 # Default border security watchlist (normalized plate -> alert reason)
 DEFAULT_HOTLIST: Dict[str, str] = {
+    "MH43CC1745": "Flagged High-Risk Vehicle (Active Intercept Order)",
     "RJ19CB8890": "Flagged Contraband Transport (Thar Sector)",
     "PB08AX4471": "Suspect Logistics Transport (Gurdaspur Sector)",
     "DL01AB1234": "Stolen Commercial Carrier",
@@ -251,8 +252,8 @@ class ANPREngine:
         Returns a PlateResult if a plate is found (or cached), None otherwise.
         Skips OCR on non-cadence frames and returns the cached result instead.
         """
-        # Only process vehicles
-        if class_name not in ("car", "truck", "bus", "motorcycle"):
+        # Allow vehicles, phones, or props
+        if class_name not in ("car", "truck", "bus", "motorcycle", "cell phone", "vehicle_prop"):
             return None
 
         if not self.is_available:
@@ -293,8 +294,8 @@ class ANPREngine:
         vx2 = min(w, int(vehicle_bbox[2]))
         vy2 = min(h, int(vehicle_bbox[3]))
 
-        if (vx2 - vx1) < 30 or (vy2 - vy1) < 30:
-            return None  # Vehicle crop too small
+        if (vx2 - vx1) < 20 or (vy2 - vy1) < 20:
+            return None  # Crop too small
 
         vehicle_crop = frame[vy1:vy2, vx1:vx2]
 
@@ -357,6 +358,160 @@ class ANPREngine:
         self._record_read(res)
         return res
 
+    def detect_plates_in_frame(
+        self, frame: np.ndarray, conf: Optional[float] = None
+    ) -> List[Tuple[np.ndarray, List[int], float]]:
+        """
+        Run the plate detection YOLO model on the entire frame.
+        Returns list of (plate_crop, [x1, y1, x2, y2], confidence).
+        """
+        if self._plate_model is None or frame is None or frame.size == 0:
+            return []
+
+        conf = conf or self.plate_conf
+        try:
+            results = self._plate_model.predict(
+                source=frame,
+                conf=conf,
+                verbose=False,
+                device=self.device,
+            )
+            if not results or len(results) == 0:
+                return []
+
+            boxes = results[0].boxes
+            if boxes is None or len(boxes) == 0:
+                return []
+
+            h, w = frame.shape[:2]
+            detections = []
+            for b in boxes:
+                det_conf = float(b.conf[0])
+                xyxy = b.xyxy[0].cpu().numpy().astype(int)
+                x1, y1, x2, y2 = xyxy
+                # Add small 4px padding
+                x1, y1 = max(0, x1 - 4), max(0, y1 - 4)
+                x2, y2 = min(w, x2 + 4), min(h, y2 + 4)
+                if (x2 - x1) < 15 or (y2 - y1) < 8:
+                    continue
+                crop = frame[y1:y2, x1:x2]
+                detections.append((crop, [int(x1), int(y1), int(x2), int(y2)], det_conf))
+            return detections
+        except Exception as e:
+            logger.debug("Frame plate detection error: %s", e)
+            return []
+
+    def process_frame(
+        self,
+        frame: np.ndarray,
+        tracks: Optional[List[Any]] = None,
+        frame_idx: int = 0,
+        timestamp_ms: float = 0.0,
+        camera_id: str = "",
+    ) -> List[PlateResult]:
+        """
+        Comprehensive ANPR:
+        1. Checks tracked vehicles, cell phones, and props if provided.
+        2. Scans full frame directly for license plates (supports phones, tabletop cutouts, distant vehicles).
+        3. Returns all detected and read plates with bounding boxes and hotlist status.
+        """
+        if not self.is_available or frame is None or frame.size == 0:
+            return []
+
+        results: List[PlateResult] = []
+        covered_bboxes: List[List[int]] = []
+
+        # 1. Process known vehicle/phone tracks if available
+        if tracks:
+            for obj in tracks:
+                cname = getattr(obj, "class_name", "")
+                if cname in ("car", "truck", "bus", "motorcycle", "cell phone", "vehicle_prop"):
+                    tid = getattr(obj, "track_id", 0)
+                    bbox = getattr(obj, "bbox", [])
+                    pr = self.process_vehicle(
+                        frame=frame,
+                        vehicle_bbox=bbox,
+                        track_id=tid,
+                        frame_idx=frame_idx,
+                        timestamp_ms=timestamp_ms,
+                        class_name=cname,
+                        camera_id=camera_id,
+                    )
+                    if pr and pr.plate_text:
+                        results.append(pr)
+                        if pr.plate_bbox:
+                            covered_bboxes.append(pr.plate_bbox)
+
+        # 2. Direct full-frame plate scan (detects plates held on phones, cutouts, or untracked cars)
+        scan_frame = (frame_idx % self.read_every_n_frames == 0) or len(results) == 0
+        if scan_frame and self._plate_model is not None:
+            raw_plates = self.detect_plates_in_frame(frame)
+            for idx, (p_crop, p_bbox, p_conf) in enumerate(raw_plates):
+                # Check overlap with existing results
+                px1, py1, px2, py2 = p_bbox
+                overlap = False
+                for cb in covered_bboxes:
+                    cx1, cy1, cx2, cy2 = cb
+                    ix1, iy1 = max(px1, cx1), max(py1, cy1)
+                    ix2, iy2 = min(px2, cx2), min(py2, cy2)
+                    if ix2 > ix1 and iy2 > iy1:
+                        overlap = True
+                        break
+                if overlap:
+                    continue
+
+                # Run OCR on the plate crop
+                p_text, ocr_conf = self._read_plate_text(p_crop)
+                if p_text and len(p_text) >= 3:
+                    is_hot, hot_reason = self.check_hotlist(p_text)
+                    synth_track_id = 9000 + (idx % 50)
+                    pr = PlateResult(
+                        plate_text=p_text,
+                        plate_confidence=p_conf,
+                        ocr_confidence=ocr_conf,
+                        plate_bbox=p_bbox,
+                        track_id=synth_track_id,
+                        timestamp_ms=timestamp_ms,
+                        is_hotlist=is_hot,
+                        hotlist_reason=hot_reason,
+                        camera_id=camera_id,
+                        class_name="plate_direct",
+                    )
+                    self._record_read(pr)
+                    # Cache in track cache for continuity
+                    cache = self._track_cache.setdefault(synth_track_id, _TrackPlateCache())
+                    cache.best_text = p_text
+                    cache.best_ocr_conf = ocr_conf
+                    cache.best_det_conf = p_conf
+                    cache.plate_bbox = p_bbox
+                    cache.last_read_frame = frame_idx
+                    cache.read_count += 1
+
+                    results.append(pr)
+                    covered_bboxes.append(p_bbox)
+
+        # 3. Persistence: if no plate detected on this immediate frame, keep recent active reads
+        if not results:
+            for tid, cache in self._track_cache.items():
+                if cache.best_text and (frame_idx - cache.last_read_frame) < 18:
+                    is_hot, hot_reason = self.check_hotlist(cache.best_text)
+                    results.append(
+                        PlateResult(
+                            plate_text=cache.best_text,
+                            plate_confidence=cache.best_det_conf,
+                            ocr_confidence=cache.best_ocr_conf,
+                            plate_bbox=cache.plate_bbox,
+                            track_id=tid,
+                            timestamp_ms=timestamp_ms,
+                            is_hotlist=is_hot,
+                            hotlist_reason=hot_reason,
+                            camera_id=camera_id,
+                            class_name="cached",
+                        )
+                    )
+
+        return results
+
     def _detect_plate_region(
         self, vehicle_crop: np.ndarray
     ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int, int, int]]]:
@@ -388,8 +543,8 @@ class ANPREngine:
             x1, y1, x2, y2 = xyxy
 
             h, w = vehicle_crop.shape[:2]
-            x1, y1 = max(0, x1), max(0, y1)
-            x2, y2 = min(w, x2), min(h, y2)
+            x1, y1 = max(0, x1 - 3), max(0, y1 - 3)
+            x2, y2 = min(w, x2 + 3), min(h, y2 + 3)
 
             if (x2 - x1) < 10 or (y2 - y1) < 5:
                 return None, None
@@ -404,47 +559,49 @@ class ANPREngine:
     def _read_plate_text(self, plate_crop: np.ndarray) -> Tuple[str, float]:
         """
         Run EasyOCR on a plate crop image. Returns (cleaned_text, avg_confidence).
+        Applies cubic upscaling and fallback contrast enhancement.
         """
-        if self._ocr_reader is None:
+        if self._ocr_reader is None or plate_crop is None or plate_crop.size == 0:
             return "", 0.0
 
         try:
-            # Preprocess: convert to grayscale, resize for better OCR
-            if len(plate_crop.shape) == 3:
-                gray = cv2.cvtColor(plate_crop, cv2.COLOR_BGR2GRAY)
-            else:
-                gray = plate_crop
+            h, w = plate_crop.shape[:2]
+            if h < 8 or w < 15:
+                return "", 0.0
 
-            # Resize to a reasonable height for OCR
+            # Scale up to ~75-85px height for clean OCR stroke recognition
             target_h = 80
-            h, w = gray.shape[:2]
-            if h > 0 and w > 0:
-                scale = target_h / h
-                gray = cv2.resize(gray, (int(w * scale), target_h), interpolation=cv2.INTER_CUBIC)
+            scale = max(1.5, target_h / float(h))
+            new_w = max(40, int(w * scale))
+            new_h = max(24, int(h * scale))
+            upscaled = cv2.resize(plate_crop, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
 
-            # Apply adaptive thresholding for better contrast
-            gray = cv2.adaptiveThreshold(
-                gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
-            )
+            # Pass 1: Direct upscaled image
+            results = self._ocr_reader.readtext(upscaled, detail=1, paragraph=False)
 
-            results = self._ocr_reader.readtext(gray, detail=1, paragraph=False)
+            # Pass 2: Fallback with CLAHE if nothing found
+            if not results:
+                gray = cv2.cvtColor(upscaled, cv2.COLOR_BGR2GRAY) if len(upscaled.shape) == 3 else upscaled
+                clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+                enhanced = clahe.apply(gray)
+                results = self._ocr_reader.readtext(enhanced, detail=1, paragraph=False)
 
             if not results:
                 return "", 0.0
 
-            # Combine all detected text segments
             texts = []
             confs = []
             for (bbox_pts, text, conf) in results:
                 cleaned = self._clean_plate_text(text)
                 if cleaned and len(cleaned) >= 2:
                     texts.append(cleaned)
-                    confs.append(conf)
+                    confs.append(float(conf))
 
             if not texts:
                 return "", 0.0
 
-            combined_text = " ".join(texts)
+            combined_text = "".join(texts)
+            combined_text = self._format_plate_heuristics(combined_text)
             avg_conf = sum(confs) / len(confs) if confs else 0.0
 
             return combined_text, avg_conf
@@ -454,12 +611,40 @@ class ANPREngine:
             return "", 0.0
 
     @staticmethod
+    def _format_plate_heuristics(text: str) -> str:
+        """Apply Indian license plate formatting and OCR error correction."""
+        import re
+        t = re.sub(r"[^A-Za-z0-9]", "", text).upper()
+
+        # Strip leading IND or IN badge from HSRP plates
+        if t.startswith("IND") and len(t) > 5:
+            t = t[3:]
+        elif t.startswith("IN") and len(t) > 5 and t[2:4].isdigit():
+            t = t[2:]
+
+        # If OCR confused 'PA', 'FA', 'FH', 'MH' with leading artifacts
+        if (t.startswith("PA") or t.startswith("FA") or t.startswith("FH")) and len(t) >= 6:
+            if t[2:4].isdigit():
+                t = "MH" + t[2:]
+
+        # Correct trailing 4 characters to digits if length >= 8
+        if len(t) >= 8:
+            head = t[:-4]
+            tail = t[-4:]
+            digit_map = {
+                "Z": "7", "O": "0", "D": "0", "Q": "0",
+                "I": "1", "L": "1", "S": "5", "B": "8", "G": "6"
+            }
+            tail_fixed = "".join(digit_map.get(c, c) for c in tail)
+            t = head + tail_fixed
+
+        return t
+
+    @staticmethod
     def _clean_plate_text(text: str) -> str:
         """
-        Clean OCR output to extract likely plate characters.
-        Indian plates: XX 00 XX 0000 format (state code, district, series, number)
+        Clean OCR output to extract alphanumeric characters.
         """
-        # Keep only alphanumeric characters and spaces
         cleaned = ""
         for ch in text.upper():
             if ch.isalnum() or ch == " " or ch == "-":

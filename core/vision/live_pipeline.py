@@ -161,6 +161,7 @@ class LiveSurveillancePipeline(SurveillancePipeline):
         # Cache for frame skipping: reuse previous tracked objects on skipped frames
         cached_tracked_objects = []
         cached_plate_results = []
+        cached_drone_boxes = []
 
         # FPS calculation
         fps_counter = 0
@@ -237,39 +238,34 @@ class LiveSurveillancePipeline(SurveillancePipeline):
                             )
                             events_ingested += 1
 
-                    # ---- ANPR on vehicle tracks ----
+                    # ---- ANPR detection (tracks + full frame / mobile phone / tabletop) ----
                     plate_results = []
                     if self.anpr_engine:
-                        for obj in tracked_objects:
-                            if obj.class_name in ("car", "truck", "bus", "motorcycle"):
-                                plate_result = self.anpr_engine.process_vehicle(
-                                    frame=frame,
-                                    vehicle_bbox=obj.bbox,
-                                    track_id=obj.track_id,
-                                    frame_idx=frame_idx,
-                                    timestamp_ms=timestamp_ms,
-                                    class_name=obj.class_name,
-                                    camera_id=camera_id,
-                                )
-                                if plate_result and plate_result.plate_text:
-                                    plate_results.append(plate_result)
-                                    plates_detected += 1
-                                    if plate_result.is_hotlist or (frame_idx % EVENT_EMIT_EVERY_N_FRAMES == 0):
-                                        self._ingest_anpr_event(camera_id, plate_result, timestamp_ms)
+                        plate_results = self.anpr_engine.process_frame(
+                            frame=frame,
+                            tracks=tracked_objects,
+                            frame_idx=frame_idx,
+                            timestamp_ms=timestamp_ms,
+                            camera_id=camera_id,
+                        )
+                        for plate_result in plate_results:
+                            if plate_result and plate_result.plate_text:
+                                plates_detected += 1
+                                if plate_result.is_hotlist or (frame_idx % EVENT_EMIT_EVERY_N_FRAMES == 0):
+                                    self._ingest_anpr_event(camera_id, plate_result, timestamp_ms)
                     cached_plate_results = plate_results
 
                     # ---- Drone detection (optional, throttled) ----
                     if self.enable_drone_detection and frame_idx % 3 == 0:
+                        drone_boxes = []
                         drone_results = self.drone_model(frame, conf=DRONE_CONF_THRESHOLD, verbose=False)[0]
                         for box in drone_results.boxes:
                             x1, y1, x2, y2 = map(int, box.xyxy[0])
                             conf = float(box.conf[0])
                             drone_alerts += 1
                             self._ingest_drone_event(camera_id, (x1, y1, x2, y2), conf, timestamp_ms)
-                            if show_window:
-                                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                                cv2.putText(frame, f"DRONE {conf:.2f}", (x1, y1 - 8),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 255), 2)
+                            drone_boxes.append((x1, y1, x2, y2, conf))
+                        cached_drone_boxes = drone_boxes
 
                 else:
                     # Skipped frame: reuse cached results
@@ -295,6 +291,15 @@ class LiveSurveillancePipeline(SurveillancePipeline):
                         cv2.rectangle(frame, (x1, max(0, y1 - 22)), (x1 + tw + 6, y1), (20, 25, 30), -1)
                         cv2.putText(frame, label, (x1 + 3, max(14, y1 - 5)),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.50, (255, 255, 255), 1, cv2.LINE_AA)
+
+                    # Draw drone overlays (persistent)
+                    for (dx1, dy1, dx2, dy2, dconf) in cached_drone_boxes:
+                        cv2.rectangle(frame, (dx1, dy1), (dx2, dy2), (0, 0, 255), 3)
+                        d_label = f"AERIAL DRONE {dconf:.2f}"
+                        (dw, dh), _ = cv2.getTextSize(d_label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)
+                        cv2.rectangle(frame, (dx1, max(0, dy1 - 22)), (dx1 + dw + 6, dy1), (0, 0, 180), -1)
+                        cv2.putText(frame, d_label, (dx1 + 3, max(14, dy1 - 5)),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2, cv2.LINE_AA)
 
                     # Draw plate bounding boxes
                     if self.anpr_engine and cached_plate_results:
