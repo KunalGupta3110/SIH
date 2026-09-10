@@ -303,21 +303,30 @@ class LiveSurveillancePipeline(SurveillancePipeline):
                     # HUD overlay
                     h, w = frame.shape[:2]
                     cv2.rectangle(frame, (0, 0), (w, 35), (20, 20, 20), -1)
+                    drone_status = f" | DRONE DETECTOR: ON ({drone_alerts})" if self.enable_drone_detection else " | DRONE: OFF"
                     hud_text = (
-                        f"IBVAP Sentinel LIVE | FPS: {display_fps:.1f} | "
+                        f"IBVAP SENTINEL LIVE [{camera_id}] | FPS: {display_fps:.1f} | "
                         f"Tracks: {len(tracked_objects)} | "
                         f"Plates: {len(cached_plate_results)}"
+                        f"{drone_status}"
                     )
                     cv2.putText(frame, hud_text, (12, 24),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 200), 1, cv2.LINE_AA)
 
-                    cv2.imshow("IBVAP Sentinel - Live Feed", frame)
-                    if cv2.waitKey(1) & 0xFF == ord("q"):
-                        break
+                    try:
+                        cv2.imshow("IBVAP Sentinel - Live Feed (ANPR + Drones)", frame)
+                        if cv2.waitKey(1) & 0xFF == ord("q"):
+                            break
+                    except cv2.error:
+                        if frame_idx % 30 == 0:
+                            logger.info(hud_text)
         finally:
             cap.release()
             if show_window:
-                cv2.destroyAllWindows()
+                try:
+                    cv2.destroyAllWindows()
+                except cv2.error:
+                    pass
 
         logger.info(
             "Live session ended. frames=%d detections=%d events=%d cross_cam=%d plates=%d drone_alerts=%d duration=%.1fs",
