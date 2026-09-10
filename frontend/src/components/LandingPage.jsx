@@ -4,7 +4,7 @@ import siren from "../lib/audioSiren.js";
 import { Reveal, CountUp } from "../lib/motion.jsx";
 import IsometricTerrain from "./IsometricTerrain.jsx";
 import ThemeToggle from "./ThemeToggle.jsx";
-import BrandMark from "./BrandMark.jsx";
+import BrandMark, { BrandLogo } from "./BrandMark.jsx";
 
 // The 3D terrain diorama pulls in three.js — code-split so it only loads
 // when the operator taps the sector map open.
@@ -23,7 +23,6 @@ function GlobeShell() {
   );
 }
 import {
-  Shield,
   ArrowRight,
   Play,
   Pause,
@@ -1126,8 +1125,8 @@ export default function LandingPage() {
       <footer className="border-t-2 border-white bg-black px-6 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 font-mono text-[11px] text-white/50 sm:flex-row">
           <div className="flex items-center gap-3">
-            <span className="grid h-6 w-6 place-items-center border border-white bg-white text-black"><Shield size={12} /></span>
-            <span className="font-bold text-white">IBVAP SENTINEL</span>
+            <BrandLogo size={22} className="shrink-0" />
+            <span className="font-heading font-bold tracking-tight text-white">IBVAP Sentinel</span>
             <span className="text-white/25">·</span>
             <span>Ministry of Home Affairs · SSB</span>
           </div>
