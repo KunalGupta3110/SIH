@@ -88,7 +88,7 @@ class LiveSurveillancePipeline(SurveillancePipeline):
     def __init__(
         self,
         *args,
-        enable_drone_detection: bool = False,
+        enable_drone_detection: bool = True,
         enable_anpr: bool = True,
         infer_every_n: int = INFER_EVERY_N_FRAMES,
         **kwargs,
@@ -139,6 +139,42 @@ class LiveSurveillancePipeline(SurveillancePipeline):
             1                                   -> a USB webcam (try if 0 is wrong device)
             "http://192.168.1.5:8080/video"      -> phone running IP Webcam app
         """
+        # Pre-validate IP camera URLs before blocking on VideoCapture
+        if isinstance(source, str) and source.startswith("http"):
+            import socket, urllib.parse
+            parsed = urllib.parse.urlparse(source)
+            host = parsed.hostname
+            port = parsed.port or 80
+            logger.info("Testing connection to %s:%s ...", host, port)
+            try:
+                sock = socket.create_connection((host, port), timeout=4)
+                sock.close()
+                logger.info("✅ IP camera reachable at %s:%s", host, port)
+            except (socket.timeout, OSError) as e:
+                # Try to auto-detect what IP range might be correct
+                try:
+                    local_ip = socket.gethostbyname(socket.gethostname())
+                    prefix = ".".join(local_ip.split(".")[:3])
+                except Exception:
+                    prefix = "192.168.X"
+                raise RuntimeError(
+                    f"\n\n❌ Cannot reach IP camera at {source!r}\n"
+                    f"   Error: {e}\n\n"
+                    f"📱 HOW TO FIX:\n"
+                    f"   1. Open 'IP Webcam' app on your phone\n"
+                    f"   2. Tap 'Start server'\n"
+                    f"   3. The app shows the correct IP on screen\n"
+                    f"      It will look like: http://{prefix}.X:8080\n"
+                    f"   4. Your laptop's local IP is: {local_ip!r}\n"
+                    f"      → Phone IP should start with: {prefix!r}\n"
+                    f"   5. Test in browser FIRST: open http://{prefix}.X:8080\n"
+                    f"      If browser shows the camera feed, the URL is correct.\n\n"
+                    f"   ❓ Common causes:\n"
+                    f"      - Phone not on same WiFi network as laptop\n"
+                    f"      - IP Webcam server not started\n"
+                    f"      - Wrong IP address typed\n"
+                ) from e
+
         cap = cv2.VideoCapture(source)
         if not cap.isOpened():
             raise RuntimeError(
@@ -418,11 +454,13 @@ def main():
     parser = argparse.ArgumentParser(description="IBVAP Sentinel - Live Camera YOLO Pipeline")
     parser.add_argument("--source", default="0", help="0 for webcam, or an IP Webcam URL")
     parser.add_argument("--camera-id", default="CAM_ALPHA", help="Camera identifier used in the incident ledger")
-    parser.add_argument("--drone", action="store_true", help="Enable the drone detection model (heavy, off by default)")
+    parser.add_argument("--no-drone", action="store_true", help="Disable the drone detection model")
     parser.add_argument("--no-anpr", action="store_true", help="Disable ANPR (number plate detection)")
     parser.add_argument("--no-window", action="store_true", help="Run headless (no cv2 display window)")
     parser.add_argument("--skip-frames", type=int, default=INFER_EVERY_N_FRAMES,
                         help=f"Run YOLO inference every N frames (default: {INFER_EVERY_N_FRAMES})")
+    parser.add_argument("--conf", type=float, default=0.45,
+                        help="YOLO detection confidence threshold (default: 0.45). Lower = more detections but more false positives. Raise to 0.6+ to reduce ghost detections.")
     args = parser.parse_args()
 
     # allow "0" / "1" to be treated as a webcam index, anything else as a URL/path
@@ -431,9 +469,10 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
     pipeline = LiveSurveillancePipeline(
-        enable_drone_detection=args.drone,
+        enable_drone_detection=not args.no_drone,
         enable_anpr=not args.no_anpr,
         infer_every_n=args.skip_frames,
+        conf_threshold=args.conf,
     )
     pipeline.process_live_source(
         camera_id=args.camera_id,

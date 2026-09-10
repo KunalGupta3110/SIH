@@ -47,7 +47,7 @@ class BorderTracker:
     def __init__(
         self,
         model_path: str = "yolov8n.pt",
-        conf_threshold: float = 0.25,
+        conf_threshold: float = 0.45,
         iou_threshold: float = 0.45,
         device: Optional[str] = None,
         imgsz: int = 640,

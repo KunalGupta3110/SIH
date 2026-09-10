@@ -79,11 +79,11 @@ class SurveillancePipeline:
     gallery, reused across every camera this process handles — loading the
     model per video would re-pay the warmup cost every time."""
 
-    def __init__(self, backend: Optional[SentinelBackend] = None, device: Optional[str] = None, reid_threshold: float = 0.70):
+    def __init__(self, backend: Optional[SentinelBackend] = None, device: Optional[str] = None, reid_threshold: float = 0.70, conf_threshold: float = 0.45):
         self.backend = backend or get_backend()
         self.device = device
-        logger.info("Loading YOLOv8n + ByteTrack tracker (device=%s)...", device or "auto")
-        self.tracker = BorderTracker(device=device)
+        logger.info("Loading YOLOv8n + ByteTrack tracker (device=%s, conf=%.2f)...", device or "auto", conf_threshold)
+        self.tracker = BorderTracker(device=device, conf_threshold=conf_threshold)
         logger.info("Loading ResNet18 Re-ID feature extractor (device=%s)...", device or "auto")
         self.extractor = FeatureExtractor(device=device)
         self.reid = CrossCameraReID(feature_extractor=self.extractor, similarity_threshold=reid_threshold, device=device)
