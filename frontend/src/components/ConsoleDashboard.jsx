@@ -1088,7 +1088,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
         </aside>
 
         {/* ── MAIN CONTENT CANVAS ──────────────────────────────── */}
-        <main className="flex-1 overflow-y-auto bg-[#000000] p-4.5 space-y-4">
+        <main className="flex-1 overflow-y-auto bg-[#000000] p-4.5 pb-24 space-y-4 lg:pb-4.5">
           {/* ══════════════════════════════════════════════════════ */}
           {/* VIEW 0: COMMAND WATCHFLOOR (pseudo-3D tactical scene)  */}
           {/* ══════════════════════════════════════════════════════ */}
@@ -1519,11 +1519,11 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <p className="text-xs text-white/55">Sector 4-B High-Security Northern Corridor • Live feeds & cloud simulation</p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 bg-[#000000] p-1 rounded-xl border border-white/12 text-xs">
+                <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
+                  <div className="flex w-full items-center gap-1 overflow-x-auto rounded-xl border border-white/12 bg-[#000000] p-1 text-xs lg:w-auto">
                     <button
                       onClick={() => { triggerSound("click"); setActiveSurveillanceView("terrain"); }}
-                      className={`px-3 py-1.5 rounded-lg font-mono text-xs transition-colors ${
+                      className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 font-mono text-xs transition-colors ${
                         activeSurveillanceView === "terrain" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "text-white/55 hover:text-white"
                       }`}
                     >
@@ -1531,7 +1531,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     </button>
                     <button
                       onClick={() => { triggerSound("click"); setActiveSurveillanceView("grid"); }}
-                      className={`px-3 py-1.5 rounded-lg font-mono text-xs transition-colors ${
+                      className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 font-mono text-xs transition-colors ${
                         activeSurveillanceView === "grid" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "text-white/55 hover:text-white"
                       }`}
                     >
@@ -1539,16 +1539,17 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     </button>
                     <button
                       onClick={() => { triggerSound("click"); setActiveSurveillanceView("testbed"); }}
-                      className={`px-3 py-1.5 rounded-lg font-mono text-xs flex items-center gap-1.5 transition-colors ${
+                      className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 font-mono text-xs transition-colors ${
                         activeSurveillanceView === "testbed" ? "bg-red-500/20 text-red-300 border border-red-500/50 font-bold shadow-[0_0_12px_rgba(239,68,68,0.3)]" : "text-white/55 hover:text-white"
                       }`}
                     >
                       <Disc size={12} className={activeSurveillanceView === "testbed" ? "animate-spin text-red-400" : ""} />
-                      <span>CCTV Ingress & Training Lab</span>
+                      <span className="hidden sm:inline">CCTV Ingress &amp; Training Lab</span>
+                      <span className="sm:hidden">Ingress Lab</span>
                     </button>
                     <button
                       onClick={() => { triggerSound("click"); setActiveSurveillanceView("focus"); }}
-                      className={`px-3 py-1.5 rounded-lg font-mono text-xs transition-colors ${
+                      className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 font-mono text-xs transition-colors ${
                         activeSurveillanceView === "focus" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "text-white/55 hover:text-white"
                       }`}
                     >

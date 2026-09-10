@@ -82,6 +82,16 @@ body::before {
     border-color: rgba(255, 153, 51, 0.45) !important;
     background: rgba(255, 153, 51, 0.08) !important;
   }
+  /* console nav rail: active item gets a saffron spine + tint */
+  :root[data-theme="india"] .sentinel-console aside nav [class~="bg-white"] {
+    box-shadow: inset 3px 0 0 #ff9933 !important;
+    background: rgba(255, 153, 51, 0.1) !important;
+  }
+  /* KPI stat cards: tricolour hairline on top */
+  :root[data-theme="india"] .sentinel-console main > section:first-child [class*="rounded-2xl"] {
+    border-top: 2px solid transparent !important;
+    border-image: linear-gradient(90deg, #ff9933, #ffffff, #138808) 1 !important;
+  }
 }
 /* light-mode landing hero keeps the ink readable */
 :root[data-theme="light"] .hero-accent {
@@ -168,9 +178,13 @@ body::before {
     color: #047857 !important;
   }
 
-  /* borders */
+  /* borders — a touch stronger so white-on-off-white cards keep an edge */
   :root[data-theme="light"] [class*="border-white"] {
-    border-color: rgba(24, 24, 27, 0.14) !important;
+    border-color: rgba(24, 24, 27, 0.18) !important;
+  }
+  :root[data-theme="light"] :not(.keep-dark) .rounded-2xl[class*="border"],
+  :root[data-theme="light"] :not(.keep-dark) .rounded-xl[class*="border"] {
+    box-shadow: 0 1px 3px rgba(24, 24, 27, 0.06);
   }
   :root[data-theme="light"] .border-zinc-800,
   :root[data-theme="light"] [class*="border-zinc-8"],

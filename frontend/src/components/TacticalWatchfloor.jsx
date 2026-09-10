@@ -674,8 +674,8 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
               })}
             </div>
 
-            {/* right — real-time intel + threat feed */}
-            <div className="pointer-events-auto ml-auto hidden w-72 shrink-0 flex-col gap-2.5 overflow-y-auto md:flex">
+            {/* right — real-time intel + threat feed (paired with the left rail at lg) */}
+            <div className="pointer-events-auto ml-auto hidden w-72 shrink-0 flex-col gap-2.5 overflow-y-auto lg:flex">
               <PanelTitle icon={Activity}>Incident correlator</PanelTitle>
 
               {/* radar micro-widget */}
@@ -772,7 +772,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
       </div>
 
       {/* spec strip below the scene — architectural facts, not measured metrics */}
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MetricCard icon={Cpu} label="Detector" value="YOLOv8n" unit="COCO · person/vehicle" />
         <MetricCard icon={Gauge} label="Tracker" value="ByteTrack" unit="local track IDs" />
         <MetricCard icon={Radar} label="Re-ID" value="OSNet / ResNet" unit="512-d · 2-cam testbed" />
