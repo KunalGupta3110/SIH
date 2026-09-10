@@ -39,7 +39,7 @@ def run_tabletop_demo(camera_index=0, show=True, enable_anpr=True):
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
 
     print(f"\n=======================================================")
-    print(f" 🛡️ [SCENARIO 4] LIVE TABLETOP WEBCAM & HARDWARE TRIGGER")
+    print(f" [SCENARIO 4] LIVE TABLETOP WEBCAM & HARDWARE TRIGGER")
     print(f" Webcam Index: {camera_index} ({w}x{h} @ {fps:.1f} FPS)")
     print(f" Physical Barrier Interlock: ACTIVE")
     print(f" ANPR (Number Plate Detection): {'ENABLED' if enable_anpr else 'DISABLED'}")
@@ -216,14 +216,22 @@ def run_tabletop_demo(camera_index=0, show=True, enable_anpr=True):
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
             if show:
-                cv2.imshow("Scenario 4 - Live Tabletop & Hardware Barrier", annotated)
-                key = cv2.waitKey(1) & 0xFF
-                if key == 27 or key == ord("q"):
-                    break
+                try:
+                    cv2.imshow("Scenario 4 - Live Tabletop & Hardware Barrier", annotated)
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == 27 or key == ord("q"):
+                        break
+                except cv2.error:
+                    if frame_idx % 30 == 0:
+                        cv2.imwrite("data/live_tabletop_frame.jpg", annotated)
+                        print(f" [RUNNING - FRAME {frame_idx}] {hud_text}")
     finally:
         cap.release()
         if show:
-            cv2.destroyAllWindows()
+            try:
+                cv2.destroyAllWindows()
+            except cv2.error:
+                pass
 
 
 if __name__ == "__main__":
