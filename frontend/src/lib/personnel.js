@@ -30,7 +30,7 @@ const SEED = [
     vehiclePlate: "",
     face: "",
     enrolledAt: "2026-09-02T04:10:00Z",
-    enrolledBy: "SSB-GDP-04",
+    enrolledBy: "abc",
   },
   {
     id: "AUTH-002",
@@ -43,7 +43,7 @@ const SEED = [
     vehiclePlate: "PB 08 QR 0042",
     face: "",
     enrolledAt: "2026-09-05T22:31:00Z",
-    enrolledBy: "SSB-GDP-19",
+    enrolledBy: "abc",
   },
 ];
 

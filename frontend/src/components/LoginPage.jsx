@@ -144,7 +144,7 @@ export default function LoginPage() {
             <Field
               icon={User}
               label="Operator ID"
-              placeholder="e.g. SSB-GDP-04"
+              placeholder="abc"
               value={id}
               onChange={(e) => setId(e.target.value)}
               autoComplete="username"
@@ -211,8 +211,7 @@ export default function LoginPage() {
         <div className="mt-4 border border-white/10 bg-white/[0.02] px-3 py-2.5 text-center text-[10.5px] leading-relaxed text-zinc-500">
           Demo build · client-side operator directory (src/lib/operators.js).
           <br />
-          Try <span className="text-white/60">SSB-GDP-04</span> / <span className="text-white/60">Ravi-Sector-4471</span>
-          {" · MFA "}<span className="text-white/60">118605</span>
+          Sign in with <span className="text-white/60">abc</span> / <span className="text-white/60">123</span> · leave MFA blank
           <br />
           Authorised use only · sessions logged under Section 65B.
         </div>
