@@ -22,7 +22,7 @@ if str(ROOT_DIR) not in sys.path:
 
 from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
@@ -72,10 +72,6 @@ app.add_middleware(
 THUMBNAIL_DIR = ROOT_DIR / "data" / "thumbnails"
 THUMBNAIL_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/thumbnails", StaticFiles(directory=str(THUMBNAIL_DIR)), name="thumbnails")
-
-STATIC_HTML = ROOT_DIR / "apps" / "web_command_center" / "static" / "command_center.html"
-if not STATIC_HTML.exists():
-    STATIC_HTML = ROOT_DIR / "apps" / "web_command_center" / "static" / "index.html"
 
 CURRENT_ARM_STATE = {"arm_state": "armed"}
 
@@ -273,9 +269,14 @@ def api_incident_to_mobile(incident: Dict[str, Any], base_url: str) -> Dict[str,
 @app.get("/")
 @app.get("/hud")
 def root_hud():
-    if STATIC_HTML.exists():
-        return FileResponse(str(STATIC_HTML))
-    return {"platform": "IBVAP Sentinel", "status": "online", "docs": "/docs"}
+    """API root. The operator UI is the React command console (frontend/,
+    deployed at ibvap-sentinel.vercel.app) — this service is API-only."""
+    return {
+        "platform": "IBVAP Sentinel Backend API",
+        "status": "online",
+        "docs": "/docs",
+        "console": "https://ibvap-sentinel.vercel.app",
+    }
 
 
 @app.get("/edge/status")

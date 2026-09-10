@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Demo: demos/scenario_1_perimeter_breach.py
 Description: Scenario 1 — Live Border Surveillance & Multi-Threat Geofencing (Tripwires, Red Zones, Loitering).
 """
@@ -106,7 +106,7 @@ def run_demo(source="data/vtest_pedestrians.avi", camera_id="CAM_ALPHA", show=Tr
             annotated = tracker.draw_tracks(annotated, tracks, show_trail=True)
 
             cv2.rectangle(annotated, (0, 0), (w, 36), (20, 30, 40), -1)
-            cv2.putText(annotated, f"CYBER CAMERA NODE: {camera_id} | TARGETS: {len(tracks)} | FPS: {fps:.1f}", (15, 24),
+            cv2.putText(annotated, f"IBVAP NODE: {camera_id} | TARGETS: {len(tracks)} | FPS: {fps:.1f}", (15, 24),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2, cv2.LINE_AA)
 
             if show:

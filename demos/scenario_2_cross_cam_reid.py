@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Demo: demos/scenario_2_cross_cam_reid.py
 Description: Scenario 2 — Cross-Camera Target Re-Identification with ResNet18 Embeddings and Cosine Similarity.
 """

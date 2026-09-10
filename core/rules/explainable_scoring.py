@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/rules/explainable_scoring.py
 Description: NOVELTY 3 — Explainable Threat Scoring Matrix.
              Computes transparent mathematical threat scores [0-100] with factorized evidence breakdowns.

@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Demo: demos/scenario_4_tabletop_webcam.py
 Description: Scenario 4 — Live Tabletop Webcam Surveillance & Physical Hardware Boom Barrier Trigger.
              Now with ANPR (Number Plate Detection) and performance optimizations.

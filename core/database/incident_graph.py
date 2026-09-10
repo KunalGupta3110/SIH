@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/database/incident_graph.py
 Description: NOVELTY 2 — Incident Graph & Multi-Camera Event Correlation Engine.
              Correlates fragmented camera alerts into a single unified high-level Incident Story.

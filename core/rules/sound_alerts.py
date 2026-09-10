@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/rules/sound_alerts.py
 Description: Audio alert synthesizer with persistent continuous emergency sirens.
              Loops high-frequency siren beeps continuously until an operator explicitly acknowledges / mutes it.

@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/vision/multi_stream_engine.py
 Description: Multi-Threaded Real-Time CCTV Streaming & Incident Reconstruction Engine.
              Supports RTSP, IP Phone Webcams, Local Webcams, and MP4 Video Files.

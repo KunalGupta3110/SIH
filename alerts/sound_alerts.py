@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: alerts/sound_alerts.py
 Description: Sound alert bridge forwarding to core/rules/sound_alerts.py with persistent siren support.
 """

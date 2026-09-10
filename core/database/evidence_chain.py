@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/database/evidence_chain.py
 Description: NOVELTY 4 — Tamper-Evident Cryptographic SHA-256 Evidence Chain (Blockchain/Cybersecurity).
              Locks security incidents into an immutable cryptographic chain of custody.
@@ -81,7 +81,7 @@ class TamperEvidentEvidenceLedger:
             incident_id="GENESIS_BLOCK",
             threat_score=0,
             camera_ids=["SYSTEM_CORE"],
-            rule_evidence="Genesis anchor initialized for IBVAP Cyber Camera Intelligence.",
+            rule_evidence="Genesis anchor initialized for IBVAP Sentinel Intelligence.",
             thumbnail_sha256="0"*64,
             data_payload_hash=compute_sha256("GENESIS_DATA_PAYLOAD"),
             previous_hash="0"*64,

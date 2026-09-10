@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Demo: demos/scenario_3_vehicle_ramming.py
 Description: Scenario 3 — Tactical Vehicle Ramming, Ultra-HD ANPR & Masked Hostiles Inspector.
 """

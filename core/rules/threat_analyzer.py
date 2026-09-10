@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/rules/threat_analyzer.py
 Description: Explainable tactical threat detection for rapid vehicle approach vectors and group density clustering.
 """

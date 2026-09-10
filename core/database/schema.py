@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/database/schema.py
 Description: Data contracts and security event schemas with explainable AI metrics and operator triage.
 """

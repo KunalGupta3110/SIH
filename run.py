@@ -1,14 +1,16 @@
 """
-Cyber Camera Surveillance Platform
-Master CLI Launcher
+IBVAP Sentinel — Master CLI Launcher
 Usage:
-  python run.py --all           # Starts FastAPI Gateway (:8000) + Web Command Center (:8501)
+  python run.py --all           # Starts FastAPI Gateway (:8000) + Streamlit dashboard (:8501)
   python run.py --api           # Starts FastAPI REST Gateway only
-  python run.py --dashboard     # Starts Streamlit Web Command Station
+  python run.py --dashboard     # Starts the Streamlit analyst dashboard
   python run.py --demo 1        # Runs Scenario 1 (Geofence Perimeter Breach)
   python run.py --demo 2        # Runs Scenario 2 (Cross-Camera Re-ID)
   python run.py --demo 3        # Runs Scenario 3 (Vehicle Ramming & Ultra-HD ANPR)
   python run.py --demo 4        # Runs Scenario 4 (Live Webcam & Hardware Barrier)
+
+The operator command console is the React app in frontend/ (deployed at
+ibvap-sentinel.vercel.app) — run it with `cd frontend && npm run dev`.
 """
 
 import argparse
@@ -24,17 +26,17 @@ ROOT_DIR = Path(__file__).resolve().parent
 def print_banner():
     print("""
 ======================================================================
-       🛡️  CYBER CAMERA SURVEILLANCE — MASTER ECOSYSTEM LAUNCHER  🛡️
+          🛡️  IBVAP SENTINEL — MASTER ECOSYSTEM LAUNCHER  🛡️
     Ministry of Home Affairs | SSB | SIH 2026 Problem Statement 26187
 ======================================================================
     """)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cyber Camera Surveillance - Master Launcher")
-    parser.add_argument("--all", action="store_true", help="Launch Backend API Gateway + Web Command Center")
+    parser = argparse.ArgumentParser(description="IBVAP Sentinel - Master Launcher")
+    parser.add_argument("--all", action="store_true", help="Launch Backend API Gateway + Streamlit dashboard")
     parser.add_argument("--api", action="store_true", help="Launch FastAPI REST Gateway on port 8000")
-    parser.add_argument("--dashboard", action="store_true", help="Launch Web Command Center on port 8501")
+    parser.add_argument("--dashboard", action="store_true", help="Launch the Streamlit analyst dashboard on port 8501")
     parser.add_argument("--demo", type=int, choices=[1, 2, 3, 4, 5, 6], help="Run Demo Scenario (1: Breach, 2: Re-ID, 3: Vehicle, 4: Webcam, 5: Incident Reconstruction, 6: Live Multi-Cam Real Tester)")
     args = parser.parse_args()
 
@@ -67,19 +69,21 @@ def main():
         return
 
     if args.dashboard:
-        print("[Starting] Web Command Station on http://localhost:8501...")
-        subprocess.run(["streamlit", "run", "apps/web_command_center/app.py"], cwd=ROOT_DIR)
+        print("[Starting] Streamlit analyst dashboard on http://localhost:8501...")
+        subprocess.run(["streamlit", "run", "dashboard/app.py"], cwd=ROOT_DIR)
         return
 
     # Default / --all
-    print("[Starting] FastAPI Gateway & Sentinel Watchfloor on http://localhost:8000...")
+    print("[Starting] FastAPI REST + WebSocket Gateway on http://localhost:8000...")
     import webbrowser
-    webbrowser.open("http://localhost:8000")
+    webbrowser.open("http://localhost:8000/docs")
 
     print("\n" + "="*70)
-    print(" ✅ ALL SERVICES ONLINE & OPERATIONAL!")
-    print(" 🛸 Sentinel Watchfloor UI:   http://localhost:8000  (Auto-Opened in Browser)")
+    print(" ✅ BACKEND ONLINE")
     print(" 🌐 REST API Swagger Docs:    http://localhost:8000/docs")
+    print(" 🖥️  Command Console (React):  cd frontend && npm run dev   (→ :5173)")
+    print("                              or  https://ibvap-sentinel.vercel.app")
+    print(" 📊 Analyst dashboard:        python run.py --dashboard   (→ :8501)")
     print(" 📱 Mobile Admin App:         cd apps/mobile_admin && flutter run")
     print(" 🎮 Run Threat Scenario 5:    python run.py --demo 5")
     print("="*70)

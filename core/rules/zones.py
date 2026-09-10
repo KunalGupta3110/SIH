@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/rules/zones.py
 Description: Polygon restricted geofencing, directional virtual tripwires, and caution corridors.
 """

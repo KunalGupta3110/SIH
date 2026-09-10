@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/vision/tracker.py
 Description: YOLOv8 multi-object detector and ByteTrack persistent object tracker with motion fallback.
 """
@@ -67,11 +67,11 @@ class BorderTracker:
     def _load_model(self):
         try:
             from ultralytics import YOLO
-            print(f"[Cyber Camera Vision] Loading YOLOv8 weights from: {self.model_path}...")
+            print(f"[IBVAP Vision] Loading YOLOv8 weights from: {self.model_path}...")
             self.model = YOLO(self.model_path)
-            print("[Cyber Camera Vision] YOLOv8 initialized successfully.")
+            print("[IBVAP Vision] YOLOv8 initialized successfully.")
         except Exception as e:
-            print(f"[Cyber Camera Vision] YOLOv8 unavailable ({e}). Using Background Motion Subtractor Fallback.")
+            print(f"[IBVAP Vision] YOLOv8 unavailable ({e}). Using Background Motion Subtractor Fallback.")
             self.use_fallback = True
             self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=300, varThreshold=25, detectShadows=False)
             self._fallback_id_counter = 1

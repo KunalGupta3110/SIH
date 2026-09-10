@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance - Hardware Interlock Controller
+IBVAP Sentinel - Hardware Interlock Controller
 Module: hardware/serial_trigger.py
 Description: USB Serial Bridge connecting Edge AI Threat Engine to physical Arduino/ESP32
              to drop the boom barrier servo and sound the perimeter buzzer on breaches.

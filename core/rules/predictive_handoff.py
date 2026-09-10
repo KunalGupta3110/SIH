@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/rules/predictive_handoff.py
 Description: NOVELTY 1 — Spatio-Temporal Predictive Camera Handoff Engine.
              Predicts cross-camera traversal time, exit vectors, and constrains Re-ID search spaces.

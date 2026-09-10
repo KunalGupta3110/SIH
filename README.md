@@ -112,7 +112,8 @@ Sign in with **`abc` / `123`**. Runs on mock sector state — no backend require
 cd SIH
 python -m venv venv && venv\Scripts\activate      # Windows  (source venv/bin/activate on *nix)
 pip install -r requirements.txt
-python run_ecosystem.py                            # FastAPI :8000/docs  ·  Streamlit :8501
+python run_ecosystem.py                            # FastAPI REST + WebSocket gateway → :8000/docs
+python run.py --dashboard                          # (optional) Streamlit analyst dashboard → :8501
 
 # 2. Point the console at the backend and run it
 cd frontend

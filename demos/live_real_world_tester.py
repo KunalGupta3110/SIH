@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Demo: demos/live_real_world_tester.py
 Description: Interactive Real-World Multi-Camera Testing Suite.
              Connect live phone cameras (IP Webcam/DroidCam), laptop webcams, or custom video files
@@ -34,7 +34,7 @@ INFER_EVERY_N_FRAMES = 2
 
 def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=True):
     print("\n" + "="*75)
-    print(" [CYBER CAMERA SURVEILLANCE] LIVE REAL-WORLD MULTI-CAMERA TESTER")
+    print(" [IBVAP SENTINEL] LIVE REAL-WORLD MULTI-CAMERA TESTER")
     print(" Connect Phone Cameras (RTSP/HTTP), Laptop Webcams, or Real CCTV Footage!")
     print("="*75 + "\n")
 
@@ -268,7 +268,7 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
             full_display = np.vstack([combined, hud_bar])
 
             if show:
-                cv2.imshow("Cyber Camera - Real-World Live Multi-Camera Tester", full_display)
+                cv2.imshow("IBVAP Sentinel - Real-World Live Multi-Camera Tester", full_display)
                 key = cv2.waitKey(15) & 0xFF
                 if key == 27 or key == ord("q"):
                     break

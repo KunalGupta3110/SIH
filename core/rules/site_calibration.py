@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/rules/site_calibration.py
 Description: NOVELTY 5 — Site-Specific Operator False-Alarm Learning & Calibration Layer.
              Learns from operator feedback (wildlife, shadows, fog, vegetation) to suppress site false alarms.

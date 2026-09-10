@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/vision/reid.py
 Description: Cross-Camera Re-Identification engine with ResNet18 512-d L2 embeddings
              and transparent cosine similarity candidate ranking matrix.

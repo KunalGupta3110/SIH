@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: core/database/event_db.py
 Description: SQLite Event Database with operator triage status, explainable AI metrics, and audit stats.
 """

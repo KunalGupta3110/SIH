@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Module: services/notifications/telegram_bot.py
 Description: Asynchronous Telegram & Mobile Alert Dispatcher.
 """
@@ -70,7 +70,7 @@ class MobileAlertDispatcher:
         severity_icon = "🚨" if event.severity == AlertSeverity.CRITICAL else ("⚠️" if event.severity == AlertSeverity.WARNING else "ℹ️")
         
         caption_text = (
-            f"{severity_icon} *CYBER CAMERA SURVEILLANCE ALERT [{event.severity.value}]*\n"
+            f"{severity_icon} *IBVAP SENTINEL ALERT [{event.severity.value}]*\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"📍 *Node:* `{event.camera_id}` | *Zone:* `{event.zone_name or 'Border Perimeter'}`\n"
             f"🎯 *Threat:* *{event.alert_type.value}*\n"

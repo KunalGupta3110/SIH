@@ -1,5 +1,5 @@
 """
-Cyber Camera Surveillance Platform
+IBVAP Sentinel
 Demo: demos/scenario_reconstruct_incident.py
 Description: Master Showcase — Predictive Multi-Camera Incident Reconstruction & Cryptographic Chain of Custody.
              "Don't Just Detect. Reconstruct the Incident."
@@ -125,7 +125,7 @@ def run_incident_reconstruction_demo(show=True):
 
         # Header
         cv2.rectangle(hud, (0, 0), (960, 55), (30, 42, 56), -1)
-        cv2.putText(hud, "CYBER CAMERA SURVEILLANCE - RECONSTRUCTED INCIDENT STORY", (20, 36),
+        cv2.putText(hud, "IBVAP SENTINEL - RECONSTRUCTED INCIDENT STORY", (20, 36),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
 
         # Main Incident Card
