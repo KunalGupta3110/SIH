@@ -78,7 +78,7 @@ export default function BorderTerrainPanel() {
             <span>{sector.sectorCode} · {sector.name} · 3D Terrain &amp; Sensor Topology</span>
           </h2>
           <p className="text-xs text-white/55">
-            {cameras.length} camera nodes · {live} live · {sector.agency} · live status from edge
+            {cameras.length} camera nodes · {live} live · {sector.agency} · status from edge / simulation
           </p>
         </div>
         <div className="flex items-center gap-2">

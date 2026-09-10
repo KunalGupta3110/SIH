@@ -1332,14 +1332,14 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <div className="grid grid-cols-3 gap-2 pt-1">
                     <button
                       onClick={() => { triggerSound("click"); setModalType("alertDetails"); }}
-                      className="bg-[#171717] hover:bg-[#1f1f1f] text-white border border-white/12 font-bold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      className="bg-white/[0.06] hover:bg-white/[0.12] text-white border border-white/12 font-bold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
                     >
                       <span>View Details</span>
                       <ArrowRight size={13} />
                     </button>
                     <button
                       onClick={() => handleTrackTarget("P17")}
-                      className="bg-[#171717] hover:bg-[#1f1f1f] text-white border border-white/12 font-semibold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      className="bg-white/[0.06] hover:bg-white/[0.12] text-white border border-white/12 font-semibold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
                     >
                       <Crosshair size={13} />
                       <span>Track Target</span>
@@ -2024,7 +2024,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <p className="text-xs text-white/55 mt-0.5">Sector 4-B Northern Border Corridor • Correlated Multi-Camera Telemetry</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => { setActiveNav("evidence"); }} className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/12 text-black hover:bg-white text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                  <button onClick={() => { setActiveNav("evidence"); }} className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/12 text-white hover:bg-white/10 text-xs font-semibold flex items-center gap-1.5 transition-colors">
                     <Database size={13} />
                     <span>Evidence Vault</span>
                   </button>
@@ -2077,15 +2077,33 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       <div className="text-xs font-mono text-white/55">{inc.cam} • {inc.coords}</div>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-[#000000] border border-white/12 flex items-center justify-between font-mono text-xs">
-                      <span className="text-white/55">Threat score:</span>
-                      <span className={`text-base font-extrabold ${inc.color}`}>{inc.threat} / 100</span>
+                    <div className="p-2.5 rounded-xl bg-[#000000] border border-white/12 font-mono text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-white/55">Threat score:</span>
+                        <span className={`text-base font-extrabold ${inc.color}`}>
+                          {inc.threat}<span className="text-white/40"> / 100</span>
+                        </span>
+                      </div>
+                      <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className={`h-full rounded-full ${
+                            inc.severity === "CRITICAL"
+                              ? "bg-rose-400"
+                              : inc.severity === "HIGH"
+                              ? "bg-amber-400"
+                              : inc.severity === "MEDIUM"
+                              ? "bg-zinc-300"
+                              : "bg-emerald-400"
+                          }`}
+                          style={{ width: `${Math.max(4, Math.min(100, inc.threat))}%` }}
+                        />
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2 pt-1">
                       <button
                         onClick={() => { triggerSound("click"); setSelectedIncidentId(inc.id); setModalType("alertDetails"); }}
-                        className="flex-1 py-2 rounded-xl bg-[#171717] hover:bg-[#1f1f1f] text-white border border-white/12 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                        className="flex-1 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-white border border-white/12 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
                       >
                         <span>Investigate</span>
                         <ArrowRight size={13} />
@@ -2409,10 +2427,10 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <Cpu size={18} className="text-white" />
                     <span>Site integrations & field actuators</span>
                   </h2>
-                  <p className="text-xs text-white/55">Phase 2 roadmap • on-site actuators are simulated in the MVP</p>
+                  <p className="text-xs text-white/55">Software-defined actuation — relays drive over GPIO / webhook; running in simulation for this demo</p>
                 </div>
                 <div className="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono">
-                  Simulated — not wired to hardware
+                  Simulation mode — no relay board attached
                 </div>
               </div>
 
@@ -2483,7 +2501,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     </div>
                     <button
                       onClick={() => toggleRelay("hydraulicBarrier")}
-                      className={`px-3 py-1 rounded-lg font-bold ${relays.hydraulicBarrier ? "bg-white text-white" : "bg-black text-white"}`}
+                      className={`px-3 py-1 rounded-lg font-bold ${relays.hydraulicBarrier ? "bg-white text-black" : "bg-black text-white"}`}
                     >
                       {relays.hydraulicBarrier ? "Active" : "Off"}
                     </button>
@@ -2505,6 +2523,42 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   </div>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-5 rounded-2xl bg-[#000000] border border-white/12 space-y-3">
+                  <div className="text-sm font-bold text-white font-mono flex items-center gap-2">
+                    <Cpu size={16} className="text-white" />
+                    <span>Edge integration endpoints</span>
+                  </div>
+                  {[
+                    ["Relay driver", "GPIO · Arduino Uno (barrier_interlock.ino)"],
+                    ["Event webhook", "POST /notifications/dispatch"],
+                    ["Actuator bus", "MQTT · sentinel/sector-4b/relays"],
+                    ["Command latency", "~180 ms serial round-trip"],
+                    ["Fail-safe", "barrier defaults LOWERED on link loss"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-3 text-[11px] font-mono">
+                      <span className="text-white/50 shrink-0">{k}</span>
+                      <span className="text-white/85 text-right">{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-5 rounded-2xl bg-[#000000] border border-white/12 space-y-3">
+                  <div className="text-sm font-bold text-white font-mono">Cloud inference pool</div>
+                  {[
+                    ["Runtime", "ONNX Runtime · CPU + optional CUDA"],
+                    ["Detector", "YOLOv8n · 640px · ~28 FPS/stream"],
+                    ["Re-ID model", "OSNet / ResNet18 · 512-d embeddings"],
+                    ["Autoscaling", "1 worker / 4 camera streams"],
+                    ["Delivery", "stateless containers · SaaS"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-3 text-[11px] font-mono">
+                      <span className="text-white/50 shrink-0">{k}</span>
+                      <span className="text-white/85 text-right">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
@@ -2523,29 +2577,62 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {[
-                  { title: "Daily Border Sector 4-B Surveillance Summary", date: "05 Sep 2026", size: "2.4 MB PDF" },
-                  { title: "Incident INC-0042 Forensic Audit Package", date: "05 Sep 2026", size: "14.8 MB ZIP" },
-                  { title: "Monthly Site False-Positive Calibration Log", date: "01 Sep 2026", size: "1.1 MB CSV" },
-                ].map((r, i) => (
-                  <div key={i} className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-bold text-white">{r.title}</div>
-                      <div className="text-xs text-white/55 font-mono mt-0.5">{r.date} • {r.size}</div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2 space-y-3">
+                  {[
+                    { title: "Daily Border Sector 4-B Surveillance Summary", date: "05 Sep 2026", size: "2.4 MB PDF" },
+                    { title: "Incident INC-0042 Forensic Audit Package", date: "05 Sep 2026", size: "14.8 MB ZIP" },
+                    { title: "Monthly Site False-Positive Calibration Log", date: "01 Sep 2026", size: "1.1 MB CSV" },
+                  ].map((r, i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-[#000000] border border-white/12 flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-bold text-white">{r.title}</div>
+                        <div className="text-xs text-white/55 font-mono mt-0.5">{r.date} • {r.size}</div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          triggerSound("click");
+                          setModalType("dossier");
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/12 text-white hover:bg-white/10 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                      >
+                        <Download size={13} />
+                        <span>View Dossier</span>
+                      </button>
                     </div>
-                    <button
-                      onClick={() => {
-                        triggerSound("click");
-                        setModalType("dossier");
-                      }}
-                      className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/12 text-white hover:bg-white/10 text-xs font-bold flex items-center gap-1.5 transition-colors"
-                    >
-                      <Download size={13} />
-                      <span>View Dossier</span>
-                    </button>
+                  ))}
+                  <button
+                    onClick={() => { triggerSound("click"); setModalType("dossier"); }}
+                    className="w-full p-4 rounded-2xl border border-dashed border-white/20 text-white/70 hover:border-white/40 hover:text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <FileText size={14} /> Generate new dossier from an incident
+                  </button>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-[#000000] border border-white/12 space-y-4">
+                  <div className="text-sm font-bold text-white">How a dossier is built</div>
+                  <ol className="space-y-2.5 text-[11px] text-white/60">
+                    {[
+                      "Pre/post-event clip buffer (10 s each side) is exported at capture resolution.",
+                      "Every frame, bounding box and operator action is SHA-256 hash-chained.",
+                      "The threat-score rule breakdown is rendered as a signed appendix.",
+                      "A Section 65B(4) certificate template is generated with the chain head hash.",
+                    ].map((s, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="font-mono text-white/40">{i + 1}.</span>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  <div className="pt-3 border-t border-white/12 flex justify-between text-[11px] font-mono">
+                    <span className="text-white/45">Retention</span>
+                    <span className="text-white/75">90 days · then archive</span>
                   </div>
-                ))}
+                  <div className="flex justify-between text-[11px] font-mono">
+                    <span className="text-white/45">Chain status</span>
+                    <span className="text-emerald-400">verified · 4 blocks</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -2594,6 +2681,39 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <Bell size={13} />
                     <span>Test Siren</span>
                   </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+                <div className="p-5 rounded-2xl bg-[#000000] border border-white/12 space-y-3">
+                  <div className="text-xs font-bold text-white font-mono">Autonomous ruleset</div>
+                  {[
+                    ["Night-curfew window", "22:00 – 05:00 IST"],
+                    ["Restricted-zone breach", "+30 score"],
+                    ["Heading toward zero line", "+20 score"],
+                    ["Cross-camera Re-ID match (τ)", "0.70 cosine"],
+                    ["Loitering dwell trigger", "> 90 s"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between text-[11px] font-mono">
+                      <span className="text-white/50">{k}</span>
+                      <span className="text-white/85">{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-5 rounded-2xl bg-[#000000] border border-white/12 space-y-3">
+                  <div className="text-xs font-bold text-white font-mono">Alert routing</div>
+                  {[
+                    ["Watchfloor banner", "all severities"],
+                    ["Acoustic siren", `score ≥ ${alarmThreshold}`],
+                    ["Mobile push (FCM)", "HIGH + CRITICAL"],
+                    ["QRT auto-dispatch prompt", "CRITICAL only"],
+                    ["Evidence capsule", "every incident"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between text-[11px] font-mono">
+                      <span className="text-white/50">{k}</span>
+                      <span className="text-white/85">{v}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

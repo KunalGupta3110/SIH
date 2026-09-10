@@ -409,14 +409,14 @@ export default function LandingPage() {
       <header className="relative mx-auto max-w-6xl px-6 pb-20 pt-32 sm:pt-40">
         <div className="grid items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
-            <Reveal className="inline-flex items-center gap-2.5 border border-white/25 px-3 py-1 font-mono text-[10.5px] text-white/55">
+            <Reveal className="hero-eyebrow inline-flex items-center gap-2.5 border border-white/25 px-3 py-1 font-mono text-[10.5px] text-white/55">
               <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
               SIH 2026 · PS-26187 · SSB Alpine Ridge Frontier
             </Reveal>
 
             <Reveal as="h1" delay={70} className="font-display mt-6 text-[2.7rem] font-light leading-[1.04] tracking-tight text-white sm:text-6xl [text-wrap:balance]">
               Intelligent Border<br />
-              <span className="italic">Video Analytics</span>
+              <span className="hero-accent italic">Video Analytics</span>
             </Reveal>
 
             <Reveal as="p" delay={140} className="mt-6 max-w-lg text-[15px] leading-relaxed text-white/65">

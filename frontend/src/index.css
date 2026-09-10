@@ -70,6 +70,22 @@ body::before {
     border-top: 2px solid transparent !important;
     border-image: linear-gradient(90deg, #ff9933, #ffffff, #138808) 1 !important;
   }
+  /* landing hero: the italic headline word carries the tricolour */
+  :root[data-theme="india"] .hero-accent {
+    background: linear-gradient(100deg, #ff9933 0%, #ffd9b0 42%, #eafff2 50%, #7fd6a0 58%, #138808 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+  }
+  /* landing hero glow picks up the flag */
+  :root[data-theme="india"] .hero-eyebrow {
+    border-color: rgba(255, 153, 51, 0.45) !important;
+    background: rgba(255, 153, 51, 0.08) !important;
+  }
+}
+/* light-mode landing hero keeps the ink readable */
+:root[data-theme="light"] .hero-accent {
+  color: #18181b;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -93,12 +109,14 @@ body::before {
 @layer utilities {
   /* black / near-black surfaces -> light */
   :root[data-theme="light"] .bg-black,
-  :root[data-theme="light"] [class*="bg-[#00"],
-  :root[data-theme="light"] [class*="bg-[#05"],
-  :root[data-theme="light"] [class*="bg-[#0a1"],
-  :root[data-theme="light"] [class*="bg-[#0b1"],
+  :root[data-theme="light"] [class*="bg-[#0"],
+  :root[data-theme="light"] [class*="bg-[#1"],
+  :root[data-theme="light"] [class*="bg-[#2"],
   :root[data-theme="light"] .bg-zinc-950,
-  :root[data-theme="light"] .bg-zinc-900 {
+  :root[data-theme="light"] .bg-zinc-900,
+  :root[data-theme="light"] .bg-zinc-800,
+  :root[data-theme="light"] .bg-neutral-900,
+  :root[data-theme="light"] .bg-neutral-800 {
     background-color: #ffffff !important;
   }
   :root[data-theme="light"] [class*="bg-black/"] {
@@ -134,6 +152,20 @@ body::before {
   :root[data-theme="light"] .text-zinc-500,
   :root[data-theme="light"] .text-zinc-600 {
     color: #6b7280 !important;
+  }
+
+  /* severity accents: bright shades vanish on white — pull them darker
+     (keep-dark islands keep the neon originals) */
+  :root[data-theme="light"] :not(.keep-dark) > .text-amber-400,
+  :root[data-theme="light"] :not(.keep-dark) .text-amber-400 {
+    color: #b45309 !important;
+  }
+  :root[data-theme="light"] :not(.keep-dark) .text-rose-400,
+  :root[data-theme="light"] :not(.keep-dark) .text-rose-300 {
+    color: #e11d48 !important;
+  }
+  :root[data-theme="light"] :not(.keep-dark) .text-emerald-400 {
+    color: #047857 !important;
   }
 
   /* borders */
@@ -181,6 +213,8 @@ body::before {
   :root[data-theme="light"] .keep-dark,
   :root[data-theme="light"] .keep-dark .bg-black,
   :root[data-theme="light"] .keep-dark [class*="bg-[#0"],
+  :root[data-theme="light"] .keep-dark [class*="bg-[#1"],
+  :root[data-theme="light"] .keep-dark [class*="bg-[#2"],
   :root[data-theme="light"] .keep-dark [class*="bg-black/"] {
     background-color: #0a1017 !important;
   }
