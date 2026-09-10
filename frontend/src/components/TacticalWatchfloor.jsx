@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback, lazy, Suspense } from "react";
+import { BrandLogo } from "./BrandMark.jsx";
 import {
   Radio,
   AlertTriangle,
@@ -481,7 +482,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
     <div className="animate-fadeIn">
       <div
         ref={wrapRef}
-        className={`relative w-full overflow-hidden rounded-2xl border bg-black transition-colors ${
+        className={`keep-dark relative w-full overflow-hidden rounded-2xl border bg-black transition-colors ${
           breach ? "border-[#ef4444]/60" : "border-white/12"
         }`}
         style={{ height: "min(78vh, 760px)", minHeight: 560 }}
@@ -556,9 +557,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
           {/* top telemetry header */}
           <div className="z-30 flex flex-wrap items-center justify-between gap-2 border-b border-white/12 bg-black/70 px-4 py-2.5 backdrop-blur-md">
             <div className="flex items-center gap-3">
-              <div className="flex h-7 w-7 items-center justify-center bg-white text-black">
-                <Shield size={15} />
-              </div>
+              <BrandLogo size={26} />
               <div className="leading-tight">
                 <div className="font-heading text-sm font-bold tracking-wide text-white">
                   IBVAP Sentinel <span className="text-white/40">// AI watchfloor</span>

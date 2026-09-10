@@ -90,7 +90,7 @@ export default function BorderTerrainPanel() {
         </button>
       </div>
 
-      <div className="relative h-[60vh] min-h-[360px] w-full overflow-hidden rounded-2xl border border-white/12 bg-[#0a1017] md:h-[68vh]">
+      <div className="keep-dark relative h-[60vh] min-h-[360px] w-full overflow-hidden rounded-2xl border border-white/12 bg-[#0a1017] md:h-[68vh]">
         {webgl ? (
           <SceneBoundary>
             <Suspense fallback={<TacticalLoader />}>

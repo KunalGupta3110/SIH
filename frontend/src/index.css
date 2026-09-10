@@ -15,6 +15,212 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   NATIONAL TRICOLOUR — a thin saffron / white / green rule pinned to the
+   top of the viewport in every theme; the brand identity band.
+   ═══════════════════════════════════════════════════════════════════════ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 9999;
+  pointer-events: none;
+  background: linear-gradient(90deg, #ff9933 0 33.33%, #ffffff 33.33% 66.66%, #138808 66.66% 100%);
+}
+:root[data-theme="india"] body::before {
+  height: 4px;
+  box-shadow: 0 0 14px rgba(255, 153, 51, 0.45);
+}
+
+/* the brand logo keeps its own palette in every theme */
+:root[data-theme="light"] .brand-logo [fill="#ffffff"],
+:root[data-theme="india"] .brand-logo [fill="#ffffff"] {
+  fill: #ffffff !important;
+}
+:root[data-theme="light"] .brand-logo [stroke],
+:root[data-theme="india"] .brand-logo [stroke] {
+  stroke: #0a0a3c !important;
+}
+
+/* ── INDIA THEME — dark base, saffron primary accent ─────────────────── */
+:root[data-theme="india"] {
+  color-scheme: dark;
+}
+:root[data-theme="india"] body,
+:root[data-theme="india"] #root {
+  background-color: #0a0a12;
+}
+@layer utilities {
+  :root[data-theme="india"] .text-\[\#3ff09a\],
+  :root[data-theme="india"] [class*="text-[#3ff09a]"],
+  :root[data-theme="india"] .text-emerald-400,
+  :root[data-theme="india"] .text-emerald-300 {
+    color: #ff9933 !important;
+  }
+  :root[data-theme="india"] [class*="border-[#3ff09a]"],
+  :root[data-theme="india"] .border-emerald-500 {
+    border-color: rgba(255, 153, 51, 0.5) !important;
+  }
+  :root[data-theme="india"] [class*="bg-[#3ff09a]"] {
+    background-color: #ff9933 !important;
+  }
+  /* main panels get a faint tricolour top edge */
+  :root[data-theme="india"] .rounded-2xl.border {
+    border-top: 2px solid transparent !important;
+    border-image: linear-gradient(90deg, #ff9933, #ffffff, #138808) 1 !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LIGHT MODE — the app is authored dark; [data-theme="light"] on <html>
+   remaps the monochrome palette. Accent colours (red / amber / emerald /
+   #3ff09a) are left alone. 3D canvases paint their own background.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="light"] html,
+:root[data-theme="light"] body,
+:root[data-theme="light"] #root {
+  background-color: #f4f4f5;
+  color: #18181b;
+}
+:root[data-theme="light"] body {
+  @apply bg-[#f4f4f5] text-zinc-800;
+}
+
+@layer utilities {
+  /* black / near-black surfaces -> light */
+  :root[data-theme="light"] .bg-black,
+  :root[data-theme="light"] [class*="bg-[#00"],
+  :root[data-theme="light"] [class*="bg-[#05"],
+  :root[data-theme="light"] [class*="bg-[#0a1"],
+  :root[data-theme="light"] [class*="bg-[#0b1"],
+  :root[data-theme="light"] .bg-zinc-950,
+  :root[data-theme="light"] .bg-zinc-900 {
+    background-color: #ffffff !important;
+  }
+  :root[data-theme="light"] [class*="bg-black/"] {
+    background-color: rgba(255, 255, 255, 0.72) !important;
+  }
+
+  /* white accent surfaces (buttons, active chips) -> dark */
+  :root[data-theme="light"] .bg-white {
+    background-color: #18181b !important;
+  }
+  :root[data-theme="light"] [class*="bg-white/"] {
+    background-color: rgba(24, 24, 27, 0.06) !important;
+  }
+  :root[data-theme="light"] .text-black {
+    color: #fafafa !important;
+  }
+
+  /* text */
+  :root[data-theme="light"] .text-white {
+    color: #18181b !important;
+  }
+  :root[data-theme="light"] [class*="text-white/"] {
+    color: rgba(24, 24, 27, 0.62) !important;
+  }
+  :root[data-theme="light"] .text-zinc-100,
+  :root[data-theme="light"] .text-zinc-200,
+  :root[data-theme="light"] .text-zinc-300 {
+    color: #1f2937 !important;
+  }
+  :root[data-theme="light"] .text-zinc-400 {
+    color: #4b5563 !important;
+  }
+  :root[data-theme="light"] .text-zinc-500,
+  :root[data-theme="light"] .text-zinc-600 {
+    color: #6b7280 !important;
+  }
+
+  /* borders */
+  :root[data-theme="light"] [class*="border-white"] {
+    border-color: rgba(24, 24, 27, 0.14) !important;
+  }
+  :root[data-theme="light"] .border-zinc-800,
+  :root[data-theme="light"] [class*="border-zinc-8"],
+  :root[data-theme="light"] [class*="border-zinc-9"] {
+    border-color: rgba(24, 24, 27, 0.14) !important;
+  }
+
+  /* dividers */
+  :root[data-theme="light"] [class*="divide-white"] > * + * {
+    border-color: rgba(24, 24, 27, 0.1) !important;
+  }
+
+  /* the faint grid backdrop on auth pages */
+  :root[data-theme="light"] .opacity-\[0\.04\] {
+    opacity: 0.06 !important;
+  }
+
+  /* SVG presentation-attribute colours (gauges, sparklines, the hero terrain
+     and map graphics use stroke="#ffffff" / fill="#ffffff" directly) */
+  :root[data-theme="light"] [stroke="#ffffff"],
+  :root[data-theme="light"] [stroke="#fff"],
+  :root[data-theme="light"] [stroke="white"] {
+    stroke: #18181b !important;
+  }
+  :root[data-theme="light"] [fill="#ffffff"],
+  :root[data-theme="light"] [fill="#fff"],
+  :root[data-theme="light"] [fill="white"] {
+    fill: #18181b !important;
+  }
+  :root[data-theme="light"] [fill="#000000"],
+  :root[data-theme="light"] [fill="#000"],
+  :root[data-theme="light"] [fill="#0a0a0a"],
+  :root[data-theme="light"] [fill="#050505"],
+  :root[data-theme="light"] [fill="#050508"] {
+    fill: #ffffff !important;
+  }
+
+  /* keep-dark islands: the 2D watchfloor canvas + 3D terrain scenes paint
+     white/green on a dark ground — hold them dark even in light mode. */
+  :root[data-theme="light"] .keep-dark,
+  :root[data-theme="light"] .keep-dark .bg-black,
+  :root[data-theme="light"] .keep-dark [class*="bg-[#0"],
+  :root[data-theme="light"] .keep-dark [class*="bg-black/"] {
+    background-color: #0a1017 !important;
+  }
+  :root[data-theme="light"] .keep-dark .text-white,
+  :root[data-theme="light"] .keep-dark [class*="text-white"],
+  :root[data-theme="light"] .keep-dark .text-zinc-100,
+  :root[data-theme="light"] .keep-dark .text-zinc-200,
+  :root[data-theme="light"] .keep-dark .text-zinc-300 {
+    color: #ffffff !important;
+  }
+  :root[data-theme="light"] .keep-dark [class*="text-white/"],
+  :root[data-theme="light"] .keep-dark .text-zinc-400,
+  :root[data-theme="light"] .keep-dark .text-zinc-500 {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+  :root[data-theme="light"] .keep-dark [class*="border-white"],
+  :root[data-theme="light"] .keep-dark [class*="border-zinc-8"] {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+  :root[data-theme="light"] .keep-dark [class*="bg-white/"] {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+  }
+  :root[data-theme="light"] .keep-dark [stroke="#ffffff"],
+  :root[data-theme="light"] .keep-dark [stroke="#fff"] {
+    stroke: #ffffff !important;
+  }
+  :root[data-theme="light"] .keep-dark [fill="#ffffff"],
+  :root[data-theme="light"] .keep-dark [fill="#fff"] {
+    fill: #ffffff !important;
+  }
+}
+
+:root[data-theme="light"] ::selection {
+  background: rgba(24, 24, 27, 0.16);
+  color: #000;
+}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+}
+
 /* Editorial display face — headlines only. */
 .font-display {
   font-optical-sizing: auto;

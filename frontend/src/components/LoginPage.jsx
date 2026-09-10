@@ -11,6 +11,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { authenticate } from "../lib/operators.js";
+import BrandMark from "./BrandMark.jsx";
+import ThemeToggle from "./ThemeToggle.jsx";
 
 /* ═══════════════════════════════════════════════════════════════════════
    LoginPage — operator sign-in for the IBVAP Sentinel command console.
@@ -111,27 +113,25 @@ export default function LoginPage() {
       />
 
       <div className="relative mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-14">
-        <Link
-          to="/"
-          className="press mb-8 inline-flex items-center gap-2 text-[12px] font-medium text-zinc-400 hover:text-white"
-        >
-          <ArrowLeft size={12} /> Back to site
-        </Link>
+        <div className="mb-8 flex items-center justify-between">
+          <Link
+            to="/"
+            className="press inline-flex items-center gap-2 text-[12px] font-medium text-zinc-400 hover:text-white"
+          >
+            <ArrowLeft size={12} /> Back to site
+          </Link>
+          <ThemeToggle />
+        </div>
 
         <div className="relative border border-white/12 bg-black p-6 sm:p-8">
           <Corners />
 
-          <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center border border-white bg-white text-black">
-              <Shield size={17} />
-            </span>
-            <div className="leading-none">
-              <div className="text-[14px] font-semibold tracking-tight text-zinc-100">IBVAP Sentinel</div>
-              <div className="mt-1 text-[10px] text-zinc-500">
-                Command Console · Operator Sign-in
-              </div>
-            </div>
-          </div>
+          <BrandMark
+            size={36}
+            subtitle="Command Console · Operator Sign-in"
+            wordClass="text-[14px] font-semibold tracking-tight text-white"
+            subClass="text-[10px] text-white/55"
+          />
 
           <div className="mt-4 flex items-center justify-between border-y border-white/10 py-2 text-[10.5px] text-zinc-500">
             <span className="flex items-center gap-1.5">

@@ -8,6 +8,8 @@ import TacticalWatchfloor from "./TacticalWatchfloor.jsx";
 import AnalyticsSummary from "./AnalyticsSummary.jsx";
 import { StreamDiagnostics, RoadmapOverlays } from "./SurveillanceDiagnostics.jsx";
 import { listPersonnel } from "../lib/personnel.js";
+import { getTheme, cycleTheme, THEME_LABEL } from "../lib/theme.js";
+import BrandMark from "./BrandMark.jsx";
 
 // 3D border-terrain map — code-split (pulls in three.js) so it only loads
 // when the operator opens the Border Map view.
@@ -18,6 +20,7 @@ import {
   Search,
   Moon,
   Sun,
+  Flag,
   Bell,
   BellOff,
   User,
@@ -181,6 +184,9 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
   // authorized-personnel allowlist size (client roster, refreshed on view)
   const allowlistCount = useMemo(() => listPersonnel().length, [activeNav]);
+
+  // colour theme (dark · light · tricolour)
+  const [theme, setTheme] = useState(() => getTheme());
 
   // Live CCTV Threat Ingress Lab State (Interactive car / intruder moving towards camera)
   const [ingressScenario, setIngressScenario] = useState("vehicle"); // 'vehicle' | 'person'
@@ -777,19 +783,13 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           >
             <Menu size={18} />
           </button>
-          <Link to="/" onClick={() => triggerSound("click")} className="flex items-center gap-3 group">
-            <div className="h-9 w-9 rounded-xl bg-white/10 border border-white/12 flex items-center justify-center text-white shadow-none group-hover:scale-105 transition-transform">
-              <Shield size={20} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-heading text-sm font-bold text-white">IBVAP Sentinel</span>
-                <span className="text-base" title="Sashastra Seema Bal / Ministry of Home Affairs">🇮🇳</span>
-              </div>
-              <div className="text-[9px] font-bold text-white/55 font-mono">
-                AI border surveillance system
-              </div>
-            </div>
+          <Link to="/" onClick={() => triggerSound("click")} className="group flex items-center transition-transform group-hover:scale-105">
+            <BrandMark
+              size={34}
+              subtitle="AI border surveillance system"
+              wordClass="font-heading text-sm font-bold text-white"
+              subClass="text-[9px] font-bold text-white/55 font-mono"
+            />
           </Link>
 
 
@@ -813,6 +813,15 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
               </button>
             )}
           </div>
+
+          {/* Theme toggle — dark · light · tricolour */}
+          <button
+            onClick={() => { setTheme(cycleTheme()); triggerSound("click"); }}
+            title={`Theme: ${THEME_LABEL[theme]} — click to change`}
+            className="h-9 w-9 rounded-lg bg-[#000000] border border-white/12 flex items-center justify-center text-white/55 hover:text-white transition-colors"
+          >
+            {theme === "light" ? <Sun size={15} /> : theme === "india" ? <Flag size={15} className="text-[#ff9933]" /> : <Moon size={15} />}
+          </button>
 
           {/* Audio Squelch / FX Toggle */}
           <button

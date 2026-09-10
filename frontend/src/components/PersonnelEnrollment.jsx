@@ -21,6 +21,8 @@ import {
   CLEARANCE,
   CATEGORIES,
 } from "../lib/personnel.js";
+import ThemeToggle from "./ThemeToggle.jsx";
+import { BrandLogo } from "./BrandMark.jsx";
 
 /* ═══════════════════════════════════════════════════════════════════════
    PersonnelEnrollment — /register
@@ -163,9 +165,7 @@ export default function PersonnelEnrollment() {
       <div className="grid min-h-screen w-full place-items-center bg-black px-5 font-sans text-zinc-200">
         <div className="relative w-full max-w-md border border-white/15 bg-black p-8 text-center">
           <Corners />
-          <span className="mx-auto grid h-11 w-11 place-items-center border border-white/20 bg-white text-black">
-            <Shield size={20} />
-          </span>
+          <BrandLogo size={42} className="mx-auto" />
           <div className="mt-4 font-heading text-[15px] font-bold text-white">Operator sign-in required</div>
           <p className="mt-2 text-[12px] leading-relaxed text-zinc-400">
             Enrolling authorized personnel changes the analytics allowlist. Sign in with an operator ID to continue.
@@ -191,9 +191,12 @@ export default function PersonnelEnrollment() {
           <Link to="/console" className="flex items-center gap-2 text-[12px] font-medium text-zinc-400 hover:text-white">
             <ArrowLeft size={14} /> Back to console
           </Link>
-          <span className="font-mono text-[11px] text-zinc-500">
-            {operator.name} · {operator.role}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="hidden font-mono text-[11px] text-zinc-500 sm:inline">
+              {operator.name} · {operator.role}
+            </span>
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className="relative border border-white/15 bg-black p-6 sm:p-8">
@@ -201,12 +204,10 @@ export default function PersonnelEnrollment() {
 
           {/* header */}
           <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center border border-white/20 bg-white text-black">
-              <Shield size={20} />
-            </span>
+            <BrandLogo size={38} className="shrink-0" />
             <div>
               <div className="font-heading text-[16px] font-bold text-white">Authorized Personnel Enrolment</div>
-              <div className="text-[12px] text-zinc-400">Friend-force allowlist · IBVAP Sentinel</div>
+              <div className="text-[12px] text-white/55">Friend-force allowlist · IBVAP Sentinel</div>
             </div>
           </div>
 

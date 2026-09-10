@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import siren from "../lib/audioSiren.js";
 import { Reveal, CountUp } from "../lib/motion.jsx";
 import IsometricTerrain from "./IsometricTerrain.jsx";
+import ThemeToggle from "./ThemeToggle.jsx";
+import BrandMark from "./BrandMark.jsx";
 
 // The 3D terrain diorama pulls in three.js — code-split so it only loads
 // when the operator taps the sector map open.
@@ -328,16 +330,13 @@ export default function LandingPage() {
       {/* ── NAV ─────────────────────────────────────────────────── */}
       <nav className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link to="/" onClick={click} className="flex items-center gap-3">
-            <span className="grid h-8 w-8 place-items-center border border-white bg-white text-black">
-              <Shield size={16} />
-            </span>
-            <span className="leading-none">
-              <span className="block text-[13px] font-semibold tracking-tight text-zinc-100">IBVAP Sentinel</span>
-              <span className="mt-0.5 block text-[10px] font-medium text-zinc-500">
-                Cloud surveillance analytics
-              </span>
-            </span>
+          <Link to="/" onClick={click} className="flex items-center">
+            <BrandMark
+              size={30}
+              subtitle="Cloud surveillance analytics"
+              wordClass="text-[13px] font-semibold tracking-tight text-white"
+              subClass="text-[10px] font-medium text-white/55"
+            />
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">
@@ -349,6 +348,7 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <ThemeToggle className="hidden sm:grid" />
             <button
               onClick={() => setMuted((m) => !m)}
               className="press hidden h-9 w-9 place-items-center border border-white/40 text-white/70 hover:bg-white hover:text-black sm:grid"

@@ -1251,7 +1251,7 @@ export default function BorderTerrainModal({ onClose }) {
   }, [onClose]);
 
   const body = (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#0a1017] font-hud text-white">
+    <div className="keep-dark fixed inset-0 z-[100] flex flex-col bg-[#0a1017] font-hud text-white">
       <div className="z-30 flex items-center justify-between gap-2 border-b border-[#3ff09a]/15 bg-[#0a1016]/70 px-3 py-2.5 backdrop-blur-xl backdrop-saturate-150 sm:px-5 sm:py-3">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <span className="grid h-7 w-7 shrink-0 place-items-center border border-[#3ff09a]/50 text-[#3ff09a]">
