@@ -28,7 +28,7 @@ import numpy as np
 logger = logging.getLogger("ibvap.vision.anpr")
 
 # ---------------------------------------------------------------------------
-# Plate detection model config
+# Plate detection model config & Hotlist Watchlist
 # ---------------------------------------------------------------------------
 # We try multiple public repos in order — some may be gated/removed.
 PLATE_MODEL_REPOS = [
@@ -37,6 +37,22 @@ PLATE_MODEL_REPOS = [
     ("Koushim/yolov8-license-plate-detection", "best.pt"),
 ]
 PLATE_CONF_THRESHOLD = 0.30
+
+# Default border security watchlist (normalized plate -> alert reason)
+DEFAULT_HOTLIST: Dict[str, str] = {
+    "RJ19CB8890": "Flagged Contraband Transport (Thar Sector)",
+    "PB08AX4471": "Suspect Logistics Transport (Gurdaspur Sector)",
+    "DL01AB1234": "Stolen Commercial Carrier",
+    "HR26DK1204": "Unauthorized Night Transit",
+}
+
+
+def normalize_plate(text: str) -> str:
+    """Normalize plate text: strip whitespace, dashes, dots, and convert to uppercase."""
+    if not text:
+        return ""
+    import re
+    return re.sub(r"[^A-Z0-9]", "", text.upper())
 
 
 @dataclass
@@ -48,6 +64,10 @@ class PlateResult:
     plate_bbox: List[int]    # [x1, y1, x2, y2] relative to the full frame
     track_id: int
     timestamp_ms: float
+    is_hotlist: bool = False
+    hotlist_reason: Optional[str] = None
+    camera_id: str = ""
+    class_name: str = ""
 
 
 @dataclass
@@ -97,8 +117,69 @@ class ANPREngine:
         self._track_cache: Dict[int, _TrackPlateCache] = {}
         self._model_loaded = False
 
+        # Vehicle Watchlist / Hotlist
+        self.hotlist: Dict[str, str] = dict(DEFAULT_HOTLIST)
+        self.recent_reads: List[PlateResult] = []
+        self._max_recent_reads = 100
+
         # Lazy-load to avoid slowing startup when ANPR isn't needed
         self._load_models()
+
+    def add_to_hotlist(self, plate: str, reason: str = "Operator Flagged") -> str:
+        """Add a plate to the active watchlist."""
+        norm = normalize_plate(plate)
+        if norm:
+            self.hotlist[norm] = reason
+            logger.info("ANPR Watchlist ADD: %s (%s)", norm, reason)
+        return norm
+
+    def remove_from_hotlist(self, plate: str) -> bool:
+        """Remove a plate from the active watchlist."""
+        norm = normalize_plate(plate)
+        removed = self.hotlist.pop(norm, None) is not None
+        if removed:
+            logger.info("ANPR Watchlist REMOVE: %s", norm)
+        return removed
+
+    def get_hotlist(self) -> Dict[str, str]:
+        """Return the dictionary of flagged plates and reasons."""
+        return dict(self.hotlist)
+
+    def check_hotlist(self, plate_text: str) -> Tuple[bool, Optional[str]]:
+        """Check whether a plate matches any watchlist entry."""
+        norm = normalize_plate(plate_text)
+        if not norm:
+            return False, None
+        for hot_plate, reason in self.hotlist.items():
+            if hot_plate in norm or norm in hot_plate:
+                return True, reason
+        return False, None
+
+    def get_recent_reads(self, limit: int = 50) -> List[Dict]:
+        """Return the latest vehicle reads as serializable dictionaries."""
+        return [
+            {
+                "plate_text": r.plate_text,
+                "plate_confidence": round(r.plate_confidence, 2),
+                "ocr_confidence": round(r.ocr_confidence, 2),
+                "track_id": r.track_id,
+                "timestamp_ms": r.timestamp_ms,
+                "is_hotlist": r.is_hotlist,
+                "hotlist_reason": r.hotlist_reason,
+                "camera_id": r.camera_id,
+                "class_name": r.class_name,
+            }
+            for r in reversed(self.recent_reads[-limit:])
+        ]
+
+    def _record_read(self, result: PlateResult):
+        """Append to recent reads, avoiding rapid consecutive duplicates for same track."""
+        if self.recent_reads and self.recent_reads[-1].track_id == result.track_id:
+            if self.recent_reads[-1].plate_text == result.plate_text:
+                return
+        self.recent_reads.append(result)
+        if len(self.recent_reads) > self._max_recent_reads:
+            self.recent_reads = self.recent_reads[-self._max_recent_reads:]
 
     def _load_models(self):
         """Load the plate detection YOLO model and EasyOCR reader."""
@@ -162,6 +243,7 @@ class ANPREngine:
         frame_idx: int,
         timestamp_ms: float = 0.0,
         class_name: str = "car",
+        camera_id: str = "",
     ) -> Optional[PlateResult]:
         """
         Detect and read a number plate within a vehicle's bounding box.
@@ -182,6 +264,7 @@ class ANPREngine:
         if cache and (frame_idx - cache.last_read_frame) < self.read_every_n_frames:
             # Return cached result if we have one
             if cache.best_text:
+                is_hot, hot_reason = self.check_hotlist(cache.best_text)
                 return PlateResult(
                     plate_text=cache.best_text,
                     plate_confidence=cache.best_det_conf,
@@ -189,6 +272,10 @@ class ANPREngine:
                     plate_bbox=cache.plate_bbox,
                     track_id=track_id,
                     timestamp_ms=timestamp_ms,
+                    is_hotlist=is_hot,
+                    hotlist_reason=hot_reason,
+                    camera_id=camera_id,
+                    class_name=class_name,
                 )
             return None
 
@@ -216,7 +303,6 @@ class ANPREngine:
 
         if plate_crop is None:
             # No plate model or no plate detected — try OCR on lower half of vehicle
-            # (plates are usually in the lower portion)
             crop_h = vehicle_crop.shape[0]
             plate_crop = vehicle_crop[crop_h // 2:, :]
             plate_bbox_in_crop = (0, crop_h // 2, vehicle_crop.shape[1], crop_h)
@@ -227,6 +313,7 @@ class ANPREngine:
         if not plate_text:
             # Return cached if we had a previous read
             if cache.best_text:
+                is_hot, hot_reason = self.check_hotlist(cache.best_text)
                 return PlateResult(
                     plate_text=cache.best_text,
                     plate_confidence=cache.best_det_conf,
@@ -234,6 +321,10 @@ class ANPREngine:
                     plate_bbox=cache.plate_bbox,
                     track_id=track_id,
                     timestamp_ms=timestamp_ms,
+                    is_hotlist=is_hot,
+                    hotlist_reason=hot_reason,
+                    camera_id=camera_id,
+                    class_name=class_name,
                 )
             return None
 
@@ -250,14 +341,21 @@ class ANPREngine:
             cache.plate_bbox = frame_plate_bbox
             cache.read_count += 1
 
-        return PlateResult(
+        is_hot, hot_reason = self.check_hotlist(cache.best_text)
+        res = PlateResult(
             plate_text=cache.best_text,
             plate_confidence=cache.best_det_conf,
             ocr_confidence=cache.best_ocr_conf,
             plate_bbox=cache.plate_bbox,
             track_id=track_id,
             timestamp_ms=timestamp_ms,
+            is_hotlist=is_hot,
+            hotlist_reason=hot_reason,
+            camera_id=camera_id,
+            class_name=class_name,
         )
+        self._record_read(res)
+        return res
 
     def _detect_plate_region(
         self, vehicle_crop: np.ndarray
@@ -399,21 +497,34 @@ class ANPREngine:
 
             x1, y1, x2, y2 = [int(v) for v in pr.plate_bbox]
 
-            # Draw plate bounding box (cyan)
-            cv2.rectangle(annotated, (x1, y1), (x2, y2), (255, 255, 0), 2)
+            if pr.is_hotlist:
+                # HOTLIST BREACH: High-visibility Red / Amber warning
+                box_color = (0, 0, 255)  # BGR Red
+                text_color = (255, 255, 255)
+                bg_color = (0, 0, 200)
+                label = f"HOTLIST HIT: {pr.plate_text}"
+                box_thick = 3
+            else:
+                # Normal plate: Cyan box, Yellow text
+                box_color = (255, 255, 0)
+                text_color = (0, 255, 255)
+                bg_color = (0, 0, 0)
+                label = f"PLATE: {pr.plate_text}"
+                box_thick = 2
+
+            # Draw plate bounding box
+            cv2.rectangle(annotated, (x1, y1), (x2, y2), box_color, box_thick)
 
             # Draw plate text label
-            label = f"PLATE: {pr.plate_text}"
             (tw, th), baseline = cv2.getTextSize(
                 label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2
             )
-            # Position below the plate box
             label_y = y2 + th + 8
             cv2.rectangle(
                 annotated,
                 (x1, y2 + 2),
-                (x1 + tw + 8, label_y + 4),
-                (0, 0, 0),
+                (x1 + tw + 10, label_y + 4),
+                bg_color,
                 -1,
             )
             cv2.putText(
@@ -422,7 +533,7 @@ class ANPREngine:
                 (x1 + 4, label_y),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.55,
-                (0, 255, 255),
+                text_color,
                 2,
                 cv2.LINE_AA,
             )

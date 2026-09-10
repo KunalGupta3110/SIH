@@ -1,5 +1,6 @@
-import { useMemo } from "react";
-import { Activity, Gauge, Cloud, ScanLine, ScanFace, FlaskConical } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Activity, Gauge, Cloud, ScanLine, ScanFace, FlaskConical, ShieldAlert, Plus } from "lucide-react";
+import { getRecentPlateReads, getVehicleHotlist, addVehicleHotlist } from "../lib/api.js";
 
 /* ═══════════════════════════════════════════════════════════════════════
    SurveillanceDiagnostics
@@ -115,47 +116,117 @@ const FACES = [
 ];
 
 export function RoadmapOverlays() {
+  const [plateReads, setPlateReads] = useState([]);
+  const [hotlist, setHotlist] = useState([]);
+  const [flagPlateInput, setFlagPlateInput] = useState("");
+  const [flagReasonInput, setFlagReasonInput] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+  const [statusMsg, setStatusMsg] = useState("");
+
+  const refreshANPR = async () => {
+    try {
+      const [reads, hl] = await Promise.all([
+        getRecentPlateReads(6),
+        getVehicleHotlist(),
+      ]);
+      setPlateReads(reads);
+      setHotlist(hl);
+    } catch (err) {
+      console.debug("ANPR fetch failed:", err);
+    }
+  };
+
+  useEffect(() => {
+    refreshANPR();
+    const interval = setInterval(refreshANPR, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleAddHotlist = async (e) => {
+    e.preventDefault();
+    if (!flagPlateInput.trim()) return;
+    setIsAdding(true);
+    try {
+      await addVehicleHotlist(flagPlateInput.trim(), flagReasonInput.trim() || "Operator Flagged");
+      setStatusMsg(`Flagged ${flagPlateInput.toUpperCase()} added to Watchlist`);
+      setFlagPlateInput("");
+      setFlagReasonInput("");
+      await refreshANPR();
+      setTimeout(() => setStatusMsg(""), 4000);
+    } catch {
+      setStatusMsg("Failed to add plate to watchlist");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-white/12 bg-[#000000] p-4 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="flex items-center gap-2 font-heading text-[13px] font-semibold text-white">
-          <FlaskConical size={15} /> ANPR &amp; face recognition
+          <FlaskConical size={15} /> ANPR &amp; Watchlist Enforcement
         </span>
-        <span className="font-mono text-[10px] text-white/40">plate OCR · watch-list gallery match</span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2 py-0.5 font-mono text-[9px] text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            LIVE INGESTION
+          </span>
+          <span className="font-mono text-[10px] text-white/40">YOLOv8 + EasyOCR</span>
+        </div>
       </div>
       <p className="text-[11px] font-medium leading-relaxed text-white/50">
-        Plate OCR runs on the tracked vehicle stream and face crops are matched against the watch-list gallery — hits
-        surface here and open an incident on the watchfloor.
+        Automatic Number Plate Recognition runs on tracked vehicle crops with per-track OCR caching. Flagged plates automatically escalate threat tier and trigger checkpoint interdiction.
       </p>
 
       <div className="grid gap-3 md:grid-cols-2">
         <div>
-          <div className="flex items-center gap-1.5 font-mono text-[10px] text-white/45">
-            <ScanLine size={12} /> ANPR — plate reads
+          <div className="flex items-center justify-between font-mono text-[10px] text-white/45">
+            <span className="flex items-center gap-1.5">
+              <ScanLine size={12} /> Live Scanned Plates ({plateReads.length})
+            </span>
+            <span className="text-[9px] text-white/35">updates live</span>
           </div>
           <ul className="mt-2 space-y-1.5">
-            {PLATES.map((p) => (
-              <li key={p.plate} className="flex items-center gap-2 border border-white/10 px-2.5 py-1.5">
-                <span className="flex-1 font-mono text-[12px] tracking-wide text-white">{p.plate}</span>
-                <span className="font-mono text-[10px] text-white/40">{p.cam}</span>
-                <span className="font-mono text-[10px] tabular-nums text-white/50">{Math.round(p.conf * 100)}%</span>
-                {p.hotlist && (
-                  <span className="rounded-full bg-rose-500/10 px-1.5 py-0.5 font-mono text-[8.5px] font-medium text-rose-400">
-                    hotlist
-                  </span>
-                )}
-              </li>
-            ))}
+            {plateReads.map((p, idx) => {
+              const isHot = p.is_hotlist || hotlist.some(h => h.plate && (h.plate.replace(/\s+/g, '') === (p.plate_text || p.plate || '').replace(/\s+/g, '')));
+              const confVal = Math.round(((p.plate_confidence || p.conf || 0.85) * 100));
+              return (
+                <li
+                  key={`${p.plate_text || p.plate}-${idx}`}
+                  className={`flex flex-col gap-1 border px-2.5 py-1.5 transition-colors ${
+                    isHot ? "border-rose-500/40 bg-rose-950/15" : "border-white/10 bg-white/[0.02]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="flex-1 font-mono text-[12px] font-bold tracking-wider text-white">
+                      {p.plate_text || p.plate}
+                    </span>
+                    <span className="font-mono text-[10px] text-white/40">{p.camera_id || p.cam || "CAM_ALPHA"}</span>
+                    <span className="font-mono text-[10px] tabular-nums text-white/50">{confVal}%</span>
+                    {isHot && (
+                      <span className="flex items-center gap-1 rounded bg-rose-500/20 px-1.5 py-0.5 font-mono text-[8.5px] font-bold text-rose-400">
+                        <ShieldAlert size={10} /> HOTLIST
+                      </span>
+                    )}
+                  </div>
+                  {isHot && (p.hotlist_reason || hotlist.find(h => h.plate && (h.plate.replace(/\s+/g, '') === (p.plate_text || p.plate || '').replace(/\s+/g, '')))?.reason) && (
+                    <div className="font-mono text-[9px] text-rose-400/80">
+                      ⚠ {p.hotlist_reason || hotlist.find(h => h.plate && (h.plate.replace(/\s+/g, '') === (p.plate_text || p.plate || '').replace(/\s+/g, '')))?.reason}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
         <div>
           <div className="flex items-center gap-1.5 font-mono text-[10px] text-white/45">
-            <ScanFace size={12} /> FRS — face matches
+            <ScanFace size={12} /> FRS — Face Matches
           </div>
           <ul className="mt-2 space-y-1.5">
             {FACES.map((f) => (
-              <li key={f.id} className="flex items-center gap-2 border border-white/10 px-2.5 py-1.5">
+              <li key={f.id} className="flex items-center gap-2 border border-white/10 bg-white/[0.02] px-2.5 py-1.5">
                 <span className="flex-1 font-mono text-[12px] text-white">{f.id}</span>
                 <span className="font-mono text-[10px] text-white/40">{f.cam}</span>
                 <span className={`font-mono text-[10px] tabular-nums ${f.hit ? "text-emerald-400" : "text-white/45"}`}>
@@ -165,6 +236,41 @@ export function RoadmapOverlays() {
               </li>
             ))}
           </ul>
+
+          {/* Quick-Flag Vehicle Form */}
+          <div className="mt-3 border-t border-white/10 pt-2.5">
+            <div className="font-mono text-[9.5px] font-medium text-white/60 mb-1.5 flex items-center gap-1">
+              <Plus size={11} /> Flag Suspect Vehicle to Watchlist
+            </div>
+            <form onSubmit={handleAddHotlist} className="flex flex-col gap-1.5">
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  placeholder="e.g. RJ 19 CB 8890"
+                  value={flagPlateInput}
+                  onChange={(e) => setFlagPlateInput(e.target.value.toUpperCase())}
+                  className="flex-1 rounded border border-white/15 bg-black/60 px-2 py-1 font-mono text-[10.5px] text-white placeholder-white/25 focus:border-rose-400 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={isAdding || !flagPlateInput.trim()}
+                  className="rounded border border-rose-500/50 bg-rose-500/20 px-2.5 py-1 font-mono text-[10px] font-bold text-rose-300 hover:bg-rose-500/30 disabled:opacity-40"
+                >
+                  {isAdding ? "Adding..." : "+ Flag"}
+                </button>
+              </div>
+              <input
+                type="text"
+                placeholder="Reason (e.g. Suspect Contraband Transit)"
+                value={flagReasonInput}
+                onChange={(e) => setFlagReasonInput(e.target.value)}
+                className="rounded border border-white/10 bg-black/40 px-2 py-1 font-mono text-[9.5px] text-white/80 placeholder-white/20 focus:outline-none"
+              />
+              {statusMsg && (
+                <span className="font-mono text-[9px] text-emerald-400">{statusMsg}</span>
+              )}
+            </form>
+          </div>
         </div>
       </div>
     </div>

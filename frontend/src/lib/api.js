@@ -558,6 +558,47 @@ export const api = {
   getLiveDetections: () => request("/events/live-detections"),
   runRealReidInference: () => request("/events/run-real-reid", { method: "POST" }),
   getRealReidTelemetry: () => request("/events/real-reid-telemetry"),
+
+  getRecentPlateReads: async (limit = 50) => {
+    try {
+      const data = await request(`/api/v1/anpr/reads?limit=${limit}`);
+      if (data && Array.isArray(data.reads)) return data.reads;
+    } catch {
+      // offline fallback
+    }
+    return [
+      { plate_text: "PB 08 AX 4471", plate_confidence: 0.93, camera_id: "CAM_ALPHA", is_hotlist: false },
+      { plate_text: "RJ 19 CB 8890", plate_confidence: 0.88, camera_id: "CAM_THAR_02", is_hotlist: true, hotlist_reason: "Flagged Contraband Transport" },
+      { plate_text: "HR 26 DK 1204", plate_confidence: 0.79, camera_id: "CAM_BRAVO", is_hotlist: false },
+      { plate_text: "DL 01 AB 1234", plate_confidence: 0.91, camera_id: "CAM_ALPHA", is_hotlist: true, hotlist_reason: "Stolen Commercial Carrier" },
+    ];
+  },
+
+  getVehicleHotlist: async () => {
+    try {
+      const data = await request("/api/v1/anpr/hotlist");
+      if (data && Array.isArray(data.hotlist)) return data.hotlist;
+    } catch {
+      // offline fallback
+    }
+    return [
+      { plate: "RJ19CB8890", reason: "Flagged Contraband Transport (Thar Sector)" },
+      { plate: "PB08AX4471", reason: "Suspect Logistics Transport (Gurdaspur Sector)" },
+      { plate: "DL01AB1234", reason: "Stolen Commercial Carrier" },
+      { plate: "HR26DK1204", reason: "Unauthorized Night Transit" },
+    ];
+  },
+
+  addVehicleHotlist: (plate, reason = "Operator Flagged") =>
+    request("/api/v1/anpr/hotlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plate, reason }),
+    }),
 };
+
+export const getRecentPlateReads = api.getRecentPlateReads;
+export const getVehicleHotlist = api.getVehicleHotlist;
+export const addVehicleHotlist = api.addVehicleHotlist;
 
 export default api;

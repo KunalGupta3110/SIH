@@ -249,10 +249,13 @@ class LiveSurveillancePipeline(SurveillancePipeline):
                                     frame_idx=frame_idx,
                                     timestamp_ms=timestamp_ms,
                                     class_name=obj.class_name,
+                                    camera_id=camera_id,
                                 )
                                 if plate_result and plate_result.plate_text:
                                     plate_results.append(plate_result)
                                     plates_detected += 1
+                                    if plate_result.is_hotlist or (frame_idx % EVENT_EMIT_EVERY_N_FRAMES == 0):
+                                        self._ingest_anpr_event(camera_id, plate_result, timestamp_ms)
                     cached_plate_results = plate_results
 
                     # ---- Drone detection (optional, throttled) ----
@@ -351,6 +354,50 @@ class LiveSurveillancePipeline(SurveillancePipeline):
             "confidence": confidence,
         }
         self.backend.ingest_event(event)
+
+    def _ingest_anpr_event(self, camera_id: str, plate_result, timestamp_ms: float) -> None:
+        """
+        Feeds an ANPR plate read or watchlist hit into the unified threat-scoring
+        and cryptographic evidence ledger.
+        """
+        import uuid
+        is_hot = getattr(plate_result, "is_hotlist", False)
+        hot_reason = getattr(plate_result, "hotlist_reason", None)
+        plate_text = getattr(plate_result, "plate_text", "")
+        p_conf = getattr(plate_result, "plate_confidence", 0.9)
+        ocr_conf = getattr(plate_result, "ocr_confidence", 0.85)
+        bbox = list(getattr(plate_result, "plate_bbox", [0, 0, 0, 0]))
+
+        centroid = [(bbox[0] + bbox[2]) / 2.0, (bbox[1] + bbox[3]) / 2.0] if len(bbox) == 4 else [0.0, 0.0]
+
+        event = {
+            "event_id": str(uuid.uuid4()),
+            "timestamp_ms": timestamp_ms,
+            "camera_id": camera_id,
+            "track_id": getattr(plate_result, "track_id", None),
+            "class_name": getattr(plate_result, "class_name", "vehicle"),
+            "alert_type": "ANPR_HOTLIST_HIT" if is_hot else "ANPR_PLATE_READ",
+            "severity": "CRITICAL" if is_hot else "INFO",
+            "details": f"ANPR Watchlist Breach: Flagged vehicle {plate_text} ({hot_reason})" if is_hot else f"Vehicle plate read: {plate_text} (conf={ocr_conf:.2f})",
+            "bbox": bbox,
+            "centroid": centroid,
+            "rule_name": "ANPR_WATCHLIST_MATCH" if is_hot else "ANPR_OPTICAL_SCAN",
+            "confidence": ocr_conf,
+            "plate_text": plate_text,
+            "plate_confidence": p_conf,
+            "is_hotlist": 1 if is_hot else 0,
+            "hotlist_reason": hot_reason,
+        }
+        self.backend.ingest_event(event)
+
+        if is_hot:
+            try:
+                from alerts.sound_alerts import play_alert
+                from hardware.serial_trigger import trigger_physical_breach
+                play_alert("CRITICAL")
+                trigger_physical_breach()
+            except Exception as e:
+                logger.debug("Sound / hardware trigger exception: %s", e)
 
 
 def main():

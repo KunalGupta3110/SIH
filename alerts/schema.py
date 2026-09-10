@@ -25,6 +25,8 @@ class AlertType(str, Enum):
     RAPID_APPROACH = "RAPID_APPROACH"
     GROUP_CLUSTER = "GROUP_CLUSTER"
     CROSS_CAMERA_MATCH = "CROSS_CAMERA_MATCH"
+    ANPR_HOTLIST_HIT = "ANPR_HOTLIST_HIT"
+    ANPR_PLATE_READ = "ANPR_PLATE_READ"
 
 
 class OperatorStatus(str, Enum):
@@ -58,6 +60,11 @@ class SecurityEvent:
     operator_status: OperatorStatus = OperatorStatus.UNREVIEWED
     operator_notes: Optional[str] = None
     thumbnail_path: Optional[str] = None
+    # ANPR Specific Fields
+    plate_text: Optional[str] = None
+    plate_confidence: Optional[float] = None
+    is_hotlist: bool = False
+    hotlist_reason: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -80,4 +87,8 @@ class SecurityEvent:
             "operator_status": self.operator_status.value,
             "operator_notes": self.operator_notes,
             "thumbnail_path": self.thumbnail_path,
+            "plate_text": self.plate_text,
+            "plate_confidence": round(self.plate_confidence, 2) if self.plate_confidence is not None else None,
+            "is_hotlist": self.is_hotlist,
+            "hotlist_reason": self.hotlist_reason,
         }

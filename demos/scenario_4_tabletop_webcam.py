@@ -146,9 +146,36 @@ def run_tabletop_demo(camera_index=0, show=True, enable_anpr=True):
                                 frame_idx=frame_idx,
                                 timestamp_ms=timestamp_ms,
                                 class_name=t.class_name,
+                                camera_id=camera_id,
                             )
                             if plate_result and plate_result.plate_text:
                                 plate_results.append(plate_result)
+                                if plate_result.is_hotlist and frame_idx % 15 == 0:
+                                    play_alert("CRITICAL")
+                                    trigger_physical_breach()
+                                    ev = SecurityEvent(
+                                        event_id=f"evt_anpr_hot_{t.track_id}_{int(timestamp_ms)}",
+                                        timestamp_iso=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                                        timestamp_ms=timestamp_ms,
+                                        camera_id=camera_id,
+                                        track_id=t.track_id,
+                                        class_name=t.class_name,
+                                        alert_type=AlertType.ANPR_HOTLIST_HIT,
+                                        severity=AlertSeverity.CRITICAL,
+                                        zone_id="CHECKPOINT_NORTH",
+                                        zone_name="Checkpoint Inspection Lane",
+                                        details=f"Watchlist Hit: Flagged vehicle {plate_result.plate_text} ({plate_result.hotlist_reason})",
+                                        bbox=t.bbox,
+                                        centroid=t.centroid,
+                                        rule_name="ANPR Watchlist Enforcement",
+                                        confidence=plate_result.ocr_confidence,
+                                        plate_text=plate_result.plate_text,
+                                        plate_confidence=plate_result.plate_confidence,
+                                        is_hotlist=True,
+                                        hotlist_reason=plate_result.hotlist_reason,
+                                    )
+                                    db.insert_event(ev)
+                                    send_mobile_alert(ev)
                 cached_plate_results = plate_results
 
             else:
@@ -165,12 +192,15 @@ def run_tabletop_demo(camera_index=0, show=True, enable_anpr=True):
                 for t in tracks:
                     cached_plate = anpr_engine.get_cached_plate(t.track_id)
                     if cached_plate:
+                        is_flagged, _ = anpr_engine.check_hotlist(cached_plate)
                         x1, y1, x2, y2 = [int(v) for v in t.bbox]
-                        plate_label = f"PLATE: {cached_plate}"
+                        plate_label = f"HOTLIST: {cached_plate}" if is_flagged else f"PLATE: {cached_plate}"
                         (tw, th), _ = cv2.getTextSize(plate_label, cv2.FONT_HERSHEY_SIMPLEX, 0.50, 2)
-                        cv2.rectangle(annotated, (x1, y2 + 2), (x1 + tw + 8, y2 + th + 10), (0, 0, 0), -1)
+                        bg_c = (0, 0, 180) if is_flagged else (0, 0, 0)
+                        txt_c = (255, 255, 255) if is_flagged else (0, 255, 255)
+                        cv2.rectangle(annotated, (x1, y2 + 2), (x1 + tw + 8, y2 + th + 10), bg_c, -1)
                         cv2.putText(annotated, plate_label, (x1 + 4, y2 + th + 6),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.50, (0, 255, 255), 2, cv2.LINE_AA)
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.50, txt_c, 2, cv2.LINE_AA)
 
                 # Draw plate bounding boxes
                 if cached_plate_results:

@@ -74,7 +74,11 @@ class EventDatabase:
                     confidence REAL DEFAULT 0.85,
                     operator_status TEXT DEFAULT 'UNREVIEWED',
                     operator_notes TEXT,
-                    thumbnail_path TEXT
+                    thumbnail_path TEXT,
+                    plate_text TEXT,
+                    plate_confidence REAL,
+                    is_hotlist INTEGER DEFAULT 0,
+                    hotlist_reason TEXT
                 )
             """)
             # Migration check for existing databases
@@ -90,11 +94,20 @@ class EventDatabase:
                 cursor.execute("ALTER TABLE security_events ADD COLUMN operator_status TEXT DEFAULT 'UNREVIEWED'")
             if "operator_notes" not in existing_cols:
                 cursor.execute("ALTER TABLE security_events ADD COLUMN operator_notes TEXT")
+            if "plate_text" not in existing_cols:
+                cursor.execute("ALTER TABLE security_events ADD COLUMN plate_text TEXT")
+            if "plate_confidence" not in existing_cols:
+                cursor.execute("ALTER TABLE security_events ADD COLUMN plate_confidence REAL")
+            if "is_hotlist" not in existing_cols:
+                cursor.execute("ALTER TABLE security_events ADD COLUMN is_hotlist INTEGER DEFAULT 0")
+            if "hotlist_reason" not in existing_cols:
+                cursor.execute("ALTER TABLE security_events ADD COLUMN hotlist_reason TEXT")
 
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_cam_time ON security_events(camera_id, timestamp_ms)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_severity ON security_events(severity)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_alert_type ON security_events(alert_type)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_op_status ON security_events(operator_status)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_plate_text ON security_events(plate_text)")
             conn.commit()
 
     def insert_event(self, event: SecurityEvent):
@@ -105,9 +118,10 @@ class EventDatabase:
                     event_id, timestamp_iso, timestamp_ms, camera_id, track_id,
                     class_name, alert_type, severity, zone_id, zone_name,
                     details, bbox_json, centroid_json, rule_name, rule_metrics_json,
-                    confidence, operator_status, operator_notes, thumbnail_path
+                    confidence, operator_status, operator_notes, thumbnail_path,
+                    plate_text, plate_confidence, is_hotlist, hotlist_reason
                 ) VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 )
             """, (
                 event.event_id,
@@ -129,8 +143,27 @@ class EventDatabase:
                 event.operator_status.value,
                 event.operator_notes,
                 event.thumbnail_path,
+                event.plate_text,
+                event.plate_confidence,
+                1 if event.is_hotlist else 0,
+                event.hotlist_reason,
             ))
             conn.commit()
+
+    def get_recent_plate_reads(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Fetch latest plate reads logged from security events."""
+        with self._get_conn() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT event_id, timestamp_iso, timestamp_ms, camera_id, track_id, class_name,
+                       plate_text, plate_confidence, is_hotlist, hotlist_reason, details
+                FROM security_events
+                WHERE plate_text IS NOT NULL AND plate_text != ''
+                ORDER BY timestamp_ms DESC
+                LIMIT ?
+            """, (limit,))
+            return [dict(r) for r in cursor.fetchall()]
 
     def update_operator_status(self, event_id: str, status: OperatorStatus, notes: Optional[str] = None):
         """Update operator review state (Confirm or Dismiss as False Positive)."""

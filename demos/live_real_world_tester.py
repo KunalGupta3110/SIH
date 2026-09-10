@@ -150,12 +150,12 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
                 if anpr_engine:
                     for t in tracks1:
                         if t.class_name in ("car", "truck", "bus", "motorcycle"):
-                            pr = anpr_engine.process_vehicle(f1, t.bbox, t.track_id, frame_idx, timestamp_ms, t.class_name)
+                            pr = anpr_engine.process_vehicle(f1, t.bbox, t.track_id, frame_idx, timestamp_ms, t.class_name, camera_id="CAM_1")
                             if pr and pr.plate_text:
                                 plates1.append(pr)
                     for t in tracks2:
                         if t.class_name in ("car", "truck", "bus", "motorcycle"):
-                            pr = anpr_engine.process_vehicle(f2, t.bbox, t.track_id + 10000, frame_idx, timestamp_ms, t.class_name)
+                            pr = anpr_engine.process_vehicle(f2, t.bbox, t.track_id + 10000, frame_idx, timestamp_ms, t.class_name, camera_id="CAM_2")
                             if pr and pr.plate_text:
                                 plates2.append(pr)
                 cached_plates1 = plates1
@@ -178,14 +178,26 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
                                 exit_timestamp_ms=timestamp_ms,
                             )
                             if preds:
-                                active_handoff_banner = f"PREDICTIVE RADAR: Target #{t.track_id} exiting Cam 1 -> Expected at Cam 2 in {preds[0].expected_arrival_min_s}s-{preds[0].expected_arrival_max_s}s"
-                                banner_countdown = 60
+                                active_handoff_banner = f"PREDICTIVE HANDOFF: Target TRG-{t.track_id:04d} -> ETA {preds[0]['arrival_window_s'][0]:.1f}-{preds[0]['arrival_window_s'][1]:.1f}s at BOP BRAVO"
+                                banner_countdown = 70
                                 play_alert("WARNING")
 
-            # Evaluate Cam 2 for predictive arrival
+            # Evaluate Cam 2
             for t in tracks2:
                 for z in zm2.get_zones("CAM_2"):
                     if z.contains_point(t.centroid):
+                        if frame_idx % 40 == 0:
+                            preds = handoff_engine.register_exit_event(
+                                source_cam="CAM_BRAVO",
+                                target_id=f"TRG-{t.track_id:04d}",
+                                class_name=t.class_name,
+                                trajectory=t.trajectory,
+                                exit_timestamp_ms=timestamp_ms,
+                            )
+                            if preds:
+                                active_handoff_banner = f"PREDICTIVE HANDOFF: Target TRG-{t.track_id:04d} -> Exit Registered"
+                                banner_countdown = 70
+
                         match_rec = handoff_engine.evaluate_candidate_arrival("CAM_BRAVO", timestamp_ms)
                         if match_rec and frame_idx % 40 == 0:
                             play_alert("CRITICAL")
@@ -216,15 +228,21 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
                 for t in tracks1:
                     plate = anpr_engine.get_cached_plate(t.track_id)
                     if plate:
+                        is_flagged, _ = anpr_engine.check_hotlist(plate)
                         x1, y1 = int(t.bbox[0]), int(t.bbox[3])
-                        cv2.putText(f1_draw, f"PLATE: {plate}", (x1, y1 + 18),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 2, cv2.LINE_AA)
+                        txt = f"HOTLIST: {plate}" if is_flagged else f"PLATE: {plate}"
+                        color = (0, 0, 255) if is_flagged else (0, 255, 255)
+                        cv2.putText(f1_draw, txt, (x1, y1 + 18),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2, cv2.LINE_AA)
                 for t in tracks2:
                     plate = anpr_engine.get_cached_plate(t.track_id + 10000)
                     if plate:
+                        is_flagged, _ = anpr_engine.check_hotlist(plate)
                         x1, y1 = int(t.bbox[0]), int(t.bbox[3])
-                        cv2.putText(f2_draw, f"PLATE: {plate}", (x1, y1 + 18),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 2, cv2.LINE_AA)
+                        txt = f"HOTLIST: {plate}" if is_flagged else f"PLATE: {plate}"
+                        color = (0, 0, 255) if is_flagged else (0, 255, 255)
+                        cv2.putText(f2_draw, txt, (x1, y1 + 18),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2, cv2.LINE_AA)
 
             # Watermark headers
             cv2.rectangle(f1_draw, (0, 0), (640, 32), (15, 23, 42), -1)

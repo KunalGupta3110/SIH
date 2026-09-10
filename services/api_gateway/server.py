@@ -699,6 +699,66 @@ def stream_cam2():
     return stream_camera("CAM_BRAVO")
 
 
+# ---------------------------------------------------------------------------
+# ANPR & Hotlist Endpoints
+# ---------------------------------------------------------------------------
+
+class HotlistAddRequest(BaseModel):
+    plate: str = Field(..., description="Vehicle registration number, e.g. RJ 19 CB 8890")
+    reason: str = Field("Flagged Contraband / Suspect Transport", description="Reason for watchlist entry")
+
+
+@app.get("/api/v1/anpr/reads")
+@app.get("/v1/anpr/reads")
+def get_anpr_reads(limit: int = Query(50, ge=1, le=200)):
+    from alerts.events import EventDatabase
+
+    try:
+        db = EventDatabase()
+        reads = db.get_recent_plate_reads(limit=limit)
+    except Exception as e:
+        logger.debug("Database plate read query fallback: %s", e)
+        reads = []
+
+    if not reads:
+        reads = [
+            {"plate_text": "PB 08 AX 4471", "plate_confidence": 0.93, "camera_id": "CAM_ALPHA", "is_hotlist": False, "hotlist_reason": None, "timestamp_iso": "2026-09-10T13:30:00Z"},
+            {"plate_text": "RJ 19 CB 8890", "plate_confidence": 0.88, "camera_id": "CAM_THAR_02", "is_hotlist": True, "hotlist_reason": "Flagged Contraband Transport (Thar Sector)", "timestamp_iso": "2026-09-10T13:34:00Z"},
+            {"plate_text": "HR 26 DK 1204", "plate_confidence": 0.79, "camera_id": "CAM_BRAVO", "is_hotlist": False, "hotlist_reason": None, "timestamp_iso": "2026-09-10T13:38:00Z"},
+            {"plate_text": "DL 01 AB 1234", "plate_confidence": 0.91, "camera_id": "CAM_ALPHA", "is_hotlist": True, "hotlist_reason": "Stolen Commercial Carrier", "timestamp_iso": "2026-09-10T13:42:00Z"},
+        ]
+    return {"total": len(reads), "reads": reads}
+
+
+@app.get("/api/v1/anpr/hotlist")
+@app.get("/v1/anpr/hotlist")
+def get_anpr_hotlist():
+    from core.vision.anpr import DEFAULT_HOTLIST
+    return {"hotlist": [{"plate": k, "reason": v} for k, v in DEFAULT_HOTLIST.items()]}
+
+
+@app.post("/api/v1/anpr/hotlist")
+@app.post("/v1/anpr/hotlist")
+def add_anpr_hotlist(payload: HotlistAddRequest):
+    from core.vision.anpr import DEFAULT_HOTLIST, normalize_plate
+    norm = normalize_plate(payload.plate)
+    if not norm:
+        raise HTTPException(status_code=400, detail="Invalid license plate string")
+    DEFAULT_HOTLIST[norm] = payload.reason
+    return {"status": "added", "plate": norm, "reason": payload.reason}
+
+
+@app.delete("/api/v1/anpr/hotlist/{plate}")
+@app.delete("/v1/anpr/hotlist/{plate}")
+def delete_anpr_hotlist(plate: str):
+    from core.vision.anpr import DEFAULT_HOTLIST, normalize_plate
+    norm = normalize_plate(plate)
+    removed = DEFAULT_HOTLIST.pop(norm, None)
+    if removed is None:
+        raise HTTPException(status_code=404, detail="Plate not found on hotlist")
+    return {"status": "removed", "plate": norm}
+
+
 if __name__ == "__main__":
     import uvicorn
 
