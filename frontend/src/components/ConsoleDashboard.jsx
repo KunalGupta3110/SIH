@@ -10,6 +10,7 @@ import { StreamDiagnostics, RoadmapOverlays } from "./SurveillanceDiagnostics.js
 import { listPersonnel } from "../lib/personnel.js";
 import { getTheme, cycleTheme, THEME_LABEL } from "../lib/theme.js";
 import BrandMark from "./BrandMark.jsx";
+import AssistantPanel from "./AssistantPanel.jsx";
 
 // 3D border-terrain map — code-split (pulls in three.js) so it only loads
 // when the operator opens the Border Map view.
@@ -21,6 +22,7 @@ import {
   Moon,
   Sun,
   Flag,
+  Bot,
   Bell,
   BellOff,
   User,
@@ -187,6 +189,26 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
   // colour theme (dark · light · tricolour)
   const [theme, setTheme] = useState(() => getTheme());
+
+  // Sentinel Copilot — Ctrl+K (or double-tap Ctrl) to toggle
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  useEffect(() => {
+    let lastCtrl = 0;
+    const onKey = (e) => {
+      if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setAssistantOpen((v) => !v);
+      } else if (e.key === "Control") {
+        const now = Date.now();
+        if (now - lastCtrl < 380) setAssistantOpen((v) => !v);
+        lastCtrl = now;
+      } else if (e.key === "Escape") {
+        setAssistantOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Live CCTV Threat Ingress Lab State (Interactive car / intruder moving towards camera)
   const [ingressScenario, setIngressScenario] = useState("vehicle"); // 'vehicle' | 'person'
@@ -702,6 +724,25 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
   return (
     <div className={`sentinel-console min-h-screen w-full ${darkMode ? "bg-[#000000]" : "bg-[#000000]"} text-white flex flex-col antialiased selection:bg-white selection:text-black font-sans`}>
+      {/* ── SENTINEL COPILOT (Ctrl+K) ───────────────────────────── */}
+      <AssistantPanel
+        open={assistantOpen}
+        onClose={() => setAssistantOpen(false)}
+        onNavigate={(nav) => { setActiveNav(nav); }}
+        context={{ incidents: incidentList, cameras: displayCameras, allowlistCount }}
+      />
+      {!assistantOpen && (
+        <button
+          onClick={() => setAssistantOpen(true)}
+          title="Sentinel Copilot — Ctrl+K"
+          className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full border border-[#3ff09a]/40 bg-[#000000] px-3.5 py-2.5 text-[12px] font-semibold text-white shadow-[0_8px_30px_rgba(0,0,0,0.6)] hover:border-[#3ff09a] transition-colors"
+        >
+          <Bot size={15} className="text-[#3ff09a]" />
+          <span className="hidden sm:inline">Copilot</span>
+          <kbd className="hidden rounded border border-white/20 px-1 text-[9px] text-white/50 sm:inline">Ctrl K</kbd>
+        </button>
+      )}
+
       {/* ── ACTION NOTIFICATION TOAST ───────────────────────────── */}
       {actionNotice && (
         <div className="fixed top-20 right-8 z-50 flex items-center gap-3 rounded-xl bg-black/95 border border-white/12 px-4 py-3 text-xs text-white shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-md animate-fadeIn">
