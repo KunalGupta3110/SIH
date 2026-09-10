@@ -40,3 +40,8 @@ frontend/.env.local
 frontend/.env.*.local
 data/events.db
 data/*.db
+
+# runtime-generated evidence crops from alerts/run_surveillance.py
+data/thumbnails/evt_int_*
+data/thumbnails/evt_loit_*
+data/thumbnails/evt_tw_*

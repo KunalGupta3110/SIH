@@ -47,6 +47,15 @@ function Field({ icon: Icon, label, hint, ...props }) {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  // where to go after a successful sign-in (?next=/register etc.) — default console
+  const nextPath = (() => {
+    try {
+      const n = new URLSearchParams(window.location.search).get("next");
+      return n && n.startsWith("/") ? n : "/console";
+    } catch {
+      return "/console";
+    }
+  })();
   const [id, setId] = useState("");
   const [pass, setPass] = useState("");
   const [token, setToken] = useState("");
@@ -85,7 +94,7 @@ export default function LoginPage() {
       } catch {
         /* private mode — non-fatal */
       }
-      navigate("/console");
+      navigate(nextPath);
     }, 650);
   };
 
@@ -193,7 +202,9 @@ export default function LoginPage() {
             >
               Continue as guest →
             </button>
-            <span>Need access? Contact your duty commander</span>
+            <Link to="/register" className="hover:text-white/70">
+              Enrol authorized personnel →
+            </Link>
           </div>
         </div>
 

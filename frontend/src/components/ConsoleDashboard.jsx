@@ -7,6 +7,7 @@ import { CountUp } from "../lib/motion.jsx";
 import TacticalWatchfloor from "./TacticalWatchfloor.jsx";
 import AnalyticsSummary from "./AnalyticsSummary.jsx";
 import { StreamDiagnostics, RoadmapOverlays } from "./SurveillanceDiagnostics.jsx";
+import { listPersonnel } from "../lib/personnel.js";
 
 // 3D border-terrain map — code-split (pulls in three.js) so it only loads
 // when the operator opens the Border Map view.
@@ -96,7 +97,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
     if (urlTab) setActiveNav(urlTab);
   }, [urlTab]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeSurveillanceView, setActiveSurveillanceView] = useState("grid"); // 'grid' | 'focus' | 'testbed'
+  const [activeSurveillanceView, setActiveSurveillanceView] = useState("terrain"); // 'terrain' | 'grid' | 'focus' | 'testbed'
   const [visionMode, setVisionMode] = useState("optical"); // 'optical' | 'lowlight' | 'edge'
   const [selectedCameraId, setSelectedCameraId] = useState("CAM_BRAVO");
   const [selectedTrackId, setSelectedTrackId] = useState("P17");
@@ -177,6 +178,9 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
   // Border Map sub-view: 3D terrain model vs. the zone editor
   const [mapTab, setMapTab] = useState("terrain"); // 'terrain' | 'zones'
+
+  // authorized-personnel allowlist size (client roster, refreshed on view)
+  const allowlistCount = useMemo(() => listPersonnel().length, [activeNav]);
 
   // Live CCTV Threat Ingress Lab State (Interactive car / intruder moving towards camera)
   const [ingressScenario, setIngressScenario] = useState("vehicle"); // 'vehicle' | 'person'
@@ -1431,6 +1435,14 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 bg-[#000000] p-1 rounded-xl border border-white/12 text-xs">
                     <button
+                      onClick={() => { triggerSound("click"); setActiveSurveillanceView("terrain"); }}
+                      className={`px-3 py-1.5 rounded-lg font-mono text-xs transition-colors ${
+                        activeSurveillanceView === "terrain" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "text-white/55 hover:text-white"
+                      }`}
+                    >
+                      3D Terrain
+                    </button>
+                    <button
                       onClick={() => { triggerSound("click"); setActiveSurveillanceView("grid"); }}
                       className={`px-3 py-1.5 rounded-lg font-mono text-xs transition-colors ${
                         activeSurveillanceView === "grid" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "text-white/55 hover:text-white"
@@ -1890,6 +1902,24 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   </div>
                 </div>
               )}
+
+              {/* ── SUB-VIEW: 3D SECTOR TERRAIN ──────────────────────────────
+                   Terrain fills the area; the camera roster lives only in the
+                   floating "CCTV network" rail inside the panel (sector tabs,
+                   FOV cones, UAV, orbit + simulate-breach are all in there). */}
+              {activeSurveillanceView === "terrain" && (
+                <div className="animate-fadeIn">
+                  <Suspense
+                    fallback={
+                      <div className="grid h-[68vh] place-items-center rounded-2xl border border-white/12 bg-[#000000] text-[11px] font-medium text-white/45">
+                        loading 3D terrain…
+                      </div>
+                    }
+                  >
+                    <BorderTerrainMapPanel />
+                  </Suspense>
+                </div>
+              )}
             </div>
           )}
 
@@ -2262,6 +2292,17 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <div className="text-2xl font-bold font-mono text-white">Recorded + simulated</div>
                   <div className="text-xs text-white">
                     Synchronized two-angle testbed plus public dataset clips (MOT17, VisDrone). Not live tactical CCTV.
+                  </div>
+                </div>
+                <div className="p-4.5 rounded-2xl bg-[#000000] border border-white/12 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-white/55 font-mono">AUTHORIZED-PERSONNEL ALLOWLIST</span>
+                    <Link to="/register" className="text-[10px] font-mono text-[#3ff09a] hover:underline">manage →</Link>
+                  </div>
+                  <div className="text-2xl font-bold font-mono text-white tabular-nums">{allowlistCount} enrolled</div>
+                  <div className="text-xs text-white">
+                    Face / plate matches for enrolled officers, patrol staff and marked vehicles inside a zone are tagged
+                    <span className="text-[#3ff09a]"> authorized</span> and cleared, not escalated to the watchfloor.
                   </div>
                 </div>
               </div>
