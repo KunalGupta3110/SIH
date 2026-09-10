@@ -1,8 +1,8 @@
-# Sentinel Admin App
+# IBVAP Admin
 
 Cross-platform Flutter scaffold for the **Administrator Control App** of the
-AI Edge Security & Safety Ecosystem — dashboard, incident timeline, face
-enrollment, and real-time FCM alarm handling.
+IBVAP Sentinel border-surveillance platform — dashboard, incident timeline,
+face enrollment, and real-time FCM alarm handling.
 
 This package contains `lib/`, `pubspec.yaml`, and config files only. It is
 **not** a fully scaffolded Flutter project (no `android/`/`ios`/`web`
@@ -16,7 +16,7 @@ folders) — see Setup below to generate those.
 # 1. Create the platform scaffolding in this same folder (answer "y" to
 #    overwrite pubspec.yaml — your version above is the one that matters,
 #    but flutter create will also ask before touching it; keep this one).
-flutter create --org com.yourcompany --project-name sentinel_admin_app .
+flutter create --org com.yourcompany --project-name ibvap_admin .
 
 # 2. Install dependencies
 flutter pub get

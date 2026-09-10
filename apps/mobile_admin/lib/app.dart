@@ -14,7 +14,7 @@ class SentinelApp extends ConsumerWidget {
     final activeAlert = ref.watch(alertControllerProvider);
 
     return MaterialApp.router(
-      title: 'Sentinel Admin',
+      title: 'IBVAP Admin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
       darkTheme: AppTheme.dark,

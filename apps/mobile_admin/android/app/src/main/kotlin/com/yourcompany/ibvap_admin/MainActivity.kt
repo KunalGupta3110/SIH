@@ -1,4 +1,4 @@
-package com.yourcompany.sentinel_admin_app
+package com.yourcompany.ibvap_admin
 
 import io.flutter.embedding.android.FlutterActivity
 

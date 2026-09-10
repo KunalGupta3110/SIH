@@ -1,6 +1,6 @@
 {
-    "name": "sentinel_admin_app",
-    "short_name": "sentinel_admin_app",
+    "name": "IBVAP Admin",
+    "short_name": "IBVAP Admin",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

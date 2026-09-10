@@ -1,7 +1,7 @@
-name: sentinel_admin_app
+name: ibvap_admin
 description: >
-  Administrator Control App for the Next-Gen AI Edge Security & Safety
-  Ecosystem. Monitors edge node status, arms/disarms zones, reviews the
+  Administrator Control App for the IBVAP Sentinel border-surveillance
+  platform. Monitors sensor node status, arms/disarms zones, reviews the
   incident timeline (intruders, smoke, fire), and enrolls authorized faces.
 publish_to: "none"
 version: 0.1.0

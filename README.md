@@ -13,7 +13,7 @@ The ecosystem unites:
 1. **Edge AI Computer Vision Engine:** YOLOv8 + ByteTrack + PyTorch ResNet18 Re-ID + Ultra-HD ANPR License Plate Scanner.
 2. **FastAPI REST Gateway:** High-performance REST endpoints bridging Edge AI events to client apps.
 3. **Web Command & Control Dashboard:** Streamlit command station with 2D GIS Tactical Border Map & Operator 1-click False-Positive triage.
-4. **Sentinel Admin Mobile App:** Cross-platform Flutter client (Android, iOS, Windows, Web) for mobile command and real-time push alert handling.
+4. **IBVAP Admin Mobile App:** Cross-platform Flutter client (Android, iOS, Windows, Web) for mobile command and real-time push alert handling.
 
 ---
 
@@ -38,7 +38,7 @@ The ecosystem unites:
                    ┌────────────────────┴─────┐       ┌─────────────┴────────────────────┐
                    ▼                          ▼       ▼                                  ▼
 ┌──────────────────────────────────────┐             ┌──────────────────────────────────────┐
-│     WEB COMMAND CENTER (Streamlit)   │             │   SENTINEL ADMIN FLUTTER MOBILE APP  │
+│     WEB COMMAND CENTER (Streamlit)   │             │    IBVAP ADMIN FLUTTER MOBILE APP    │
 │  - 2D Interactive GIS Border Map     │             │  - Cross-platform Android / iOS / Win│
 │  - Multi-Feed Video Playback HUD     │             │  - Full-Screen Emergency Alarm Screen│
 │  - Operator False-Positive Triage    │             │  - Arm / Disarm Toggle & Incident Log│

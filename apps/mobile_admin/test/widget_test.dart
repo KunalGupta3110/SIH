@@ -7,7 +7,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sentinel_admin_app/app.dart';
+import 'package:ibvap_admin/app.dart';
 
 void main() {
   testWidgets('App loads smoke test', (WidgetTester tester) async {
