@@ -28,6 +28,9 @@ from core.vision.tracker import BorderTracker
 from services.hardware_bridge.serial_controller import trigger_physical_breach
 from services.notifications.telegram_bot import send_mobile_alert
 
+# Performance: only run YOLO inference every N frames
+INFER_EVERY_N_FRAMES = 2
+
 
 def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=True):
     print("\n" + "="*75)
@@ -50,10 +53,23 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
         print(f"[Warning] Could not open Cam 2: {cam2_src}. Fallback to sample video.")
         cap2 = cv2.VideoCapture(os.path.join(ROOT_DIR, "data/people_surveillance.mp4" if os.path.exists("data/people_surveillance.mp4") else "data/sample_border.mp4"))
 
-    tracker1 = BorderTracker()
-    tracker2 = BorderTracker()
+    tracker1 = BorderTracker(imgsz=640)
+    tracker2 = BorderTracker(imgsz=640)
     feat_extractor = FeatureExtractor()
     handoff_engine = PredictiveHandoffEngine()
+
+    # Initialize ANPR engine
+    anpr_engine = None
+    try:
+        from core.vision.anpr import ANPREngine
+        anpr_engine = ANPREngine(read_every_n_frames=5)
+        if anpr_engine.is_available:
+            print(" [OK] ANPR (Number Plate Detection) initialized.")
+        else:
+            print(" [WARN] ANPR: OCR not available. Install easyocr for plate reading.")
+            anpr_engine = None
+    except Exception as e:
+        print(f" [WARN] ANPR not available: {e}")
 
     # Define Red Geofence Zones for both cameras
     zm1 = ZoneManager()
@@ -81,6 +97,13 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
     t_start = time.time()
     active_handoff_banner = None
     banner_countdown = 0
+    cached_tracks1 = []
+    cached_tracks2 = []
+    cached_plates1 = []
+    cached_plates2 = []
+    fps_counter = 0
+    fps_timer = time.time()
+    display_fps = 0.0
 
     try:
         while True:
@@ -100,12 +123,46 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
             frame_idx += 1
             timestamp_ms = (time.time() - t_start) * 1000.0
 
+            # FPS tracking
+            fps_counter += 1
+            elapsed = time.time() - fps_timer
+            if elapsed >= 1.0:
+                display_fps = fps_counter / elapsed
+                fps_counter = 0
+                fps_timer = time.time()
+
             # Resize to standard 640x360 for side-by-side display
             f1 = cv2.resize(frame1, (640, 360))
             f2 = cv2.resize(frame2, (640, 360))
 
-            tracks1 = tracker1.track_frame(f1, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
-            tracks2 = tracker2.track_frame(f2, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
+            # Run YOLO inference with frame skipping
+            run_inference = (frame_idx % INFER_EVERY_N_FRAMES == 0)
+
+            if run_inference:
+                tracks1 = tracker1.track_frame(f1, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
+                tracks2 = tracker2.track_frame(f2, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
+                cached_tracks1 = tracks1
+                cached_tracks2 = tracks2
+
+                # ANPR on vehicle tracks from both cameras
+                plates1 = []
+                plates2 = []
+                if anpr_engine:
+                    for t in tracks1:
+                        if t.class_name in ("car", "truck", "bus", "motorcycle"):
+                            pr = anpr_engine.process_vehicle(f1, t.bbox, t.track_id, frame_idx, timestamp_ms, t.class_name)
+                            if pr and pr.plate_text:
+                                plates1.append(pr)
+                    for t in tracks2:
+                        if t.class_name in ("car", "truck", "bus", "motorcycle"):
+                            pr = anpr_engine.process_vehicle(f2, t.bbox, t.track_id + 10000, frame_idx, timestamp_ms, t.class_name)
+                            if pr and pr.plate_text:
+                                plates2.append(pr)
+                cached_plates1 = plates1
+                cached_plates2 = plates2
+            else:
+                tracks1 = cached_tracks1
+                tracks2 = cached_tracks2
 
             # Evaluate Cam 1
             for t in tracks1:
@@ -154,6 +211,21 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
             f2_draw = zm2.draw_zones(f2, "CAM_2")
             f2_draw = tracker2.draw_tracks(f2_draw, tracks2)
 
+            # Draw plate labels on vehicles
+            if anpr_engine:
+                for t in tracks1:
+                    plate = anpr_engine.get_cached_plate(t.track_id)
+                    if plate:
+                        x1, y1 = int(t.bbox[0]), int(t.bbox[3])
+                        cv2.putText(f1_draw, f"PLATE: {plate}", (x1, y1 + 18),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 2, cv2.LINE_AA)
+                for t in tracks2:
+                    plate = anpr_engine.get_cached_plate(t.track_id + 10000)
+                    if plate:
+                        x1, y1 = int(t.bbox[0]), int(t.bbox[3])
+                        cv2.putText(f2_draw, f"PLATE: {plate}", (x1, y1 + 18),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 2, cv2.LINE_AA)
+
             # Watermark headers
             cv2.rectangle(f1_draw, (0, 0), (640, 32), (15, 23, 42), -1)
             cv2.putText(f1_draw, "NODE 1: CHECKPOST ALPHA (ENTRY)", (12, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 1)
@@ -171,7 +243,8 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
                 banner_countdown -= 1
                 cv2.putText(hud_bar, active_handoff_banner, (20, 38), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
             else:
-                cv2.putText(hud_bar, "SYSTEM STATUS: MULTI-CAMERA SPATIO-TEMPORAL RADAR ACTIVE | 30 FPS", (20, 38),
+                hud_status = f"SYSTEM STATUS: MULTI-CAMERA RADAR ACTIVE | FPS: {display_fps:.1f} | PLATES: {len(cached_plates1) + len(cached_plates2)}"
+                cv2.putText(hud_bar, hud_status, (20, 38),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.55, (148, 163, 184), 1)
 
             full_display = np.vstack([combined, hud_bar])

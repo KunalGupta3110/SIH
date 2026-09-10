@@ -50,11 +50,13 @@ class BorderTracker:
         conf_threshold: float = 0.25,
         iou_threshold: float = 0.45,
         device: Optional[str] = None,
+        imgsz: int = 640,
     ):
         self.model_path = model_path
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
         self.device = device
+        self.imgsz = imgsz
 
         self.model = None
         self.use_fallback = False
@@ -93,16 +95,22 @@ class BorderTracker:
             classes=list(TARGET_CLASSES.keys()),
             verbose=False,
             device=self.device,
+            imgsz=self.imgsz,
+            stream=True,
         )
 
         tracked_objects: List[TrackedObject] = []
-        if not results or len(results) == 0:
+
+        # stream=True returns a generator; consume the single result for this frame
+        result = None
+        for r in results:
+            result = r
+            break
+
+        if result is None or result.boxes is None or result.boxes.id is None:
             return tracked_objects
 
-        boxes = results[0].boxes
-        if boxes is None or boxes.id is None:
-            return tracked_objects
-
+        boxes = result.boxes
         ids = boxes.id.cpu().numpy().astype(int)
         coords = boxes.xyxy.cpu().numpy()
         confs = boxes.conf.cpu().numpy()

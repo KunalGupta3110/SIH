@@ -11,6 +11,8 @@ lapx>=0.5.5
 scipy>=1.10.0
 pillow>=10.0.0
 imageio-ffmpeg>=0.4.9
+easyocr>=1.7.0
+huggingface_hub>=0.20.0
 
 # Backend API
 fastapi>=0.110.0
