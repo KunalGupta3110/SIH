@@ -17,9 +17,12 @@ import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 import gsap from "gsap";
-import { X, Radio, MapPin, Activity, ExternalLink, AlertTriangle, Video, ScanFace } from "lucide-react";
+import { X, Radio, MapPin, Activity, ExternalLink, AlertTriangle, Video, ScanFace, Crosshair, Flame, Moon, BellRing } from "lucide-react";
 import api from "../../lib/api.js";
 import { TERRAIN_SECTORS, DEFAULT_SECTOR_ID, getSector } from "../../config/terrains.js";
+
+// every terrain GLB the switcher can mount — used for cache teardown
+export const TERRAIN_URLS = [...new Set(TERRAIN_SECTORS.map((s) => s.model))];
 
 // biometric Re-ID dossier drawer — split (its own hologram canvas), only
 // loaded when a flagged target is opened.
@@ -257,7 +260,15 @@ function TerrainGLB({ model, yExag = 2.4, onReady }) {
       if (o.isMesh) {
         o.receiveShadow = true;
         o.castShadow = false; // receive only — avoids the mesh shadowing itself/the plinth
-        if (o.material) o.material.side = THREE.FrontSide;
+        // own a per-instance material clone so the scene switch can dispose it
+        // without corrupting drei's shared useGLTF cache entry
+        if (o.material) {
+          o.material = Array.isArray(o.material)
+            ? o.material.map((m) => m.clone())
+            : o.material.clone();
+          const mats = Array.isArray(o.material) ? o.material : [o.material];
+          mats.forEach((m) => { m.side = THREE.FrontSide; });
+        }
       }
     });
     return s;
@@ -267,6 +278,20 @@ function TerrainGLB({ model, yExag = 2.4, onReady }) {
     if (ref.current) onReady(ref.current);
     return () => onReady(null); // clear the surface ref while the next terrain loads
   }, [obj, onReady]);
+
+  // ── WebGL memory disposal on terrain unmount (continuous demo hygiene) ──
+  // Geometry + textures belong to drei's URL-keyed cache and are released via
+  // clearTerrainCache() when the whole view closes; here we only dispose the
+  // material clones this instance created.
+  useEffect(() => {
+    return () => {
+      obj.traverse((o) => {
+        if (!o.isMesh || !o.material) return;
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        mats.forEach((m) => m.dispose?.());
+      });
+    };
+  }, [obj]);
 
   return (
     <group ref={ref} position={[0, -1.5, 0]}>
@@ -707,7 +732,10 @@ function PatrolDrone({ path }) {
 }
 
 /* ── breach alert banner (DOM overlay, sits above the canvas) ────────── */
-export function BreachBanner({ show, node = "CAM_BRAVO" }) {
+export function BreachBanner({ show, sector, camId, node = "CAM_BRAVO", onAcknowledge }) {
+  const cam = camId || node;
+  const agency = sector?.agency || "SSB";
+  const code = sector?.sectorCode || "Sector 4-B";
   return (
     <AnimatePresence>
       {show && (
@@ -716,11 +744,27 @@ export function BreachBanner({ show, node = "CAM_BRAVO" }) {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -18, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 26 }}
-          className="pointer-events-none absolute inset-x-0 top-4 z-40 flex justify-center px-4"
+          className="absolute inset-x-0 top-4 z-40 flex justify-center px-4"
         >
-          <div className="flex items-center gap-2.5 rounded border border-[#ff2233] bg-[#ff2233]/12 px-4 py-2 font-hud text-[12.5px] font-semibold text-[#ff2233] shadow-[0_0_28px_rgba(255,34,51,0.28)] backdrop-blur-md">
-            <AlertTriangle size={14} className="shrink-0 animate-pulse" />
-            <span>Critical alert · restricted zone breached · {node}</span>
+          <div className="pointer-events-auto flex max-w-[94%] flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded border border-[#ff2233] bg-[#ff2233]/12 px-4 py-2.5 font-hud text-[12px] font-semibold text-[#ff2233] shadow-[0_0_28px_rgba(255,34,51,0.3)] backdrop-blur-md">
+            <span className="flex items-center gap-2">
+              <AlertTriangle size={15} className="shrink-0 animate-pulse" />
+              <span className="tracking-tight">
+                SECTOR COMPROMISED: Unauthorized Border Crossing Detected
+                <span className="mx-1.5 text-[#ff2233]/45">|</span>
+                {agency} {code}
+                <span className="mx-1.5 text-[#ff2233]/45">·</span>
+                {cam}
+              </span>
+            </span>
+            {onAcknowledge && (
+              <button
+                onClick={onAcknowledge}
+                className="shrink-0 rounded bg-[#ff2233] px-2.5 py-1 font-hud text-[11px] font-bold uppercase tracking-wide text-black transition-colors hover:bg-white"
+              >
+                Acknowledge &amp; Dispatch
+              </button>
+            )}
           </div>
         </motion.div>
       )}
@@ -728,19 +772,218 @@ export function BreachBanner({ show, node = "CAM_BRAVO" }) {
   );
 }
 
-/* ── in-canvas loading placeholder ───────────────────────────────────── */
-export function TacticalLoader() {
+/* ── tactical radar-sweep loader (3D canvas fallback) ─────────────────────
+   Shown while the first terrain streams in and while the switcher swaps
+   GLBs — the operator never sees a blank canvas or a frozen frame.        */
+export function TacticalLoader({ label = "INITIALIZING SECTOR TOPOGRAPHY & SENSOR GRID..." }) {
   return (
-    <div className="grid h-full w-full place-items-center bg-[#0a1017]">
-      <div className="flex flex-col items-center gap-3 font-hud text-[12px] font-medium text-[#3ff09a]/70">
-        <span className="h-6 w-6 animate-spin rounded-full border border-[#3ff09a]/25 border-t-[#3ff09a]" />
-        Loading terrain assets…
+    <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center overflow-hidden bg-[#0a1017]">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.13]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#3ff09a 1px,transparent 1px),linear-gradient(90deg,#3ff09a 1px,transparent 1px)",
+          backgroundSize: "44px 44px",
+        }}
+      />
+      <div className="relative flex flex-col items-center gap-5">
+        <div className="relative h-32 w-32">
+          {[100, 66, 33].map((p) => (
+            <span
+              key={p}
+              className="absolute rounded-full border border-[#3ff09a]/30"
+              style={{ inset: `${(100 - p) / 2}%` }}
+            />
+          ))}
+          <span className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-[#3ff09a]/20" />
+          <span className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-[#3ff09a]/20" />
+          <span
+            className="absolute inset-0 animate-spin rounded-full"
+            style={{
+              animationDuration: "1.6s",
+              background:
+                "conic-gradient(from 0deg, rgba(63,240,154,0.55), rgba(63,240,154,0.02) 55%, rgba(63,240,154,0) 100%)",
+              WebkitMask: "radial-gradient(circle, transparent 6%, #000 6.5%)",
+              mask: "radial-gradient(circle, transparent 6%, #000 6.5%)",
+            }}
+          />
+          <span
+            className="absolute h-1.5 w-1.5 rounded-full bg-[#3ff09a]"
+            style={{ top: "27%", left: "63%", animation: "radar-blip 1.6s ease-in-out infinite" }}
+          />
+          <span
+            className="absolute h-1 w-1 rounded-full bg-[#3ff09a]"
+            style={{ top: "64%", left: "37%", animation: "radar-blip 1.6s ease-in-out infinite 0.8s" }}
+          />
+        </div>
+        <div className="flex items-center gap-2 font-hud text-[11px] font-semibold tracking-[0.14em] text-[#3ff09a]">
+          <span className="text-[#3ff09a]/50">[</span>
+          <span className="animate-pulse text-center">{label}</span>
+          <span className="text-[#3ff09a]/50">]</span>
+        </div>
+        <div className="h-0.5 w-56 overflow-hidden rounded-full bg-[#3ff09a]/15">
+          <span className="block h-full w-1/3 bg-[#3ff09a]/70" style={{ animation: "loaderslide 1.4s ease-in-out infinite" }} />
+        </div>
       </div>
     </div>
   );
 }
 
-export function Scene({ sector, cameras, selected, breach, onSelect, onTerrainReady }) {
+/* ── release every GLB this view holds — called on full unmount so a long
+   judging session doesn't accrete GPU memory across repeated opens ────── */
+export function clearTerrainCache() {
+  try {
+    [...TERRAIN_URLS, MODELS.cctv, MODELS.drone].forEach((u) => useGLTF.clear(u));
+  } catch {
+    /* noop */
+  }
+}
+
+/* ── synthesized dual-tone military breach klaxon (Web Audio) ─────────────
+   MUST be called from within a user gesture (the "Simulate breach" click).
+   Returns a stop() that silences and tears the AudioContext down.         */
+export function playBreachKlaxon() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return () => {};
+    const ctx = new Ctx();
+    const master = ctx.createGain();
+    master.gain.value = 0.16;
+    master.connect(ctx.destination);
+
+    const seq = [660, 523]; // hi / lo alternation
+    const step = 0.3;
+    let stopped = false;
+    let cycle = 0;
+    let timer = null;
+
+    const scheduleCycle = (base) => {
+      seq.forEach((f, i) => {
+        const t0 = base + i * step;
+        const osc = ctx.createOscillator();
+        const sub = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = "square";
+        sub.type = "sawtooth";
+        osc.frequency.value = f;
+        sub.frequency.value = f / 4; // body / weight
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(1, t0 + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + step * 0.82);
+        osc.connect(g);
+        sub.connect(g);
+        g.connect(master);
+        osc.start(t0);
+        sub.start(t0);
+        osc.stop(t0 + step);
+        sub.stop(t0 + step);
+      });
+    };
+
+    const stop = () => {
+      if (stopped) return;
+      stopped = true;
+      clearTimeout(timer);
+      try {
+        master.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.04);
+      } catch {
+        /* noop */
+      }
+      setTimeout(() => {
+        try {
+          ctx.close();
+        } catch {
+          /* noop */
+        }
+      }, 260);
+    };
+
+    const loop = () => {
+      if (stopped || cycle >= 6) {
+        stop();
+        return;
+      }
+      scheduleCycle(ctx.currentTime + 0.02);
+      cycle += 1;
+      timer = setTimeout(loop, seq.length * step * 1000);
+    };
+    loop();
+    return stop;
+  } catch {
+    return () => {};
+  }
+}
+
+/* ── breach simulation state: klaxon + random node flip + incident log ─── */
+export function useBreachSim(cameras, sector) {
+  const [breach, setBreach] = useState(false);
+  const [breachCamId, setBreachCamId] = useState(null);
+  const [incidents, setIncidents] = useState([]);
+  const stopRef = useRef(null);
+
+  const silence = useCallback(() => {
+    stopRef.current?.();
+    stopRef.current = null;
+  }, []);
+
+  const simulate = useCallback(() => {
+    if (breach) return;
+    const pool = cameras.filter((c) => c.status === "ONLINE");
+    const src = pool.length ? pool : cameras;
+    if (!src.length) return;
+    const pick = src[Math.floor(Math.random() * src.length)];
+    setBreachCamId(pick?.id || null);
+    setBreach(true);
+    silence();
+    stopRef.current = playBreachKlaxon(); // within the click gesture
+  }, [breach, cameras, silence]);
+
+  const clear = useCallback(() => {
+    silence();
+    setBreach(false);
+    setBreachCamId(null);
+  }, [silence]);
+
+  const acknowledge = useCallback(
+    (camIdOverride) => {
+      silence();
+      const id = camIdOverride || breachCamId;
+      const cam = cameras.find((c) => c.id === id);
+      const incident = {
+        id: `INC-${Math.floor(2000 + Math.random() * 7900)}`,
+        ts: new Date().toLocaleTimeString("en-GB"),
+        cam: cam?.id || id || "CAM_BRAVO",
+        camSector: cam?.sector || "restricted zone",
+        sectorCode: sector?.sectorCode || "Sector 4-B",
+        agency: sector?.agency || "SSB",
+        lat: cam?.lat,
+        lon: cam?.lon,
+        type: "Unauthorized Border Crossing",
+      };
+      setIncidents((p) => [incident, ...p].slice(0, 25));
+      try {
+        window.dispatchEvent(new CustomEvent("ibvap:incident", { detail: incident }));
+      } catch {
+        /* noop */
+      }
+      setBreach(false);
+      setBreachCamId(null);
+    },
+    [cameras, breachCamId, sector, silence]
+  );
+
+  // reset on sector change / unmount
+  useEffect(() => {
+    setBreach(false);
+    setBreachCamId(null);
+    silence();
+  }, [sector?.id, silence]);
+  useEffect(() => () => silence(), [silence]);
+
+  return { breach, breachCamId, incidents, simulate, acknowledge, clear };
+}
+
+export function Scene({ sector, cameras, selected, breach, breachCamId, onSelect, onTerrainReady }) {
   const controlsRef = useRef(null);
   const lite = useIsMobile();
   const [terrain, setTerrain] = useState(null);
@@ -752,9 +995,14 @@ export function Scene({ sector, cameras, selected, breach, onSelect, onTerrainRe
     [onTerrainReady]
   );
 
-  const alertCam = cameras.find((c) => c.status === "ALERT");
+  // the simulated breach flips a random online node to ALERT for the scene
+  const fx = useMemo(
+    () => cameras.map((c) => (c.id === breachCamId ? { ...c, status: "ALERT" } : c)),
+    [cameras, breachCamId]
+  );
+  const alertCam = fx.find((c) => c.status === "ALERT");
   const focusTarget = selected || (breach && alertCam ? alertCam : null);
-  const reidChain = useMemo(() => cameras.slice(0, 3).map((c) => c.pos), [cameras]);
+  const reidChain = useMemo(() => fx.slice(0, 3).map((c) => c.pos), [fx]);
 
   return (
     <>
@@ -790,7 +1038,7 @@ export function Scene({ sector, cameras, selected, breach, onSelect, onTerrainRe
 
         {terrain && (
           <>
-            {cameras.map((c) => (
+            {fx.map((c) => (
               <CctvNode
                 key={c.id}
                 cam={c}
@@ -813,6 +1061,7 @@ export function Scene({ sector, cameras, selected, breach, onSelect, onTerrainRe
         dampingFactor={0.08}
         minDistance={16}
         maxDistance={150}
+        minPolarAngle={0}
         maxPolarAngle={Math.PI / 2.05}
         target={[0, 2, 0]}
       />
@@ -900,31 +1149,55 @@ function RingGauge({ label, value, color }) {
   );
 }
 
-export function DetailPanel({ cam, onClose, className = "" }) {
+const VFILTERS = {
+  none: { css: "contrast(1.05) brightness(1.05)", label: "Optical", icon: Video },
+  thermal: { css: "contrast(1.55) saturate(3.4) hue-rotate(150deg) brightness(1.12)", label: "Thermal", icon: Flame },
+  night: { css: "grayscale(1) brightness(1.6) contrast(1.28) sepia(0.55) hue-rotate(55deg)", label: "Night-vision", icon: Moon },
+};
+
+export function DetailPanel({ cam, sector, onClose, onRecenter, onAcknowledge, className = "" }) {
   const alert = cam.status === "ALERT";
   const lite = useIsMobile();
+  const [vfilter, setVfilter] = useState("none");
+  const cycleFilter = () => setVfilter((f) => (f === "none" ? "thermal" : f === "thermal" ? "night" : "none"));
+  const mode = VFILTERS[vfilter];
+  const tag = sector ? `${cam.id} — ${sector.sectorCode}` : cam.id;
+  const fps = (cam.fps ?? 28.4).toFixed(1);
+  const ping = Math.round(cam.ping ?? 18);
+  // synthetic CV detections drawn over the feed
+  const boxes = [
+    { label: `Person [${alert ? "94.8% Breach" : "91.2%"}]`, x: 39, y: 24, w: 18, h: 52, hot: alert },
+    { label: "Vehicle [88.2%]", x: 7, y: 55, w: 27, h: 30, hot: false },
+  ];
   return (
     <motion.div
       initial={lite ? { y: 60, opacity: 0 } : { x: 40, opacity: 0 }}
       animate={lite ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
       exit={lite ? { y: 60, opacity: 0 } : { x: 40, opacity: 0 }}
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className={`pointer-events-auto z-30 max-h-[70vh] overflow-y-auto ${GLASS} ${
-        lite ? "absolute inset-x-0 bottom-0 w-full rounded-t-xl" : `w-[320px] ${className || "absolute right-4 top-20"}`
+      className={`pointer-events-auto z-30 max-h-[78vh] overflow-y-auto ${GLASS} ${
+        lite ? "absolute inset-x-0 bottom-0 w-full rounded-t-xl" : `w-[340px] ${className || "absolute right-4 top-20"}`
       }`}
     >
-      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 font-hud text-[13px]">
-        <span className="flex items-center gap-1.5 font-semibold text-white">
-          <Radio size={13} className="text-[#3ff09a]" />
-          {cam.id} <span className="font-normal text-white/40">· Live</span>
-        </span>
-        <span
-          className="flex items-center gap-1 text-[11px] font-semibold capitalize"
-          style={{ color: alert ? RED : "#3ff09a" }}
-        >
-          {alert && <AlertTriangle size={11} />}
-          {cam.status.toLowerCase()}
-        </span>
+      <div className="border-b border-white/10 px-3 py-2 font-hud">
+        <div className="flex items-center justify-between text-[13px]">
+          <span className="flex items-center gap-1.5 font-semibold text-white">
+            <Radio size={13} className="text-[#3ff09a]" />
+            {tag}
+          </span>
+          <span
+            className="flex items-center gap-1 text-[11px] font-semibold capitalize"
+            style={{ color: alert ? RED : "#3ff09a" }}
+          >
+            {alert && <AlertTriangle size={11} />}
+            {cam.status.toLowerCase()}
+          </span>
+        </div>
+        <div className="mt-1 flex items-center gap-2 font-mono text-[10px] text-white/45">
+          <span>{cam.lat ?? "—"}, {cam.lon ?? "—"}</span>
+          <span className="text-white/20">|</span>
+          <span className="text-[#3ff09a]/80">{fps} FPS · Latency {ping}ms · Edge Sync OK</span>
+        </div>
       </div>
 
       <div className="relative">
@@ -934,7 +1207,8 @@ export function DetailPanel({ cam, onClose, className = "" }) {
           loop
           muted
           playsInline
-          className="aspect-video w-full object-cover contrast-105 brightness-105"
+          className="aspect-video w-full object-cover"
+          style={{ filter: mode.css }}
         />
         <div
           className="pointer-events-none absolute inset-0 opacity-20"
@@ -944,24 +1218,56 @@ export function DetailPanel({ cam, onClose, className = "" }) {
           }}
         />
         <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 font-hud text-[10px] font-medium text-white/85">
-          <span
-            className="h-1.5 w-1.5 animate-pulse rounded-full"
-            style={{ background: alert ? RED : "#3ff09a" }}
-          />
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full" style={{ background: alert ? RED : "#3ff09a" }} />
           Live
         </div>
+        <div className="pointer-events-none absolute right-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#3ff09a]/90">
+          <mode.icon size={10} /> {mode.label}
+        </div>
+
+        {/* synthetic AI bounding boxes + confidence */}
+        <div className="pointer-events-none absolute inset-0">
+          {boxes.map((b) => (
+            <div
+              key={b.label}
+              className="absolute border"
+              style={{
+                left: `${b.x}%`,
+                top: `${b.y}%`,
+                width: `${b.w}%`,
+                height: `${b.h}%`,
+                borderColor: b.hot ? RED : "#3ff09a",
+                boxShadow: `0 0 10px ${b.hot ? "rgba(255,34,51,0.5)" : "rgba(63,240,154,0.35)"}`,
+              }}
+            >
+              <span
+                className="absolute -top-[15px] left-0 whitespace-nowrap px-1 font-mono text-[9px] font-semibold text-black"
+                style={{ background: b.hot ? RED : "#3ff09a" }}
+              >
+                {b.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
         {alert && (
-          <>
-            <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 56" preserveAspectRatio="none">
-              <rect x="40" y="16" width="20" height="30" fill="none" stroke={RED} strokeWidth="0.8" strokeDasharray="3 2">
-                <animate attributeName="x" values="34;48;34" dur="4s" repeatCount="indefinite" />
-              </rect>
-            </svg>
-            <span className="pointer-events-none absolute left-1/2 top-2.5 -translate-x-1/2 whitespace-nowrap rounded border border-rose-500/60 bg-zinc-950/80 px-2 py-0.5 font-mono text-[10px] font-medium text-rose-300 backdrop-blur-md">
-              Track #{cam.track ?? 7} · Person · Flagged
-            </span>
-          </>
+          <span className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded border border-rose-500/60 bg-zinc-950/85 px-2 py-0.5 font-mono text-[10px] font-semibold text-rose-300 backdrop-blur-md">
+            ⚠ Thermal Tripwire Activated · Track #{cam.track ?? 7}
+          </span>
         )}
+      </div>
+
+      {/* tactical controls */}
+      <div className="grid grid-cols-2 gap-px border-b border-white/10 bg-white/10 font-hud text-[11px] font-semibold">
+        <button onClick={cycleFilter} className="flex items-center justify-center gap-1.5 bg-[#0a1017] py-2 text-white/70 transition-colors hover:text-white">
+          <mode.icon size={12} /> {vfilter === "none" ? "Thermal / Night" : mode.label}
+        </button>
+        <button
+          onClick={() => onRecenter?.(cam)}
+          className="flex items-center justify-center gap-1.5 bg-[#0a1017] py-2 text-white/70 transition-colors hover:text-white"
+        >
+          <Crosshair size={12} /> PTZ re-center
+        </button>
       </div>
 
       {/* flagged target → full Re-ID dossier */}
@@ -973,6 +1279,16 @@ export function DetailPanel({ cam, onClose, className = "" }) {
           <ScanFace size={14} className="shrink-0" />
           Open full Re-ID dossier
           <span aria-hidden>→</span>
+        </button>
+      )}
+
+      {alert && onAcknowledge && (
+        <button
+          onClick={() => onAcknowledge(cam.id)}
+          className="flex w-full items-center justify-center gap-2 border-b border-white/10 bg-[#3ff09a]/10 py-2.5 font-hud text-[12px] font-semibold text-[#3ff09a] transition-colors hover:bg-[#3ff09a] hover:text-black"
+        >
+          <BellRing size={13} className="shrink-0" />
+          Acknowledge alert &amp; dispatch
         </button>
       )}
 
@@ -1005,9 +1321,9 @@ export function DetailPanel({ cam, onClose, className = "" }) {
         </a>
         <button
           onClick={onClose}
-          className="border-l border-white/10 px-3 py-2.5 font-normal text-white/55 hover:text-white"
+          className="flex items-center gap-1.5 border-l border-white/10 px-3 py-2.5 font-normal text-white/55 hover:text-white"
         >
-          Back to orbit
+          <X size={12} /> Close
         </button>
       </div>
     </motion.div>
@@ -1168,15 +1484,15 @@ export function CameraRail({ cameras, selected, onSelect, className = "" }) {
 
 /* ── tactical multi-terrain switcher ──────────────────────────────────── */
 export function SectorSwitcher({ active, onSelect, className = "" }) {
-  // warm the other terrain GLBs once the switcher is on screen
+  // warm every terrain GLB once so sector switches are instant (the radar
+  // loader still covers the very first switch to an un-warmed model)
   useEffect(() => {
     const t = setTimeout(() => {
-      TERRAIN_SECTORS.forEach((s) => {
-        if (s.id !== active) useGLTF.preload(s.model);
-      });
+      TERRAIN_SECTORS.forEach((s) => useGLTF.preload(s.model));
     }, 1200);
     return () => clearTimeout(t);
-  }, [active]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className={`flex items-center gap-1 border border-white/12 bg-black/70 p-1 backdrop-blur-md ${className}`}>
@@ -1209,24 +1525,28 @@ export default function BorderTerrainModal({ onClose }) {
   const [selected, setSelected] = useState(null);
   const [drone, setDrone] = useState(false);
   const [bio, setBio] = useState(null);
-  const [breach, setBreach] = useState(false);
   const [loadingSector, setLoadingSector] = useState(false);
   const [webgl] = useState(() => hasWebGL());
   const lite = useIsMobile();
   const online = cameras.filter((c) => c.status === "ONLINE" || c.status === "ALERT").length;
 
+  const { breach, breachCamId, incidents, simulate, acknowledge, clear } = useBreachSim(cameras, sector);
+
   const selCam = selected ? cameras.find((c) => c.id === selected.id) || selected : null;
   const pickCam = (c) => { setDrone(false); setSelected(c); };
+  const recenter = () => setSelected((s) => (s ? { ...s } : s)); // retrigger FocusRig
 
   const switchSector = useCallback((id) => {
     if (id === sectorId) return;
     setSelected(null);
     setDrone(false);
     setBio(null);
-    setBreach(false);
     setLoadingSector(true);
     setSectorId(id);
   }, [sectorId]);
+
+  // release every GLB when the modal closes so repeat opens don't accrete GPU memory
+  useEffect(() => () => clearTerrainCache(), []);
 
   useEffect(() => {
     const onUav = () => { setSelected(null); setDrone(true); };
@@ -1267,8 +1587,13 @@ export default function BorderTerrainModal({ onClose }) {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          {incidents.length > 0 && (
+            <span className="hidden items-center gap-1.5 border border-[#3ff09a]/30 px-2 py-1 font-mono text-[10px] text-[#3ff09a]/80 sm:flex">
+              <Activity size={10} /> {incidents.length} dispatched
+            </span>
+          )}
           <button
-            onClick={() => setBreach((b) => !b)}
+            onClick={() => (breach ? clear() : simulate())}
             className="flex items-center gap-1.5 rounded border px-2.5 py-1.5 font-hud text-[11px] font-semibold transition-colors sm:px-3"
             style={{
               borderColor: breach ? RED : "rgba(255,255,255,0.25)",
@@ -1306,6 +1631,7 @@ export default function BorderTerrainModal({ onClose }) {
                     cameras={cameras}
                     selected={selected}
                     breach={breach}
+                    breachCamId={breachCamId}
                     onSelect={pickCam}
                     onTerrainReady={() => setLoadingSector(false)}
                   />
@@ -1334,16 +1660,11 @@ export default function BorderTerrainModal({ onClose }) {
         <SectorSwitcher
           active={sectorId}
           onSelect={switchSector}
-          className="pointer-events-auto absolute left-1/2 top-4 z-20 -translate-x-1/2"
+          className="pointer-events-auto absolute left-1/2 top-4 z-40 -translate-x-1/2"
         />
 
         {loadingSector && (
-          <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 -translate-y-1/2 text-center">
-            <span className="inline-flex items-center gap-2 border border-[#3ff09a]/30 bg-black/70 px-3 py-1.5 font-hud text-[11px] text-white/70 backdrop-blur-md">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#3ff09a]" />
-              Loading {sector.name} · {sector.sectorCode}
-            </span>
-          </div>
+          <TacticalLoader label={`RECONFIGURING ${sector.name.toUpperCase()} · ${sector.sectorCode.toUpperCase()}...`} />
         )}
 
         <CameraRail
@@ -1357,14 +1678,17 @@ export default function BorderTerrainModal({ onClose }) {
           }
         />
 
-        <BreachBanner show={breach} />
+        <BreachBanner show={breach} sector={sector} camId={breachCamId} onAcknowledge={() => acknowledge()} />
 
         <AnimatePresence mode="wait">
           {selCam && (
             <DetailPanel
               key={selCam.id}
               cam={selCam}
+              sector={sector}
               onClose={() => setSelected(null)}
+              onRecenter={recenter}
+              onAcknowledge={(id) => acknowledge(id)}
               className="absolute right-4 top-20"
             />
           )}

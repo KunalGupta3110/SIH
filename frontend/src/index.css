@@ -328,6 +328,14 @@ body::before {
   0% { transform: translateY(-110%); }
   100% { transform: translateY(320%); }
 }
+@keyframes loaderslide {
+  0% { transform: translateX(-130%); }
+  100% { transform: translateX(430%); }
+}
+@keyframes radar-blip {
+  0%, 100% { opacity: 0; transform: scale(0.4); }
+  40% { opacity: 1; transform: scale(1); }
+}
 .scanline {
   position: relative;
   overflow: hidden;

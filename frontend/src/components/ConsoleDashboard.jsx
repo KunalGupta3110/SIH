@@ -210,6 +210,43 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // 3D terrain "Acknowledge & Dispatch" → prepend a live incident to the workspace
+  useEffect(() => {
+    const onIncident = (e) => {
+      const d = e.detail || {};
+      setIncidentList((prev) => {
+        if (prev.some((i) => i.id === d.id)) return prev;
+        const inc = {
+          id: d.id || `INC-${Math.floor(2000 + Math.random() * 7900)}`,
+          time: d.ts || new Date().toLocaleTimeString("en-GB"),
+          cameras: (d.cam || "CAM_BRAVO").replace("CAM_", ""),
+          type: "Person (Unauthorized Crossing)",
+          threat: 91,
+          severity: "CRITICAL",
+          status: "DISPATCHED",
+          color: "text-rose-400",
+          badge: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+          target: "Person Detected",
+          sub: d.camSector || "Restricted zone breach",
+          cam: `${d.cam || "CAM_BRAVO"} (${d.sectorCode || "Sector 4-B"})`,
+          timeAgo: `${d.ts || ""} (just now)`,
+          coords: d.lat && d.lon ? `Lat ${d.lat}, Long ${d.lon}` : "Lat 32.5621, Long 75.1234",
+          hash: Array.from({ length: 64 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join(""),
+          factors: [
+            { label: "+30 Restricted Zone Breach", reason: "Target crossed the virtual geofence tripwire without authorization." },
+            { label: "+20 Heading Toward Border", reason: "Trajectory vector confirmed moving toward the Zero Line." },
+            { label: "+12 Re-ID Match", reason: "Appearance embedding matched the subject across adjacent cameras." },
+          ],
+        };
+        return [inc, ...prev];
+      });
+      setActionNotice(`🚨 Breach acknowledged — ${d.cam || "CAM_BRAVO"} logged to the Incident Workspace & dispatched.`);
+      setTimeout(() => setActionNotice(null), 5000);
+    };
+    window.addEventListener("ibvap:incident", onIncident);
+    return () => window.removeEventListener("ibvap:incident", onIncident);
+  }, []);
+
   // Live CCTV Threat Ingress Lab State (Interactive car / intruder moving towards camera)
   const [ingressScenario, setIngressScenario] = useState("vehicle"); // 'vehicle' | 'person'
   const [ingressDistance, setIngressDistance] = useState(110); // 150m down to 10m (safe distance default)

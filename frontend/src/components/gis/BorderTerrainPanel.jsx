@@ -16,6 +16,8 @@ import {
   useIsMobile,
   hasWebGL,
   SceneBoundary,
+  useBreachSim,
+  clearTerrainCache,
 } from "./BorderTerrainModal.jsx";
 import { getSector, DEFAULT_SECTOR_ID } from "../../config/terrains.js";
 
@@ -35,23 +37,26 @@ export default function BorderTerrainPanel() {
   const cameras = useCameras(sector);
   const [selected, setSelected] = useState(null);
   const [drone, setDrone] = useState(false);
-  const [breach, setBreach] = useState(false);
   const [loadingSector, setLoadingSector] = useState(false);
   const [webgl] = useState(() => hasWebGL());
   const lite = useIsMobile();
   const selCam = selected ? cameras.find((c) => c.id === selected.id) || selected : null;
   const live = cameras.filter((c) => c.status === "ONLINE" || c.status === "ALERT").length;
   const pickCam = (c) => { setDrone(false); setSelected(c); };
+  const recenter = () => setSelected((s) => (s ? { ...s } : s));
   const [bio, setBio] = useState(null);
+
+  const { breach, breachCamId, incidents, simulate, acknowledge, clear } = useBreachSim(cameras, sector);
 
   const switchSector = (id) => {
     if (id === sectorId) return;
     setSelected(null);
     setDrone(false);
-    setBreach(false);
     setLoadingSector(true);
     setSectorId(id);
   };
+
+  useEffect(() => () => clearTerrainCache(), []);
 
   useEffect(() => {
     const onUav = () => { setSelected(null); setDrone(true); };
@@ -76,18 +81,25 @@ export default function BorderTerrainPanel() {
             {cameras.length} camera nodes · {live} live · {sector.agency} · live status from edge
           </p>
         </div>
-        <button
-          onClick={() => setBreach((b) => !b)}
-          className="flex items-center gap-1.5 rounded border px-3 py-1.5 font-hud text-[12px] font-semibold transition-colors"
-          style={{
-            borderColor: breach ? RED : "rgba(255,255,255,0.25)",
-            background: breach ? RED : "transparent",
-            color: breach ? "#000" : "#fff",
-          }}
-        >
-          <AlertTriangle size={12} />
-          {breach ? "Clear alert" : "Simulate breach"}
-        </button>
+        <div className="flex items-center gap-2">
+          {incidents.length > 0 && (
+            <span className="flex items-center gap-1.5 border border-[#3ff09a]/30 px-2 py-1 font-mono text-[10px] text-[#3ff09a]/80">
+              {incidents.length} dispatched
+            </span>
+          )}
+          <button
+            onClick={() => (breach ? clear() : simulate())}
+            className="flex items-center gap-1.5 rounded border px-3 py-1.5 font-hud text-[12px] font-semibold transition-colors"
+            style={{
+              borderColor: breach ? RED : "rgba(255,255,255,0.25)",
+              background: breach ? RED : "transparent",
+              color: breach ? "#000" : "#fff",
+            }}
+          >
+            <AlertTriangle size={12} />
+            {breach ? "Clear alert" : "Simulate breach"}
+          </button>
+        </div>
       </div>
 
       <div className="keep-dark relative h-[60vh] min-h-[360px] w-full overflow-hidden rounded-2xl border border-white/12 bg-[#0a1017] md:h-[68vh]">
@@ -107,6 +119,7 @@ export default function BorderTerrainPanel() {
                     cameras={cameras}
                     selected={selected}
                     breach={breach}
+                    breachCamId={breachCamId}
                     onSelect={pickCam}
                     onTerrainReady={() => setLoadingSector(false)}
                   />
@@ -123,16 +136,11 @@ export default function BorderTerrainPanel() {
         <SectorSwitcher
           active={sectorId}
           onSelect={switchSector}
-          className="pointer-events-auto absolute left-1/2 top-3 z-20 -translate-x-1/2"
+          className="pointer-events-auto absolute left-1/2 top-3 z-40 -translate-x-1/2"
         />
 
         {loadingSector && (
-          <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 -translate-y-1/2 text-center">
-            <span className="inline-flex items-center gap-2 border border-[#3ff09a]/30 bg-black/70 px-3 py-1.5 font-hud text-[11px] text-white/70 backdrop-blur-md">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#3ff09a]" />
-              Loading {sector.name} · {sector.sectorCode}
-            </span>
-          </div>
+          <TacticalLoader label={`RECONFIGURING ${sector.name.toUpperCase()} · ${sector.sectorCode.toUpperCase()}...`} />
         )}
 
         {/* HUD corner brackets */}
@@ -155,7 +163,7 @@ export default function BorderTerrainPanel() {
           }
         />
 
-        <BreachBanner show={breach} />
+        <BreachBanner show={breach} sector={sector} camId={breachCamId} onAcknowledge={() => acknowledge()} />
 
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden text-center font-hud text-[11px] text-white/35 sm:block">
           Drag to orbit · scroll to zoom · tap a camera or the UAV for its feed
@@ -166,7 +174,10 @@ export default function BorderTerrainPanel() {
             <DetailPanel
               key={selCam.id}
               cam={selCam}
+              sector={sector}
               onClose={() => setSelected(null)}
+              onRecenter={recenter}
+              onAcknowledge={(id) => acknowledge(id)}
               className="absolute right-4 top-4"
             />
           )}
