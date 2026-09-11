@@ -30,9 +30,8 @@ const MODEL_URL = "/models/yolov8n.onnx";
 // distinct than a person filling most of the frame. Costs inference speed
 // (roughly 4x the pixels), acceptable for this demo's frame rate.
 export const INPUT_SIZE = 640;
-// Lowered from 0.4 — most COCO classes other than person/cell phone were
-// scoring just under the old threshold on a compressed webcam frame.
-const CONF_THRESHOLD = 0.25;
+// Lowered to 0.18 for increased sensitivity on military camouflage and distant targets
+const CONF_THRESHOLD = 0.18;
 const IOU_THRESHOLD = 0.45;
 export const PERSON_CLASS_ID = 0;
 
