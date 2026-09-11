@@ -13,6 +13,13 @@ import sys
 import time
 import webbrowser
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ROOT_DIR = Path(__file__).resolve().parent
 
 def main():
@@ -21,7 +28,7 @@ def main():
     args = parser.parse_args()
 
     print("\n=======================================================")
-    print(" 🛡️ IBVAP SENTINEL — ECOSYSTEM LAUNCHER")
+    print(" [+] IBVAP SENTINEL -- ECOSYSTEM LAUNCHER")
     print(" 1. Edge AI Vision Engine (YOLOv8 + Re-ID + ANPR)")
     print(" 2. FastAPI REST + WebSocket Gateway (:8000/docs)")
     print(" 3. React command console:  cd frontend && npm run dev  (:5173)")
@@ -32,9 +39,7 @@ def main():
         return
 
     print("[Starting] FastAPI Gateway on http://localhost:8000 ...")
-    webbrowser.open("http://localhost:8000/docs")
-
-    subprocess.run([sys.executable, "-m", "uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"], cwd=ROOT_DIR)
+    subprocess.run([sys.executable, "-m", "uvicorn", "services.api_gateway.server:app", "--host", "0.0.0.0", "--port", "8000"], cwd=ROOT_DIR)
 
 
 if __name__ == "__main__":

@@ -76,9 +76,9 @@ export function useCameraAlert(camId, enabled) {
         setStatus({ unreachable: true });
         return;
       }
-      setStatus(res);
-      if (res.alert && !prevAlert.current) playBeep();
-      prevAlert.current = !!res.alert;
+      const isAlert = !!(res.connected && res.alert);
+      if (isAlert && !prevAlert.current) playBeep();
+      prevAlert.current = isAlert;
     };
     poll();
     const t = setInterval(poll, 1500);

@@ -94,6 +94,7 @@ class BorderTracker:
         results = self.model.track(
             source=frame,
             persist=True,
+            tracker="bytetrack.yaml",
             conf=self.conf_threshold,
             iou=self.iou_threshold,
             classes=list(TARGET_CLASSES.keys()),

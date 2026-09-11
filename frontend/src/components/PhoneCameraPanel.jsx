@@ -125,6 +125,8 @@ export default function PhoneCameraPanel() {
   const buildUrl = (raw, selectedSource) => {
     let val = (raw || "").trim();
     if (!val) return "";
+    if (/^\d+$/.test(val)) return val;
+
     val = val.replace(/\/+$/, "");
     if (/^https?:\/\//i.test(val)) {
       try {
@@ -201,15 +203,16 @@ export default function PhoneCameraPanel() {
       const res = await api.getCameraSource(camId);
       if (!res || Object.keys(res).length === 0) {
         setPhase("error");
-        setStatus({ error: "Backend unreachable — run it locally (python run_ecosystem.py) and point VITE_API_BASE at it." });
+        setStatus({ error: "Backend unreachable — make sure backend is running on http://localhost:8000" });
         stopPoll();
         return;
       }
       setStatus(res);
       setPhase(res.connected ? "live" : "connecting");
-      if (res.alert && !prevAlert.current) playBeep();
-      prevAlert.current = !!res.alert;
-    }, 1500);
+      const isAlert = !!(res.connected && res.alert);
+      if (isAlert && !prevAlert.current) playBeep();
+      prevAlert.current = isAlert;
+    }, 1200);
   };
 
   const connect = async () => {
@@ -494,12 +497,16 @@ export default function PhoneCameraPanel() {
     stopBrowserWebcam();
     setPhase("idle");
     setStatus(null);
-    if (!isDevice) await api.setCameraSource(slot, "demo");
+    setImgKey((k) => k + 1);
+    await api.setCameraSource(slot, "standby");
   };
 
   const switchSlot = (id) => {
-    if (phase !== "idle") disconnect();
+    stopPoll();
+    setPhase("idle");
+    setStatus(null);
     setSlot(id);
+    setImgKey((k) => k + 1);
   };
 
   const pickSource = (s) => {
@@ -662,19 +669,28 @@ export default function PhoneCameraPanel() {
           />
         )}
         {phase === "idle" || phase === "error" ? (
-          <button
-            onClick={isDevice ? () => startBrowserWebcam(webcamDeviceId) : connect}
-            disabled={!isDevice && !resolvedUrl}
-            className="shrink-0 rounded-lg bg-white px-4 py-2 font-mono text-[12px] font-bold text-black transition-colors hover:bg-emerald-300 disabled:opacity-40"
-          >
-            Connect
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => connect()}
+              disabled={!resolvedUrl}
+              className="shrink-0 rounded-lg bg-emerald-400 px-4 py-2 font-mono text-[12px] font-bold text-black transition-colors hover:bg-emerald-300 disabled:opacity-40"
+            >
+              Connect Live
+            </button>
+            <button
+              onClick={() => connect(source, "demo")}
+              title="Load pre-recorded demo test clip"
+              className="shrink-0 rounded-lg border border-white/15 px-3 py-2 font-mono text-[12px] font-semibold text-white/70 transition-colors hover:text-white"
+            >
+              <RotateCcw size={12} className="inline mr-1" /> Demo Feed
+            </button>
+          </div>
         ) : (
           <button
             onClick={disconnect}
-            className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-white/15 px-4 py-2 font-mono text-[12px] font-semibold text-white/70 transition-colors hover:text-white"
+            className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 font-mono text-[12px] font-semibold text-red-300 transition-colors hover:bg-red-500/20"
           >
-            <RotateCcw size={12} /> Use demo feed
+            <RotateCcw size={12} /> Disconnect to Standby
           </button>
         )}
       </div>
@@ -689,7 +705,7 @@ export default function PhoneCameraPanel() {
       )}
       {status?.error && phase !== "error" && (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/[0.06] px-3 py-2 font-mono text-[11px] text-amber-300">
-          {isDevice ? status.error : `Waiting for the phone… (${status.error})`}
+          Waiting for stream… ({status.error})
         </div>
       )}
 
@@ -701,121 +717,19 @@ export default function PhoneCameraPanel() {
         </div>
       )}
 
-      {/* ANPR / face readouts — only meaningful for the client-side device path */}
-      {isDevice && phase === "live" && (plateInfo || faceInfo) && (
-        <div className="flex flex-wrap gap-2 font-mono text-[11px]">
-          {plateInfo && (
-            <span
-              className={`rounded-lg border px-2.5 py-1 ${
-                plateInfo.hotlistHit ? "border-red-500/50 bg-red-500/10 text-red-300" : "border-white/15 bg-white/[0.04] text-white/60"
-              }`}
-            >
-              PLATE: {plateInfo.cleanedText || "…"} {plateInfo.hotlistHit ? `— HOTLIST (${plateInfo.hotlistHit})` : plateInfo.isPlateFormat ? "" : "(unreadable/no format match)"}
-            </span>
-          )}
-          {faceInfo && (
-            <span className={`rounded-lg border px-2.5 py-1 ${faceInfo.role === "watchlist" ? "border-red-500/50 bg-red-500/10 text-red-300" : "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"}`}>
-              FACE: {faceInfo.name} ({faceInfo.role})
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* face enrollment — client-side gallery, localStorage-backed */}
-      {isDevice && phase === "live" && (
-        <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3">
-          <div className="flex items-center gap-1.5 font-mono text-[11px] text-white/50">
-            <UserPlus size={12} /> Enroll the face currently in frame
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <input
-              value={enrollName}
-              onChange={(e) => setEnrollName(e.target.value)}
-              placeholder="Name"
-              className="flex-1 min-w-[120px] rounded-lg border border-white/12 bg-black px-2.5 py-1.5 font-mono text-[11px] text-white placeholder:text-white/25 focus:border-white/40 focus:outline-none"
-            />
-            <select
-              value={enrollRole}
-              onChange={(e) => setEnrollRole(e.target.value)}
-              className="rounded-lg border border-white/12 bg-black px-2 py-1.5 font-mono text-[11px] text-white focus:border-white/40 focus:outline-none"
-            >
-              <option value="authorized">Authorized</option>
-              <option value="watchlist">Watchlist</option>
-            </select>
-            <button
-              onClick={handleEnroll}
-              disabled={enrolling || !enrollName.trim()}
-              className="rounded-lg bg-white px-3 py-1.5 font-mono text-[11px] font-bold text-black transition-colors hover:bg-emerald-300 disabled:opacity-40"
-            >
-              {enrolling ? "Capturing…" : "Capture & Enroll"}
-            </button>
-          </div>
-          {enrollMsg && <div className="font-mono text-[10px] text-white/45">{enrollMsg}</div>}
-          {gallery.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {gallery.map((g) => (
-                <span key={g.personId} className="flex items-center gap-1 rounded-lg border border-white/12 px-2 py-1 font-mono text-[10px] text-white/55">
-                  {g.name} ({g.role})
-                  <button
-                    onClick={() => {
-                      removeFromGallery(g.personId);
-                      setGallery(getGallery());
-                    }}
-                    className="text-white/30 hover:text-red-300"
-                    title="Remove"
-                  >
-                    <Trash2 size={10} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* event log */}
-      {isDevice && showLog && (
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-          <div className="mb-1.5 flex items-center justify-between">
-            <span className="font-mono text-[11px] font-semibold text-white/60">Append-only event log (this browser)</span>
-            <button
-              onClick={() => {
-                clearEventLog();
-                setLogEntries([]);
-              }}
-              className="font-mono text-[10px] text-white/35 hover:text-red-300"
-            >
-              Clear
-            </button>
-          </div>
-          <div className="max-h-40 space-y-1 overflow-y-auto font-mono text-[10px] text-white/50">
-            {logEntries.length === 0 ? (
-              <div className="text-white/30">No events yet.</div>
-            ) : (
-              logEntries.map((e, i) => (
-                <div key={i} className="border-b border-white/5 pb-0.5">
-                  <span className="text-white/30">{new Date(e.ts).toLocaleTimeString()}</span> <span className="text-amber-300">{e.type}</span> — {e.detail}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* live preview */}
-      <div
-        className={`relative overflow-hidden rounded-xl border bg-black transition-colors ${phase === "idle" ? "hidden" : ""} ${
-          status?.alert ? "border-red-500/60" : "border-white/12"
-        }`}
-      >
-        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-        <video ref={videoElRef} muted playsInline className="hidden" />
-        <canvas ref={canvasRef} className={isDevice ? "aspect-video w-full object-contain" : "hidden"} />
-        {!isDevice && phase !== "idle" && (
-          // eslint-disable-next-line jsx-a11y/alt-text
-          <img key={imgKey} src={`${api.streamUrl(slot)}?k=${imgKey}`} className="aspect-video w-full object-contain" />
+      {/* live preview — the backend's own MJPEG stream, annotated with real detections */}
+      <div className={`relative overflow-hidden rounded-xl border bg-black transition-colors ${status?.alert ? "border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.3)]" : "border-white/12"}`}>
+        <img
+          key={imgKey}
+          src={`${api.streamUrl(slot)}?k=${imgKey}`}
+          onError={() => {
+            setTimeout(() => setImgKey((k) => k + 1), 2500);
+          }}
+          className="aspect-video w-full object-contain"
+        />
+        {status?.alert && (
+          <div className="pointer-events-none absolute inset-0 border-4 border-red-500/70 animate-pulse" />
         )}
-        {status?.alert && <div className="pointer-events-none absolute inset-0 border-4 border-red-500/70 animate-pulse" />}
       </div>
     </div>
   );

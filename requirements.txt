@@ -31,4 +31,4 @@ requests>=2.31.0
 
 # Testing (FastAPI's TestClient needs an httpx-family HTTP client installed)
 pytest>=8.0.0
-httpx2>=2.0.0
+httpx>=0.27.0

@@ -20,13 +20,20 @@ import subprocess
 import sys
 import time
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ROOT_DIR = Path(__file__).resolve().parent
 
 
 def print_banner():
     print("""
 ======================================================================
-          🛡️  IBVAP SENTINEL — MASTER ECOSYSTEM LAUNCHER  🛡️
+          [+]  IBVAP SENTINEL -- MASTER ECOSYSTEM LAUNCHER  [+]
     Ministry of Home Affairs | SSB | SIH 2026 Problem Statement 26187
 ======================================================================
     """)
@@ -34,13 +41,42 @@ def print_banner():
 
 def main():
     parser = argparse.ArgumentParser(description="IBVAP Sentinel - Master Launcher")
+    parser.add_argument("--live", "--webcam", action="store_true", dest="live",
+                        help="Launch Live Surveillance Pipeline (Person + ANPR Number Plates + Drones)")
+    parser.add_argument("--source", default="0",
+                        help="Camera source for live mode: 0 for laptop webcam, 1 for USB, or an IP camera URL")
+    parser.add_argument("--console", "--ecosystem", action="store_true", dest="console",
+                        help="Launch Backend API Gateway (:8000) + React Web Console (:5173)")
     parser.add_argument("--all", action="store_true", help="Launch Backend API Gateway + Streamlit dashboard")
     parser.add_argument("--api", action="store_true", help="Launch FastAPI REST Gateway on port 8000")
     parser.add_argument("--dashboard", action="store_true", help="Launch the Streamlit analyst dashboard on port 8501")
-    parser.add_argument("--demo", type=int, choices=[1, 2, 3, 4, 5, 6], help="Run Demo Scenario (1: Breach, 2: Re-ID, 3: Vehicle, 4: Webcam, 5: Incident Reconstruction, 6: Live Multi-Cam Real Tester)")
+    parser.add_argument("--demo", type=int, choices=[1, 2, 3, 4, 5, 6],
+                        help="Run Demo Scenario (1: Breach, 2: Re-ID, 3: Vehicle, 4: Tabletop Webcam, 5: Incident Recon, 6: Live Multi-Cam)")
     args = parser.parse_args()
 
     print_banner()
+
+    # Direct flag launches
+    if args.live:
+        src = args.source
+        print(f"[Starting] Live Surveillance Pipeline on source {src} (Persons + ANPR + Drones)...")
+        subprocess.run([sys.executable, "-m", "core.vision.live_pipeline", "--source", str(src)], cwd=ROOT_DIR)
+        return
+
+    if args.console:
+        print("[Starting] Backend API Gateway (:8000) + Command Console (:5173)...")
+        import webbrowser
+        backend_proc = subprocess.Popen([sys.executable, "-m", "uvicorn", "services.api_gateway.server:app", "--host", "0.0.0.0", "--port", "8000"], cwd=ROOT_DIR)
+        time.sleep(2)
+        frontend_proc = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "frontend", shell=True)
+        time.sleep(2)
+        webbrowser.open("http://localhost:5173/console")
+        try:
+            backend_proc.wait()
+        except KeyboardInterrupt:
+            backend_proc.terminate()
+            frontend_proc.terminate()
+        return
 
     # Demos
     if args.demo == 1:
@@ -73,26 +109,67 @@ def main():
         subprocess.run(["streamlit", "run", "dashboard/app.py"], cwd=ROOT_DIR)
         return
 
-    # Default / --all
-    print("[Starting] FastAPI REST + WebSocket Gateway on http://localhost:8000...")
-    import webbrowser
-    webbrowser.open("http://localhost:8000/docs")
+    if args.all:
+        print("[Starting] FastAPI REST + WebSocket Gateway on http://localhost:8000...")
+        import webbrowser
+        webbrowser.open("http://localhost:8000/docs")
+        try:
+            subprocess.run([sys.executable, "-m", "uvicorn", "services.api_gateway.server:app", "--host", "0.0.0.0", "--port", "8000"], cwd=ROOT_DIR)
+        except KeyboardInterrupt:
+            print("\nServer terminated.")
+        return
 
-    print("\n" + "="*70)
-    print(" ✅ BACKEND ONLINE")
-    print(" 🌐 REST API Swagger Docs:    http://localhost:8000/docs")
-    print(" 🖥️  Command Console (React):  cd frontend && npm run dev   (→ :5173)")
-    print("                              or  https://ibvap-sentinel.vercel.app")
-    print(" 📊 Analyst dashboard:        python run.py --dashboard   (→ :8501)")
-    print(" 📱 Mobile Admin App:         cd apps/mobile_admin && flutter run")
-    print(" 🎮 Run Threat Scenario 5:    python run.py --demo 5")
-    print("="*70)
-    print("\nPress Ctrl+C to safely terminate server.")
+    # If no arguments provided, show an intuitive interactive menu
+    print(" Select an option to start (Press Enter for Live Webcam):")
+    print("  [1] 📹 Live Webcam Surveillance (Person + ANPR Number Plates + Drones) [DEFAULT]")
+    print("  [2] 🖥️ Full Web Command Console + Phone Ingress (Backend :8000 + React :5173)")
+    print("  [3] 🎯 Scenario 4 — Tabletop Checkpoint & Hardware Barrier")
+    print("  [4] 🌐 FastAPI REST Backend Gateway (:8000)")
+    print("  [5] 📊 Streamlit Analyst Dashboard (:8501)")
+    print("  [6] 🔍 Scenario 2 — Cross-Camera Re-ID")
+    print("  [7] 🚗 Scenario 3 — Vehicle Ramming & ANPR")
+    print("  [8] 📹 Scenario 6 — Multi-Camera Live Real Tester")
+    print("  [0] Exit")
+    print("-" * 70)
 
     try:
-        subprocess.run([sys.executable, "-m", "uvicorn", "services.api_gateway.server:app", "--host", "0.0.0.0", "--port", "8000"], cwd=ROOT_DIR)
-    except KeyboardInterrupt:
-        print("\nServer terminated.")
+        choice = input(" Enter choice [1]: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        choice = "1"
+
+    if choice in ("", "1"):
+        print("\n[Starting] Live Surveillance Pipeline on camera 0 (Persons + ANPR + Drones)...")
+        subprocess.run([sys.executable, "-m", "core.vision.live_pipeline", "--source", "0"], cwd=ROOT_DIR)
+    elif choice == "2":
+        import webbrowser
+        print("\n[Starting] Backend API Gateway (:8000) + Command Console (:5173)...")
+        b_proc = subprocess.Popen([sys.executable, "-m", "uvicorn", "services.api_gateway.server:app", "--host", "0.0.0.0", "--port", "8000", "--reload"], cwd=ROOT_DIR)
+        time.sleep(2)
+        f_proc = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "frontend", shell=True)
+        time.sleep(2)
+        webbrowser.open("http://localhost:5173/console")
+        try:
+            b_proc.wait()
+        except KeyboardInterrupt:
+            b_proc.terminate()
+            f_proc.terminate()
+    elif choice == "3":
+        subprocess.run([sys.executable, "demos/scenario_4_tabletop_webcam.py"], cwd=ROOT_DIR)
+    elif choice == "4":
+        subprocess.run([sys.executable, "-m", "uvicorn", "services.api_gateway.server:app", "--host", "0.0.0.0", "--port", "8000", "--reload"], cwd=ROOT_DIR)
+    elif choice == "5":
+        subprocess.run(["streamlit", "run", "dashboard/app.py"], cwd=ROOT_DIR)
+    elif choice == "6":
+        subprocess.run([sys.executable, "demos/scenario_2_cross_cam_reid.py"], cwd=ROOT_DIR)
+    elif choice == "7":
+        subprocess.run([sys.executable, "demos/scenario_3_vehicle_ramming.py"], cwd=ROOT_DIR)
+    elif choice == "8":
+        subprocess.run([sys.executable, "demos/live_real_world_tester.py"], cwd=ROOT_DIR)
+    elif choice == "0":
+        print("Exiting.")
+        return
+    else:
+        print(f"Unknown choice: {choice}")
 
 
 if __name__ == "__main__":

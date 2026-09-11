@@ -2102,58 +2102,14 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                   <div className="p-4 rounded-2xl bg-[#000000] border border-white/12">
                     <h3 className="text-base font-bold text-white font-mono flex items-center gap-2">
                       <Video size={16} className="text-white" />
-                      CCTV Ingress &amp; Training Lab
+                      Live Camera &amp; AI Detection Console
                     </h3>
                     <p className="text-xs text-white/55 mt-0.5">
-                      Attach a real camera below and the backend's own YOLOv8n + ByteTrack pipeline runs on it live —
-                      genuine server-side detection, not a simulated demo.
+                      Connect your phone camera via IP Webcam or select your laptop webcam. The backend runs real-time
+                      YOLOv8 person tracking, ANPR number plates, and aerial drone detection.
                     </p>
                   </div>
 
-                  <PhoneCameraPanel />
-
-                  {/* AI Model Target Filter Switcher */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-[#000000] border border-white/12 text-xs font-mono">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-white/50 text-[11px] font-semibold">AI Detection Target:</span>
-                      <button
-                        onClick={() => { triggerSound("click"); setIngressScenario("all"); }}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                          ingressScenario === "all"
-                            ? "bg-red-500/20 text-red-300 border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)]"
-                            : "text-white/60 hover:text-white border border-white/10"
-                        }`}
-                      >
-                        All (Person + Vehicle)
-                      </button>
-                      <button
-                        onClick={() => { triggerSound("click"); setIngressScenario("person"); }}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                          ingressScenario === "person"
-                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
-                            : "text-white/60 hover:text-white border border-white/10"
-                        }`}
-                      >
-                        Person / Soldier (#P01)
-                      </button>
-                      <button
-                        onClick={() => { triggerSound("click"); setIngressScenario("vehicle"); }}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                          ingressScenario === "vehicle"
-                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.3)]"
-                            : "text-white/60 hover:text-white border border-white/10"
-                        }`}
-                      >
-                        Vehicle / Patrol (#V03)
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2 text-[11px] text-emerald-400">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>YOLOv8 Edge AI: 25 FPS Active</span>
-                    </div>
-                  </div>
-
-                  {/* Video Screen with Overlaid Dynamic AI Bounding Box & HUD */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     <div className="lg:col-span-8 flex flex-col gap-3">
                       <div className="rounded-2xl overflow-hidden bg-black border border-white/12 relative aspect-video shadow-2xl">
@@ -2376,53 +2332,49 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       />
                     </div>
 
-                    {/* Right Telemetry & Fine-Tuning Terminal */}
+                    {/* Right Telemetry & AI Status Terminal */}
                     <div className="lg:col-span-4 rounded-2xl bg-[#000000] border border-white/12 p-4 flex flex-col justify-between space-y-3">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between border-b border-white/12 pb-2">
                           <span className="text-xs font-bold font-mono text-white flex items-center gap-1.5">
                             <Terminal size={14} className="text-white" />
-                            <span>Model fine-tuning &amp; telemetry</span>
+                            <span>AI Model Status &amp; Telemetry</span>
                           </span>
-                          <span className="text-[10px] text-amber-300 font-mono">SIMULATION · PHASE 2</span>
+                          <span className="text-[10px] text-emerald-400 font-mono">LIVE READY</span>
                         </div>
 
                         <div className="space-y-2 font-mono text-xs">
                           <div className="flex justify-between">
-                            <span className="text-white/55">YOLOv8 Backbone:</span>
-                            <span className="text-white">Ultralytics v8.1.0n</span>
+                            <span className="text-white/55">Person &amp; Vehicle:</span>
+                            <span className="text-emerald-400">YOLOv8n + ByteTrack</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-white/55">Runtime:</span>
-                            <span className="text-white">PyTorch / ONNX Runtime (CPU)</span>
+                            <span className="text-white/55">Drone Detection:</span>
+                            <span className="text-emerald-400">YOLOv8 Aerial Model</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-white/55">Current Loss:</span>
-                            <span className="text-emerald-400">{trainingLoss.toFixed(3)}</span>
+                            <span className="text-white/55">ANPR Engine:</span>
+                            <span className="text-emerald-400">Plate YOLO + EasyOCR</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-white/55">Precision (mAP@50):</span>
-                            <span className="text-white font-bold">{trainingmAP.toFixed(1)}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-white/55">Acoustic Auto-Siren:</span>
-                            <span className={ingressCalculatedThreat >= alarmThreshold ? "text-red-400 font-bold animate-pulse" : "text-white/55"}>
-                              {ingressCalculatedThreat >= alarmThreshold ? "TRIGGERED (115 dB)" : "STANDBY"}
+                            <span className="text-white/55">Audio Auto-Siren:</span>
+                            <span className={isAlarmActive ? "text-red-400 font-bold animate-pulse" : "text-emerald-400 font-bold"}>
+                              {isAlarmActive ? "TRIGGERED (CRITICAL)" : "ACTIVE (ON DETECTION)"}
                             </span>
                           </div>
                         </div>
 
-                        {/* Training Terminal Log Box */}
-                        <div className="h-36 rounded-xl bg-[#000000] border border-white/12 p-2.5 font-mono text-[10.5px] text-white overflow-y-auto space-y-1">
-                          <div className="text-white/55">// Cloud training log stream</div>
-                          {trainingLogs.map((log, idx) => (
-                            <div key={idx} className="text-white">{log}</div>
-                          ))}
-                          {trainingActive && (
-                            <div className="text-amber-400 flex items-center gap-1 animate-pulse">
-                              <span>Computing gradient updates for Epoch {trainingEpoch}/5...</span>
-                            </div>
-                          )}
+                        <div className="p-3 rounded-xl bg-black/60 border border-white/10 text-xs font-mono text-white/70 space-y-2">
+                          <div className="text-white font-bold flex items-center gap-1.5 text-[11px]">
+                            <Disc size={12} className="text-emerald-400" />
+                            Live Detection Guide
+                          </div>
+                          <ul className="list-disc list-inside space-y-1 text-[11px] text-white/60">
+                            <li><span className="text-white">Person:</span> Highlights green box &amp; alerts</li>
+                            <li><span className="text-white">Number Plate:</span> Scans text &amp; alerts</li>
+                            <li><span className="text-white">Drone:</span> Red box &amp; critical alarm</li>
+                            <li><span className="text-white">Nothing in view:</span> Silent &amp; secure</li>
+                          </ul>
                         </div>
                       </div>
 
