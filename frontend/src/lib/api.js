@@ -1,7 +1,12 @@
 // IBVAP Sentinel — frontend/src/lib/api.js
 // Universal API Client with Authentic Web Crypto SHA-256 Verification & Topology Handoff Engine.
 
-const BASE = import.meta.env.VITE_API_BASE || window.location.origin;
+const BASE =
+  import.meta.env.VITE_API_BASE ||
+  (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "8000"
+    ? "http://localhost:8000"
+    : (typeof window !== "undefined" ? window.location.origin : "http://localhost:8000"));
+export const API_BASE = BASE;
 
 // Canonical Genesis Block Hash matching backend/evidence_ledger.py
 export const GENESIS_HASH = "sentinel::genesis::ssb-alpine-ridge::2026";
@@ -456,6 +461,16 @@ export const api = {
   simulateCameraFault: (cameraId) => request(`/cameras/${cameraId}/simulate-fault`, { method: "POST" }),
   clearCameraFault: (cameraId) => request(`/cameras/${cameraId}/clear-fault`, { method: "POST" }),
 
+  // Live phone / IP-camera ingress — points a backend camera worker at a
+  // real URL (e.g. the Android "IP Webcam" app) and streams the YOLOv8-
+  // annotated result back as MJPEG. Requires the FastAPI backend running
+  // locally (VITE_API_BASE) on the same network as the phone — not available
+  // on the static Vercel deploy.
+  setCameraSource: (cameraId, source) =>
+    request(`/cameras/${cameraId}/set-source`, { method: "POST", body: JSON.stringify({ source }) }),
+  getCameraSource: (cameraId) => request(`/cameras/${cameraId}/source`),
+  streamUrl: (cameraId) => `${BASE}/stream/${cameraId}`,
+
   getNetworkStatus: () => request("/network/status"),
   toggleNetwork: () => request("/network/toggle", { method: "POST" }),
 
@@ -595,10 +610,44 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plate, reason }),
     }),
+
+  saveCapturedClip: async (clipPayload) => {
+    try {
+      const formData = new FormData();
+      if (clipPayload.videoBlob) {
+        formData.append("video", clipPayload.videoBlob, clipPayload.filename);
+      }
+      formData.append("object_code", String(clipPayload.objectCode || 1));
+      formData.append("camera_id", clipPayload.cameraId || "CAM_ALPHA");
+      formData.append("hash", clipPayload.hash || "");
+      formData.append("duration_sec", String(clipPayload.durationSec || 0));
+      formData.append("notes", clipPayload.notes || "");
+
+      const res = await fetch(`${BASE}/api/v1/clips/save`, {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // offline fallback
+    }
+    return {
+      status: "saved_locally",
+      object_code: clipPayload.objectCode || 1,
+      filename: clipPayload.filename,
+      hash: clipPayload.hash,
+    };
+  },
+
+  getCapturedClips: () => request("/api/v1/clips"),
+  verifyClipHash: (clipId) => request(`/api/v1/clips/${clipId}/verify`, { method: "POST" }),
 };
 
 export const getRecentPlateReads = api.getRecentPlateReads;
 export const getVehicleHotlist = api.getVehicleHotlist;
 export const addVehicleHotlist = api.addVehicleHotlist;
+export const saveCapturedClip = api.saveCapturedClip;
+export const getCapturedClips = api.getCapturedClips;
 
 export default api;
+

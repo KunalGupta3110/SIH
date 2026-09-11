@@ -29,6 +29,8 @@ import {
 import SectionHeader from "./SectionHeader.jsx";
 import api from "../lib/api.js";
 import siren from "../lib/audioSiren.js";
+import VideoDvrController from "./video/VideoDvrController.jsx";
+import ClipCaptureModal from "./video/ClipCaptureModal.jsx";
 
 export const REAL_LIFE_SCENARIOS = [
   {
@@ -207,6 +209,15 @@ export default function LiveSurveillanceSection({
   const [currentFrameNum, setCurrentFrameNum] = useState(0);
   const [backendInferenceRunning, setBackendInferenceRunning] = useState(false);
   const [backendInferenceStatus, setBackendInferenceStatus] = useState(null);
+
+  // Clip Capturing and DVR State
+  const [isClipModalOpen, setIsClipModalOpen] = useState(false);
+  const [activeCapturedClip, setActiveCapturedClip] = useState(null);
+
+  const handleClipCaptured = useCallback((clipInfo) => {
+    setActiveCapturedClip(clipInfo);
+    setIsClipModalOpen(true);
+  }, []);
 
   // Real 2-Camera Re-ID State
   const [reidActiveCamera, setReidActiveCamera] = useState("CAM_ALPHA");
@@ -1291,6 +1302,15 @@ export default function LiveSurveillanceSection({
             </div>
           </div>
 
+          {/* Tactical Video DVR Rewind & Clip Capture Controller */}
+          <VideoDvrController
+            videoRef={streamMode === "webcam" ? webcamVideoRef : videoRef}
+            cameraId={scenario.camera || "CAM_ALPHA"}
+            cameraName={scenario.title || "Surveillance Optical Feed"}
+            onClipCaptured={handleClipCaptured}
+            className="border-sky-500/30"
+          />
+
           {/* Real Vehicle Approach Interactive Controller */}
           <div className="rounded-xl border border-white/10 bg-black/50 p-4 flex flex-col gap-3">
             <div className="flex items-center justify-between text-xs">
@@ -1638,6 +1658,13 @@ export default function LiveSurveillanceSection({
           </div>
         </div>
       )}
+
+      {/* Clip Capture Modal */}
+      <ClipCaptureModal
+        isOpen={isClipModalOpen}
+        clipData={activeCapturedClip}
+        onClose={() => setIsClipModalOpen(false)}
+      />
     </div>
   );
 }

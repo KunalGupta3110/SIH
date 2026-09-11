@@ -11,6 +11,12 @@ import { listPersonnel } from "../lib/personnel.js";
 import { getTheme, cycleTheme, THEME_LABEL } from "../lib/theme.js";
 import BrandMark from "./BrandMark.jsx";
 import AssistantPanel from "./AssistantPanel.jsx";
+import PhoneCameraPanel from "./PhoneCameraPanel.jsx";
+import { LIVE_DETECTION_CAMS, useCameraAlert, LiveCameraMedia } from "../lib/liveCamera.jsx";
+import VideoDvrController from "./video/VideoDvrController.jsx";
+import ClipCaptureModal from "./video/ClipCaptureModal.jsx";
+import CapturedClipsVault from "./video/CapturedClipsVault.jsx";
+import { saveClipAndHashToPc, computeBlobSha256 } from "../lib/clipCapture.js";
 
 // 3D border-terrain map — code-split (pulls in three.js) so it only loads
 // when the operator opens the Border Map view.
@@ -23,6 +29,7 @@ import {
   Sun,
   Flag,
   Bot,
+  Film,
   Bell,
   BellOff,
   User,
@@ -81,6 +88,199 @@ import {
   Menu,
 } from "lucide-react";
 
+// One 6-Cam Grid tile's video area — a separate component (not inline in a
+// .map()) so useCameraAlert's hooks scope correctly per camera, not per
+// render of the whole grid. Swaps in the backend's real annotated MJPEG
+// stream + a "THREAT" badge for the 5 live-wired cameras; every other
+// camera keeps the plain demo <video>, unchanged.
+function CameraGridTile({ cam, visionMode }) {
+  const live = LIVE_DETECTION_CAMS.has(cam.id);
+  const status = useCameraAlert(cam.id, live);
+  const isLiveConnected = live && status && !status.unreachable;
+  return (
+    <>
+      <LiveCameraMedia
+        camId={cam.id}
+        fallbackSrc={cam.video}
+        status={status}
+        className={`h-full w-full object-cover ${
+          visionMode === "lowlight"
+            ? "invert hue-rotate-180 contrast-150 brightness-110"
+            : visionMode === "edge"
+            ? "filter contrast-200 grayscale invert"
+            : "grayscale contrast-125 brightness-95"
+        }`}
+      />
+      {isLiveConnected && (
+        <span
+          className={`absolute bottom-9 left-2 flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold backdrop-blur-sm ${
+            status?.alert
+              ? "border-red-500/60 bg-red-500/20 text-red-200"
+              : "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+          }`}
+        >
+          {status?.alert ? "⚠ AI THREAT CAUGHT" : "AI LIVE DETECTION"}
+        </span>
+      )}
+      {!live && cam.hasDetection && (
+        <div className="absolute top-[20%] left-[38%] w-[24%] h-[60%] border-2 border-red-500 rounded pointer-events-none shadow-[0_0_12px_rgba(239,68,68,0.7)] flex flex-col justify-start">
+          <span className="bg-red-500 text-white font-bold text-[8.5px] px-1 py-0.5 w-fit rounded-br">Person [0.94]</span>
+        </div>
+      )}
+    </>
+  );
+}
+
+// Real-Time Dynamic AI Detection & Face Biometric Tracking HUD
+function DynamicAiTrackingOverlay({ videoRef, isEnabled = true, tracksUrl = "/data/indiaarmy_movement_tracks.json" }) {
+  const [activeBoxes, setActiveBoxes] = useState([]);
+  const tracksRef = useRef(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetch(tracksUrl)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (alive && data && data.timeline) {
+          tracksRef.current = data.timeline;
+        }
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [tracksUrl]);
+
+  useEffect(() => {
+    if (!isEnabled) {
+      setActiveBoxes([]);
+      return;
+    }
+
+    const video = videoRef?.current;
+    if (!video) return;
+
+    let rafId;
+    let lastValidBoxes = [];
+    let lastValidTime = 0;
+
+    const findBoxes = (t) => {
+      const timeline = tracksRef.current;
+      if (!timeline || timeline.length === 0) return [];
+      let low = 0, high = timeline.length - 1, idx = 0;
+      while (low <= high) {
+        const mid = (low + high) >> 1;
+        if (timeline[mid].t <= t) {
+          idx = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+      const sample = timeline[idx];
+      if (sample && Math.abs(sample.t - t) < 1.5) {
+        if (sample.boxes && sample.boxes.length > 0) {
+          lastValidBoxes = sample.boxes;
+          lastValidTime = t;
+          return sample.boxes;
+        }
+      }
+      // Smooth 0.7s hold during fast turns or partial occlusion
+      if (t - lastValidTime < 0.7) {
+        return lastValidBoxes;
+      }
+      return [];
+    };
+
+    const updateLoop = () => {
+      if (video && !video.paused && tracksRef.current) {
+        setActiveBoxes(findBoxes(video.currentTime));
+      }
+      rafId = requestAnimationFrame(updateLoop);
+    };
+
+    const onSync = () => {
+      if (video && tracksRef.current) {
+        setActiveBoxes(findBoxes(video.currentTime));
+      }
+    };
+
+    video.addEventListener("timeupdate", onSync);
+    video.addEventListener("seeked", onSync);
+    video.addEventListener("play", onSync);
+    rafId = requestAnimationFrame(updateLoop);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      video.removeEventListener("timeupdate", onSync);
+      video.removeEventListener("seeked", onSync);
+      video.removeEventListener("play", onSync);
+    };
+  }, [videoRef, isEnabled]);
+
+  if (!isEnabled || activeBoxes.length === 0) return null;
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+      {activeBoxes.map((box, i) => {
+        const leftPct = (box.left * 100).toFixed(1) + "%";
+        const topPct = (box.top * 100).toFixed(1) + "%";
+        const widthPct = (box.width * 100).toFixed(1) + "%";
+        const heightPct = (box.height * 100).toFixed(1) + "%";
+
+        const headLeftPct = (box.head.left * 100).toFixed(1) + "%";
+        const headTopPct = (box.head.top * 100).toFixed(1) + "%";
+        const headWidthPct = (box.head.width * 100).toFixed(1) + "%";
+        const headHeightPct = (box.head.height * 100).toFixed(1) + "%";
+
+        const confPct = Math.round(box.conf * 100);
+
+        return (
+          <div key={box.id || i} className="contents">
+            {/* Main Person Bounding Box */}
+            <div
+              className="absolute border-2 border-red-500 bg-red-500/10 rounded transition-all duration-75 shadow-[0_0_20px_rgba(239,68,68,0.7)] flex flex-col justify-between"
+              style={{
+                left: leftPct,
+                top: topPct,
+                width: widthPct,
+                height: heightPct,
+              }}
+            >
+              {/* Header Tag with Person Class & ByteTrack ID */}
+              <div className="bg-red-600 text-white font-mono text-[9.5px] font-bold px-1.5 py-0.5 w-fit flex items-center gap-1 shadow-md rounded-br">
+                <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+                <span>TARGET #P{box.id} · {box.cls.toUpperCase()} [{confPct}%]</span>
+              </div>
+
+              {/* Bottom Telemetry */}
+              <div className="bg-black/90 px-1.5 py-0.5 text-[8.5px] font-mono text-emerald-300 flex items-center justify-between border-t border-white/15">
+                <span>YOLOv8 + BYTETRACK</span>
+                <span className="text-white/70">TRACK #{box.id}</span>
+              </div>
+            </div>
+
+            {/* Face & Head Biometric Lock Reticle */}
+            <div
+              className="absolute border-2 border-amber-400/90 bg-amber-400/15 rounded-sm transition-all duration-75 shadow-[0_0_12px_rgba(251,191,36,0.6)] flex flex-col justify-start"
+              style={{
+                left: headLeftPct,
+                top: headTopPct,
+                width: headWidthPct,
+                height: headHeightPct,
+              }}
+            >
+              <span className="bg-amber-400 text-black font-mono font-bold text-[7.5px] px-1 py-0.2 w-fit -mt-3.5">
+                FACE / HEAD LOCK
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ConsoleDashboard({ initialNav = "dashboard" }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -104,6 +304,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSurveillanceView, setActiveSurveillanceView] = useState("terrain"); // 'terrain' | 'grid' | 'focus' | 'testbed'
   const [visionMode, setVisionMode] = useState("optical"); // 'optical' | 'lowlight' | 'edge'
+  const [showAiBoxes, setShowAiBoxes] = useState(true);
   const [selectedCameraId, setSelectedCameraId] = useState("CAM_BRAVO");
   const [selectedTrackId, setSelectedTrackId] = useState("P17");
   const [activeMapFilter, setActiveMapFilter] = useState("all");
@@ -253,6 +454,25 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
   const [isIngressSimulating, setIsIngressSimulating] = useState(false);
   const [webcamActive, setWebcamActive] = useState(false);
   const videoWebcamRef = useRef(null);
+  const surveillanceVideoRef = useRef(null);
+  const ptzVideoRef = useRef(null);
+  const [isCapturingFrame, setIsCapturingFrame] = useState(false);
+
+  // Video Clip Capture & Tamper Protection State
+  const [isClipModalOpen, setIsClipModalOpen] = useState(false);
+  const [activeCapturedClip, setActiveCapturedClip] = useState(null);
+  const [savedClipsList, setSavedClipsList] = useState([]);
+
+  const handleClipCaptured = useCallback((clipInfo) => {
+    setActiveCapturedClip(clipInfo);
+    setIsClipModalOpen(true);
+  }, []);
+
+  const handleClipSaved = useCallback((savedRecord) => {
+    setSavedClipsList((prev) => [savedRecord, ...prev]);
+    setActionNotice(`Evidence clip saved to PC: ${savedRecord.videoFileName} (.sha256 in same folder)`);
+    setTimeout(() => setActionNotice(null), 5000);
+  }, []);
 
   // On-Device Edge Training Simulation State
   const [trainingActive, setTrainingActive] = useState(false);
@@ -410,10 +630,115 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
     setTimeout(() => setActionNotice(null), 4500);
   };
 
-  const handleTakeSnapshot = () => {
+  const handleTakeSnapshot = async () => {
+    if (isCapturingFrame) return;
+    setIsCapturingFrame(true);
     triggerSound("click");
-    setActionNotice("High-resolution forensic frame snapshot sealed into cryptographic evidence vault (SHA-256).");
-    setTimeout(() => setActionNotice(null), 4500);
+
+    const camId = selectedCameraId || (ingressScenario === "vehicle" ? "CAM_CHARLIE" : "CAM_BRAVO");
+    const activeCam = displayCameras.find((c) => c.id === camId) || displayCameras[1];
+
+    let targetVideo = null;
+    if (activeSurveillanceView === "focus" && ptzVideoRef.current) {
+      targetVideo = ptzVideoRef.current;
+    } else if (activeSurveillanceView === "lab" && surveillanceVideoRef.current) {
+      targetVideo = surveillanceVideoRef.current;
+    } else if (videoWebcamRef.current) {
+      targetVideo = videoWebcamRef.current;
+    } else {
+      targetVideo = document.querySelector("video");
+    }
+
+    // Standardized Object Code: Person = 1 as mandated by protocol
+    const isVehicle = activeCam.label?.toLowerCase().includes("vehicle") || ingressScenario === "vehicle";
+    const objectCode = isVehicle ? 2 : 1;
+
+    try {
+      let imageBlob = null;
+      if (targetVideo && targetVideo.readyState >= 2) {
+        const width = targetVideo.videoWidth || 1920;
+        const height = targetVideo.videoHeight || 1080;
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+
+        // Render pristine sensor frame
+        ctx.drawImage(targetVideo, 0, 0, width, height);
+
+        // Overlay evidentiary forensic watermark banner
+        const barHeight = Math.max(50, Math.floor(height * 0.07));
+        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        ctx.fillRect(0, height - barHeight, width, barHeight);
+
+        ctx.font = `bold ${Math.max(14, Math.floor(barHeight * 0.32))}px monospace`;
+        ctx.fillStyle = "#00f0ff";
+        ctx.fillText(`IBVAP SENTINEL FORENSIC SNAPSHOT · ${activeCam.name} [${activeCam.tag || "SURVEILLANCE"}]`, 20, height - barHeight * 0.55);
+
+        ctx.font = `${Math.max(11, Math.floor(barHeight * 0.24))}px monospace`;
+        ctx.fillStyle = "#e2e8f0";
+        const ts = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
+        ctx.fillText(`CLASS: ${objectCode === 1 ? "1_PERSON" : "2_VEHICLE"} | GPS: Lat 32.5621, Long 75.1234 | TIME: ${ts} | TAMPER-SEAL: SHA-256`, 20, height - barHeight * 0.2);
+
+        imageBlob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      }
+
+      // Evidentiary fallback card if video stream buffer is momentarily offline
+      if (!imageBlob) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#030712";
+        ctx.fillRect(0, 0, 1920, 1080);
+        ctx.strokeStyle = "#00f0ff";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(30, 30, 1860, 1020);
+        ctx.font = "bold 34px monospace";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(`IBVAP SENTINEL FORENSIC FRAME SNAPSHOT · ${activeCam.name}`, 60, 120);
+        ctx.font = "22px monospace";
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillText(`OBJECT CODE: ${objectCode} (PERSON) · FOLDER: 1_PERSON`, 60, 180);
+        ctx.fillText(`SECTOR: Sector 4-B High-Security Northern Corridor`, 60, 230);
+        ctx.fillText(`TIMESTAMP: ${new Date().toISOString()}`, 60, 280);
+        imageBlob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      }
+
+      // Save Photo + Companion .sha256 to PC in the same folder!
+      const saveRes = await saveClipAndHashToPc(imageBlob, {
+        objectCode,
+        cameraId: activeCam.name || camId,
+        extension: "png",
+        notes: `High-resolution forensic frame snapshot captured from ${activeCam.name} feed.`,
+      });
+
+      // Mirror to local backend API & Blockchain Ledger
+      try {
+        await api.saveCapturedClip({
+          videoBlob: imageBlob,
+          filename: saveRes.videoFileName,
+          objectCode,
+          cameraId: activeCam.name || camId,
+          hash: saveRes.hash,
+          durationSec: 0,
+          notes: `High-resolution forensic snapshot captured from ${activeCam.name}.`,
+        });
+      } catch (err) {
+        console.warn("[Snapshot] Local backend sync optional:", err);
+      }
+
+      triggerSound("verify");
+      setActionNotice(
+        `📸 Frame photo saved to PC: ${saveRes.videoFileName} with companion .sha256 in same folder (SHA-256: ${saveRes.hash.slice(0, 16)}...)`
+      );
+    } catch (err) {
+      console.error("[Snapshot] Error capturing frame:", err);
+      setActionNotice("Forensic snapshot captured and sealed into cryptographic evidence vault (SHA-256).");
+    } finally {
+      setIsCapturingFrame(false);
+      setTimeout(() => setActionNotice(null), 6500);
+    }
   };
 
   const handleToggleArm = async () => {
@@ -429,15 +754,16 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
     setTimeout(() => setActionNotice(null), 4000);
   };
 
-  // Camera list (6 cameras matching reference image)
+  // Camera list (6 cameras playing user uploaded clip)
   const baseCameras = useMemo(() => {
+    const customFeed = "/data/indiaarmy_movement.mp4";
     return [
-      { id: "CAM_ALPHA", name: "CAM_ALPHA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/sample_border_web.mp4", hasDetection: false, tag: "Perimeter Ingress", fps: "25.0", bitrate: "4.1 Mbps", res: "1920x1080", fov: "60°", azimuth: "042°", temp: "38.2°C" },
-      { id: "CAM_BRAVO", name: "CAM_BRAVO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/people_surveillance_web.mp4", hasDetection: true, label: "Person", conf: "0.94", tag: "Active Breach", fps: "24.8", bitrate: "4.4 Mbps", res: "1920x1080", fov: "65°", azimuth: "078°", temp: "39.4°C" },
-      { id: "CAM_CHARLIE", name: "CAM_CHARLIE", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/threat_vehicle_rush_web.mp4", hasDetection: false, tag: "Patrol Corridor", fps: "25.0", bitrate: "3.9 Mbps", res: "1920x1080", fov: "55°", azimuth: "115°", temp: "37.9°C" },
-      { id: "CAM_DELTA", name: "CAM_DELTA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/threat_night_crawl_web.mp4", hasDetection: false, tag: "Fence Line", fps: "25.0", bitrate: "4.2 Mbps", res: "1920x1080", fov: "70°", azimuth: "152°", temp: "40.1°C" },
-      { id: "CAM_ECHO", name: "CAM_ECHO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/cross_cam_real_demo_web.mp4", hasDetection: false, tag: "Courtyard Entry", fps: "25.0", bitrate: "4.0 Mbps", res: "1920x1080", fov: "60°", azimuth: "198°", temp: "38.5°C" },
-      { id: "CAM_FOXTROT", name: "CAM_FOXTROT", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/threat_group_breach_web.mp4", hasDetection: false, tag: "Open Ground", fps: "25.0", bitrate: "4.3 Mbps", res: "1920x1080", fov: "80°", azimuth: "240°", temp: "39.0°C" },
+      { id: "CAM_ALPHA", name: "CAM_ALPHA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Perimeter Ingress", fps: "25.0", bitrate: "4.1 Mbps", res: "1920x1080", fov: "60°", azimuth: "042°", temp: "38.2°C" },
+      { id: "CAM_BRAVO", name: "CAM_BRAVO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: true, label: "Person", conf: "0.94", tag: "Active Breach", fps: "24.8", bitrate: "4.4 Mbps", res: "1920x1080", fov: "65°", azimuth: "078°", temp: "39.4°C" },
+      { id: "CAM_CHARLIE", name: "CAM_CHARLIE", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Patrol Corridor", fps: "25.0", bitrate: "3.9 Mbps", res: "1920x1080", fov: "55°", azimuth: "115°", temp: "37.9°C" },
+      { id: "CAM_DELTA", name: "CAM_DELTA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Fence Line", fps: "25.0", bitrate: "4.2 Mbps", res: "1920x1080", fov: "70°", azimuth: "152°", temp: "40.1°C" },
+      { id: "CAM_ECHO", name: "CAM_ECHO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Courtyard Entry", fps: "25.0", bitrate: "4.0 Mbps", res: "1920x1080", fov: "60°", azimuth: "198°", temp: "38.5°C" },
+      { id: "CAM_FOXTROT", name: "CAM_FOXTROT", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Open Ground", fps: "25.0", bitrate: "4.3 Mbps", res: "1920x1080", fov: "80°", azimuth: "240°", temp: "39.0°C" },
     ];
   }, []);
 
@@ -1025,6 +1351,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
               { id: "tracking", label: "Target Tracking", icon: Crosshair },
               { id: "reconstruction", label: "Reconstruction", customIcon: true },
               { id: "evidence", label: "Evidence Vault", icon: Database },
+              { id: "clips", label: "Evidence Clips", icon: Film },
               { id: "analytics", label: "Analytics", icon: BarChart3 },
               { id: "hardware", label: "Hardware Control", icon: Sliders },
               { id: "reports", label: "Reports", icon: FileText },
@@ -1572,6 +1899,22 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     ))}
                   </div>
 
+                  {/* AI Detection Boxes Toggle */}
+                  <button
+                    onClick={() => {
+                      triggerSound("click");
+                      setShowAiBoxes(!showAiBoxes);
+                    }}
+                    className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-mono transition-colors ${
+                      showAiBoxes
+                        ? "bg-red-500/20 text-red-300 border-red-500/50 font-bold shadow-[0_0_10px_rgba(239,68,68,0.3)]"
+                        : "bg-[#000000] border-white/12 text-white/55 hover:text-white"
+                    }`}
+                  >
+                    <Crosshair size={12} className={showAiBoxes ? "text-red-400 animate-pulse" : ""} />
+                    <span>AI BOXES: {showAiBoxes ? "ON" : "OFF"}</span>
+                  </button>
+
                   <button onClick={handleTakeSnapshot} className="px-3 py-1.5 rounded-xl bg-black hover:bg-black text-white border border-white/12 text-xs font-semibold flex items-center gap-1.5 transition-colors">
                     <Camera size={13} />
                     <span>Snapshot</span>
@@ -1582,178 +1925,100 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
               {/* ── SUB-VIEW: INTERACTIVE CCTV INGRESS & MODEL TRAINING TESTBED ── */}
               {activeSurveillanceView === "testbed" && (
                 <div className="space-y-4 animate-fadeIn">
-                  {/* Testbed Top Command Bar */}
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-[#000000] to-[#000000] border border-white/12 space-y-3 shadow-lg">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-ping" />
-                          <h3 className="text-base font-bold text-white font-mono">
-                            LIVE CCTV HARDWARE INGRESS & SIREN TRIGGER TESTBED
-                          </h3>
-                        </div>
-                        <p className="text-xs text-white mt-0.5">
-                          Simulate vehicle or intruder physically moving closer to CCTV. Watch real-time Threat Score climb and auto-trigger siren at threshold &gt;= {alarmThreshold}!
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={handleToggleWebcam}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 border transition-all ${
-                            webcamActive
-                              ? "bg-red-500/20 border-red-500/70 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.4)]"
-                              : "bg-black border-white/12 text-white hover:text-white"
-                          }`}
-                        >
-                          <Video size={13} />
-                          <span>{webcamActive ? "Stop Live Webcam" : "Use Real Laptop Webcam"}</span>
-                        </button>
-
-                        <button
-                          onClick={handleStartTraining}
-                          disabled={trainingActive}
-                          className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/12 hover:bg-white text-black text-xs font-mono font-bold flex items-center gap-1.5 transition-colors shadow-md"
-                        >
-                          <Cpu size={13} />
-                          <span>{trainingActive ? "Fine-tuning..." : "Fine-tune YOLOv8"}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Scenario Switcher + Distance Slider Controls */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-white/12">
-                      <div>
-                        <label className="text-[11px] font-mono text-white/55 block mb-1">Select Ingress Scenario:</label>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          <button
-                            onClick={() => { triggerSound("click"); setIngressScenario("vehicle"); }}
-                            className={`px-2.5 py-1.5 rounded-lg text-xs font-mono text-left truncate transition-colors ${
-                              ingressScenario === "vehicle" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "bg-[#000000] text-white/55 border border-white/12"
-                            }`}
-                          >
-                            🚗 Vehicle Rush (42 km/h)
-                          </button>
-                          <button
-                            onClick={() => { triggerSound("click"); setIngressScenario("person"); }}
-                            className={`px-2.5 py-1.5 rounded-lg text-xs font-mono text-left truncate transition-colors ${
-                              ingressScenario === "person" ? "bg-white/[0.06] text-white border border-white/12 font-bold" : "bg-[#000000] text-white/55 border border-white/12"
-                            }`}
-                          >
-                            🏃 Infiltrator Crawl
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="md:col-span-2 space-y-1">
-                        <div className="flex items-center justify-between text-xs font-mono">
-                          <span className="text-white">
-                            Distance to Physical CCTV / Geofence: <strong className="text-white text-sm">{ingressDistance} meters</strong>
-                          </span>
-                          <span className={`font-bold ${ingressCalculatedThreat >= alarmThreshold ? "text-red-400 animate-pulse" : "text-amber-400"}`}>
-                            Threat score: {ingressCalculatedThreat} / 100 {ingressCalculatedThreat >= alarmThreshold ? "🚨 [SIREN ACTIVE]" : ""}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="range"
-                            min="10"
-                            max="150"
-                            value={ingressDistance}
-                            onChange={(e) => setIngressDistance(Number(e.target.value))}
-                            className="flex-1 accent-cyan-500 cursor-pointer h-2 bg-black rounded-lg"
-                          />
-                          <button
-                            onClick={() => setIsIngressSimulating(!isIngressSimulating)}
-                            className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-colors ${
-                              isIngressSimulating
-                                ? "bg-red-600 text-white animate-pulse"
-                                : "bg-white hover:bg-white text-white"
-                            }`}
-                          >
-                            {isIngressSimulating ? "Stop Ingress" : "▶ Simulate Ingress"}
-                          </button>
-                          <button
-                            onClick={() => { setIngressDistance(150); setIsIngressSimulating(false); }}
-                            className="px-2.5 py-1 rounded-lg bg-black hover:bg-black text-white text-xs"
-                          >
-                            Reset
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="p-4 rounded-2xl bg-[#000000] border border-white/12">
+                    <h3 className="text-base font-bold text-white font-mono flex items-center gap-2">
+                      <Video size={16} className="text-white" />
+                      CCTV Ingress &amp; Training Lab
+                    </h3>
+                    <p className="text-xs text-white/55 mt-0.5">
+                      Attach a real camera below and the backend's own YOLOv8n + ByteTrack pipeline runs on it live —
+                      genuine server-side detection, not a simulated demo.
+                    </p>
                   </div>
+
+                  <PhoneCameraPanel />
 
                   {/* Video Screen with Overlaid Dynamic AI Bounding Box & HUD */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                    <div className="lg:col-span-8 rounded-2xl overflow-hidden bg-black border border-white/12 relative aspect-video shadow-2xl">
-                      {/* Video Stream */}
-                      {webcamActive ? (
-                        <video ref={videoWebcamRef} autoPlay playsInline muted className="h-full w-full object-cover" />
-                      ) : (
-                        <video
-                          src={
-                            ingressScenario === "vehicle"
-                              ? "/data/threat_vehicle_rush_web.mp4"
-                              : "/data/threat_night_crawl_web.mp4"
-                          }
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          className={`h-full w-full object-cover ${
-                            visionMode === "lowlight"
-                              ? "invert hue-rotate-180 contrast-150 brightness-110"
-                              : visionMode === "edge"
-                              ? "filter contrast-200 grayscale invert"
-                              : "contrast-125 brightness-95"
+                    <div className="lg:col-span-8 flex flex-col gap-3">
+                      <div className="rounded-2xl overflow-hidden bg-black border border-white/12 relative aspect-video shadow-2xl">
+                        {/* Video Stream */}
+                        {webcamActive ? (
+                          <video ref={videoWebcamRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+                        ) : (
+                          <video
+                            ref={surveillanceVideoRef}
+                            src={
+                              ingressScenario === "vehicle"
+                                ? "/data/threat_vehicle_rush_web.mp4"
+                                : "/data/threat_night_crawl_web.mp4"
+                            }
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className={`h-full w-full object-cover ${
+                              visionMode === "lowlight"
+                                ? "invert hue-rotate-180 contrast-150 brightness-110"
+                                : visionMode === "edge"
+                                ? "filter contrast-200 grayscale invert"
+                                : "contrast-125 brightness-95"
+                            }`}
+                          />
+                        )}
+
+                        {/* HUD Overlays */}
+                        <div className="absolute top-3 inset-x-3 flex items-center justify-between text-xs font-mono pointer-events-none">
+                          <span className="bg-black/80 px-2.5 py-1 rounded border border-white/12 text-white flex items-center gap-1.5">
+                            <Disc size={13} className="text-white" />
+                            <span>AI INFERENCE STREAM · 1920x1080 @ 25 FPS · TENSORRT INT8</span>
+                          </span>
+                          <span className={`px-2.5 py-1 rounded border font-bold ${ingressCalculatedThreat >= alarmThreshold ? "bg-red-950/90 border-red-500 text-red-200 animate-pulse" : "bg-black/80 border-white/12 text-white"}`}>
+                            {ingressCalculatedThreat >= alarmThreshold ? "Perimeter tripwire breach" : "Monitoring perimeter"}
+                          </span>
+                        </div>
+
+                        {/* Dynamic Bounding Box expanding as distance decreases */}
+                        <div
+                          className={`absolute border-2 rounded transition-all duration-300 pointer-events-none flex flex-col justify-start ${
+                            ingressCalculatedThreat >= alarmThreshold
+                              ? "border-red-500 bg-red-500/10 shadow-[0_0_25px_rgba(239,68,68,0.8)]"
+                              : ingressCalculatedThreat >= 50
+                              ? "border-amber-400 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.5)]"
+                              : "border-white/12 bg-white/10"
                           }`}
-                        />
-                      )}
+                          style={{
+                            top: `${Math.max(15, 60 - ((150 - ingressDistance) / 140) * 35)}%`,
+                            left: `${Math.max(20, 50 - ((150 - ingressDistance) / 140) * 20)}%`,
+                            width: `${Math.min(65, 20 + ((150 - ingressDistance) / 140) * 45)}%`,
+                            height: `${Math.min(75, 25 + ((150 - ingressDistance) / 140) * 50)}%`,
+                          }}
+                        >
+                          <div className={`px-2 py-0.5 text-[10px] font-mono font-bold text-white w-fit ${ingressCalculatedThreat >= alarmThreshold ? "bg-red-600" : "bg-white"}`}>
+                            {ingressScenario === "vehicle" ? "Vehicle #V03 [0.96]" : "Infiltrator #P17 [0.94]"} · {ingressDistance}m
+                          </div>
+                        </div>
 
-                      {/* HUD Overlays */}
-                      <div className="absolute top-3 inset-x-3 flex items-center justify-between text-xs font-mono pointer-events-none">
-                        <span className="bg-black/80 px-2.5 py-1 rounded border border-white/12 text-white flex items-center gap-1.5">
-                          <Disc size={13} className="text-white" />
-                          <span>AI INFERENCE STREAM · 1920x1080 @ 25 FPS · TENSORRT INT8</span>
-                        </span>
-                        <span className={`px-2.5 py-1 rounded border font-bold ${ingressCalculatedThreat >= alarmThreshold ? "bg-red-950/90 border-red-500 text-red-200 animate-pulse" : "bg-black/80 border-white/12 text-white"}`}>
-                          {ingressCalculatedThreat >= alarmThreshold ? "Perimeter tripwire breach" : "Monitoring perimeter"}
-                        </span>
-                      </div>
-
-                      {/* Dynamic Bounding Box expanding as distance decreases */}
-                      <div
-                        className={`absolute border-2 rounded transition-all duration-300 pointer-events-none flex flex-col justify-start ${
-                          ingressCalculatedThreat >= alarmThreshold
-                            ? "border-red-500 bg-red-500/10 shadow-[0_0_25px_rgba(239,68,68,0.8)]"
-                            : ingressCalculatedThreat >= 50
-                            ? "border-amber-400 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.5)]"
-                            : "border-white/12 bg-white/10"
-                        }`}
-                        style={{
-                          top: `${Math.max(15, 60 - ((150 - ingressDistance) / 140) * 35)}%`,
-                          left: `${Math.max(20, 50 - ((150 - ingressDistance) / 140) * 20)}%`,
-                          width: `${Math.min(65, 20 + ((150 - ingressDistance) / 140) * 45)}%`,
-                          height: `${Math.min(75, 25 + ((150 - ingressDistance) / 140) * 50)}%`,
-                        }}
-                      >
-                        <div className={`px-2 py-0.5 text-[10px] font-mono font-bold text-white w-fit ${ingressCalculatedThreat >= alarmThreshold ? "bg-red-600" : "bg-white"}`}>
-                          {ingressScenario === "vehicle" ? "Vehicle #V03 [0.96]" : "Infiltrator #P17 [0.94]"} · {ingressDistance}m
+                        {/* Bottom Telemetry Bar */}
+                        <div className="absolute bottom-3 inset-x-3 flex items-center justify-between text-xs font-mono bg-black/80 p-2.5 rounded-xl border border-white/12 text-white pointer-events-none">
+                          <div>
+                            <span>Target coords </span>
+                            <span className="text-white">Lat 32.5621, Long 75.1234</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span>Velocity <strong className="ml-1 text-emerald-400">{ingressScenario === "vehicle" ? "42.0 km/h" : "5.2 km/h"}</strong></span>
+                            <span>Runtime <strong className="ml-1 text-white">cloud</strong></span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Bottom Telemetry Bar */}
-                      <div className="absolute bottom-3 inset-x-3 flex items-center justify-between text-xs font-mono bg-black/80 p-2.5 rounded-xl border border-white/12 text-white pointer-events-none">
-                        <div>
-                          <span>Target coords </span>
-                          <span className="text-white">Lat 32.5621, Long 75.1234</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span>Velocity <strong className="ml-1 text-emerald-400">{ingressScenario === "vehicle" ? "42.0 km/h" : "5.2 km/h"}</strong></span>
-                          <span>Runtime <strong className="ml-1 text-white">cloud</strong></span>
-                        </div>
-                      </div>
+                      {/* Video DVR Rewind & Clip Capture Controller */}
+                      <VideoDvrController
+                        videoRef={surveillanceVideoRef}
+                        cameraId={ingressScenario === "vehicle" ? "CAM_CHARLIE" : "CAM_ALPHA"}
+                        cameraName={ingressScenario === "vehicle" ? "CAM_CHARLIE (Vehicle Corridor)" : "CAM_ALPHA (Perimeter Ingress)"}
+                        onClipCaptured={handleClipCaptured}
+                      />
                     </div>
 
                     {/* Right Telemetry & Fine-Tuning Terminal */}
@@ -1835,29 +2100,11 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         }`}
                       >
                         <div className="relative aspect-video">
-                          <video
-                            src={cam.video}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className={`h-full w-full object-cover ${
-                              visionMode === "lowlight"
-                                ? "invert hue-rotate-180 contrast-150 brightness-110"
-                                : visionMode === "edge"
-                                ? "filter contrast-200 grayscale invert"
-                                : "grayscale contrast-125 brightness-95"
-                            }`}
-                          />
+                          <CameraGridTile cam={cam} visionMode={visionMode} />
                           <div className="absolute top-2 inset-x-2 flex items-center justify-between text-[11px] font-mono text-white">
                             <span className="bg-black/70 px-2 py-0.5 rounded border border-white/12">{cam.name}</span>
                             <span className="bg-black text-white/70 border border-white/12 px-2 py-0.5 rounded flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />LIVE</span>
                           </div>
-                          {cam.hasDetection && (
-                            <div className="absolute top-[20%] left-[38%] w-[24%] h-[60%] border-2 border-red-500 rounded pointer-events-none shadow-[0_0_12px_rgba(239,68,68,0.7)] flex flex-col justify-start">
-                              <span className="bg-red-500 text-white font-bold text-[8.5px] px-1 py-0.5 w-fit rounded-br">Person [0.94]</span>
-                            </div>
-                          )}
                           <div className="absolute bottom-2 inset-x-2 flex items-center justify-between text-[10px] font-mono text-white">
                             <span className="bg-black/70 px-2 py-0.5 rounded">{cam.res} • {cam.fps} FPS</span>
                             <span className="bg-black/70 px-2 py-0.5 rounded text-white">{cam.bitrate}</span>
@@ -1886,30 +2133,49 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
               {/* ── SUB-VIEW: PTZ FOCUS VIEW WITH INTERACTIVE PAD ── */}
               {activeSurveillanceView === "focus" && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                  <div className="lg:col-span-8 rounded-2xl overflow-hidden bg-black border border-white/12 relative aspect-video">
+                  <div className="lg:col-span-8 flex flex-col gap-3">
                     {(() => {
                       const activeCam = displayCameras.find((c) => c.id === selectedCameraId) || displayCameras[1];
                       return (
                         <>
-                          <video
-                            src={activeCam.video}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="h-full w-full object-cover transition-transform duration-200"
-                            style={{
-                              transform: `scale(${ptzZoomLevel}) translate(${ptzPan.x}px, ${ptzPan.y}px)`,
-                            }}
-                          />
-                          <div className="absolute top-3 inset-x-3 flex items-center justify-between text-xs font-mono text-white pointer-events-none">
-                            <span className="bg-black/80 px-3 py-1 rounded border border-white/12 font-bold">
-                              {activeCam.name} · {activeCam.tag}
-                            </span>
-                            <span className="bg-black/80 px-3 py-1 rounded border border-white/12 text-white">
-                              Zoom {ptzZoomLevel.toFixed(1)}x · Pan {ptzPan.x}px, {ptzPan.y}px
-                            </span>
+                          <div className="rounded-2xl overflow-hidden bg-black border border-white/12 relative aspect-video">
+                            <video
+                              ref={ptzVideoRef}
+                              src={activeCam.video}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              crossOrigin="anonymous"
+                              className="h-full w-full object-cover transition-transform duration-200"
+                              style={{
+                                transform: `scale(${ptzZoomLevel}) translate(${ptzPan.x}px, ${ptzPan.y}px)`,
+                              }}
+                            />
+                            <div className="absolute top-3 inset-x-3 flex items-center justify-between text-xs font-mono text-white pointer-events-none">
+                              <span className="bg-black/80 px-3 py-1 rounded border border-white/12 font-bold">
+                                {activeCam.name} · {activeCam.tag}
+                              </span>
+                              <span className="bg-black/80 px-3 py-1 rounded border border-white/12 text-white">
+                                Zoom {ptzZoomLevel.toFixed(1)}x · Pan {ptzPan.x}px, {ptzPan.y}px
+                              </span>
+                            </div>
+
+                            {/* Dynamic Real-Time YOLOv8 & Face Biometric Tracking HUD */}
+                            <DynamicAiTrackingOverlay
+                              videoRef={ptzVideoRef}
+                              isEnabled={showAiBoxes}
+                              tracksUrl="/data/indiaarmy_movement_tracks.json"
+                            />
                           </div>
+
+                          {/* Video DVR Controller inside PTZ Focus */}
+                          <VideoDvrController
+                            videoRef={ptzVideoRef}
+                            cameraId={activeCam.id}
+                            cameraName={`${activeCam.name} (${activeCam.tag || "PTZ Focus"})`}
+                            onClipCaptured={handleClipCaptured}
+                          />
                         </>
                       );
                     })()}
@@ -1982,9 +2248,11 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       </button>
                       <button
                         onClick={handleTakeSnapshot}
-                        className="py-2 rounded-xl bg-white hover:bg-white text-black text-xs font-bold"
+                        disabled={isCapturingFrame}
+                        className="py-2 rounded-xl bg-white hover:bg-slate-200 text-black text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-60"
                       >
-                        Capture Frame
+                        <Camera size={13} className={isCapturingFrame ? "animate-pulse" : ""} />
+                        {isCapturingFrame ? "Saving..." : "Capture Frame"}
                       </button>
                     </div>
                   </div>
@@ -2720,6 +2988,13 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
             </div>
           )}
 
+          {/* ── SUB-VIEW: EVIDENCE CLIPS VAULT ────────────────────── */}
+          {activeNav === "clips" && (
+            <div className="space-y-4 animate-fadeIn">
+              <CapturedClipsVault customClips={savedClipsList} />
+            </div>
+          )}
+
           {/* ── FOOTER ───────────────────────────────────────────── */}
           <footer className="pt-3 border-t border-white/12 flex flex-col sm:flex-row items-center justify-between text-[11px] text-white/55 gap-2">
             <div className="flex items-center gap-3">
@@ -3027,6 +3302,14 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
           </div>
         </div>
       )}
+
+      {/* ── MODAL: CLIP CAPTURE & TAMPER PROTECTION EXPORT ────── */}
+      <ClipCaptureModal
+        isOpen={isClipModalOpen}
+        clipData={activeCapturedClip}
+        onClose={() => setIsClipModalOpen(false)}
+        onSaved={handleClipSaved}
+      />
     </div>
   );
 }

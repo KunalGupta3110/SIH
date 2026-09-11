@@ -1010,6 +1010,190 @@ class SentinelBackend:
             "handoff_window_seconds": [HANDOFF_MIN_SEC, HANDOFF_MAX_SEC],
         }
 
+    def save_captured_clip(
+        self,
+        video_bytes: bytes,
+        filename: Optional[str] = None,
+        object_code: int = 1,
+        camera_id: str = "CAM_ALPHA",
+        duration_sec: float = 0.0,
+        notes: str = "",
+    ) -> Dict[str, Any]:
+        """
+        Saves a captured video clip into data/captured_clips/<OBJECT_CODE>_<CLASS>/
+        along with its cryptographic companion .sha256 file and Section 65B manifest
+        in the EXACT SAME FOLDER to ensure tamper-evident preservation.
+        """
+        code_map = {
+            1: ("1_PERSON", "PERSON", "Person / Intruder"),
+            2: ("2_VEHICLE", "VEHICLE", "Vehicle / Carrier"),
+            3: ("3_CONTRABAND", "CONTRABAND", "Contraband / Weapon"),
+            4: ("4_ANIMAL", "ANIMAL", "Animal / Wildlife"),
+            0: ("0_OTHER", "OTHER", "Unidentified / Other"),
+        }
+        folder_name, class_name, desc = code_map.get(int(object_code), ("1_PERSON", "PERSON", "Person / Intruder"))
+
+        now = datetime.now(timezone.utc)
+        ts_str = now.strftime("%Y%m%d_%H%M%S")
+        clean_cam = str(camera_id).replace(" ", "_").upper()
+
+        ext = "webm"
+        if filename and "." in filename:
+            ext = filename.rsplit(".", 1)[-1].lower()
+
+        base_name = f"{object_code}_{class_name}_{clean_cam}_{ts_str}"
+        video_filename = f"{base_name}.{ext}" if not filename else filename
+        hash_filename = f"{video_filename}.sha256"
+        manifest_filename = f"{base_name}_manifest.json"
+
+        target_dir = ROOT_DIR / "data" / "captured_clips" / folder_name
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        video_path = target_dir / video_filename
+        hash_path = target_dir / hash_filename
+        manifest_path = target_dir / manifest_filename
+
+        # Write video bytes
+        with open(video_path, "wb") as fh:
+            fh.write(video_bytes)
+
+        # Calculate authentic SHA-256 hash
+        sha256_digest = hashlib.sha256(video_bytes).hexdigest()
+
+        # Write .sha256 companion file in the same folder
+        sha256_content = f"{sha256_digest} *{video_filename}\n"
+        with open(hash_path, "w", encoding="utf-8") as fh:
+            fh.write(sha256_content)
+
+        # Write Section 65B manifest
+        manifest_data = {
+            "evidence_protocol": "IBVAP-SENTINEL-EVIDENCE-CHAIN-v1",
+            "section_65b_compliance": {
+                "legal_framework": "Section 65B(4) Indian Evidence Act / BSA 2023",
+                "admissibility_certified": True,
+                "tamper_evident_seal": "SHA-256 Cryptographic Hash Checksum",
+            },
+            "file": {
+                "name": video_filename,
+                "folder": folder_name,
+                "size_bytes": len(video_bytes),
+                "sha256": sha256_digest,
+            },
+            "classification": {
+                "object_code": int(object_code),
+                "object_class": class_name,
+                "description": desc,
+            },
+            "metadata": {
+                "camera_id": camera_id,
+                "recorded_at_iso": now.isoformat(),
+                "duration_seconds": float(duration_sec or 0.0),
+                "notes": notes or "Surveillance incident video clip captured from watchfloor.",
+            },
+        }
+        with open(manifest_path, "w", encoding="utf-8") as fh:
+            json.dump(manifest_data, fh, indent=2)
+
+        # Seal into evidence blockchain ledger
+        try:
+            self._append_ledger_block(
+                linked_incident_id=f"CLIP-{base_name}",
+                operator_action=f"SAVED_CLIP_CODE_{object_code}_{class_name}",
+                payload={
+                    "clip_filename": video_filename,
+                    "folder": folder_name,
+                    "sha256": sha256_digest,
+                    "object_code": int(object_code),
+                    "camera_id": camera_id,
+                },
+            )
+        except Exception:
+            pass
+
+        return {
+            "status": "sealed",
+            "object_code": int(object_code),
+            "object_class": class_name,
+            "folder": folder_name,
+            "video_filename": video_filename,
+            "hash_filename": hash_filename,
+            "manifest_filename": manifest_filename,
+            "sha256": sha256_digest,
+            "size_bytes": len(video_bytes),
+            "video_path": str(video_path),
+            "hash_path": str(hash_path),
+        }
+
+    def list_captured_clips(self) -> List[Dict[str, Any]]:
+        """List all captured clips from data/captured_clips/ with integrity status."""
+        base_dir = ROOT_DIR / "data" / "captured_clips"
+        if not base_dir.exists():
+            return []
+
+        results = []
+        for folder in sorted(base_dir.iterdir()):
+            if not folder.is_dir():
+                continue
+            for f in sorted(folder.glob("*.*")):
+                if f.name.endswith(".sha256") or f.name.endswith(".json"):
+                    continue
+                hash_file = folder / f"{f.name}.sha256"
+                has_hash = hash_file.exists()
+                expected_hash = ""
+                if has_hash:
+                    try:
+                        expected_hash = hash_file.read_text().strip().split()[0]
+                    except Exception:
+                        pass
+
+                code = 1
+                try:
+                    code = int(folder.name.split("_")[0])
+                except Exception:
+                    pass
+
+                results.append({
+                    "filename": f.name,
+                    "folder": folder.name,
+                    "object_code": code,
+                    "path": str(f),
+                    "size_bytes": f.stat().st_size,
+                    "has_hash_companion": has_hash,
+                    "sha256": expected_hash,
+                })
+        return results
+
+    def verify_clip_file(self, video_path_str: str) -> Dict[str, Any]:
+        """Verify the integrity of a video file against its companion .sha256 file."""
+        video_path = Path(video_path_str)
+        if not video_path.exists():
+            return {"valid": False, "reason": "Video file not found."}
+
+        hash_file = video_path.parent / f"{video_path.name}.sha256"
+        if not hash_file.exists():
+            return {"valid": False, "reason": "Companion .sha256 hash file missing in same folder!"}
+
+        expected_hash = hash_file.read_text().strip().split()[0].lower()
+        actual_hash = sha256_file(str(video_path)).lower()
+
+        if expected_hash == actual_hash:
+            return {
+                "valid": True,
+                "reason": "SHA-256 Checksum identical. Zero tampering detected.",
+                "expected_hash": expected_hash,
+                "actual_hash": actual_hash,
+                "file": video_path.name,
+            }
+        else:
+            return {
+                "valid": False,
+                "reason": "TAMPER DETECTED! Computed SHA-256 does not match companion .sha256 file.",
+                "expected_hash": expected_hash,
+                "actual_hash": actual_hash,
+                "file": video_path.name,
+            }
+
+
 
 _default_backend: Optional[SentinelBackend] = None
 

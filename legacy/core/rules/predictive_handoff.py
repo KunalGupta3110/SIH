@@ -45,6 +45,13 @@ class HandoffPrediction:
         in_window = (self.expected_arrival_min_s - 2.0) <= elapsed_s <= (self.expected_arrival_max_s + 4.0)
         return in_window, elapsed_s
 
+    def __getitem__(self, item: str):
+        if item == "arrival_window_s":
+            return (self.expected_arrival_min_s, self.expected_arrival_max_s)
+        if hasattr(self, item):
+            return getattr(self, item)
+        raise KeyError(f"Invalid attribute '{item}' on HandoffPrediction")
+
 
 class PredictiveHandoffEngine:
     """

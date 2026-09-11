@@ -29,9 +29,19 @@ class ErrorBoundary extends Component {
           <h1 className="text-lg font-bold tracking-wide text-white uppercase mb-2">
             Console Diagnostics Required
           </h1>
-          <p className="text-white/60 text-sm max-w-md mb-6">
+          <p className="text-white/60 text-sm max-w-md mb-4">
             A transient interface anomaly was intercepted. Operational state has been preserved safely.
           </p>
+          {this.state.error?.message && (
+            <details className="mb-6 max-w-lg text-left bg-neutral-900 border border-white/10 rounded-lg p-3 text-xs font-mono text-amber-300/90 cursor-pointer">
+              <summary className="text-slate-400 select-none pb-1 hover:text-white">
+                Diagnostic Trace ({this.state.error.name || "Error"})
+              </summary>
+              <div className="pt-2 text-[11px] text-red-300 break-words whitespace-pre-wrap border-t border-white/10 mt-1">
+                {this.state.error.message}
+              </div>
+            </details>
+          )}
           <div className="flex gap-3">
             <button
               onClick={() => {

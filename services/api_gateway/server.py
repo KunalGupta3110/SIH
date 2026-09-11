@@ -20,7 +20,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -700,6 +700,44 @@ def stream_cam2():
     return stream_camera("CAM_BRAVO")
 
 
+class CameraSourceRequest(BaseModel):
+    source: str = Field(
+        ...,
+        description='A phone/IP camera URL (e.g. "http://192.168.1.42:8080/video" from the '
+        'Android "IP Webcam" app), an RTSP URL, a local webcam index ("0"), or the literal '
+        '"demo" to revert the camera to its original demo-file feed.',
+    )
+
+
+@app.post("/cameras/{camera_id}/set-source")
+@app.post("/v1/cameras/{camera_id}/set-source")
+def set_camera_source(camera_id: str, req: CameraSourceRequest):
+    """Point a camera node at a new live source (typically a phone's IP-Webcam
+    URL) without restarting the server. GET /cameras/{camera_id}/source right
+    after this to poll for a successful connection — a bad/unreachable URL
+    connects to nothing and keeps retrying rather than erroring here."""
+    manager = _stream_manager()
+    manager.set_source(camera_id, req.source)
+    return {"camera_id": camera_id, "requested_source": req.source, "status": "connecting"}
+
+
+@app.get("/cameras/{camera_id}/source")
+@app.get("/v1/cameras/{camera_id}/source")
+def get_camera_source(camera_id: str):
+    cam = _stream_manager().get_camera(camera_id)
+    if not cam:
+        raise HTTPException(status_code=404, detail="Unknown camera_id")
+    return {
+        "camera_id": camera_id,
+        "source": cam.source,
+        "connected": cam.connected,
+        "fps": round(cam.fps, 1),
+        "error": cam.last_error,
+        "alert": cam.alert_banner_timer > 0,
+        "alert_status": cam.alert_status_text,
+    }
+
+
 # ---------------------------------------------------------------------------
 # ANPR & Hotlist Endpoints
 # ---------------------------------------------------------------------------
@@ -760,7 +798,59 @@ def delete_anpr_hotlist(plate: str):
     return {"status": "removed", "plate": norm}
 
 
+# ---------------------------------------------------------------------------
+# Captured Evidence Clips & SHA-256 Tamper Protection
+# ---------------------------------------------------------------------------
+
+class ClipVerifyRequest(BaseModel):
+    video_path: str
+
+
+@app.post("/api/v1/clips/save")
+@app.post("/v1/clips/save")
+async def save_captured_clip_endpoint(
+    video: Optional[UploadFile] = File(None),
+    object_code: int = Form(1),
+    camera_id: str = Form("CAM_ALPHA"),
+    duration_sec: float = Form(0.0),
+    notes: str = Form(""),
+    filename: Optional[str] = Form(None),
+):
+    video_bytes = b""
+    if video:
+        video_bytes = await video.read()
+        if not filename:
+            filename = video.filename
+
+    if not video_bytes:
+        raise HTTPException(status_code=400, detail="No video file provided.")
+
+    result = get_backend().save_captured_clip(
+        video_bytes=video_bytes,
+        filename=filename,
+        object_code=object_code,
+        camera_id=camera_id,
+        duration_sec=duration_sec,
+        notes=notes,
+    )
+    return result
+
+
+@app.get("/api/v1/clips")
+@app.get("/v1/clips")
+def list_captured_clips_endpoint():
+    clips = get_backend().list_captured_clips()
+    return {"total": len(clips), "clips": clips}
+
+
+@app.post("/api/v1/clips/verify")
+@app.post("/v1/clips/verify")
+def verify_clip_endpoint(payload: ClipVerifyRequest):
+    return get_backend().verify_clip_file(payload.video_path)
+
+
 if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+

@@ -30,6 +30,36 @@ from core.vision.reid import FeatureExtractor
 from core.vision.tracker import BorderTracker
 from services.hardware_bridge.serial_controller import trigger_physical_breach
 from services.notifications.telegram_bot import send_mobile_alert
+import re
+from urllib.parse import urlparse, urlunparse
+
+
+def normalize_camera_source(source: str) -> str:
+    """Normalizes camera sources: IP Webcam, DroidCam, RTSP, numeric indices, or file paths."""
+    if source is None:
+        return source
+    src = str(source).strip()
+    if src.isdigit() or src in ("demo", ""):
+        return src
+
+    # Auto-prefix http:// if bare IP:Port or IP is provided (e.g. 192.168.2.7:8080 or 192.168.2.7)
+    if not src.startswith("http://") and not src.startswith("https://") and not src.startswith("rtsp://"):
+        if re.match(r"^(\d{1,3}\.){3}\d{1,3}(:\d+)?(/.*)?$", src):
+            src = f"http://{src}"
+
+    # For HTTP/HTTPS streams (IP Webcam, DroidCam, etc.)
+    if src.startswith("http://") or src.startswith("https://"):
+        src = src.rstrip("/")
+        try:
+            parsed = urlparse(src)
+            # If path is empty, append /video (standard MJPEG endpoint for IP Webcam / DroidCam)
+            if not parsed.path or parsed.path == "":
+                src = urlunparse((parsed.scheme, parsed.netloc, "/video", parsed.params, parsed.query, parsed.fragment))
+        except Exception:
+            if not src.endswith("/video") and not src.endswith("/videofeed") and not src.endswith("/mjpegfeed"):
+                src = f"{src}/video"
+
+    return src
 
 
 class CameraStreamProcessor:
@@ -63,6 +93,8 @@ class CameraStreamProcessor:
         self.latest_annotated_frame: Optional[np.ndarray] = None
         self.fps: float = 0.0
         self.is_running: bool = False
+        self.connected: bool = False  # True once a real frame has been read from `source`
+        self.last_error: Optional[str] = None
         self._thread: Optional[threading.Thread] = None
         self.lock = threading.Lock()
 
@@ -79,34 +111,54 @@ class CameraStreamProcessor:
 
     def stop(self):
         self.is_running = False
+        self.connected = False
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=1.0)
 
     def _worker_loop(self):
         # Resolve source path
-        src = self.source
+        src = normalize_camera_source(self.source)
         if not str(src).isdigit() and not str(src).startswith("http") and not str(src).startswith("rtsp") and not os.path.isabs(src):
             src = os.path.join(ROOT_DIR, src)
 
         cap_arg = int(src) if str(src).isdigit() else src
         cap = cv2.VideoCapture(cap_arg)
+        try:
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        except Exception:
+            pass
+        is_live_source = isinstance(cap_arg, str) and (cap_arg.startswith("http") or cap_arg.startswith("rtsp"))
 
         frame_idx = 0
         t_prev = time.time()
+        reconnect_attempts = 0
 
         while self.is_running:
             if not cap.isOpened():
+                self.connected = False
+                self.last_error = f"Could not open source: {self.source}"
+                reconnect_attempts += 1
                 time.sleep(1.0)
                 cap = cv2.VideoCapture(cap_arg)
                 continue
 
             ret, frame = cap.read()
             if not ret:
-                # Loop video file for continuous live surveillance
-                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                time.sleep(0.03)
+                self.connected = False
+                if is_live_source:
+                    # phone/IP camera dropped — back off and retry the connection
+                    self.last_error = f"Lost connection to {self.source}"
+                    cap.release()
+                    time.sleep(1.0)
+                    cap = cv2.VideoCapture(cap_arg)
+                else:
+                    # Loop video file for continuous live surveillance
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    time.sleep(0.03)
                 continue
 
+            self.connected = True
+            self.last_error = None
             frame_idx += 1
             now = time.time()
             dt = now - t_prev
@@ -188,51 +240,83 @@ class CameraStreamProcessor:
             return buf.tobytes() if ret else None
 
 
+def _full_frame_zone(zone_id: str, name: str) -> List[Zone]:
+    """A near-full-frame restricted polygon — reliably fires a breach on
+    any detection regardless of where in the clip it happens, so demo
+    footage doesn't need hand-calibrated zone coordinates."""
+    return [
+        Zone(
+            zone_id=zone_id,
+            name=name,
+            zone_type=ZoneType.RESTRICTED_POLYGON,
+            points=[(40, 40), (814, 40), (814, 440), (40, 440)],
+            severity="CRITICAL",
+        )
+    ]
+
+
+# Extra camera nodes started lazily on first request (GET /stream/{id} or
+# GET /cameras/{id}/source) rather than eagerly at boot, so a demo sector
+# with many camera tiles doesn't run N YOLO inference threads before anyone
+# has actually tapped a tile to look at it.
+LAZY_DEMO_SOURCES: Dict[str, Tuple[str, str]] = {
+    "CAM_CHARLIE": ("frontend/public/data/threat_vehicle_rush_web.mp4", "East Ridge Overwatch"),
+    "CAM_DELTA": ("frontend/public/data/scenario_checkpoint_breach_web.mp4", "Valley Approach"),
+    "CAM_ECHO": ("frontend/public/data/people_surveillance_web.mp4", "South Corridor"),
+}
+
+
 class MultiCameraEcosystemManager:
     """Singleton manager controlling all live camera streams."""
 
     def __init__(self):
         self.cameras: Dict[str, CameraStreamProcessor] = {}
+        self.default_sources: Dict[str, str] = {}
+        self.camera_meta: Dict[str, Tuple[str, List[Zone]]] = {}  # camera_id -> (name, zones)
         self.handoff_engine = PredictiveHandoffEngine()
         self.feat_extractor = FeatureExtractor()
         self.db = EventDatabase("data/events.db")
         self._init_default_streams()
 
     def _init_default_streams(self):
-        # Node 1: Checkpost Alpha
+        # Node 1: Checkpost Alpha — a night patrol/watcher clip; the zone
+        # covers almost the whole 854x480 frame so the tracker reliably
+        # fires a breach the moment anything is detected (a tight
+        # hand-calibrated polygon from the old demo footage wouldn't line
+        # up with different content).
         cam1_zones = [
             Zone(
                 zone_id="alpha_gate_red",
                 name="Checkpost Alpha Red Zone",
                 zone_type=ZoneType.RESTRICTED_POLYGON,
-                points=[(100, 80), (600, 80), (550, 400), (120, 400)],
-                severity="CRITICAL",
-            ),
-            Zone(
-                zone_id="alpha_tripwire_main",
-                name="Outer Incursion Wire",
-                zone_type=ZoneType.TRIPWIRE,
-                points=[(50, 420), (680, 420)],
+                points=[(40, 40), (814, 40), (814, 440), (40, 440)],
                 severity="CRITICAL",
             ),
         ]
-        self.add_camera("CAM_ALPHA", "data/vtest_pedestrians.avi", "Checkpost Alpha Gate", cam1_zones)
+        self.add_camera("CAM_ALPHA", "frontend/public/data/threat_night_crawl_web.mp4", "Checkpost Alpha Gate", cam1_zones)
 
-        # Node 2: BOP Bravo Eastern Corridor
+        # Node 2: BOP Bravo Eastern Corridor — group-breach clip
         cam2_zones = [
             Zone(
                 zone_id="bravo_perimeter_red",
                 name="BOP Bravo Fence Zone",
                 zone_type=ZoneType.RESTRICTED_POLYGON,
-                points=[(150, 100), (580, 100), (520, 380), (180, 380)],
+                points=[(40, 40), (814, 40), (814, 440), (40, 440)],
                 severity="CRITICAL",
             )
         ]
-        self.add_camera("CAM_BRAVO", "data/people_surveillance.mp4" if os.path.exists(os.path.join(ROOT_DIR, "data/people_surveillance.mp4")) else "data/sample_border.mp4", "BOP Bravo Perimeter", cam2_zones)
+        self.add_camera("CAM_BRAVO", "frontend/public/data/threat_group_breach_web.mp4", "BOP Bravo Perimeter", cam2_zones)
 
     def add_camera(self, camera_id: str, source: str, name: str, zones: Optional[List[Zone]] = None):
         if camera_id in self.cameras:
             self.cameras[camera_id].stop()
+
+        # remember the original (demo-file) source + config so a phone/IP
+        # camera attached later can be reverted cleanly
+        if camera_id not in self.default_sources:
+            self.default_sources[camera_id] = source
+        if camera_id not in self.camera_meta:
+            self.camera_meta[camera_id] = (name, zones or [])
 
         proc = CameraStreamProcessor(
             camera_id=camera_id,
@@ -246,8 +330,26 @@ class MultiCameraEcosystemManager:
         self.cameras[camera_id] = proc
         proc.start()
 
+    def set_source(self, camera_id: str, source: str) -> Optional[CameraStreamProcessor]:
+        """Point an existing (or new) camera at a new source — e.g. a phone's
+        IP-Webcam URL — without restarting the whole process. Pass source
+        "demo" to revert a camera back to its original demo-file feed."""
+        if source in ("demo", "", None):
+            source = self.default_sources.get(camera_id, source)
+        else:
+            source = normalize_camera_source(source)
+        name, zones = self.camera_meta.get(camera_id, (camera_id, []))
+        self.add_camera(camera_id, source, name, zones)
+        return self.get_camera(camera_id)
+
     def get_camera(self, camera_id: str) -> Optional[CameraStreamProcessor]:
+        if camera_id not in self.cameras and camera_id in LAZY_DEMO_SOURCES:
+            source, name = LAZY_DEMO_SOURCES[camera_id]
+            self.add_camera(camera_id, source, name, _full_frame_zone(f"{camera_id.lower()}_zone", f"{name} Zone"))
         return self.cameras.get(camera_id)
+
+    def list_camera_ids(self) -> List[str]:
+        return list(self.cameras.keys())
 
 
 # Global Multi-Stream Manager
