@@ -82,13 +82,17 @@ function iou(a, b) {
 }
 
 /**
- * Runs one YOLOv8n detection pass on a <video> frame, entirely client-side.
- * Returns boxes in the video's native pixel space (videoWidth/videoHeight)
- * so callers can draw them directly onto a same-sized overlay canvas.
+ * Runs one YOLOv8n detection pass on a frame, entirely client-side.
+ * `source` is anything drawImage() accepts (a <video>, or a <canvas> when
+ * the caller has already run low-light enhancement into one) —
+ * width/height default to source.videoWidth/videoHeight (a plain <video>)
+ * but can be passed explicitly for a canvas source, which has no such
+ * properties. Returns boxes in that native pixel space so callers can
+ * draw them directly onto a same-sized overlay.
  */
-export async function detectFrame(session, video) {
-  const srcW = video.videoWidth;
-  const srcH = video.videoHeight;
+export async function detectFrame(session, source, dims) {
+  const srcW = dims?.width ?? source.videoWidth;
+  const srcH = dims?.height ?? source.videoHeight;
   if (!srcW || !srcH) return [];
 
   // letterbox to a square INPUT_SIZE canvas, preserving aspect ratio
@@ -102,7 +106,7 @@ export async function detectFrame(session, video) {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   ctx.fillStyle = "rgb(114,114,114)";
   ctx.fillRect(0, 0, INPUT_SIZE, INPUT_SIZE);
-  ctx.drawImage(video, 0, 0, srcW, srcH, padX, padY, newW, newH);
+  ctx.drawImage(source, 0, 0, srcW, srcH, padX, padY, newW, newH);
 
   const { data } = ctx.getImageData(0, 0, INPUT_SIZE, INPUT_SIZE);
   const plane = INPUT_SIZE * INPUT_SIZE;
