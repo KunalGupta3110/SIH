@@ -2,31 +2,26 @@ import { useEffect, useRef, useState } from "react";
 import { Smartphone, Laptop, Wifi, WifiOff, Loader2, RotateCcw, Info, AlertTriangle } from "lucide-react";
 import api from "../lib/api.js";
 import { playBeep } from "../lib/liveCamera.jsx";
+import { detectFrame, loadYoloSession, PERSON_CLASS_ID } from "../lib/clientYolo.js";
 
 /* ═══════════════════════════════════════════════════════════════════════
    PhoneCameraPanel — attach a real camera as a live source: a phone
    (Android/iOS "IP Webcam" or "DroidCam") over Wi-Fi, or this laptop's own
-   built-in/USB webcam via the BROWSER's own getUserMedia (not cv2 on the
-   backend — that only sees devices attached to whatever machine runs the
-   backend process, which is wrong the moment frontend and backend aren't
-   the same machine, e.g. this console deployed and a locally-run backend).
+   built-in/USB webcam.
 
    Phone sources: the backend's cv2 worker (core/vision/multi_stream_engine)
    opens the phone's MJPEG URL itself and streams the annotated result back
-   via GET /stream/{id}.
+   via GET /stream/{id}. These genuinely need the backend running — only
+   Python/OpenCV can pull an arbitrary MJPEG URL and run YOLO on it.
 
-   Laptop webcam: the BROWSER opens the camera (a real permission prompt —
-   this is the "tap to open the webcam" moment), captures frames to a
-   canvas, and POSTs each one as JPEG to POST /cameras/{id}/push-frame,
-   which runs it through the same YOLOv8 + ByteTrack pipeline server-side.
-   The annotated result streams back the same way, via GET /stream/{id}.
-   This works even when the backend is remote — only the capture step
-   needs to happen where the camera physically is.
-
-   Requires the backend running (`python run_ecosystem.py`), with the
-   console's VITE_API_BASE pointed at it. Phone sources additionally need
-   the phone on the same Wi-Fi as the backend; the laptop-webcam source
-   does not.
+   Laptop webcam: needs NO backend at all. The browser opens the camera
+   itself via getUserMedia (a real permission prompt — this is the "tap to
+   open the webcam" moment) and runs the actual YOLOv8n model directly in
+   the page (ONNX Runtime Web, see lib/clientYolo.js) — detection starts
+   the instant the feed opens, boxes are drawn on an overlay canvas, and a
+   detected person flips the same THREAT ALERT banner + beep used
+   elsewhere. Works identically on the local dev server and the deployed
+   Vercel build.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const SLOTS = [
@@ -35,8 +30,8 @@ const SLOTS = [
 ];
 
 // "network" sources are phone apps reached over Wi-Fi by URL, opened by the
-// backend's own cv2 worker. "device" is this browser's own webcam via
-// getUserMedia — frames are captured client-side and pushed to the backend.
+// backend's own cv2 worker. "device" is this browser's own webcam — opened
+// and detected on entirely client-side, no backend involved.
 const SOURCES = [
   {
     id: "ipwebcam",
@@ -68,7 +63,7 @@ const SOURCES = [
     label: "This Laptop's Webcam",
     platform: "Built-in / USB",
     steps: [
-      <>Tap this button — your browser will prompt for camera access. Allow it and the feed opens instantly, no app needed.</>,
+      <>Tap this button — your browser will prompt for camera access. Allow it and detection starts immediately, no backend needed.</>,
       <>If your laptop has more than one camera, pick between them below once access is granted.</>,
     ],
   },
@@ -85,10 +80,10 @@ export default function PhoneCameraPanel() {
   const [imgKey, setImgKey] = useState(0); // bust the <img> MJPEG src on (re)connect
   const pollRef = useRef(null);
   const prevAlert = useRef(false); // tracks false->true so playBeep() fires once per fresh catch
-  const videoElRef = useRef(null); // hidden <video> fed by getUserMedia, used only as a capture source
-  const canvasRef = useRef(null); // offscreen capture canvas
+  const videoElRef = useRef(null); // <video> fed by getUserMedia — the client-side detection source
+  const overlayRef = useRef(null); // canvas the detection boxes are drawn onto, sized to match the video
   const mediaStreamRef = useRef(null);
-  const captureRef = useRef(null);
+  const detectLoopId = useRef(0); // bumped on every stop so a stale in-flight loop iteration no-ops
 
   const source = SOURCES.find((a) => a.id === sourceId) || SOURCES[0];
   const isDevice = source.kind === "device";
@@ -140,14 +135,13 @@ export default function PhoneCameraPanel() {
   };
 
   const stopBrowserWebcam = () => {
-    if (captureRef.current) {
-      clearInterval(captureRef.current);
-      captureRef.current = null;
-    }
+    detectLoopId.current += 1; // invalidates any in-flight detect loop
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach((t) => t.stop());
       mediaStreamRef.current = null;
     }
+    const canvas = overlayRef.current;
+    if (canvas) canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
   };
 
   useEffect(
@@ -186,11 +180,77 @@ export default function PhoneCameraPanel() {
     poll(slot);
   };
 
+  // Draws this frame's detection boxes onto the overlay canvas, at the
+  // video's native resolution — CSS (object-contain, matched sizing)
+  // scales both elements identically so boxes line up on screen.
+  const drawOverlay = (dets, video) => {
+    const canvas = overlayRef.current;
+    if (!canvas) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const d of dets) {
+      const isPerson = d.cls === PERSON_CLASS_ID;
+      const color = isPerson ? "#ef4444" : "#22c55e";
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(d.x1, d.y1, d.x2 - d.x1, d.y2 - d.y1);
+      const label = `${d.label.toUpperCase()} ${(d.score * 100).toFixed(0)}%`;
+      ctx.font = "bold 14px monospace";
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = color;
+      ctx.fillRect(d.x1, Math.max(0, d.y1 - 18), tw + 8, 18);
+      ctx.fillStyle = "#000";
+      ctx.fillText(label, d.x1 + 4, Math.max(13, d.y1 - 5));
+    }
+  };
+
+  // The client-side detection loop: grab a frame, run the real YOLOv8n
+  // model on it (ONNX Runtime Web), draw boxes, flip the alert state on a
+  // person catch, then immediately schedule the next pass — self-paced by
+  // however long inference actually takes, no fixed interval needed.
+  const runDetectionLoop = (session, myLoopId) => {
+    const tick = async () => {
+      if (detectLoopId.current !== myLoopId) return; // superseded by a stop/restart
+      const video = videoElRef.current;
+      if (!video || video.readyState < 2) {
+        requestAnimationFrame(tick);
+        return;
+      }
+      const t0 = performance.now();
+      let dets = [];
+      try {
+        dets = await detectFrame(session, video);
+      } catch {
+        /* transient inference hiccup — keep the loop alive */
+      }
+      if (detectLoopId.current !== myLoopId) return;
+
+      drawOverlay(dets, video);
+      const fps = Math.round((1000 / Math.max(1, performance.now() - t0)) * 10) / 10;
+      const personSeen = dets.some((d) => d.cls === PERSON_CLASS_ID);
+      if (personSeen && !prevAlert.current) playBeep();
+      prevAlert.current = personSeen;
+      setPhase("live");
+      setStatus({
+        connected: true,
+        fps,
+        alert: personSeen,
+        alert_status: personSeen ? "BREACH: PERSON DETECTED (client-side YOLOv8n)" : "PERIMETER SECURE",
+      });
+
+      requestAnimationFrame(tick);
+    };
+    tick();
+  };
+
   // Opens the BROWSER's own webcam (a real permission prompt — this is what
-  // makes "tap to open the laptop webcam" actually true) and starts pushing
-  // captured frames to the backend for real YOLO detection.
+  // makes "tap to open the laptop webcam" actually true) and runs detection
+  // on it immediately, fully client-side — no backend call at all.
   const startBrowserWebcam = async (deviceId) => {
     try {
+      stopPoll();
       const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : true, audio: false };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       stopBrowserWebcam();
@@ -203,8 +263,7 @@ export default function PhoneCameraPanel() {
       // picker now so a multi-camera laptop can switch away from the wrong one.
       try {
         const all = await navigator.mediaDevices.enumerateDevices();
-        const cams = all.filter((d) => d.kind === "videoinput");
-        setWebcamDevices(cams);
+        setWebcamDevices(all.filter((d) => d.kind === "videoinput"));
         const activeId = stream.getVideoTracks()[0]?.getSettings()?.deviceId || deviceId || null;
         setWebcamDeviceId(activeId);
       } catch {
@@ -212,26 +271,12 @@ export default function PhoneCameraPanel() {
       }
 
       setPhase("connecting");
-      setStatus(null);
-      setImgKey((k) => k + 1);
-      await api.setCameraSource(slot, "browser");
-      poll(slot);
+      setStatus({ connected: false, fps: 0, alert: false, alert_status: "Loading YOLOv8n model…" });
+      prevAlert.current = false;
 
-      captureRef.current = setInterval(() => {
-        const video2 = videoElRef.current;
-        const canvas = canvasRef.current;
-        if (!video2 || !canvas || video2.readyState < 2) return;
-        canvas.width = video2.videoWidth || 640;
-        canvas.height = video2.videoHeight || 480;
-        canvas.getContext("2d").drawImage(video2, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob(
-          (blob) => {
-            if (blob) api.pushCameraFrame(slot, blob).catch(() => {});
-          },
-          "image/jpeg",
-          0.75
-        );
-      }, 180); // ~5.5 fps — plenty for YOLO on a static border checkpoint view
+      const session = await loadYoloSession();
+      const myLoopId = detectLoopId.current; // startBrowserWebcam bumped this via stopBrowserWebcam() above
+      runDetectionLoop(session, myLoopId);
     } catch (err) {
       stopBrowserWebcam();
       setPhase("error");
@@ -249,7 +294,7 @@ export default function PhoneCameraPanel() {
     stopBrowserWebcam();
     setPhase("idle");
     setStatus(null);
-    await api.setCameraSource(slot, "demo");
+    if (!isDevice) await api.setCameraSource(slot, "demo");
   };
 
   const switchSlot = (id) => {
@@ -261,7 +306,14 @@ export default function PhoneCameraPanel() {
   // Connect click needed, since there's no address to type first.
   const pickSource = (s) => {
     setSourceId(s.id);
-    if (s.kind === "device") startBrowserWebcam(webcamDeviceId);
+    if (s.kind === "device") {
+      startBrowserWebcam(webcamDeviceId);
+    } else if (isDevice) {
+      // leaving the device source mid-stream
+      stopBrowserWebcam();
+      setPhase("idle");
+      setStatus(null);
+    }
   };
 
   const switchWebcamDevice = (id) => {
@@ -282,15 +334,10 @@ export default function PhoneCameraPanel() {
 
   return (
     <div className="rounded-2xl border border-white/12 bg-[#000000] p-4 space-y-3.5 shadow-lg">
-      {/* hidden capture rig for the browser-webcam source — never shown directly, only sampled onto canvas */}
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <video ref={videoElRef} muted playsInline className="hidden" />
-      <canvas ref={canvasRef} className="hidden" />
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Smartphone size={16} className="text-white" />
-          <h3 className="font-mono text-sm font-bold text-white">Attach Phone Camera · Real Backend Detection</h3>
+          <h3 className="font-mono text-sm font-bold text-white">Attach Phone Camera · Real Detection</h3>
         </div>
         <span className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold ${badge.cls}`}>
           <Badge size={12} className={badge.spin ? "animate-spin" : ""} />
@@ -298,8 +345,9 @@ export default function PhoneCameraPanel() {
         </span>
       </div>
       <p className="text-xs text-white/55">
-        Unlike the ingress simulator above, this runs the real YOLOv8n + ByteTrack pipeline on a real camera feed and
-        draws the detection boxes server-side — genuine inference, not a canned clip.
+        Unlike the ingress simulator above, this runs the real YOLOv8n model on a real camera feed and draws the
+        detection boxes live — genuine inference, not a canned clip.{" "}
+        {isDevice && <span className="text-white/40">(laptop webcam runs entirely in your browser — no backend needed)</span>}
       </p>
 
       {/* source picker */}
@@ -331,12 +379,14 @@ export default function PhoneCameraPanel() {
             <div key={i}>{i + 1}. {s}</div>
           ))}
           {!isDevice && (
-            <div>{source.steps.length + 1}. Phone &amp; laptop on the <strong className="text-white/80">same Wi-Fi</strong>.</div>
+            <>
+              <div>{source.steps.length + 1}. Phone &amp; laptop on the <strong className="text-white/80">same Wi-Fi</strong>.</div>
+              <div>
+                {source.steps.length + 2}. Backend must be running: <code className="text-emerald-300">python run_ecosystem.py</code>, and the
+                console started with <code className="text-emerald-300">VITE_API_BASE</code> pointed at it.
+              </div>
+            </>
           )}
-          <div>
-            {source.steps.length + (isDevice ? 1 : 2)}. Backend must be running: <code className="text-emerald-300">python run_ecosystem.py</code>, and the
-            console started with <code className="text-emerald-300">VITE_API_BASE</code> pointed at it.
-          </div>
         </div>
       </div>
 
@@ -404,7 +454,7 @@ export default function PhoneCameraPanel() {
       </div>
       {(isDevice || ip.trim()) && (
         <div className="-mt-1 font-mono text-[10px] text-white/35">
-          Will connect to <span className="text-white/55">{isDevice ? "your browser's webcam (grants access on tap)" : resolvedUrl}</span>
+          Will connect to <span className="text-white/55">{isDevice ? "your browser's webcam (grants access on tap, no backend involved)" : resolvedUrl}</span>
         </div>
       )}
 
@@ -413,7 +463,7 @@ export default function PhoneCameraPanel() {
       )}
       {status?.error && phase !== "error" && (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/[0.06] px-3 py-2 font-mono text-[11px] text-amber-300">
-          Waiting for the phone… ({status.error})
+          {isDevice ? status.error : `Waiting for the phone… (${status.error})`}
         </div>
       )}
 
@@ -425,16 +475,24 @@ export default function PhoneCameraPanel() {
         </div>
       )}
 
-      {/* live preview — the backend's own MJPEG stream, annotated with real detections */}
-      {phase !== "idle" && (
-        <div className={`relative overflow-hidden rounded-xl border bg-black transition-colors ${status?.alert ? "border-red-500/60" : "border-white/12"}`}>
-          {/* eslint-disable-next-line jsx-a11y/alt-text */}
+      {/* live preview — the phone path shows the backend's own annotated MJPEG;
+          the laptop-webcam path shows the local <video> with a boxes overlay
+          drawn straight from the client-side YOLO pass. Both stay mounted so
+          the getUserMedia stream / video ref never gets torn down mid-session. */}
+      <div
+        className={`relative overflow-hidden rounded-xl border bg-black transition-colors ${phase === "idle" ? "hidden" : ""} ${
+          status?.alert ? "border-red-500/60" : "border-white/12"
+        }`}
+      >
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+        <video ref={videoElRef} muted playsInline className={isDevice ? "aspect-video w-full object-contain" : "hidden"} />
+        <canvas ref={overlayRef} className={isDevice ? "pointer-events-none absolute inset-0 h-full w-full object-contain" : "hidden"} />
+        {!isDevice && phase !== "idle" && (
+          // eslint-disable-next-line jsx-a11y/alt-text
           <img key={imgKey} src={`${api.streamUrl(slot)}?k=${imgKey}`} className="aspect-video w-full object-contain" />
-          {status?.alert && (
-            <div className="pointer-events-none absolute inset-0 border-4 border-red-500/70 animate-pulse" />
-          )}
-        </div>
-      )}
+        )}
+        {status?.alert && <div className="pointer-events-none absolute inset-0 border-4 border-red-500/70 animate-pulse" />}
+      </div>
     </div>
   );
 }

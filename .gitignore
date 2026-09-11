@@ -12,6 +12,9 @@ env/
 *.pt
 *.pth
 *.onnx
+# ...except the one shipped to the browser for client-side detection
+# (frontend/src/lib/clientYolo.js) — this IS a runtime asset the app needs.
+!frontend/public/models/*.onnx
 
 # Video output & test recordings (large files)
 *.mp4

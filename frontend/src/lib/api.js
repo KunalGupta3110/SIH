@@ -470,12 +470,6 @@ export const api = {
     request(`/cameras/${cameraId}/set-source`, { method: "POST", body: JSON.stringify({ source }) }),
   getCameraSource: (cameraId) => request(`/cameras/${cameraId}/source`),
   streamUrl: (cameraId) => `${BASE}/stream/${cameraId}`,
-  // Ships one JPEG frame captured by the BROWSER's own getUserMedia feed to
-  // the backend for real YOLOv8 detection — used for the laptop-webcam
-  // source, which works even when the backend runs on a different machine
-  // than the viewer (the browser opens the camera, not the server).
-  pushCameraFrame: (cameraId, jpegBlob) =>
-    fetch(`${BASE}/cameras/${cameraId}/push-frame`, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: jpegBlob }),
 
   getNetworkStatus: () => request("/network/status"),
   toggleNetwork: () => request("/network/toggle", { method: "POST" }),
