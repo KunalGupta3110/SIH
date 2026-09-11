@@ -18,8 +18,12 @@ if str(ROOT_DIR) not in sys.path:
 import cv2
 import numpy as np
 
-# Classes tracked for border surveillance
-TARGET_CLASSES = {0: "person", 1: "bicycle", 2: "car", 3: "motorcycle", 5: "bus", 7: "truck"}
+# Classes tracked for border surveillance. 24/26/28 (backpack/handbag/
+# suitcase) feed core/rules/abandoned_object.py's stationary-object check.
+TARGET_CLASSES = {
+    0: "person", 1: "bicycle", 2: "car", 3: "motorcycle", 5: "bus", 7: "truck",
+    24: "backpack", 26: "handbag", 28: "suitcase",
+}
 
 
 @dataclass
@@ -177,7 +181,12 @@ class BorderTracker:
         annotated = frame.copy()
         for t in tracks:
             x1, y1, x2, y2 = [int(v) for v in t.bbox]
-            color = (0, 255, 120) if t.class_name == "person" else (255, 200, 0)
+            if t.class_name == "person":
+                color = (0, 255, 120)
+            elif t.class_name in ("backpack", "handbag", "suitcase"):
+                color = (255, 255, 0)
+            else:
+                color = (255, 200, 0)
             cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)
 
             label = f"{t.class_name.upper()} #{t.track_id} ({t.confidence:.2f})"

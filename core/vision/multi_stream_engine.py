@@ -23,9 +23,12 @@ import numpy as np
 from core.database.event_db import EventDatabase
 from core.database.incident_graph import correlate_border_event
 from core.database.schema import AlertSeverity, AlertType, SecurityEvent
+from core.rules.abandoned_object import AbandonedObjectDetector
 from core.rules.predictive_handoff import PredictiveHandoffEngine
 from core.rules.sound_alerts import play_alert
 from core.rules.zones import Zone, ZoneManager, ZoneType
+from core.vision.face_recognition import FaceRecognitionEngine
+from core.vision.low_light import enhance_low_light, is_low_light
 from core.vision.reid import FeatureExtractor
 from core.vision.tracker import BorderTracker
 from services.hardware_bridge.serial_controller import trigger_physical_breach
@@ -75,6 +78,7 @@ class CameraStreamProcessor:
         feat_extractor: Optional[FeatureExtractor] = None,
         handoff_engine: Optional[PredictiveHandoffEngine] = None,
         db: Optional[EventDatabase] = None,
+        face_engine: Optional[FaceRecognitionEngine] = None,
     ):
         self.camera_id = camera_id
         self.source = source
@@ -94,6 +98,9 @@ class CameraStreamProcessor:
         self.feat_extractor = feat_extractor or FeatureExtractor()
         self.handoff_engine = handoff_engine or PredictiveHandoffEngine()
         self.db = db or EventDatabase("data/events.db")
+        self.face_engine = face_engine or FaceRecognitionEngine(feat_extractor=self.feat_extractor)
+        self.abandoned_detector = AbandonedObjectDetector()
+        self._face_check_counter: Dict[int, int] = {}  # track_id -> frames since last face check
 
         self.zone_manager = ZoneManager()
         for z in self.zones:
@@ -154,10 +161,11 @@ class CameraStreamProcessor:
         self._process_frame(frame)
 
     def _process_frame(self, frame):
-        """Run tracking, zone-breach evaluation, and OSD annotation on one
-        raw BGR frame, then publish it as the latest annotated frame. Shared
-        by the cv2 capture loop and ingest_pushed_frame() so both paths get
-        identical real detection behavior."""
+        """Run low-light enhancement, tracking, zone/abandoned-object/face
+        evaluation, and OSD annotation on one raw BGR frame, then publish
+        it as the latest annotated frame. Shared by the cv2 capture loop
+        and ingest_pushed_frame() so both paths get identical real
+        detection behavior."""
         self._frame_idx += 1
         now = time.time()
         dt = now - self._t_prev
@@ -166,12 +174,18 @@ class CameraStreamProcessor:
         timestamp_ms = self._frame_idx * 33.3
         frame_idx = self._frame_idx
 
+        # Real (image-based, not wall-clock) low-light detection — only dark
+        # frames pay the enhancement cost, and both detection and the
+        # displayed frame use the enhanced version so the effect is visible.
+        dark = is_low_light(frame)
+        detect_frame = enhance_low_light(frame) if dark else frame
+
         # Run Object Tracking
-        tracks = self.tracker.track_frame(frame, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
+        tracks = self.tracker.track_frame(detect_frame, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
         self.active_tracks = tracks
 
         # Draw Zones & Tracks
-        annotated = self.zone_manager.draw_zones(frame, camera_id=self.camera_id)
+        annotated = self.zone_manager.draw_zones(detect_frame, camera_id=self.camera_id)
         annotated = self.tracker.draw_tracks(annotated, tracks, show_trail=True, show_fps=False)
 
         # Evaluate Zone Incursions
@@ -184,7 +198,7 @@ class CameraStreamProcessor:
                     # Rate-limit incident creation per track ID (once every 150 frames)
                     if frame_idx % 150 == 0:
                         x1, y1, x2, y2 = [int(v) for v in t.bbox]
-                        crop = frame[max(0, y1):min(frame.shape[0], y2), max(0, x1):min(frame.shape[1], x2)]
+                        crop = detect_frame[max(0, y1):min(detect_frame.shape[0], y2), max(0, x1):min(detect_frame.shape[1], x2)]
                         thumb_path = os.path.join(ROOT_DIR, "data", "thumbnails", f"evt_live_{self.camera_id}_{t.track_id}_{int(timestamp_ms)}.jpg")
                         if crop.size > 0:
                             cv2.imwrite(thumb_path, crop)
@@ -200,7 +214,76 @@ class CameraStreamProcessor:
                             velocity_px_s=75.0,
                             loitering_sec=2.5,
                             thumbnail_path=thumb_path if os.path.exists(thumb_path) else None,
+                            is_night_time=dark,
                         )
+
+        # Abandoned-object check: a bag/backpack/suitcase that's stayed put
+        # for a while with no person track near it.
+        for obj in self.abandoned_detector.update(tracks, timestamp_ms):
+            self.alert_status_text = f"ABANDONED {obj['class_name'].upper()} #{obj['track_id']} — unattended {obj['stationary_sec']:.0f}s"
+            self.alert_banner_timer = 45
+            x1, y1, x2, y2 = [int(v) for v in obj["bbox"]]
+            cv2.rectangle(annotated, (x1, y1), (x2, y2), (0, 0, 255), 3)
+            cv2.putText(annotated, "ABANDONED", (x1, max(14, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 255), 2, cv2.LINE_AA)
+
+            crop = detect_frame[max(0, y1):min(detect_frame.shape[0], y2), max(0, x1):min(detect_frame.shape[1], x2)]
+            thumb_path = os.path.join(ROOT_DIR, "data", "thumbnails", f"evt_live_{self.camera_id}_abandoned_{obj['track_id']}_{int(timestamp_ms)}.jpg")
+            if crop.size > 0:
+                cv2.imwrite(thumb_path, crop)
+            correlate_border_event(
+                camera_id=self.camera_id,
+                global_target_id=f"TRG-{obj['track_id']:04d}",
+                target_class=obj["class_name"],
+                event_type="ABANDONED_OBJECT",
+                rule_detail=f"{obj['class_name']} unattended for {obj['stationary_sec']:.0f}s at {self.camera_id}.",
+                in_restricted_zone=False,
+                tripwire_crossed=False,
+                velocity_px_s=0.0,
+                loitering_sec=obj["stationary_sec"],
+                thumbnail_path=thumb_path if os.path.exists(thumb_path) else None,
+                is_night_time=dark,
+            )
+
+        # Face recognition on person tracks — checked every ~10 frames per
+        # track (Haar cascade + embedding on every single frame for every
+        # person would burn CPU for no benefit; identity doesn't change
+        # frame-to-frame).
+        for t in tracks:
+            if t.class_name != "person":
+                continue
+            self._face_check_counter[t.track_id] = self._face_check_counter.get(t.track_id, 0) + 1
+            if self._face_check_counter[t.track_id] % 10 != 1:
+                continue
+
+            x1, y1, x2, y2 = [int(v) for v in t.bbox]
+            crop = detect_frame[max(0, y1):min(detect_frame.shape[0], y2), max(0, x1):min(detect_frame.shape[1], x2)]
+            match = self.face_engine.match_person_crop(crop)
+            if not match:
+                continue
+
+            label = f"{match['name'].upper()} ({match['role']})"
+            cv2.putText(annotated, label, (x1, min(annotated.shape[0] - 6, y2 + 18)), cv2.FONT_HERSHEY_SIMPLEX, 0.55,
+                        (0, 0, 255) if match["role"] == "watchlist" else (0, 255, 120), 2, cv2.LINE_AA)
+
+            if match["role"] == "watchlist":
+                self.alert_status_text = f"FACE MATCH: {match['name'].upper()} ON WATCHLIST"
+                self.alert_banner_timer = 45
+                thumb_path = os.path.join(ROOT_DIR, "data", "thumbnails", f"evt_live_{self.camera_id}_face_{t.track_id}_{int(timestamp_ms)}.jpg")
+                if crop.size > 0:
+                    cv2.imwrite(thumb_path, crop)
+                correlate_border_event(
+                    camera_id=self.camera_id,
+                    global_target_id=f"TRG-{t.track_id:04d}",
+                    target_class="person",
+                    event_type="FACE_WATCHLIST_MATCH",
+                    rule_detail=f"Face match: {match['name']} (similarity {match['similarity']}) at {self.camera_id}.",
+                    in_restricted_zone=False,
+                    tripwire_crossed=False,
+                    velocity_px_s=0.0,
+                    loitering_sec=0.0,
+                    thumbnail_path=thumb_path if os.path.exists(thumb_path) else None,
+                    is_night_time=dark,
+                )
 
         # Top CCTV Watermark OSD
         h, w = annotated.shape[:2]
@@ -209,6 +292,8 @@ class CameraStreamProcessor:
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
         time_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
         cv2.putText(annotated, time_str, (w - 240, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (148, 163, 184), 1, cv2.LINE_AA)
+        if dark:
+            cv2.putText(annotated, "LOW-LIGHT ENHANCEMENT: ON", (12, 52), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (0, 220, 255), 1, cv2.LINE_AA)
 
         # Alert Banner
         if self.alert_banner_timer > 0:
@@ -327,6 +412,7 @@ class MultiCameraEcosystemManager:
         self.camera_meta: Dict[str, Tuple[str, List[Zone]]] = {}  # camera_id -> (name, zones)
         self.handoff_engine = PredictiveHandoffEngine()
         self.feat_extractor = FeatureExtractor()
+        self.face_engine = FaceRecognitionEngine(feat_extractor=self.feat_extractor)
         self.db = EventDatabase("data/events.db")
         self._init_default_streams()
 
@@ -378,6 +464,7 @@ class MultiCameraEcosystemManager:
             feat_extractor=self.feat_extractor,
             handoff_engine=self.handoff_engine,
             db=self.db,
+            face_engine=self.face_engine,
         )
         self.cameras[camera_id] = proc
         proc.start()

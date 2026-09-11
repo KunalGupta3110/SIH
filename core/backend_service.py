@@ -782,6 +782,25 @@ class SentinelBackend:
             rows = session.execute(select(EnrolledPerson).order_by(desc(EnrolledPerson.created_at))).scalars().all()
             return [self._enrolled_person_to_dict(row) for row in rows]
 
+    def list_enrolled_people_full(self) -> List[Dict[str, Any]]:
+        """Like list_enrolled_people(), but includes reference_embedding_json
+        and photo_path — the API-facing dict strips those out, but the
+        live face-recognition gallery (core/vision/face_recognition.py)
+        needs the raw embedding (or a photo to derive one from) to match
+        watchlist/authorized faces against."""
+        with self._session() as session:
+            rows = session.execute(select(EnrolledPerson).order_by(desc(EnrolledPerson.created_at))).scalars().all()
+            return [
+                {
+                    "person_id": row.person_id,
+                    "name": row.name,
+                    "role": row.role,
+                    "reference_embedding_json": row.reference_embedding_json,
+                    "photo_path": row.photo_path,
+                }
+                for row in rows
+            ]
+
     @staticmethod
     def _enrolled_person_to_dict(row: EnrolledPerson) -> Dict[str, Any]:
         return {
