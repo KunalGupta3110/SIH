@@ -702,7 +702,7 @@ export default function LandingPage() {
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <VideoTile src="/data/ibvap_real_yolo_demo.mp4" cam="CAM_ALPHA" note="Ingress approach" detected="PERSON 0.87" />
-                <VideoTile src="/data/detected_output_web.mp4" cam="CAM_CHARLIE" note="Checkpoint lane" />
+                <VideoTile src="/data/detected_output_web.mp4" cam="CAM_CHARLIE" note="Ridge approach" />
                 <VideoTile src="/data/people_surveillance_web.mp4" cam="CAM_DELTA" note="Patrol road" />
               </div>
             </div>
