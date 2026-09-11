@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Smartphone, Laptop, Wifi, WifiOff, Loader2, RotateCcw, Info } from "lucide-react";
+import { Smartphone, Laptop, Wifi, WifiOff, Loader2, RotateCcw, Info, AlertTriangle } from "lucide-react";
 import api from "../lib/api.js";
+import { playBeep } from "../lib/liveCamera.jsx";
 
 /* ═══════════════════════════════════════════════════════════════════════
    PhoneCameraPanel — attach a real camera as a live source: a phone
@@ -72,6 +73,7 @@ export default function PhoneCameraPanel() {
   const [status, setStatus] = useState(null);
   const [imgKey, setImgKey] = useState(0); // bust the <img> MJPEG src on (re)connect
   const pollRef = useRef(null);
+  const prevAlert = useRef(false); // tracks false->true so playBeep() fires once per fresh catch
 
   const source = SOURCES.find((a) => a.id === sourceId) || SOURCES[0];
   const isDevice = source.kind === "device";
@@ -126,6 +128,7 @@ export default function PhoneCameraPanel() {
 
   const poll = (camId) => {
     stopPoll();
+    prevAlert.current = false;
     pollRef.current = setInterval(async () => {
       const res = await api.getCameraSource(camId);
       if (!res || Object.keys(res).length === 0) {
@@ -136,15 +139,19 @@ export default function PhoneCameraPanel() {
       }
       setStatus(res);
       setPhase(res.connected ? "live" : "connecting");
+      // beep on the false->true edge only — a fresh catch, not every poll while it stays true
+      if (res.alert && !prevAlert.current) playBeep();
+      prevAlert.current = !!res.alert;
     }, 1500);
   };
 
-  const connect = async () => {
-    if (!resolvedUrl) return;
+  const connect = async (selectedSource = source, urlOverride) => {
+    const url = urlOverride ?? (selectedSource.kind === "device" ? String(deviceIndex) : buildUrl(ip, selectedSource));
+    if (!url) return;
     setPhase("connecting");
     setStatus(null);
     setImgKey((k) => k + 1);
-    await api.setCameraSource(slot, resolvedUrl);
+    await api.setCameraSource(slot, url);
     poll(slot);
   };
 
@@ -160,8 +167,22 @@ export default function PhoneCameraPanel() {
     setSlot(id);
   };
 
+  // Tapping a device source (the laptop webcam) opens it immediately — no
+  // separate Connect click needed, since there's no address to type first.
+  const pickSource = (s) => {
+    setSourceId(s.id);
+    if (s.kind === "device") connect(s, String(deviceIndex));
+  };
+
+  const pickDeviceIndex = (i) => {
+    setDeviceIndex(i);
+    if (isDevice && phase !== "idle") connect(source, String(i));
+  };
+
   const badge =
-    phase === "live"
+    phase === "live" && status?.alert
+      ? { icon: AlertTriangle, text: "THREAT ALERT", cls: "border-red-500/60 bg-red-500/15 text-red-300 animate-pulse" }
+      : phase === "live"
       ? { icon: Wifi, text: `Live · ${status?.fps ?? "—"} FPS`, cls: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300" }
       : phase === "connecting"
       ? { icon: Loader2, text: "Connecting…", cls: "border-amber-500/40 bg-amber-500/10 text-amber-300", spin: true }
@@ -195,8 +216,8 @@ export default function PhoneCameraPanel() {
           return (
             <button
               key={s.id}
-              onClick={() => setSourceId(s.id)}
-              title={s.platform}
+              onClick={() => pickSource(s)}
+              title={s.kind === "device" ? "Tap to open this laptop's webcam" : s.platform}
               className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-mono text-[11px] font-semibold transition-colors ${
                 sourceId === s.id ? "border-white/40 bg-white/[0.08] text-white" : "border-white/12 text-white/50 hover:text-white"
               }`}
@@ -247,7 +268,7 @@ export default function PhoneCameraPanel() {
             {[0, 1, 2].map((i) => (
               <button
                 key={i}
-                onClick={() => setDeviceIndex(i)}
+                onClick={() => pickDeviceIndex(i)}
                 className={`rounded-lg border px-3 py-2 font-mono text-[12px] font-semibold transition-colors ${
                   deviceIndex === i ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : "border-white/12 text-white/55 hover:text-white"
                 }`}
@@ -296,11 +317,22 @@ export default function PhoneCameraPanel() {
         </div>
       )}
 
+      {/* threat banner — shows the moment YOLO catches something on this feed */}
+      {phase === "live" && status?.alert && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 font-mono text-[12px] font-bold text-red-300 animate-pulse">
+          <AlertTriangle size={14} className="shrink-0" />
+          THREAT ALERT{status.alert_status ? ` — ${status.alert_status}` : ""}
+        </div>
+      )}
+
       {/* live preview — the backend's own MJPEG stream, annotated with real detections */}
       {phase !== "idle" && (
-        <div className="overflow-hidden rounded-xl border border-white/12 bg-black">
+        <div className={`relative overflow-hidden rounded-xl border bg-black transition-colors ${status?.alert ? "border-red-500/60" : "border-white/12"}`}>
           {/* eslint-disable-next-line jsx-a11y/alt-text */}
           <img key={imgKey} src={`${api.streamUrl(slot)}?k=${imgKey}`} className="aspect-video w-full object-contain" />
+          {status?.alert && (
+            <div className="pointer-events-none absolute inset-0 border-4 border-red-500/70 animate-pulse" />
+          )}
         </div>
       )}
     </div>
