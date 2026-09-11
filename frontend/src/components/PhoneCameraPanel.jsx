@@ -65,7 +65,19 @@ const SOURCES = [
     path: "/video",
     steps: [
       <>Install <strong className="text-white/80">DroidCam</strong> (Android or iOS) → open it.</>,
-      <>It shows a Wi-Fi IP and a 4-digit port (usually <code className="text-emerald-300">4747</code>) — no PC client / DroidCam OBS driver needed, this reads its plain video feed directly.</>,
+      <>It shows a Wi-Fi IP and a 4-digit port (usually <code className="text-emerald-300">4747</code>) — reads its video feed directly.</>,
+    ],
+  },
+  {
+    id: "backend_cam",
+    kind: "network",
+    label: "Desktop Webcam (Server YOLO)",
+    platform: "OpenCV Device 0",
+    port: 0,
+    path: "0",
+    steps: [
+      <>Directly uses your laptop/desktop camera (Device 0) via Python backend engine.</>,
+      <>Streams full server-side YOLOv8n + ByteTrack inference. Click <strong className="text-emerald-300">Connect Live</strong> below.</>,
     ],
   },
   {
@@ -74,11 +86,12 @@ const SOURCES = [
     label: "This Laptop's Webcam",
     platform: "Built-in / USB",
     steps: [
-      <>Tap this button — your browser will prompt for camera access. Allow it and detection starts immediately, no backend needed.</>,
-      <>If your laptop has more than one camera, pick between them below once access is granted.</>,
+      <>Tap the button below — your browser will prompt for camera access. Allow it and live AI detection starts immediately.</>,
+      <>If your laptop has more than one camera, pick between them once access is granted.</>,
     ],
   },
 ];
+
 
 const VEHICLE_LABELS = new Set(["car", "truck", "bus", "motorcycle", "bicycle"]);
 const ALERT_STICKY_MS = 3500; // how long a fired alert stays shown/beeping before fading if nothing new happens
@@ -123,6 +136,10 @@ export default function PhoneCameraPanel() {
   const isDevice = source.kind === "device";
 
   const buildUrl = (raw, selectedSource) => {
+    if (selectedSource?.id === "backend_cam") {
+      let v = (raw || "").trim();
+      return v || "0";
+    }
     let val = (raw || "").trim();
     if (!val) return "";
     if (/^\d+$/.test(val)) return val;
@@ -155,7 +172,7 @@ export default function PhoneCameraPanel() {
     const hostWithPort = hasPort ? val : `${val}:${selectedSource.port || 8080}`;
     return `http://${hostWithPort}${selectedSource.path || "/video"}`;
   };
-  const resolvedUrl = isDevice ? "" : buildUrl(ip, source);
+  const resolvedUrl = isDevice ? "" : sourceId === "backend_cam" ? (ip.trim() || "0") : buildUrl(ip, source);
 
   const stopPoll = () => {
     if (pollRef.current) clearInterval(pollRef.current);
@@ -215,14 +232,20 @@ export default function PhoneCameraPanel() {
     }, 1200);
   };
 
-  const connect = async () => {
-    if (!resolvedUrl) return;
+  const connect = async (selectedSource = source, mode) => {
+    if (isDevice) {
+      startBrowserWebcam(webcamDeviceId);
+      return;
+    }
+    const targetUrl = mode === "demo" ? "demo" : (sourceId === "backend_cam" ? (ip.trim() || "0") : resolvedUrl);
+    if (!targetUrl) return;
     setPhase("connecting");
     setStatus(null);
     setImgKey((k) => k + 1);
-    await api.setCameraSource(slot, resolvedUrl);
+    await api.setCameraSource(slot, targetUrl);
     poll(slot);
   };
+
 
   // Raises (or refreshes) the sticky on-screen banner + logs the event —
   // shared by every detector below so they all feed the same alert surface.
@@ -433,13 +456,21 @@ export default function PhoneCameraPanel() {
       const video = videoElRef.current;
       if (!video) return;
 
+      setPhase("connecting");
+      setStatus({ connected: false, fps: 0, alert: false, alert_status: "Requesting browser camera permissions…" });
+
       let stream = null;
-      if (deviceId) {
+      try {
+        const constraints = deviceId
+          ? { video: { deviceId: { exact: deviceId } }, audio: false }
+          : { video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
+        stream = await navigator.mediaDevices?.getUserMedia(constraints);
+      } catch (e1) {
+        console.warn("Could not get webcam with ideal constraints, trying basic video:", e1);
         try {
-          const constraints = { video: { deviceId: { exact: deviceId } }, audio: false };
-          stream = await navigator.mediaDevices?.getUserMedia(constraints);
-        } catch {
-          /* fallback to video */
+          stream = await navigator.mediaDevices?.getUserMedia({ video: true, audio: false });
+        } catch (e2) {
+          console.error("Camera access failed:", e2);
         }
       }
 
@@ -452,43 +483,24 @@ export default function PhoneCameraPanel() {
           const activeId = stream.getVideoTracks()[0]?.getSettings()?.deviceId || deviceId || null;
           setWebcamDeviceId(activeId);
         } catch {}
+        await video.play();
+        setPhase("live");
+        setStatus({ connected: true, fps: 25, alert: false, alert_status: "Webcam live · AI inference running" });
+        prevAlert.current = false;
+
+        const myLoopId = detectLoopId.current;
+        runRenderLoop(myLoopId);
+        const session = await loadYoloSession();
+        runDetectionLoop(session, myLoopId);
       } else {
-        video.srcObject = null;
-        video.src = "/data/loc_board_firing.mp4";
-        video.loop = true;
-        video.muted = true;
-      }
-      await video.play();
-
-      setPhase("connecting");
-      setStatus({ connected: false, fps: 0, alert: false, alert_status: "Loading detection models…" });
-      prevAlert.current = false;
-
-      const myLoopId = detectLoopId.current;
-      runRenderLoop(myLoopId); // paint the live feed immediately — don't make the user stare at a blank box while the model loads
-
-      const session = await loadYoloSession();
-      runDetectionLoop(session, myLoopId);
-    } catch (err) {
-      console.warn("Webcam feed fallback error:", err);
-      try {
-        const video = videoElRef.current;
-        if (video) {
-          video.srcObject = null;
-          video.src = "/data/loc_board_firing.mp4";
-          video.loop = true;
-          video.muted = true;
-          await video.play();
-          setPhase("live");
-          setStatus({ connected: true, fps: 25, alert: false, alert_status: "Surveillance feed active" });
-          const session = await loadYoloSession();
-          runDetectionLoop(session, detectLoopId.current);
-        }
-      } catch (err2) {
         stopBrowserWebcam();
         setPhase("error");
-        setStatus({ error: `Could not start webcam feed: ${err2?.message || err2}` });
+        setStatus({ error: "Camera permission denied or camera not found. Please click 'Allow' in your browser URL bar and tap Start Camera." });
       }
+    } catch (err) {
+      stopBrowserWebcam();
+      setPhase("error");
+      setStatus({ error: `Could not start webcam: ${err?.message || err}` });
     }
   };
 
@@ -511,7 +523,9 @@ export default function PhoneCameraPanel() {
 
   const pickSource = (s) => {
     setSourceId(s.id);
-    if (s.kind === "device") {
+    if (s.id === "backend_cam") {
+      setIp("0");
+    } else if (s.kind === "device") {
       startBrowserWebcam(webcamDeviceId);
     } else if (isDevice) {
       stopBrowserWebcam();
@@ -519,6 +533,7 @@ export default function PhoneCameraPanel() {
       setStatus(null);
     }
   };
+
 
   const switchWebcamDevice = (id) => {
     if (id !== webcamDeviceId) startBrowserWebcam(id);
@@ -607,16 +622,26 @@ export default function PhoneCameraPanel() {
       {/* setup instructions */}
       <div className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-[11px] text-white/60">
         <Info size={13} className="mt-0.5 shrink-0 text-white/40" />
-        <div className="space-y-0.5">
+        <div className="space-y-1">
           {source.steps.map((s, i) => (
-            <div key={i}>{i + 1}. {s}</div>
+            <div key={i} className="flex flex-wrap items-center gap-1.5">
+              <span>{i + 1}. {s}</span>
+              {isDevice && i === 0 && (
+                <button
+                  type="button"
+                  onClick={() => startBrowserWebcam(webcamDeviceId)}
+                  className="inline-flex items-center gap-1 rounded bg-emerald-400 hover:bg-emerald-300 px-2 py-0.5 text-[11px] font-bold text-black transition-colors shadow-sm ml-1"
+                >
+                  <Laptop size={12} /> Start Laptop Webcam
+                </button>
+              )}
+            </div>
           ))}
-          {!isDevice && (
+          {!isDevice && sourceId !== "backend_cam" && (
             <>
               <div>{source.steps.length + 1}. Phone &amp; laptop on the <strong className="text-white/80">same Wi-Fi</strong>.</div>
               <div>
-                {source.steps.length + 2}. Backend must be running: <code className="text-emerald-300">python run_ecosystem.py</code>, and the
-                console started with <code className="text-emerald-300">VITE_API_BASE</code> pointed at it.
+                {source.steps.length + 2}. Backend must be running: <code className="text-emerald-300">python run.py</code> on port 8000.
               </div>
             </>
           )}
@@ -640,7 +665,14 @@ export default function PhoneCameraPanel() {
           ))}
         </div>
         {isDevice ? (
-          <div className="flex flex-1 items-center gap-1.5 overflow-x-auto">
+          <div className="flex flex-1 items-center gap-2 overflow-x-auto">
+            <button
+              type="button"
+              onClick={() => startBrowserWebcam(webcamDeviceId)}
+              className="flex items-center gap-2 rounded-lg bg-emerald-400 hover:bg-emerald-300 px-3.5 py-2 font-mono text-[12px] font-bold text-black transition-colors shadow-[0_0_15px_rgba(52,211,153,0.35)] shrink-0"
+            >
+              <Laptop size={14} /> Start Laptop Webcam
+            </button>
             {webcamDevices.length > 1 ? (
               <>
                 <span className="shrink-0 font-mono text-[10px] text-white/40">Camera:</span>
@@ -657,25 +689,27 @@ export default function PhoneCameraPanel() {
                 ))}
               </>
             ) : (
-              <span className="font-mono text-[10px] text-white/35">Tap the source button above (or Connect) to grant camera access.</span>
+              <span className="font-mono text-[10px] text-white/40">
+                Tap button to grant camera access and start live detection
+              </span>
             )}
           </div>
         ) : (
           <input
             value={ip}
             onChange={(e) => setIp(e.target.value)}
-            placeholder={`192.168.1.42  (or paste a full URL)`}
+            placeholder={sourceId === "backend_cam" ? "0 (Device Index)" : `192.168.1.42  (or paste a full URL)`}
             className="flex-1 rounded-lg border border-white/12 bg-black px-3 py-2 font-mono text-[12px] text-white placeholder:text-white/25 focus:border-white/40 focus:outline-none"
           />
         )}
         {phase === "idle" || phase === "error" ? (
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => connect()}
-              disabled={!resolvedUrl}
-              className="shrink-0 rounded-lg bg-emerald-400 px-4 py-2 font-mono text-[12px] font-bold text-black transition-colors hover:bg-emerald-300 disabled:opacity-40"
+              onClick={() => (isDevice ? startBrowserWebcam(webcamDeviceId) : connect())}
+              disabled={isDevice ? false : !resolvedUrl}
+              className="shrink-0 rounded-lg bg-emerald-400 px-4 py-2 font-mono text-[12px] font-bold text-black transition-colors hover:bg-emerald-300 disabled:opacity-40 shadow-[0_0_15px_rgba(52,211,153,0.25)]"
             >
-              Connect Live
+              {isDevice ? "Start Camera" : "Connect Live"}
             </button>
             <button
               onClick={() => connect(source, "demo")}
@@ -690,7 +724,7 @@ export default function PhoneCameraPanel() {
             onClick={disconnect}
             className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 font-mono text-[12px] font-semibold text-red-300 transition-colors hover:bg-red-500/20"
           >
-            <RotateCcw size={12} /> Disconnect to Standby
+            <RotateCcw size={12} /> Disconnect / Stop Camera
           </button>
         )}
       </div>
@@ -717,16 +751,21 @@ export default function PhoneCameraPanel() {
         </div>
       )}
 
-      {/* live preview — the backend's own MJPEG stream, annotated with real detections */}
+      {/* live preview */}
       <div className={`relative overflow-hidden rounded-xl border bg-black transition-colors ${status?.alert ? "border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.3)]" : "border-white/12"}`}>
-        <img
-          key={imgKey}
-          src={`${api.streamUrl(slot)}?k=${imgKey}`}
-          onError={() => {
-            setTimeout(() => setImgKey((k) => k + 1), 2500);
-          }}
-          className="aspect-video w-full object-contain"
-        />
+        <video ref={videoElRef} muted playsInline className="hidden" />
+        {isDevice ? (
+          <canvas ref={canvasRef} className="aspect-video w-full object-contain bg-black" />
+        ) : (
+          <img
+            key={imgKey}
+            src={`${api.streamUrl(slot)}?k=${imgKey}`}
+            onError={() => {
+              setTimeout(() => setImgKey((k) => k + 1), 2500);
+            }}
+            className="aspect-video w-full object-contain"
+          />
+        )}
         {status?.alert && (
           <div className="pointer-events-none absolute inset-0 border-4 border-red-500/70 animate-pulse" />
         )}
