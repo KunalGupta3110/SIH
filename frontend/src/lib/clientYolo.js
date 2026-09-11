@@ -50,6 +50,16 @@ export const COCO_CLASSES = [
   "toothbrush",
 ];
 
+// The border-surveillance checklist only needs people, vehicles, and the
+// bag classes abandoned-object detection watches — not all 80 COCO
+// classes. Restricting decode to these (mirrors core/vision/tracker.py's
+// TARGET_CLASSES) is the single biggest speed win available: the
+// per-anchor class argmax below was scanning all 80 classes × 8400
+// anchors every frame, most of it spent scoring "couch"/"toothbrush"/etc
+// that nothing downstream ever uses — pure wasted CPU that also inflated
+// how many candidates NMS/tracking/behavior-checks had to chew through.
+const ALLOWED_CLASS_IDS = [0, 1, 2, 3, 5, 7, 24, 26, 28];
+
 let sessionPromise = null;
 export function loadYoloSession() {
   if (!sessionPromise) {
@@ -129,7 +139,8 @@ export async function detectFrame(session, source, dims) {
   for (let n = 0; n < N; n++) {
     let bestScore = 0;
     let bestCls = -1;
-    for (let c = 0; c < numClasses; c++) {
+    for (const c of ALLOWED_CLASS_IDS) {
+      if (c >= numClasses) continue;
       const s = raw[(4 + c) * N + n];
       if (s > bestScore) {
         bestScore = s;

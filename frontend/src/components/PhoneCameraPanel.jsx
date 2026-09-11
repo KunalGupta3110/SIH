@@ -4,7 +4,7 @@ import api from "../lib/api.js";
 import { playBeep } from "../lib/liveCamera.jsx";
 import { detectFrame, loadYoloSession, PERSON_CLASS_ID } from "../lib/clientYolo.js";
 import { updateTracks } from "../lib/clientTracker.js";
-import { isLowLight, enhanceLowLight } from "../lib/clientLowLight.js";
+import { isLowLight, computeEnhanceLUT, applyLUT } from "../lib/clientLowLight.js";
 import { DEFAULT_ZONE, centroidInZone, crossingDirection } from "../lib/clientZones.js";
 import { checkAbandonedObjects, checkLoitering, checkCrowdFormation } from "../lib/clientBehavior.js";
 import { logEvent, getEventLog, clearEventLog } from "../lib/clientEventLog.js";
@@ -117,7 +117,7 @@ export default function PhoneCameraPanel() {
   // looks like a slideshow. So the render loop repaints the live video at a
   // full animation-frame rate and just overlays whatever the last completed
   // detection pass found; this ref is the handoff between the two loops.
-  const latestRef = useRef({ tracks: [], dark: false });
+  const latestRef = useRef({ tracks: [], dark: false, lut: null });
 
   const source = SOURCES.find((a) => a.id === sourceId) || SOURCES[0];
   const isDevice = source.kind === "device";
@@ -169,6 +169,7 @@ export default function PhoneCameraPanel() {
     const canvas = canvasRef.current;
     if (canvas) canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
     bannerRef.current = { text: null, until: 0 };
+    latestRef.current = { tracks: [], dark: false, lut: null };
     setPlateInfo(null);
     setFaceInfo(null);
   };
@@ -228,7 +229,7 @@ export default function PhoneCameraPanel() {
   };
 
   const maybeRunAnpr = (tracks, frameCanvas, nowMs) => {
-    if (nowMs - lastOcrAtRef.current < 1500 || isOcrBusy()) return;
+    if (nowMs - lastOcrAtRef.current < 2500 || isOcrBusy()) return;
     lastOcrAtRef.current = nowMs;
 
     const vehicle = tracks.find((t) => VEHICLE_LABELS.has(t.label));
@@ -257,7 +258,7 @@ export default function PhoneCameraPanel() {
   };
 
   const maybeRunFace = (video, nowMs) => {
-    if (nowMs - lastFaceAtRef.current < 1200) return;
+    if (nowMs - lastFaceAtRef.current < 2000) return;
     lastFaceAtRef.current = nowMs;
     detectAndDescribe(video)
       .then((detection) => {
@@ -331,7 +332,9 @@ export default function PhoneCameraPanel() {
         if (canvas.height !== h) canvas.height = h;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(video, 0, 0, w, h);
-        if (latestRef.current.dark) enhanceLowLight(ctx, w, h);
+        // reuse the LUT the detect loop already computed a moment ago —
+        // recomputing Math.pow per pixel at 60fps was real, visible stutter
+        if (latestRef.current.dark && latestRef.current.lut) applyLUT(ctx, w, h, latestRef.current.lut);
         drawFrame(ctx, w, h, latestRef.current.tracks, latestRef.current.dark);
       }
       requestAnimationFrame(paint);
@@ -360,7 +363,8 @@ export default function PhoneCameraPanel() {
       wctx.drawImage(video, 0, 0, w, h);
 
       const dark = isLowLight(wctx, w, h);
-      if (dark) enhanceLowLight(wctx, w, h);
+      const lut = dark ? computeEnhanceLUT(wctx, w, h) : null;
+      if (dark) applyLUT(wctx, w, h, lut); // so detection itself also sees the enhanced frame
 
       let dets = [];
       try {
@@ -372,7 +376,7 @@ export default function PhoneCameraPanel() {
 
       const nowMs = performance.now();
       const tracks = updateTracks(dets, nowMs);
-      latestRef.current = { tracks, dark };
+      latestRef.current = { tracks, dark, lut };
 
       let zoneBreach = false;
       for (const t of tracks) {
