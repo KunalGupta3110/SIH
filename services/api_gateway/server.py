@@ -733,6 +733,8 @@ def get_camera_source(camera_id: str):
         "connected": cam.connected,
         "fps": round(cam.fps, 1),
         "error": cam.last_error,
+        "alert": cam.alert_banner_timer > 0,
+        "alert_status": cam.alert_status_text,
     }
 
 

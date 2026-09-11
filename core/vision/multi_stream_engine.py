@@ -206,6 +206,32 @@ class CameraStreamProcessor:
             return buf.tobytes() if ret else None
 
 
+def _full_frame_zone(zone_id: str, name: str) -> List[Zone]:
+    """A near-full-frame restricted polygon — reliably fires a breach on
+    any detection regardless of where in the clip it happens, so demo
+    footage doesn't need hand-calibrated zone coordinates."""
+    return [
+        Zone(
+            zone_id=zone_id,
+            name=name,
+            zone_type=ZoneType.RESTRICTED_POLYGON,
+            points=[(40, 40), (814, 40), (814, 440), (40, 440)],
+            severity="CRITICAL",
+        )
+    ]
+
+
+# Extra camera nodes started lazily on first request (GET /stream/{id} or
+# GET /cameras/{id}/source) rather than eagerly at boot, so a demo sector
+# with many camera tiles doesn't run N YOLO inference threads before anyone
+# has actually tapped a tile to look at it.
+LAZY_DEMO_SOURCES: Dict[str, Tuple[str, str]] = {
+    "CAM_CHARLIE": ("frontend/public/data/threat_vehicle_rush_web.mp4", "East Ridge Overwatch"),
+    "CAM_DELTA": ("frontend/public/data/scenario_checkpoint_breach_web.mp4", "Valley Approach"),
+    "CAM_ECHO": ("frontend/public/data/people_surveillance_web.mp4", "South Corridor"),
+}
+
+
 class MultiCameraEcosystemManager:
     """Singleton manager controlling all live camera streams."""
 
@@ -219,36 +245,33 @@ class MultiCameraEcosystemManager:
         self._init_default_streams()
 
     def _init_default_streams(self):
-        # Node 1: Checkpost Alpha
+        # Node 1: Checkpost Alpha — a night patrol/watcher clip; the zone
+        # covers almost the whole 854x480 frame so the tracker reliably
+        # fires a breach the moment anything is detected (a tight
+        # hand-calibrated polygon from the old demo footage wouldn't line
+        # up with different content).
         cam1_zones = [
             Zone(
                 zone_id="alpha_gate_red",
                 name="Checkpost Alpha Red Zone",
                 zone_type=ZoneType.RESTRICTED_POLYGON,
-                points=[(100, 80), (600, 80), (550, 400), (120, 400)],
-                severity="CRITICAL",
-            ),
-            Zone(
-                zone_id="alpha_tripwire_main",
-                name="Outer Incursion Wire",
-                zone_type=ZoneType.TRIPWIRE,
-                points=[(50, 420), (680, 420)],
+                points=[(40, 40), (814, 40), (814, 440), (40, 440)],
                 severity="CRITICAL",
             ),
         ]
-        self.add_camera("CAM_ALPHA", "data/vtest_pedestrians.avi", "Checkpost Alpha Gate", cam1_zones)
+        self.add_camera("CAM_ALPHA", "frontend/public/data/threat_night_crawl_web.mp4", "Checkpost Alpha Gate", cam1_zones)
 
-        # Node 2: BOP Bravo Eastern Corridor
+        # Node 2: BOP Bravo Eastern Corridor — group-breach clip
         cam2_zones = [
             Zone(
                 zone_id="bravo_perimeter_red",
                 name="BOP Bravo Fence Zone",
                 zone_type=ZoneType.RESTRICTED_POLYGON,
-                points=[(150, 100), (580, 100), (520, 380), (180, 380)],
+                points=[(40, 40), (814, 40), (814, 440), (40, 440)],
                 severity="CRITICAL",
             )
         ]
-        self.add_camera("CAM_BRAVO", "data/people_surveillance.mp4" if os.path.exists(os.path.join(ROOT_DIR, "data/people_surveillance.mp4")) else "data/sample_border.mp4", "BOP Bravo Perimeter", cam2_zones)
+        self.add_camera("CAM_BRAVO", "frontend/public/data/threat_group_breach_web.mp4", "BOP Bravo Perimeter", cam2_zones)
 
     def add_camera(self, camera_id: str, source: str, name: str, zones: Optional[List[Zone]] = None):
         if camera_id in self.cameras:
@@ -284,6 +307,9 @@ class MultiCameraEcosystemManager:
         return self.get_camera(camera_id)
 
     def get_camera(self, camera_id: str) -> Optional[CameraStreamProcessor]:
+        if camera_id not in self.cameras and camera_id in LAZY_DEMO_SOURCES:
+            source, name = LAZY_DEMO_SOURCES[camera_id]
+            self.add_camera(camera_id, source, name, _full_frame_zone(f"{camera_id.lower()}_zone", f"{name} Zone"))
         return self.cameras.get(camera_id)
 
     def list_camera_ids(self) -> List[str]:

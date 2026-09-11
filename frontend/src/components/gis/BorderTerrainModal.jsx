@@ -20,6 +20,7 @@ import gsap from "gsap";
 import { X, Radio, MapPin, Activity, ExternalLink, AlertTriangle, Video, ScanFace, Crosshair, Flame, Moon, BellRing } from "lucide-react";
 import api from "../../lib/api.js";
 import { TERRAIN_SECTORS, DEFAULT_SECTOR_ID, getSector } from "../../config/terrains.js";
+import { LIVE_DETECTION_CAMS, useCameraAlert, LiveCameraMedia } from "../../lib/liveCamera.jsx";
 
 // every terrain GLB the switcher can mount — used for cache teardown
 export const TERRAIN_URLS = [...new Set(TERRAIN_SECTORS.map((s) => s.model))];
@@ -1156,13 +1157,16 @@ const VFILTERS = {
 };
 
 export function DetailPanel({ cam, sector, onClose, onRecenter, onAcknowledge, className = "" }) {
-  const alert = cam.status === "ALERT";
+  const live = LIVE_DETECTION_CAMS.has(cam.id);
+  const liveStatus = useCameraAlert(cam.id, live);
+  const isLiveConnected = live && liveStatus && !liveStatus.unreachable;
+  const alert = cam.status === "ALERT" || !!liveStatus?.alert;
   const lite = useIsMobile();
   const [vfilter, setVfilter] = useState("none");
   const cycleFilter = () => setVfilter((f) => (f === "none" ? "thermal" : f === "thermal" ? "night" : "none"));
   const mode = VFILTERS[vfilter];
   const tag = sector ? `${cam.id} — ${sector.sectorCode}` : cam.id;
-  const fps = (cam.fps ?? 28.4).toFixed(1);
+  const fps = (isLiveConnected ? liveStatus.fps : cam.fps ?? 28.4).toFixed(1);
   const ping = Math.round(cam.ping ?? 18);
   // synthetic CV detections drawn over the feed
   const boxes = [
@@ -1201,12 +1205,10 @@ export function DetailPanel({ cam, sector, onClose, onRecenter, onAcknowledge, c
       </div>
 
       <div className="relative">
-        <video
-          src={cam.video}
-          autoPlay
-          loop
-          muted
-          playsInline
+        <LiveCameraMedia
+          camId={cam.id}
+          fallbackSrc={cam.video}
+          status={liveStatus}
           className="aspect-video w-full object-cover"
           style={{ filter: mode.css }}
         />
@@ -1219,40 +1221,50 @@ export function DetailPanel({ cam, sector, onClose, onRecenter, onAcknowledge, c
         />
         <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 font-hud text-[10px] font-medium text-white/85">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full" style={{ background: alert ? RED : "#3ff09a" }} />
-          Live
+          {isLiveConnected ? "AI Live" : "Live"}
         </div>
         <div className="pointer-events-none absolute right-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-medium text-[#3ff09a]/90">
           <mode.icon size={10} /> {mode.label}
         </div>
 
-        {/* synthetic AI bounding boxes + confidence */}
-        <div className="pointer-events-none absolute inset-0">
-          {boxes.map((b) => (
-            <div
-              key={b.label}
-              className="absolute border"
-              style={{
-                left: `${b.x}%`,
-                top: `${b.y}%`,
-                width: `${b.w}%`,
-                height: `${b.h}%`,
-                borderColor: b.hot ? RED : "#3ff09a",
-                boxShadow: `0 0 10px ${b.hot ? "rgba(255,34,51,0.5)" : "rgba(63,240,154,0.35)"}`,
-              }}
-            >
-              <span
-                className="absolute -top-[15px] left-0 whitespace-nowrap px-1 font-mono text-[9px] font-semibold text-black"
-                style={{ background: b.hot ? RED : "#3ff09a" }}
+        {isLiveConnected ? (
+          // the MJPEG frame already carries the real YOLOv8 + ByteTrack
+          // boxes drawn server-side — no synthetic overlay needed
+          <span className="pointer-events-none absolute bottom-2 left-2 flex items-center gap-1 rounded border border-[#3ff09a]/40 bg-black/70 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-[#3ff09a]">
+            <ScanFace size={9} /> YOLOv8n + ByteTrack · live inference
+          </span>
+        ) : (
+          /* synthetic AI bounding boxes + confidence — demo clip fallback */
+          <div className="pointer-events-none absolute inset-0">
+            {boxes.map((b) => (
+              <div
+                key={b.label}
+                className="absolute border"
+                style={{
+                  left: `${b.x}%`,
+                  top: `${b.y}%`,
+                  width: `${b.w}%`,
+                  height: `${b.h}%`,
+                  borderColor: b.hot ? RED : "#3ff09a",
+                  boxShadow: `0 0 10px ${b.hot ? "rgba(255,34,51,0.5)" : "rgba(63,240,154,0.35)"}`,
+                }}
               >
-                {b.label}
-              </span>
-            </div>
-          ))}
-        </div>
+                <span
+                  className="absolute -top-[15px] left-0 whitespace-nowrap px-1 font-mono text-[9px] font-semibold text-black"
+                  style={{ background: b.hot ? RED : "#3ff09a" }}
+                >
+                  {b.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {alert && (
           <span className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded border border-rose-500/60 bg-zinc-950/85 px-2 py-0.5 font-mono text-[10px] font-semibold text-rose-300 backdrop-blur-md">
-            ⚠ Thermal Tripwire Activated · Track #{cam.track ?? 7}
+            {isLiveConnected && liveStatus?.alert_status
+              ? `⚠ ${liveStatus.alert_status}`
+              : `⚠ Thermal Tripwire Activated · Track #${cam.track ?? 7}`}
           </span>
         )}
       </div>

@@ -12,6 +12,7 @@ import { getTheme, cycleTheme, THEME_LABEL } from "../lib/theme.js";
 import BrandMark from "./BrandMark.jsx";
 import AssistantPanel from "./AssistantPanel.jsx";
 import PhoneCameraPanel from "./PhoneCameraPanel.jsx";
+import { LIVE_DETECTION_CAMS, useCameraAlert, LiveCameraMedia } from "../lib/liveCamera.jsx";
 
 // 3D border-terrain map — code-split (pulls in three.js) so it only loads
 // when the operator opens the Border Map view.
@@ -81,6 +82,49 @@ import {
   Disc,
   Menu,
 } from "lucide-react";
+
+// One 6-Cam Grid tile's video area — a separate component (not inline in a
+// .map()) so useCameraAlert's hooks scope correctly per camera, not per
+// render of the whole grid. Swaps in the backend's real annotated MJPEG
+// stream + a "THREAT" badge for the 5 live-wired cameras; every other
+// camera keeps the plain demo <video>, unchanged.
+function CameraGridTile({ cam, visionMode }) {
+  const live = LIVE_DETECTION_CAMS.has(cam.id);
+  const status = useCameraAlert(cam.id, live);
+  const isLiveConnected = live && status && !status.unreachable;
+  return (
+    <>
+      <LiveCameraMedia
+        camId={cam.id}
+        fallbackSrc={cam.video}
+        status={status}
+        className={`h-full w-full object-cover ${
+          visionMode === "lowlight"
+            ? "invert hue-rotate-180 contrast-150 brightness-110"
+            : visionMode === "edge"
+            ? "filter contrast-200 grayscale invert"
+            : "grayscale contrast-125 brightness-95"
+        }`}
+      />
+      {isLiveConnected && (
+        <span
+          className={`absolute bottom-9 left-2 flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold backdrop-blur-sm ${
+            status?.alert
+              ? "border-red-500/60 bg-red-500/20 text-red-200"
+              : "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+          }`}
+        >
+          {status?.alert ? "⚠ AI THREAT CAUGHT" : "AI LIVE DETECTION"}
+        </span>
+      )}
+      {!live && cam.hasDetection && (
+        <div className="absolute top-[20%] left-[38%] w-[24%] h-[60%] border-2 border-red-500 rounded pointer-events-none shadow-[0_0_12px_rgba(239,68,68,0.7)] flex flex-col justify-start">
+          <span className="bg-red-500 text-white font-bold text-[8.5px] px-1 py-0.5 w-fit rounded-br">Person [0.94]</span>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function ConsoleDashboard({ initialNav = "dashboard" }) {
   const navigate = useNavigate();
@@ -1838,29 +1882,11 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         }`}
                       >
                         <div className="relative aspect-video">
-                          <video
-                            src={cam.video}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className={`h-full w-full object-cover ${
-                              visionMode === "lowlight"
-                                ? "invert hue-rotate-180 contrast-150 brightness-110"
-                                : visionMode === "edge"
-                                ? "filter contrast-200 grayscale invert"
-                                : "grayscale contrast-125 brightness-95"
-                            }`}
-                          />
+                          <CameraGridTile cam={cam} visionMode={visionMode} />
                           <div className="absolute top-2 inset-x-2 flex items-center justify-between text-[11px] font-mono text-white">
                             <span className="bg-black/70 px-2 py-0.5 rounded border border-white/12">{cam.name}</span>
                             <span className="bg-black text-white/70 border border-white/12 px-2 py-0.5 rounded flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />LIVE</span>
                           </div>
-                          {cam.hasDetection && (
-                            <div className="absolute top-[20%] left-[38%] w-[24%] h-[60%] border-2 border-red-500 rounded pointer-events-none shadow-[0_0_12px_rgba(239,68,68,0.7)] flex flex-col justify-start">
-                              <span className="bg-red-500 text-white font-bold text-[8.5px] px-1 py-0.5 w-fit rounded-br">Person [0.94]</span>
-                            </div>
-                          )}
                           <div className="absolute bottom-2 inset-x-2 flex items-center justify-between text-[10px] font-mono text-white">
                             <span className="bg-black/70 px-2 py-0.5 rounded">{cam.res} • {cam.fps} FPS</span>
                             <span className="bg-black/70 px-2 py-0.5 rounded text-white">{cam.bitrate}</span>
