@@ -178,7 +178,8 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
                                 exit_timestamp_ms=timestamp_ms,
                             )
                             if preds:
-                                active_handoff_banner = f"PREDICTIVE HANDOFF: Target TRG-{t.track_id:04d} -> ETA {preds[0]['arrival_window_s'][0]:.1f}-{preds[0]['arrival_window_s'][1]:.1f}s at BOP BRAVO"
+                                p = preds[0]
+                                active_handoff_banner = f"PREDICTIVE HANDOFF: Target TRG-{t.track_id:04d} -> ETA {p.expected_arrival_min_s:.1f}-{p.expected_arrival_max_s:.1f}s at {p.target_cam}"
                                 banner_countdown = 70
                                 play_alert("WARNING")
 
@@ -282,7 +283,10 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
         cap1.release()
         cap2.release()
         if show:
-            cv2.destroyAllWindows()
+            try:
+                cv2.destroyAllWindows()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
