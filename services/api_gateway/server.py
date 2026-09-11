@@ -727,14 +727,15 @@ def get_camera_source(camera_id: str):
     cam = _stream_manager().get_camera(camera_id)
     if not cam:
         raise HTTPException(status_code=404, detail="Unknown camera_id")
+    is_alert = bool(cam.connected and cam.alert_banner_timer > 0)
     return {
         "camera_id": camera_id,
         "source": cam.source,
         "connected": cam.connected,
-        "fps": round(cam.fps, 1),
+        "fps": round(cam.fps, 1) if cam.connected else 0.0,
         "error": cam.last_error,
-        "alert": cam.alert_banner_timer > 0,
-        "alert_status": cam.alert_status_text,
+        "alert": is_alert,
+        "alert_status": cam.alert_status_text if is_alert else ("PERIMETER SECURE" if cam.connected else "CONNECTING..."),
     }
 
 
@@ -847,6 +848,30 @@ def list_captured_clips_endpoint():
 @app.post("/v1/clips/verify")
 def verify_clip_endpoint(payload: ClipVerifyRequest):
     return get_backend().verify_clip_file(payload.video_path)
+
+
+# ---------------------------------------------------------------------------
+# Serve Built React Frontend Command Console (Single Port :8000)
+# ---------------------------------------------------------------------------
+FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
+if FRONTEND_DIST.exists():
+    from fastapi.responses import FileResponse
+
+    assets_dir = FRONTEND_DIST / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend_assets")
+
+    data_dir = FRONTEND_DIST / "data"
+    if data_dir.exists():
+        app.mount("/data", StaticFiles(directory=str(data_dir)), name="frontend_data")
+
+    @app.get("/console")
+    def serve_console_spa():
+        return FileResponse(FRONTEND_DIST / "index.html")
+
+    @app.get("/")
+    def serve_root_spa():
+        return FileResponse(FRONTEND_DIST / "index.html")
 
 
 if __name__ == "__main__":

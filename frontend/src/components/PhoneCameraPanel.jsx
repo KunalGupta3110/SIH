@@ -85,6 +85,7 @@ export default function PhoneCameraPanel() {
     if (selectedSource.kind === "device") return String(deviceIndex);
     let val = (raw || "").trim();
     if (!val) return "";
+    if (/^\d+$/.test(val)) return val;
 
     val = val.replace(/\/+$/, "");
 
@@ -133,16 +134,16 @@ export default function PhoneCameraPanel() {
       const res = await api.getCameraSource(camId);
       if (!res || Object.keys(res).length === 0) {
         setPhase("error");
-        setStatus({ error: "Backend unreachable — run it locally (python run_ecosystem.py) on the same Wi-Fi as your phone." });
+        setStatus({ error: "Backend unreachable — make sure backend is running on http://localhost:8000" });
         stopPoll();
         return;
       }
       setStatus(res);
       setPhase(res.connected ? "live" : "connecting");
-      // beep on the false->true edge only — a fresh catch, not every poll while it stays true
-      if (res.alert && !prevAlert.current) playBeep();
-      prevAlert.current = !!res.alert;
-    }, 1500);
+      const isAlert = !!(res.connected && res.alert);
+      if (isAlert && !prevAlert.current) playBeep();
+      prevAlert.current = isAlert;
+    }, 1200);
   };
 
   const connect = async (selectedSource = source, urlOverride) => {
@@ -159,12 +160,16 @@ export default function PhoneCameraPanel() {
     stopPoll();
     setPhase("idle");
     setStatus(null);
-    await api.setCameraSource(slot, "demo");
+    setImgKey((k) => k + 1);
+    await api.setCameraSource(slot, "standby");
   };
 
   const switchSlot = (id) => {
-    if (phase !== "idle") disconnect();
+    stopPoll();
+    setPhase("idle");
+    setStatus(null);
     setSlot(id);
+    setImgKey((k) => k + 1);
   };
 
   // Tapping a device source (the laptop webcam) opens it immediately — no
@@ -286,19 +291,28 @@ export default function PhoneCameraPanel() {
           />
         )}
         {phase === "idle" || phase === "error" ? (
-          <button
-            onClick={connect}
-            disabled={!resolvedUrl}
-            className="shrink-0 rounded-lg bg-white px-4 py-2 font-mono text-[12px] font-bold text-black transition-colors hover:bg-emerald-300 disabled:opacity-40"
-          >
-            Connect
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => connect()}
+              disabled={!resolvedUrl}
+              className="shrink-0 rounded-lg bg-emerald-400 px-4 py-2 font-mono text-[12px] font-bold text-black transition-colors hover:bg-emerald-300 disabled:opacity-40"
+            >
+              Connect Live
+            </button>
+            <button
+              onClick={() => connect(source, "demo")}
+              title="Load pre-recorded demo test clip"
+              className="shrink-0 rounded-lg border border-white/15 px-3 py-2 font-mono text-[12px] font-semibold text-white/70 transition-colors hover:text-white"
+            >
+              <RotateCcw size={12} className="inline mr-1" /> Demo Feed
+            </button>
+          </div>
         ) : (
           <button
             onClick={disconnect}
-            className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-white/15 px-4 py-2 font-mono text-[12px] font-semibold text-white/70 transition-colors hover:text-white"
+            className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 font-mono text-[12px] font-semibold text-red-300 transition-colors hover:bg-red-500/20"
           >
-            <RotateCcw size={12} /> Use demo feed
+            <RotateCcw size={12} /> Disconnect to Standby
           </button>
         )}
       </div>
@@ -313,7 +327,7 @@ export default function PhoneCameraPanel() {
       )}
       {status?.error && phase !== "error" && (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/[0.06] px-3 py-2 font-mono text-[11px] text-amber-300">
-          Waiting for the phone… ({status.error})
+          Waiting for stream… ({status.error})
         </div>
       )}
 
@@ -326,15 +340,19 @@ export default function PhoneCameraPanel() {
       )}
 
       {/* live preview — the backend's own MJPEG stream, annotated with real detections */}
-      {phase !== "idle" && (
-        <div className={`relative overflow-hidden rounded-xl border bg-black transition-colors ${status?.alert ? "border-red-500/60" : "border-white/12"}`}>
-          {/* eslint-disable-next-line jsx-a11y/alt-text */}
-          <img key={imgKey} src={`${api.streamUrl(slot)}?k=${imgKey}`} className="aspect-video w-full object-contain" />
-          {status?.alert && (
-            <div className="pointer-events-none absolute inset-0 border-4 border-red-500/70 animate-pulse" />
-          )}
-        </div>
-      )}
+      <div className={`relative overflow-hidden rounded-xl border bg-black transition-colors ${status?.alert ? "border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.3)]" : "border-white/12"}`}>
+        <img
+          key={imgKey}
+          src={`${api.streamUrl(slot)}?k=${imgKey}`}
+          onError={() => {
+            setTimeout(() => setImgKey((k) => k + 1), 2500);
+          }}
+          className="aspect-video w-full object-contain"
+        />
+        {status?.alert && (
+          <div className="pointer-events-none absolute inset-0 border-4 border-red-500/70 animate-pulse" />
+        )}
+      </div>
     </div>
   );
 }

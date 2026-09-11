@@ -1,14 +1,203 @@
 [
   {
     "incident_id": "INC-1041",
-    "title": "Multi-Stage Border Incursion: PERSON #TRG-0006",
-    "global_target_id": "TRG-0006",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0001",
+    "global_target_id": "TRG-0001",
+    "target_class": "person",
+    "threat_score": 77,
+    "severity": "CRITICAL",
+    "confidence_pct": 91.9,
+    "start_time_iso": "2026-09-11T20:22:55.987657+00:00",
+    "last_update_iso": "2026-09-11T20:30:52.333957+00:00",
+    "cameras_involved": [
+      "CAM_ALPHA",
+      "CAM_BRAVO"
+    ],
+    "nodes": [
+      {
+        "step": 1,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:22:55.987657+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_ALPHA."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:23:00.868042+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_ALPHA."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:23:09.804056+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_ALPHA."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:23:14.968637+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_ALPHA."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:23:19.627448+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_ALPHA."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:23:57.781691+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:24:03.227335+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:24:08.178302+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 9,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:24:23.818009+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 10,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:24:48.342275+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 11,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:24:52.720051+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 12,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:25:10.956798+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 13,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:26:53.446210+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 14,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:26:58.673172+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 15,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:27:03.827203+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 16,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:27:13.738122+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 17,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:27:19.047236+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 18,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:27:23.230780+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 19,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:27:28.474858+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_BRAVO."
+      },
+      {
+        "step": 20,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:30:44.552442+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_ALPHA."
+      },
+      {
+        "step": 21,
+        "camera_id": "CAM_ALPHA",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T20:30:52.333957+00:00",
+        "rule_detail": "Breach inside Live Corridor at CAM_ALPHA."
+      }
+    ],
+    "score_breakdown": [
+      {
+        "factor": "Restricted Red Zone Penetration",
+        "points": 30,
+        "evidence": "Target centroid within polygon geofence barrier."
+      },
+      {
+        "factor": "Perimeter Tripwire Incursion",
+        "points": 25,
+        "evidence": "Target crossed 2D perimeter vector from outer buffer."
+      },
+      {
+        "factor": "Moderate Approach Vector",
+        "points": 10,
+        "evidence": "Kinematic velocity 75.0 px/s."
+      },
+      {
+        "factor": "Predictive Multi-Camera Continuity",
+        "points": 12,
+        "evidence": "Target successfully linked across nodes via spatio-temporal transit prediction."
+      }
+    ],
+    "cryptographic_block_hash": "7aae6991ce2ee6f5c5d3fc12f7ce1ab0ee348d870717e0e71a81a89106a88215",
+    "operator_triage": "UNREVIEWED",
+    "story_summary": "Multi-node progression: Target TRG-0001 traversed 2 camera nodes (CAM_ALPHA -> CAM_BRAVO) with sustained threat level CRITICAL."
+  },
+  {
+    "incident_id": "INC-1042",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0002",
+    "global_target_id": "TRG-0002",
     "target_class": "person",
     "threat_score": 65,
     "severity": "WARNING",
     "confidence_pct": 89.3,
-    "start_time_iso": "2026-09-04T11:56:54.355952+00:00",
-    "last_update_iso": "2026-09-04T11:57:20.117332+00:00",
+    "start_time_iso": "2026-09-11T19:17:34.340185+00:00",
+    "last_update_iso": "2026-09-11T19:17:34.340185+00:00",
     "cameras_involved": [
       "CAM_BRAVO"
     ],
@@ -17,14 +206,7 @@
         "step": 1,
         "camera_id": "CAM_BRAVO",
         "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:56:54.355952+00:00",
-        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
-      },
-      {
-        "step": 2,
-        "camera_id": "CAM_BRAVO",
-        "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:57:20.117332+00:00",
+        "timestamp_iso": "2026-09-11T19:17:34.340185+00:00",
         "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
       }
     ],
@@ -45,108 +227,30 @@
         "evidence": "Kinematic velocity 75.0 px/s."
       }
     ],
-    "cryptographic_block_hash": "042f305675825f9f47d2446d00a67729b45decc16dc019c6c9f4a1bd7e03b76c",
+    "cryptographic_block_hash": "c234b48a34445cde7b7d87a5d16e8cd8b0ca5174ef43a100365f84669415ed39",
     "operator_triage": "UNREVIEWED",
-    "story_summary": "Multi-node progression: Target TRG-0033 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
-  },
-  {
-    "incident_id": "INC-1042",
-    "title": "Multi-Stage Border Incursion: PERSON #TRG-0005",
-    "global_target_id": "TRG-0005",
-    "target_class": "person",
-    "threat_score": 65,
-    "severity": "WARNING",
-    "confidence_pct": 89.3,
-    "start_time_iso": "2026-09-04T11:56:54.860132+00:00",
-    "last_update_iso": "2026-09-04T11:57:35.205531+00:00",
-    "cameras_involved": [
-      "CAM_ALPHA"
-    ],
-    "nodes": [
-      {
-        "step": 1,
-        "camera_id": "CAM_ALPHA",
-        "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:56:54.860132+00:00",
-        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
-      },
-      {
-        "step": 2,
-        "camera_id": "CAM_ALPHA",
-        "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:56:57.699108+00:00",
-        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
-      },
-      {
-        "step": 3,
-        "camera_id": "CAM_ALPHA",
-        "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:57:29.156137+00:00",
-        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
-      },
-      {
-        "step": 4,
-        "camera_id": "CAM_ALPHA",
-        "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:57:35.205531+00:00",
-        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
-      }
-    ],
-    "score_breakdown": [
-      {
-        "factor": "Restricted Red Zone Penetration",
-        "points": 30,
-        "evidence": "Target centroid within polygon geofence barrier."
-      },
-      {
-        "factor": "Perimeter Tripwire Incursion",
-        "points": 25,
-        "evidence": "Target crossed 2D perimeter vector from outer buffer."
-      },
-      {
-        "factor": "Moderate Approach Vector",
-        "points": 10,
-        "evidence": "Kinematic velocity 75.0 px/s."
-      }
-    ],
-    "cryptographic_block_hash": "bdded2827dbfce1660a6c97368b85e1ee9a044ae7dbd72908f946e640d0d3ab5",
-    "operator_triage": "UNREVIEWED",
-    "story_summary": "Multi-node progression: Target TRG-0040 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+    "story_summary": "Target TRG-0002 detected at CAM_BRAVO triggering ZONE_INTRUSION."
   },
   {
     "incident_id": "INC-1043",
-    "title": "Multi-Stage Border Incursion: PERSON #TRG-0008",
-    "global_target_id": "TRG-0008",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0003",
+    "global_target_id": "TRG-0003",
     "target_class": "person",
     "threat_score": 65,
     "severity": "WARNING",
     "confidence_pct": 89.3,
-    "start_time_iso": "2026-09-04T11:56:54.875590+00:00",
-    "last_update_iso": "2026-09-04T11:57:00.710854+00:00",
+    "start_time_iso": "2026-09-11T19:17:34.413106+00:00",
+    "last_update_iso": "2026-09-11T19:17:34.413106+00:00",
     "cameras_involved": [
-      "CAM_ALPHA"
+      "CAM_BRAVO"
     ],
     "nodes": [
       {
         "step": 1,
-        "camera_id": "CAM_ALPHA",
+        "camera_id": "CAM_BRAVO",
         "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:56:54.875590+00:00",
-        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
-      },
-      {
-        "step": 2,
-        "camera_id": "CAM_ALPHA",
-        "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:56:57.728602+00:00",
-        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
-      },
-      {
-        "step": 3,
-        "camera_id": "CAM_ALPHA",
-        "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:57:00.710854+00:00",
-        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+        "timestamp_iso": "2026-09-11T19:17:34.413106+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
       }
     ],
     "score_breakdown": [
@@ -166,9 +270,9 @@
         "evidence": "Kinematic velocity 75.0 px/s."
       }
     ],
-    "cryptographic_block_hash": "2effe31a70585c1f824f523a58847788464a4427c79874a3cb3cedc512a45921",
+    "cryptographic_block_hash": "00a867168dac38b81d860aaf891c426267dfa8982c3d09c537c17e8800d0b38e",
     "operator_triage": "UNREVIEWED",
-    "story_summary": "Multi-node progression: Target TRG-0008 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+    "story_summary": "Target TRG-0003 detected at CAM_BRAVO triggering ZONE_INTRUSION."
   },
   {
     "incident_id": "INC-1044",
@@ -178,18 +282,109 @@
     "threat_score": 65,
     "severity": "WARNING",
     "confidence_pct": 89.3,
-    "start_time_iso": "2026-09-04T11:56:54.890536+00:00",
-    "last_update_iso": "2026-09-04T11:56:54.890536+00:00",
+    "start_time_iso": "2026-09-11T19:14:04.993335+00:00",
+    "last_update_iso": "2026-09-11T19:15:26.122116+00:00",
     "cameras_involved": [
-      "CAM_ALPHA"
+      "CAM_BRAVO"
     ],
     "nodes": [
       {
         "step": 1,
-        "camera_id": "CAM_ALPHA",
+        "camera_id": "CAM_BRAVO",
         "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:56:54.890536+00:00",
-        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+        "timestamp_iso": "2026-09-11T19:14:04.993335+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 2,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:10.047131+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:16.238759+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:22.676172+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:29.185627+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:35.616177+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:42.053023+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:48.481122+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 9,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:54.830929+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 10,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:00.971651+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 11,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:06.874560+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 12,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:13.384697+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 13,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:19.745618+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 14,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:26.122116+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
       }
     ],
     "score_breakdown": [
@@ -209,37 +404,121 @@
         "evidence": "Kinematic velocity 75.0 px/s."
       }
     ],
-    "cryptographic_block_hash": "65676231b21852b45329e550ce7c4aa722f82f0390f6fb5fbd606302ba1697fd",
+    "cryptographic_block_hash": "0791db756a94edd489947af9acc58072282dd0dda2122a034fb225114eb11756",
     "operator_triage": "UNREVIEWED",
-    "story_summary": "Target TRG-0010 detected at CAM_ALPHA triggering ZONE_INTRUSION."
+    "story_summary": "Multi-node progression: Target TRG-0010 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
   },
   {
     "incident_id": "INC-1045",
-    "title": "Multi-Stage Border Incursion: PERSON #TRG-0007",
-    "global_target_id": "TRG-0007",
+    "title": "Multi-Stage Border Incursion: PERSON #TRG-0011",
+    "global_target_id": "TRG-0011",
     "target_class": "person",
     "threat_score": 65,
     "severity": "WARNING",
     "confidence_pct": 89.3,
-    "start_time_iso": "2026-09-04T11:56:57.712213+00:00",
-    "last_update_iso": "2026-09-04T11:57:38.567885+00:00",
+    "start_time_iso": "2026-09-11T19:14:05.067353+00:00",
+    "last_update_iso": "2026-09-11T19:15:26.188469+00:00",
     "cameras_involved": [
-      "CAM_ALPHA"
+      "CAM_BRAVO"
     ],
     "nodes": [
       {
         "step": 1,
-        "camera_id": "CAM_ALPHA",
+        "camera_id": "CAM_BRAVO",
         "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:56:57.712213+00:00",
-        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+        "timestamp_iso": "2026-09-11T19:14:05.067353+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
       },
       {
         "step": 2,
-        "camera_id": "CAM_ALPHA",
+        "camera_id": "CAM_BRAVO",
         "event_type": "ZONE_INTRUSION",
-        "timestamp_iso": "2026-09-04T11:57:38.567885+00:00",
-        "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+        "timestamp_iso": "2026-09-11T19:14:10.121236+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 3,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:16.302418+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 4,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:22.745750+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 5,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:29.263176+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 6,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:35.688609+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 7,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:42.117178+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 8,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:48.547838+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 9,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:54.902383+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 10,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:01.044987+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 11,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:06.945108+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 12,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:13.449674+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 13,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:19.815064+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 14,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:26.188469+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
       }
     ],
     "score_breakdown": [
@@ -259,9 +538,9 @@
         "evidence": "Kinematic velocity 75.0 px/s."
       }
     ],
-    "cryptographic_block_hash": "d1f4d44e41f2fff4bcdd3f59b453cb7899993103be6533ecdf50492ed2cb6a91",
+    "cryptographic_block_hash": "50a7f517c0a4469d25c5439eda3e9f854030b7ba5003558e3bb5b12614a01a43",
     "operator_triage": "UNREVIEWED",
-    "story_summary": "Multi-node progression: Target TRG-0049 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+    "story_summary": "Multi-node progression: Target TRG-0011 traversed 1 camera nodes (CAM_BRAVO) with sustained threat level WARNING."
   },
   {
     "incident_id": "INC-1046",
@@ -712,13 +991,14 @@
     "title": "Multi-Stage Border Incursion: PERSON #TRG-0009",
     "global_target_id": "TRG-0009",
     "target_class": "person",
-    "threat_score": 65,
-    "severity": "WARNING",
-    "confidence_pct": 89.3,
+    "threat_score": 77,
+    "severity": "CRITICAL",
+    "confidence_pct": 91.9,
     "start_time_iso": "2026-09-04T09:39:56.749143+00:00",
-    "last_update_iso": "2026-09-04T11:57:15.289925+00:00",
+    "last_update_iso": "2026-09-11T19:15:26.051116+00:00",
     "cameras_involved": [
-      "CAM_ALPHA"
+      "CAM_ALPHA",
+      "CAM_BRAVO"
     ],
     "nodes": [
       {
@@ -790,6 +1070,104 @@
         "event_type": "ZONE_INTRUSION",
         "timestamp_iso": "2026-09-04T11:57:15.289925+00:00",
         "rule_detail": "Breach inside Checkpost Alpha Red Zone at CAM_ALPHA."
+      },
+      {
+        "step": 11,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:04.918355+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 12,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:09.965384+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 13,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:16.174228+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 14,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:22.613207+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 15,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:29.114260+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 16,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:35.528303+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 17,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:41.985241+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 18,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:48.414355+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 19,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:14:54.762428+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 20,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:00.887187+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 21,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:06.799125+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 22,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:13.309169+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 23,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:19.676803+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
+      },
+      {
+        "step": 24,
+        "camera_id": "CAM_BRAVO",
+        "event_type": "ZONE_INTRUSION",
+        "timestamp_iso": "2026-09-11T19:15:26.051116+00:00",
+        "rule_detail": "Breach inside BOP Bravo Fence Zone at CAM_BRAVO."
       }
     ],
     "score_breakdown": [
@@ -807,11 +1185,16 @@
         "factor": "Moderate Approach Vector",
         "points": 10,
         "evidence": "Kinematic velocity 75.0 px/s."
+      },
+      {
+        "factor": "Predictive Multi-Camera Continuity",
+        "points": 12,
+        "evidence": "Target successfully linked across nodes via spatio-temporal transit prediction."
       }
     ],
-    "cryptographic_block_hash": "d9456b02ee99e423961ccf1104df91b6330eeea5686ed66092b2d1ae959d8c37",
+    "cryptographic_block_hash": "b7b3b7568421fab79f8f5c3c29554d85d70c85e865000a9933b5e8bbd58972d3",
     "operator_triage": "UNREVIEWED",
-    "story_summary": "Multi-node progression: Target TRG-0009 traversed 1 camera nodes (CAM_ALPHA) with sustained threat level WARNING."
+    "story_summary": "Multi-node progression: Target TRG-0009 traversed 2 camera nodes (CAM_ALPHA -> CAM_BRAVO) with sustained threat level CRITICAL."
   },
   {
     "incident_id": "INC-1053",
