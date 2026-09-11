@@ -730,12 +730,28 @@ def get_camera_source(camera_id: str):
     return {
         "camera_id": camera_id,
         "source": cam.source,
-        "connected": cam.connected,
+        "connected": cam.is_connected,
         "fps": round(cam.fps, 1),
         "error": cam.last_error,
         "alert": cam.alert_banner_timer > 0,
         "alert_status": cam.alert_status_text,
     }
+
+
+@app.post("/cameras/{camera_id}/push-frame")
+@app.post("/v1/cameras/{camera_id}/push-frame")
+async def push_camera_frame(camera_id: str, request: Request):
+    """Ingest one JPEG frame captured by a browser's own getUserMedia feed
+    (raw bytes as the request body). Used for the "browser" source mode —
+    set via POST .../set-source {"source": "browser"} first — where the
+    webcam is attached to the VIEWER's machine, not this backend, so the
+    server can't open it itself via cv2.VideoCapture."""
+    cam = _stream_manager().get_camera(camera_id)
+    if not cam:
+        raise HTTPException(status_code=404, detail="Unknown camera_id")
+    body = await request.body()
+    cam.ingest_pushed_frame(body)
+    return {"camera_id": camera_id, "connected": cam.is_connected, "fps": round(cam.fps, 1)}
 
 
 # ---------------------------------------------------------------------------

@@ -6,17 +6,27 @@ import { playBeep } from "../lib/liveCamera.jsx";
 /* ═══════════════════════════════════════════════════════════════════════
    PhoneCameraPanel — attach a real camera as a live source: a phone
    (Android/iOS "IP Webcam" or "DroidCam") over Wi-Fi, or this laptop's own
-   built-in/USB webcam. The source is sent to the FastAPI backend, which
-   points its existing YOLOv8 + ByteTrack worker (core/vision/
-   multi_stream_engine) at it and streams the ANNOTATED result back as
-   MJPEG — real detection boxes drawn server-side, not a canned demo clip.
+   built-in/USB webcam via the BROWSER's own getUserMedia (not cv2 on the
+   backend — that only sees devices attached to whatever machine runs the
+   backend process, which is wrong the moment frontend and backend aren't
+   the same machine, e.g. this console deployed and a locally-run backend).
 
-   Requires the backend running locally (`python run_ecosystem.py`), with
-   the console's VITE_API_BASE pointed at it — the phone must additionally
-   share the laptop's Wi-Fi (not needed for the laptop-webcam option, since
-   OpenCV opens the device directly on the same machine as the backend).
-   Not reachable from the public Vercel deploy — that build has no backend
-   to attach a camera to.
+   Phone sources: the backend's cv2 worker (core/vision/multi_stream_engine)
+   opens the phone's MJPEG URL itself and streams the annotated result back
+   via GET /stream/{id}.
+
+   Laptop webcam: the BROWSER opens the camera (a real permission prompt —
+   this is the "tap to open the webcam" moment), captures frames to a
+   canvas, and POSTs each one as JPEG to POST /cameras/{id}/push-frame,
+   which runs it through the same YOLOv8 + ByteTrack pipeline server-side.
+   The annotated result streams back the same way, via GET /stream/{id}.
+   This works even when the backend is remote — only the capture step
+   needs to happen where the camera physically is.
+
+   Requires the backend running (`python run_ecosystem.py`), with the
+   console's VITE_API_BASE pointed at it. Phone sources additionally need
+   the phone on the same Wi-Fi as the backend; the laptop-webcam source
+   does not.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const SLOTS = [
@@ -24,9 +34,9 @@ const SLOTS = [
   { id: "CAM_BRAVO", label: "CAM_BRAVO", sub: "BOP Bravo Perimeter" },
 ];
 
-// "network" sources are phone apps reached over Wi-Fi by URL. "device" is
-// a webcam OpenCV can open directly on the SAME machine as the backend —
-// no IP needed, just a device index.
+// "network" sources are phone apps reached over Wi-Fi by URL, opened by the
+// backend's own cv2 worker. "device" is this browser's own webcam via
+// getUserMedia — frames are captured client-side and pushed to the backend.
 const SOURCES = [
   {
     id: "ipwebcam",
@@ -58,8 +68,8 @@ const SOURCES = [
     label: "This Laptop's Webcam",
     platform: "Built-in / USB",
     steps: [
-      <>No app needed — the backend opens the webcam attached to <strong className="text-white/80">this machine</strong> directly.</>,
-      <>If it opens the wrong camera, try device <strong className="text-white/80">1</strong> or <strong className="text-white/80">2</strong> below.</>,
+      <>Tap this button — your browser will prompt for camera access. Allow it and the feed opens instantly, no app needed.</>,
+      <>If your laptop has more than one camera, pick between them below once access is granted.</>,
     ],
   },
 ];
@@ -68,12 +78,17 @@ export default function PhoneCameraPanel() {
   const [slot, setSlot] = useState("CAM_ALPHA");
   const [sourceId, setSourceId] = useState("ipwebcam");
   const [ip, setIp] = useState("");
-  const [deviceIndex, setDeviceIndex] = useState(0);
+  const [webcamDevices, setWebcamDevices] = useState([]); // populated post-permission
+  const [webcamDeviceId, setWebcamDeviceId] = useState(null);
   const [phase, setPhase] = useState("idle"); // idle | connecting | live | error
   const [status, setStatus] = useState(null);
   const [imgKey, setImgKey] = useState(0); // bust the <img> MJPEG src on (re)connect
   const pollRef = useRef(null);
   const prevAlert = useRef(false); // tracks false->true so playBeep() fires once per fresh catch
+  const videoElRef = useRef(null); // hidden <video> fed by getUserMedia, used only as a capture source
+  const canvasRef = useRef(null); // offscreen capture canvas
+  const mediaStreamRef = useRef(null);
+  const captureRef = useRef(null);
 
   const source = SOURCES.find((a) => a.id === sourceId) || SOURCES[0];
   const isDevice = source.kind === "device";
@@ -82,7 +97,6 @@ export default function PhoneCameraPanel() {
   // pasted URL (e.g. "http://192.168.2.7:8080/") — auto-normalizes and appends
   // the stream path (/video) so raw browser URLs stream correctly in OpenCV.
   const buildUrl = (raw, selectedSource) => {
-    if (selectedSource.kind === "device") return String(deviceIndex);
     let val = (raw || "").trim();
     if (!val) return "";
 
@@ -118,13 +132,31 @@ export default function PhoneCameraPanel() {
     const hostWithPort = hasPort ? val : `${val}:${selectedSource.port || 8080}`;
     return `http://${hostWithPort}${selectedSource.path || "/video"}`;
   };
-  const resolvedUrl = buildUrl(ip, source);
+  const resolvedUrl = isDevice ? "" : buildUrl(ip, source);
 
   const stopPoll = () => {
     if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = null;
   };
-  useEffect(() => stopPoll, []);
+
+  const stopBrowserWebcam = () => {
+    if (captureRef.current) {
+      clearInterval(captureRef.current);
+      captureRef.current = null;
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+  };
+
+  useEffect(
+    () => () => {
+      stopPoll();
+      stopBrowserWebcam();
+    },
+    []
+  );
 
   const poll = (camId) => {
     stopPoll();
@@ -133,7 +165,7 @@ export default function PhoneCameraPanel() {
       const res = await api.getCameraSource(camId);
       if (!res || Object.keys(res).length === 0) {
         setPhase("error");
-        setStatus({ error: "Backend unreachable — run it locally (python run_ecosystem.py) on the same Wi-Fi as your phone." });
+        setStatus({ error: "Backend unreachable — run it locally (python run_ecosystem.py) and point VITE_API_BASE at it." });
         stopPoll();
         return;
       }
@@ -145,18 +177,76 @@ export default function PhoneCameraPanel() {
     }, 1500);
   };
 
-  const connect = async (selectedSource = source, urlOverride) => {
-    const url = urlOverride ?? (selectedSource.kind === "device" ? String(deviceIndex) : buildUrl(ip, selectedSource));
-    if (!url) return;
+  const connect = async () => {
+    if (!resolvedUrl) return;
     setPhase("connecting");
     setStatus(null);
     setImgKey((k) => k + 1);
-    await api.setCameraSource(slot, url);
+    await api.setCameraSource(slot, resolvedUrl);
     poll(slot);
+  };
+
+  // Opens the BROWSER's own webcam (a real permission prompt — this is what
+  // makes "tap to open the laptop webcam" actually true) and starts pushing
+  // captured frames to the backend for real YOLO detection.
+  const startBrowserWebcam = async (deviceId) => {
+    try {
+      const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : true, audio: false };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stopBrowserWebcam();
+      mediaStreamRef.current = stream;
+      const video = videoElRef.current;
+      video.srcObject = stream;
+      await video.play();
+
+      // Labels are only populated once permission is granted — refresh the
+      // picker now so a multi-camera laptop can switch away from the wrong one.
+      try {
+        const all = await navigator.mediaDevices.enumerateDevices();
+        const cams = all.filter((d) => d.kind === "videoinput");
+        setWebcamDevices(cams);
+        const activeId = stream.getVideoTracks()[0]?.getSettings()?.deviceId || deviceId || null;
+        setWebcamDeviceId(activeId);
+      } catch {
+        /* enumerateDevices blocked/unsupported — single default camera still works fine */
+      }
+
+      setPhase("connecting");
+      setStatus(null);
+      setImgKey((k) => k + 1);
+      await api.setCameraSource(slot, "browser");
+      poll(slot);
+
+      captureRef.current = setInterval(() => {
+        const video2 = videoElRef.current;
+        const canvas = canvasRef.current;
+        if (!video2 || !canvas || video2.readyState < 2) return;
+        canvas.width = video2.videoWidth || 640;
+        canvas.height = video2.videoHeight || 480;
+        canvas.getContext("2d").drawImage(video2, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) api.pushCameraFrame(slot, blob).catch(() => {});
+          },
+          "image/jpeg",
+          0.75
+        );
+      }, 180); // ~5.5 fps — plenty for YOLO on a static border checkpoint view
+    } catch (err) {
+      stopBrowserWebcam();
+      setPhase("error");
+      const denied = err && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError");
+      setStatus({
+        error: denied
+          ? "Webcam permission denied — allow camera access in the browser's address-bar prompt and tap again."
+          : `Could not open the browser webcam: ${err?.message || err}`,
+      });
+    }
   };
 
   const disconnect = async () => {
     stopPoll();
+    stopBrowserWebcam();
     setPhase("idle");
     setStatus(null);
     await api.setCameraSource(slot, "demo");
@@ -167,16 +257,15 @@ export default function PhoneCameraPanel() {
     setSlot(id);
   };
 
-  // Tapping a device source (the laptop webcam) opens it immediately — no
-  // separate Connect click needed, since there's no address to type first.
+  // Tapping the laptop-webcam source opens it immediately — no separate
+  // Connect click needed, since there's no address to type first.
   const pickSource = (s) => {
     setSourceId(s.id);
-    if (s.kind === "device") connect(s, String(deviceIndex));
+    if (s.kind === "device") startBrowserWebcam(webcamDeviceId);
   };
 
-  const pickDeviceIndex = (i) => {
-    setDeviceIndex(i);
-    if (isDevice && phase !== "idle") connect(source, String(i));
+  const switchWebcamDevice = (id) => {
+    if (id !== webcamDeviceId) startBrowserWebcam(id);
   };
 
   const badge =
@@ -193,6 +282,11 @@ export default function PhoneCameraPanel() {
 
   return (
     <div className="rounded-2xl border border-white/12 bg-[#000000] p-4 space-y-3.5 shadow-lg">
+      {/* hidden capture rig for the browser-webcam source — never shown directly, only sampled onto canvas */}
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <video ref={videoElRef} muted playsInline className="hidden" />
+      <canvas ref={canvasRef} className="hidden" />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Smartphone size={16} className="text-white" />
@@ -240,7 +334,7 @@ export default function PhoneCameraPanel() {
             <div>{source.steps.length + 1}. Phone &amp; laptop on the <strong className="text-white/80">same Wi-Fi</strong>.</div>
           )}
           <div>
-            {source.steps.length + (isDevice ? 1 : 2)}. Backend must be running locally: <code className="text-emerald-300">python run_ecosystem.py</code>, and the
+            {source.steps.length + (isDevice ? 1 : 2)}. Backend must be running: <code className="text-emerald-300">python run_ecosystem.py</code>, and the
             console started with <code className="text-emerald-300">VITE_API_BASE</code> pointed at it.
           </div>
         </div>
@@ -263,19 +357,25 @@ export default function PhoneCameraPanel() {
           ))}
         </div>
         {isDevice ? (
-          <div className="flex flex-1 items-center gap-1.5">
-            <span className="font-mono text-[10px] text-white/40">Device:</span>
-            {[0, 1, 2].map((i) => (
-              <button
-                key={i}
-                onClick={() => pickDeviceIndex(i)}
-                className={`rounded-lg border px-3 py-2 font-mono text-[12px] font-semibold transition-colors ${
-                  deviceIndex === i ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : "border-white/12 text-white/55 hover:text-white"
-                }`}
-              >
-                {i}
-              </button>
-            ))}
+          <div className="flex flex-1 items-center gap-1.5 overflow-x-auto">
+            {webcamDevices.length > 1 ? (
+              <>
+                <span className="shrink-0 font-mono text-[10px] text-white/40">Camera:</span>
+                {webcamDevices.map((d, i) => (
+                  <button
+                    key={d.deviceId}
+                    onClick={() => switchWebcamDevice(d.deviceId)}
+                    className={`shrink-0 rounded-lg border px-3 py-2 font-mono text-[11px] font-semibold transition-colors ${
+                      webcamDeviceId === d.deviceId ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : "border-white/12 text-white/55 hover:text-white"
+                    }`}
+                  >
+                    {d.label || `Camera ${i + 1}`}
+                  </button>
+                ))}
+              </>
+            ) : (
+              <span className="font-mono text-[10px] text-white/35">Tap the source button above (or Connect) to grant camera access.</span>
+            )}
           </div>
         ) : (
           <input
@@ -287,8 +387,8 @@ export default function PhoneCameraPanel() {
         )}
         {phase === "idle" || phase === "error" ? (
           <button
-            onClick={connect}
-            disabled={!resolvedUrl}
+            onClick={isDevice ? () => startBrowserWebcam(webcamDeviceId) : connect}
+            disabled={!isDevice && !resolvedUrl}
             className="shrink-0 rounded-lg bg-white px-4 py-2 font-mono text-[12px] font-bold text-black transition-colors hover:bg-emerald-300 disabled:opacity-40"
           >
             Connect
@@ -304,7 +404,7 @@ export default function PhoneCameraPanel() {
       </div>
       {(isDevice || ip.trim()) && (
         <div className="-mt-1 font-mono text-[10px] text-white/35">
-          Will connect to <span className="text-white/55">{isDevice ? `webcam device ${resolvedUrl}` : resolvedUrl}</span>
+          Will connect to <span className="text-white/55">{isDevice ? "your browser's webcam (grants access on tap)" : resolvedUrl}</span>
         </div>
       )}
 

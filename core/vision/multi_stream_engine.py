@@ -39,7 +39,7 @@ def normalize_camera_source(source: str) -> str:
     if source is None:
         return source
     src = str(source).strip()
-    if src.isdigit() or src in ("demo", ""):
+    if src.isdigit() or src in ("demo", "", "browser"):
         return src
 
     # Auto-prefix http:// if bare IP:Port or IP is provided (e.g. 192.168.2.7:8080 or 192.168.2.7)
@@ -78,6 +78,16 @@ class CameraStreamProcessor:
     ):
         self.camera_id = camera_id
         self.source = source
+        # "browser" is a literal marker (not a real cv2 source) meaning:
+        # frames arrive via ingest_pushed_frame() from a browser's own
+        # getUserMedia capture, pushed over HTTP — used when the viewer's
+        # webcam isn't attached to the machine running this backend (e.g.
+        # the deployed site), so cv2.VideoCapture on the server has nothing
+        # to open.
+        self.mode = "push" if source == "browser" else "capture"
+        self.last_push_ts: float = 0.0
+        self._frame_idx: int = 0
+        self._t_prev: float = time.time()
         self.name = name
         self.zones = zones or []
         self.tracker = tracker or BorderTracker()
@@ -115,7 +125,109 @@ class CameraStreamProcessor:
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=1.0)
 
+    @property
+    def is_connected(self) -> bool:
+        """`connected` accounting for push-mode staleness: a browser tab that
+        stopped pushing frames (closed, backgrounded, camera revoked) should
+        read as disconnected within a few seconds, not stay "live" forever
+        on the last frame it happened to push."""
+        if self.mode == "push":
+            return self.connected and (time.time() - self.last_push_ts) < 3.0
+        return self.connected
+
+    def ingest_pushed_frame(self, jpeg_bytes: bytes):
+        """Feed one frame captured by a browser's own getUserMedia (posted
+        to POST /cameras/{id}/push-frame) through the same detection +
+        annotation pipeline as a cv2-read frame. Used for the "browser"
+        source mode, where the webcam is attached to the VIEWER's machine,
+        not this backend process — so cv2.VideoCapture has nothing to open
+        locally and the browser must ship pixels instead."""
+        arr = np.frombuffer(jpeg_bytes, dtype=np.uint8)
+        if arr.size == 0:
+            return
+        frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+        if frame is None:
+            return
+        self.connected = True
+        self.last_error = None
+        self.last_push_ts = time.time()
+        self._process_frame(frame)
+
+    def _process_frame(self, frame):
+        """Run tracking, zone-breach evaluation, and OSD annotation on one
+        raw BGR frame, then publish it as the latest annotated frame. Shared
+        by the cv2 capture loop and ingest_pushed_frame() so both paths get
+        identical real detection behavior."""
+        self._frame_idx += 1
+        now = time.time()
+        dt = now - self._t_prev
+        self._t_prev = now
+        self.fps = 1.0 / max(1e-4, dt)
+        timestamp_ms = self._frame_idx * 33.3
+        frame_idx = self._frame_idx
+
+        # Run Object Tracking
+        tracks = self.tracker.track_frame(frame, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
+        self.active_tracks = tracks
+
+        # Draw Zones & Tracks
+        annotated = self.zone_manager.draw_zones(frame, camera_id=self.camera_id)
+        annotated = self.tracker.draw_tracks(annotated, tracks, show_trail=True, show_fps=False)
+
+        # Evaluate Zone Incursions
+        for t in tracks:
+            for z in self.zone_manager.get_zones(self.camera_id):
+                if z.contains_point(t.centroid):
+                    self.alert_status_text = f"BREACH: {t.class_name.upper()} #{t.track_id} IN {z.name}"
+                    self.alert_banner_timer = 30
+
+                    # Rate-limit incident creation per track ID (once every 150 frames)
+                    if frame_idx % 150 == 0:
+                        x1, y1, x2, y2 = [int(v) for v in t.bbox]
+                        crop = frame[max(0, y1):min(frame.shape[0], y2), max(0, x1):min(frame.shape[1], x2)]
+                        thumb_path = os.path.join(ROOT_DIR, "data", "thumbnails", f"evt_live_{self.camera_id}_{t.track_id}_{int(timestamp_ms)}.jpg")
+                        if crop.size > 0:
+                            cv2.imwrite(thumb_path, crop)
+
+                        correlate_border_event(
+                            camera_id=self.camera_id,
+                            global_target_id=f"TRG-{t.track_id:04d}",
+                            target_class=t.class_name,
+                            event_type="ZONE_INTRUSION",
+                            rule_detail=f"Breach inside {z.name} at {self.camera_id}.",
+                            in_restricted_zone=True,
+                            tripwire_crossed=True,
+                            velocity_px_s=75.0,
+                            loitering_sec=2.5,
+                            thumbnail_path=thumb_path if os.path.exists(thumb_path) else None,
+                        )
+
+        # Top CCTV Watermark OSD
+        h, w = annotated.shape[:2]
+        cv2.rectangle(annotated, (0, 0), (w, 36), (15, 23, 42), -1)
+        cv2.putText(annotated, f"NODE: {self.camera_id} | {self.name} | FPS: {self.fps:.1f}", (12, 24),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
+        time_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        cv2.putText(annotated, time_str, (w - 240, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (148, 163, 184), 1, cv2.LINE_AA)
+
+        # Alert Banner
+        if self.alert_banner_timer > 0:
+            self.alert_banner_timer -= 1
+            cv2.rectangle(annotated, (0, h - 38), (w, h), (0, 0, 220), -1)
+            cv2.putText(annotated, f"🚨 {self.alert_status_text}", (15, h - 12),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
+
+        with self.lock:
+            self.latest_raw_frame = frame
+            self.latest_annotated_frame = annotated
+
     def _worker_loop(self):
+        if self.mode == "push":
+            # Frames arrive out-of-band via ingest_pushed_frame() (the
+            # browser's own webcam capture posted over HTTP) — there's no
+            # local device for cv2 to open, so this thread has nothing to do.
+            return
+
         # Resolve source path
         src = normalize_camera_source(self.source)
         if not str(src).isdigit() and not str(src).startswith("http") and not str(src).startswith("rtsp") and not os.path.isabs(src):
@@ -129,8 +241,8 @@ class CameraStreamProcessor:
             pass
         is_live_source = isinstance(cap_arg, str) and (cap_arg.startswith("http") or cap_arg.startswith("rtsp"))
 
-        frame_idx = 0
-        t_prev = time.time()
+        self._frame_idx = 0
+        self._t_prev = time.time()
         reconnect_attempts = 0
 
         while self.is_running:
@@ -159,67 +271,7 @@ class CameraStreamProcessor:
 
             self.connected = True
             self.last_error = None
-            frame_idx += 1
-            now = time.time()
-            dt = now - t_prev
-            t_prev = now
-            self.fps = 1.0 / max(1e-4, dt)
-            timestamp_ms = frame_idx * 33.3
-
-            # Run Object Tracking
-            tracks = self.tracker.track_frame(frame, frame_idx=frame_idx, timestamp_ms=timestamp_ms)
-            self.active_tracks = tracks
-
-            # Draw Zones & Tracks
-            annotated = self.zone_manager.draw_zones(frame, camera_id=self.camera_id)
-            annotated = self.tracker.draw_tracks(annotated, tracks, show_trail=True, show_fps=False)
-
-            # Evaluate Zone Incursions
-            for t in tracks:
-                for z in self.zone_manager.get_zones(self.camera_id):
-                    if z.contains_point(t.centroid):
-                        self.alert_status_text = f"BREACH: {t.class_name.upper()} #{t.track_id} IN {z.name}"
-                        self.alert_banner_timer = 30
-
-                        # Rate-limit incident creation per track ID (once every 150 frames)
-                        if frame_idx % 150 == 0:
-                            x1, y1, x2, y2 = [int(v) for v in t.bbox]
-                            crop = frame[max(0, y1):min(frame.shape[0], y2), max(0, x1):min(frame.shape[1], x2)]
-                            thumb_path = os.path.join(ROOT_DIR, "data", "thumbnails", f"evt_live_{self.camera_id}_{t.track_id}_{int(timestamp_ms)}.jpg")
-                            if crop.size > 0:
-                                cv2.imwrite(thumb_path, crop)
-
-                            correlate_border_event(
-                                camera_id=self.camera_id,
-                                global_target_id=f"TRG-{t.track_id:04d}",
-                                target_class=t.class_name,
-                                event_type="ZONE_INTRUSION",
-                                rule_detail=f"Breach inside {z.name} at {self.camera_id}.",
-                                in_restricted_zone=True,
-                                tripwire_crossed=True,
-                                velocity_px_s=75.0,
-                                loitering_sec=2.5,
-                                thumbnail_path=thumb_path if os.path.exists(thumb_path) else None,
-                            )
-
-            # Top CCTV Watermark OSD
-            h, w = annotated.shape[:2]
-            cv2.rectangle(annotated, (0, 0), (w, 36), (15, 23, 42), -1)
-            cv2.putText(annotated, f"NODE: {self.camera_id} | {self.name} | FPS: {self.fps:.1f}", (12, 24),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
-            time_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-            cv2.putText(annotated, time_str, (w - 240, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (148, 163, 184), 1, cv2.LINE_AA)
-
-            # Alert Banner
-            if self.alert_banner_timer > 0:
-                self.alert_banner_timer -= 1
-                cv2.rectangle(annotated, (0, h - 38), (w, h), (0, 0, 220), -1)
-                cv2.putText(annotated, f"🚨 {self.alert_status_text}", (15, h - 12),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
-
-            with self.lock:
-                self.latest_raw_frame = frame
-                self.latest_annotated_frame = annotated
+            self._process_frame(frame)
 
             # Regulate frame rate to ~30 FPS
             time.sleep(0.015)
