@@ -20,7 +20,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -798,7 +798,59 @@ def delete_anpr_hotlist(plate: str):
     return {"status": "removed", "plate": norm}
 
 
+# ---------------------------------------------------------------------------
+# Captured Evidence Clips & SHA-256 Tamper Protection
+# ---------------------------------------------------------------------------
+
+class ClipVerifyRequest(BaseModel):
+    video_path: str
+
+
+@app.post("/api/v1/clips/save")
+@app.post("/v1/clips/save")
+async def save_captured_clip_endpoint(
+    video: Optional[UploadFile] = File(None),
+    object_code: int = Form(1),
+    camera_id: str = Form("CAM_ALPHA"),
+    duration_sec: float = Form(0.0),
+    notes: str = Form(""),
+    filename: Optional[str] = Form(None),
+):
+    video_bytes = b""
+    if video:
+        video_bytes = await video.read()
+        if not filename:
+            filename = video.filename
+
+    if not video_bytes:
+        raise HTTPException(status_code=400, detail="No video file provided.")
+
+    result = get_backend().save_captured_clip(
+        video_bytes=video_bytes,
+        filename=filename,
+        object_code=object_code,
+        camera_id=camera_id,
+        duration_sec=duration_sec,
+        notes=notes,
+    )
+    return result
+
+
+@app.get("/api/v1/clips")
+@app.get("/v1/clips")
+def list_captured_clips_endpoint():
+    clips = get_backend().list_captured_clips()
+    return {"total": len(clips), "clips": clips}
+
+
+@app.post("/api/v1/clips/verify")
+@app.post("/v1/clips/verify")
+def verify_clip_endpoint(payload: ClipVerifyRequest):
+    return get_backend().verify_clip_file(payload.video_path)
+
+
 if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+

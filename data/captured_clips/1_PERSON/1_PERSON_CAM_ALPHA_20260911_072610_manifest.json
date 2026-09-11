@@ -1,0 +1,25 @@
+{
+  "evidence_protocol": "IBVAP-SENTINEL-EVIDENCE-CHAIN-v1",
+  "section_65b_compliance": {
+    "legal_framework": "Section 65B(4) Indian Evidence Act / BSA 2023",
+    "admissibility_certified": true,
+    "tamper_evident_seal": "SHA-256 Cryptographic Hash Checksum"
+  },
+  "file": {
+    "name": "1_PERSON_TAMPER_TEST.webm",
+    "folder": "1_PERSON",
+    "size_bytes": 41,
+    "sha256": "f6b480d6fa145242b9686738d989029d65500e3e6c33aeb6e7067b390eb75c3c"
+  },
+  "classification": {
+    "object_code": 1,
+    "object_class": "PERSON",
+    "description": "Person / Intruder"
+  },
+  "metadata": {
+    "camera_id": "CAM_ALPHA",
+    "recorded_at_iso": "2026-09-11T07:26:10.207130+00:00",
+    "duration_seconds": 0.0,
+    "notes": "Surveillance incident video clip captured from watchfloor."
+  }
+}

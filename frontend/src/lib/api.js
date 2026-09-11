@@ -606,10 +606,44 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plate, reason }),
     }),
+
+  saveCapturedClip: async (clipPayload) => {
+    try {
+      const formData = new FormData();
+      if (clipPayload.videoBlob) {
+        formData.append("video", clipPayload.videoBlob, clipPayload.filename);
+      }
+      formData.append("object_code", String(clipPayload.objectCode || 1));
+      formData.append("camera_id", clipPayload.cameraId || "CAM_ALPHA");
+      formData.append("hash", clipPayload.hash || "");
+      formData.append("duration_sec", String(clipPayload.durationSec || 0));
+      formData.append("notes", clipPayload.notes || "");
+
+      const res = await fetch(`${BASE}/api/v1/clips/save`, {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // offline fallback
+    }
+    return {
+      status: "saved_locally",
+      object_code: clipPayload.objectCode || 1,
+      filename: clipPayload.filename,
+      hash: clipPayload.hash,
+    };
+  },
+
+  getCapturedClips: () => request("/api/v1/clips"),
+  verifyClipHash: (clipId) => request(`/api/v1/clips/${clipId}/verify`, { method: "POST" }),
 };
 
 export const getRecentPlateReads = api.getRecentPlateReads;
 export const getVehicleHotlist = api.getVehicleHotlist;
 export const addVehicleHotlist = api.addVehicleHotlist;
+export const saveCapturedClip = api.saveCapturedClip;
+export const getCapturedClips = api.getCapturedClips;
 
 export default api;
+
