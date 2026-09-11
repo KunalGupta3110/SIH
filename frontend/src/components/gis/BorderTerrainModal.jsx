@@ -1379,7 +1379,7 @@ export function DronePanel({ onClose, className = "" }) {
 
       <div className="relative">
         <video
-          src={feed === "uav" ? "/data/detected_output_web.mp4" : "/data/people_surveillance_web.mp4"}
+          src="/data/loc_board_firing.mp4"
           autoPlay
           loop
           muted

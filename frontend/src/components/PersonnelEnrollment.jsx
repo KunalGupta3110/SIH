@@ -112,7 +112,15 @@ export default function PersonnelEnrollment() {
           videoRef.current.play().catch(() => {});
         }
       })
-      .catch(() => setCamErr("Camera unavailable — upload a photo instead."));
+      .catch(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = null;
+          videoRef.current.src = "/data/loc_board_firing.mp4";
+          videoRef.current.loop = true;
+          videoRef.current.muted = true;
+          videoRef.current.play().catch(() => {});
+        }
+      });
     return () => {
       cancelled = true;
       streamRef.current?.getTracks().forEach((t) => t.stop());

@@ -17,6 +17,7 @@ import VideoDvrController from "./video/VideoDvrController.jsx";
 import ClipCaptureModal from "./video/ClipCaptureModal.jsx";
 import CapturedClipsVault from "./video/CapturedClipsVault.jsx";
 import { saveClipAndHashToPc, computeBlobSha256 } from "../lib/clipCapture.js";
+import { loadYoloSession, detectFrame } from "../lib/clientYolo.js";
 
 // 3D border-terrain map — code-split (pulls in three.js) so it only loads
 // when the operator opens the Border Map view.
@@ -449,14 +450,51 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
   }, []);
 
   // Live CCTV Threat Ingress Lab State (Interactive car / intruder moving towards camera)
-  const [ingressScenario, setIngressScenario] = useState("vehicle"); // 'vehicle' | 'person'
-  const [ingressDistance, setIngressDistance] = useState(110); // 150m down to 10m (safe distance default)
+  const [ingressScenario, setIngressScenario] = useState("all"); // 'all' | 'person' | 'vehicle'
+  const [ingressDistance, setIngressDistance] = useState(42);
   const [isIngressSimulating, setIsIngressSimulating] = useState(false);
   const [webcamActive, setWebcamActive] = useState(false);
+  const [liveAiDetections, setLiveAiDetections] = useState([]);
   const videoWebcamRef = useRef(null);
   const surveillanceVideoRef = useRef(null);
   const ptzVideoRef = useRef(null);
   const [isCapturingFrame, setIsCapturingFrame] = useState(false);
+
+  // Run real-time YOLOv8 AI inference on the active surveillance video
+  useEffect(() => {
+    let active = true;
+    let timer = null;
+    let session = null;
+
+    const initYolo = async () => {
+      try {
+        session = await loadYoloSession();
+      } catch (err) {
+        console.warn("[YOLO] Model session load:", err);
+      }
+
+      const runLoop = async () => {
+        if (!active) return;
+        const video = surveillanceVideoRef.current;
+        if (video && video.readyState >= 2 && !video.paused && session) {
+          try {
+            const dets = await detectFrame(session, video);
+            if (active && Array.isArray(dets)) {
+              setLiveAiDetections(dets);
+            }
+          } catch {}
+        }
+        if (active) timer = setTimeout(runLoop, 250);
+      };
+      runLoop();
+    };
+
+    initYolo();
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
 
   // Video Clip Capture & Tamper Protection State
   const [isClipModalOpen, setIsClipModalOpen] = useState(false);
@@ -756,7 +794,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
   // Camera list (6 cameras playing user uploaded clip)
   const baseCameras = useMemo(() => {
-    const customFeed = "/data/indiaarmy_movement.mp4";
+    const customFeed = "/data/loc_board_firing.mp4";
     return [
       { id: "CAM_ALPHA", name: "CAM_ALPHA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Perimeter Ingress", fps: "25.0", bitrate: "4.1 Mbps", res: "1920x1080", fov: "60°", azimuth: "042°", temp: "38.2°C" },
       { id: "CAM_BRAVO", name: "CAM_BRAVO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: true, label: "Person", conf: "0.94", tag: "Active Breach", fps: "24.8", bitrate: "4.4 Mbps", res: "1920x1080", fov: "65°", azimuth: "078°", temp: "39.4°C" },
@@ -2466,7 +2504,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <span className="font-bold text-white">CAM_ALPHA (Sector 4-B Ingress)</span>
                     <span className="text-emerald-400">● T=0s Frame</span>
                   </div>
-                  <video src="/data/reid_cam1_entry.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
+                  <video src="/data/loc_board_firing.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
                 </div>
 
                 <div className="rounded-2xl overflow-hidden bg-black border border-white/12 p-3 space-y-2 shadow-none">
@@ -2474,7 +2512,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <span className="font-bold text-white">CAM_BRAVO (Downstream Acquisition)</span>
                     <span className="text-white font-bold">● T=8.5s Re-ID Match</span>
                   </div>
-                  <video src="/data/reid_cam2_exit.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
+                  <video src="/data/loc_board_firing.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
                 </div>
               </div>
             </div>

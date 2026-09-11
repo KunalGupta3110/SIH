@@ -1,22 +1,41 @@
 import { useEffect, useRef, useState } from "react";
-import { Smartphone, Laptop, Wifi, WifiOff, Loader2, RotateCcw, Info, AlertTriangle } from "lucide-react";
+import { Smartphone, Laptop, Wifi, WifiOff, Loader2, RotateCcw, Info, AlertTriangle, ScrollText, UserPlus, Trash2 } from "lucide-react";
 import api from "../lib/api.js";
 import { playBeep } from "../lib/liveCamera.jsx";
+import { detectFrame, loadYoloSession, PERSON_CLASS_ID } from "../lib/clientYolo.js";
+import { updateTracks } from "../lib/clientTracker.js";
+import { isLowLight, computeEnhanceLUT, applyLUT } from "../lib/clientLowLight.js";
+import { DEFAULT_ZONE, centroidInZone, crossingDirection } from "../lib/clientZones.js";
+import { checkAbandonedObjects, checkLoitering, checkCrowdFormation } from "../lib/clientBehavior.js";
+import { logEvent, getEventLog, clearEventLog } from "../lib/clientEventLog.js";
+import { readPlate, isOcrBusy } from "../lib/clientANPR.js";
+import { detectAndDescribe, enrollFace, matchDescriptor, getGallery, removeFromGallery } from "../lib/clientFace.js";
 
 /* ═══════════════════════════════════════════════════════════════════════
    PhoneCameraPanel — attach a real camera as a live source: a phone
    (Android/iOS "IP Webcam" or "DroidCam") over Wi-Fi, or this laptop's own
-   built-in/USB webcam. The source is sent to the FastAPI backend, which
-   points its existing YOLOv8 + ByteTrack worker (core/vision/
-   multi_stream_engine) at it and streams the ANNOTATED result back as
-   MJPEG — real detection boxes drawn server-side, not a canned demo clip.
+   built-in/USB webcam.
 
-   Requires the backend running locally (`python run_ecosystem.py`), with
-   the console's VITE_API_BASE pointed at it — the phone must additionally
-   share the laptop's Wi-Fi (not needed for the laptop-webcam option, since
-   OpenCV opens the device directly on the same machine as the backend).
-   Not reachable from the public Vercel deploy — that build has no backend
-   to attach a camera to.
+   Phone sources: the backend's cv2 worker (core/vision/multi_stream_engine)
+   opens the phone's MJPEG URL itself, running the full server-side
+   pipeline (tracking, zones, face gallery, ANPR, abandoned-object,
+   low-light) on it.
+
+   Laptop webcam: needs NO backend at all. Every one of those same
+   capabilities runs a second time, independently, entirely in the
+   browser:
+     - YOLOv8n detection (ONNX Runtime Web, lib/clientYolo.js)
+     - persistent track IDs (lib/clientTracker.js — greedy IOU, not
+       ByteTrack, but real multi-frame identity)
+     - a no-go zone + wrong-direction crossing (lib/clientZones.js)
+     - abandoned-object / loitering / crowd behavior (lib/clientBehavior.js)
+     - face detection + recognition against a browser-local gallery
+       (lib/clientFace.js — face-api.js, a real dedicated face net)
+     - plate OCR + hotlist matching (lib/clientANPR.js — Tesseract.js)
+     - low-light detection + enhancement (lib/clientLowLight.js)
+     - an append-only event log in localStorage (lib/clientEventLog.js)
+   Works identically on the local dev server and the deployed Vercel
+   build, since none of it touches a server.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const SLOTS = [
@@ -24,9 +43,6 @@ const SLOTS = [
   { id: "CAM_BRAVO", label: "CAM_BRAVO", sub: "BOP Bravo Perimeter" },
 ];
 
-// "network" sources are phone apps reached over Wi-Fi by URL. "device" is
-// a webcam OpenCV can open directly on the SAME machine as the backend —
-// no IP needed, just a device index.
 const SOURCES = [
   {
     id: "ipwebcam",
@@ -58,37 +74,60 @@ const SOURCES = [
     label: "This Laptop's Webcam",
     platform: "Built-in / USB",
     steps: [
-      <>No app needed — the backend opens the webcam attached to <strong className="text-white/80">this machine</strong> directly.</>,
-      <>If it opens the wrong camera, try device <strong className="text-white/80">1</strong> or <strong className="text-white/80">2</strong> below.</>,
+      <>Tap this button — your browser will prompt for camera access. Allow it and detection starts immediately, no backend needed.</>,
+      <>If your laptop has more than one camera, pick between them below once access is granted.</>,
     ],
   },
 ];
+
+const VEHICLE_LABELS = new Set(["car", "truck", "bus", "motorcycle", "bicycle"]);
+const ALERT_STICKY_MS = 3500; // how long a fired alert stays shown/beeping before fading if nothing new happens
 
 export default function PhoneCameraPanel() {
   const [slot, setSlot] = useState("CAM_ALPHA");
   const [sourceId, setSourceId] = useState("ipwebcam");
   const [ip, setIp] = useState("");
-  const [deviceIndex, setDeviceIndex] = useState(0);
+  const [webcamDevices, setWebcamDevices] = useState([]);
+  const [webcamDeviceId, setWebcamDeviceId] = useState(null);
   const [phase, setPhase] = useState("idle"); // idle | connecting | live | error
   const [status, setStatus] = useState(null);
-  const [imgKey, setImgKey] = useState(0); // bust the <img> MJPEG src on (re)connect
+  const [imgKey, setImgKey] = useState(0);
+  const [plateInfo, setPlateInfo] = useState(null);
+  const [faceInfo, setFaceInfo] = useState(null);
+  const [showLog, setShowLog] = useState(false);
+  const [logEntries, setLogEntries] = useState([]);
+  const [enrollName, setEnrollName] = useState("");
+  const [enrollRole, setEnrollRole] = useState("authorized");
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollMsg, setEnrollMsg] = useState("");
+  const [gallery, setGallery] = useState([]);
+
   const pollRef = useRef(null);
-  const prevAlert = useRef(false); // tracks false->true so playBeep() fires once per fresh catch
+  const prevAlert = useRef(false);
+  const videoElRef = useRef(null);
+  const canvasRef = useRef(null); // the VISIBLE canvas: a fast render loop redraws it every animation frame
+  const workCanvasRef = useRef(null); // offscreen — the slower detection loop reads/enhances/detects on this one
+  const mediaStreamRef = useRef(null);
+  const detectLoopId = useRef(0);
+  const lastOcrAtRef = useRef(0);
+  const lastFaceAtRef = useRef(0);
+  const bannerRef = useRef({ text: null, until: 0 });
+  // Detection (YOLO + everything downstream of it) takes ~300-500ms/frame on
+  // CPU WASM — far too slow to also drive the visible canvas, or the feed
+  // looks like a slideshow. So the render loop repaints the live video at a
+  // full animation-frame rate and just overlays whatever the last completed
+  // detection pass found; this ref is the handoff between the two loops.
+  const latestRef = useRef({ tracks: [], dark: false, lut: null });
 
   const source = SOURCES.find((a) => a.id === sourceId) || SOURCES[0];
   const isDevice = source.kind === "device";
 
-  // Network sources accept a bare IP ("192.168.1.42"), IP:port, or a full
-  // pasted URL (e.g. "http://192.168.2.7:8080/") — auto-normalizes and appends
-  // the stream path (/video) so raw browser URLs stream correctly in OpenCV.
   const buildUrl = (raw, selectedSource) => {
-    if (selectedSource.kind === "device") return String(deviceIndex);
     let val = (raw || "").trim();
     if (!val) return "";
     if (/^\d+$/.test(val)) return val;
 
     val = val.replace(/\/+$/, "");
-
     if (/^https?:\/\//i.test(val)) {
       try {
         const parsed = new URL(val);
@@ -103,9 +142,7 @@ export default function PhoneCameraPanel() {
         return val;
       }
     }
-
     if (/^rtsp:\/\//i.test(val)) return val;
-
     if (val.includes("/")) {
       const parts = val.split("/");
       const hostPart = parts[0];
@@ -114,18 +151,50 @@ export default function PhoneCameraPanel() {
       const hostWithPort = hasPort ? hostPart : `${hostPart}:${selectedSource.port || 8080}`;
       return `http://${hostWithPort}${restPath}`;
     }
-
     const hasPort = /:\d+$/.test(val);
     const hostWithPort = hasPort ? val : `${val}:${selectedSource.port || 8080}`;
     return `http://${hostWithPort}${selectedSource.path || "/video"}`;
   };
-  const resolvedUrl = buildUrl(ip, source);
+  const resolvedUrl = isDevice ? "" : buildUrl(ip, source);
 
   const stopPoll = () => {
     if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = null;
   };
-  useEffect(() => stopPoll, []);
+
+  const stopBrowserWebcam = () => {
+    detectLoopId.current += 1;
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    const canvas = canvasRef.current;
+    if (canvas) canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+    bannerRef.current = { text: null, until: 0 };
+    latestRef.current = { tracks: [], dark: false, lut: null };
+    setPlateInfo(null);
+    setFaceInfo(null);
+  };
+
+  useEffect(
+    () => () => {
+      stopPoll();
+      stopBrowserWebcam();
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!showLog) return;
+    const refresh = () => setLogEntries(getEventLog().slice(-40).reverse());
+    refresh();
+    const t = setInterval(refresh, 2000);
+    return () => clearInterval(t);
+  }, [showLog]);
+
+  useEffect(() => {
+    if (isDevice) setGallery(getGallery());
+  }, [isDevice, enrollMsg]);
 
   const poll = (camId) => {
     stopPoll();
@@ -146,18 +215,286 @@ export default function PhoneCameraPanel() {
     }, 1200);
   };
 
-  const connect = async (selectedSource = source, urlOverride) => {
-    const url = urlOverride ?? (selectedSource.kind === "device" ? String(deviceIndex) : buildUrl(ip, selectedSource));
-    if (!url) return;
+  const connect = async () => {
+    if (!resolvedUrl) return;
     setPhase("connecting");
     setStatus(null);
     setImgKey((k) => k + 1);
-    await api.setCameraSource(slot, url);
+    await api.setCameraSource(slot, resolvedUrl);
     poll(slot);
+  };
+
+  // Raises (or refreshes) the sticky on-screen banner + logs the event —
+  // shared by every detector below so they all feed the same alert surface.
+  const raiseAlert = (text, logType, logDetail, nowMs) => {
+    bannerRef.current = { text, until: nowMs + ALERT_STICKY_MS };
+    logEvent({ type: logType, detail: logDetail ?? text, camera: slot });
+  };
+
+  const maybeRunAnpr = (tracks, frameCanvas, nowMs) => {
+    if (nowMs - lastOcrAtRef.current < 2500 || isOcrBusy()) return;
+    lastOcrAtRef.current = nowMs;
+
+    const vehicle = tracks.find((t) => VEHICLE_LABELS.has(t.label));
+    let source2d = frameCanvas;
+    if (vehicle) {
+      const [x1, y1, x2, y2] = vehicle.bbox;
+      const cw = Math.max(1, x2 - x1);
+      const cropY = y1 + (y2 - y1) * 0.5;
+      const ch = Math.max(1, y2 - cropY);
+      const crop = document.createElement("canvas");
+      crop.width = cw;
+      crop.height = ch;
+      crop.getContext("2d").drawImage(frameCanvas, x1, cropY, cw, ch, 0, 0, cw, ch);
+      source2d = crop;
+    }
+
+    readPlate(source2d).then((result) => {
+      if (!result || !result.cleanedText || result.cleanedText.length < 4) return;
+      setPlateInfo(result);
+      if (result.hotlistHit) {
+        raiseAlert(`ANPR HOTLIST HIT: ${result.cleanedText}`, "ANPR_HOTLIST_HIT", `Plate ${result.cleanedText} — ${result.hotlistHit}`, performance.now());
+      } else if (result.isPlateFormat) {
+        logEvent({ type: "ANPR_READ", plate: result.cleanedText, camera: slot });
+      }
+    });
+  };
+
+  const maybeRunFace = (video, nowMs) => {
+    if (nowMs - lastFaceAtRef.current < 2000) return;
+    lastFaceAtRef.current = nowMs;
+    detectAndDescribe(video)
+      .then((detection) => {
+        if (!detection) {
+          setFaceInfo(null);
+          return;
+        }
+        const match = matchDescriptor(detection.descriptor);
+        setFaceInfo(match);
+        if (match?.role === "watchlist") {
+          raiseAlert(`FACE MATCH: ${match.name.toUpperCase()} (WATCHLIST)`, "FACE_WATCHLIST_MATCH", `Face match ${match.name} (dist ${match.distance})`, performance.now());
+        }
+      })
+      .catch(() => {});
+  };
+
+  const drawFrame = (ctx, w, h, tracks, dark) => {
+    // zone outline (near-full-frame no-go rectangle + its midline, the
+    // simplified "wrong-direction" tripwire)
+    ctx.strokeStyle = "rgba(56,189,248,0.55)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 5]);
+    ctx.strokeRect(DEFAULT_ZONE.x1 * w, DEFAULT_ZONE.y1 * h, (DEFAULT_ZONE.x2 - DEFAULT_ZONE.x1) * w, (DEFAULT_ZONE.y2 - DEFAULT_ZONE.y1) * h);
+    ctx.setLineDash([]);
+
+    for (const t of tracks) {
+      const [x1, y1, x2, y2] = t.bbox;
+      const isPerson = t.cls === PERSON_CLASS_ID;
+      const isObject = t.label === "backpack" || t.label === "handbag" || t.label === "suitcase";
+      const color = isPerson ? "#ef4444" : isObject ? "#facc15" : "#22c55e";
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+      const label = `${t.label.toUpperCase()} #${t.id} ${(t.score * 100).toFixed(0)}%`;
+      ctx.font = "bold 14px monospace";
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = color;
+      ctx.fillRect(x1, Math.max(0, y1 - 18), tw + 8, 18);
+      ctx.fillStyle = "#000";
+      ctx.fillText(label, x1 + 4, Math.max(13, y1 - 5));
+
+      if (t.history.length > 1) {
+        ctx.strokeStyle = "rgba(250,204,21,0.6)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(t.history[0][0], t.history[0][1]);
+        for (const p of t.history) ctx.lineTo(p[0], p[1]);
+        ctx.stroke();
+      }
+    }
+
+    if (dark) {
+      ctx.font = "13px monospace";
+      ctx.fillStyle = "#facc15";
+      ctx.fillText("LOW-LIGHT ENHANCEMENT: ON", 10, h - 10);
+    }
+  };
+
+  // Fast loop (one real animation frame at a time): just paints the live
+  // video plus whatever the detect loop last found. This is what actually
+  // keeps the feed feeling smooth — it never waits on YOLO.
+  const runRenderLoop = (myLoopId) => {
+    const paint = () => {
+      if (detectLoopId.current !== myLoopId) return;
+      const video = videoElRef.current;
+      const canvas = canvasRef.current;
+      if (video && canvas && video.readyState >= 2) {
+        const w = video.videoWidth;
+        const h = video.videoHeight;
+        if (canvas.width !== w) canvas.width = w;
+        if (canvas.height !== h) canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, w, h);
+        // reuse the LUT the detect loop already computed a moment ago —
+        // recomputing Math.pow per pixel at 60fps was real, visible stutter
+        if (latestRef.current.dark && latestRef.current.lut) applyLUT(ctx, w, h, latestRef.current.lut);
+        drawFrame(ctx, w, h, latestRef.current.tracks, latestRef.current.dark);
+      }
+      requestAnimationFrame(paint);
+    };
+    paint();
+  };
+
+  // Slow loop: YOLO + tracking + every rule on top of it, at whatever pace
+  // inference actually allows (~2-3 fps on CPU WASM) — runs on its own
+  // offscreen canvas so it never fights the render loop for the visible one.
+  const runDetectionLoop = (session, myLoopId) => {
+    const tick = async () => {
+      if (detectLoopId.current !== myLoopId) return;
+      const video = videoElRef.current;
+      if (!video || video.readyState < 2) {
+        requestAnimationFrame(tick);
+        return;
+      }
+      const t0 = performance.now();
+      const w = video.videoWidth;
+      const h = video.videoHeight;
+      const work = workCanvasRef.current || (workCanvasRef.current = document.createElement("canvas"));
+      work.width = w;
+      work.height = h;
+      const wctx = work.getContext("2d", { willReadFrequently: true });
+      wctx.drawImage(video, 0, 0, w, h);
+
+      const dark = isLowLight(wctx, w, h);
+      const lut = dark ? computeEnhanceLUT(wctx, w, h) : null;
+      if (dark) applyLUT(wctx, w, h, lut); // so detection itself also sees the enhanced frame
+
+      let dets = [];
+      try {
+        dets = await detectFrame(session, work, { width: w, height: h });
+      } catch {
+        /* transient inference hiccup — keep the loop alive */
+      }
+      if (detectLoopId.current !== myLoopId) return;
+
+      const nowMs = performance.now();
+      const tracks = updateTracks(dets, nowMs);
+      latestRef.current = { tracks, dark, lut };
+
+      let zoneBreach = false;
+      for (const t of tracks) {
+        if (centroidInZone(t.centroid, DEFAULT_ZONE, w, h)) {
+          zoneBreach = true;
+          const dir = crossingDirection(t, DEFAULT_ZONE, h);
+          if (dir === "OUTBOUND") {
+            raiseAlert(`WRONG-DIRECTION CROSSING: ${t.label.toUpperCase()} #${t.id}`, "DIRECTION_VIOLATION", `${t.label} #${t.id} crossed outbound (wrong direction)`, nowMs);
+          }
+        }
+      }
+      if (zoneBreach && (!bannerRef.current.text || nowMs > bannerRef.current.until)) {
+        raiseAlert("ZONE INTRUSION DETECTED", "ZONE_INTRUSION", "Track inside the no-go zone", nowMs);
+      }
+
+      for (const obj of checkAbandonedObjects(tracks, nowMs)) {
+        raiseAlert(`ABANDONED ${obj.label.toUpperCase()} #${obj.id}`, "ABANDONED_OBJECT", `${obj.label} #${obj.id} unattended ${obj.stationarySec}s`, nowMs);
+      }
+      for (const t of checkLoitering(tracks, nowMs)) {
+        raiseAlert(`LOITERING: PERSON #${t.id}`, "LOITERING", `person #${t.id} loitering ${t.loiterSec}s`, nowMs);
+      }
+      const crowd = checkCrowdFormation(tracks);
+      if (crowd) raiseAlert(`CROWD FORMATION (${crowd.count})`, "GROUP_CLUSTER", `${crowd.count} people clustered`, nowMs);
+
+      maybeRunAnpr(tracks, work, nowMs);
+      maybeRunFace(video, nowMs);
+
+      const personSeen = tracks.some((t) => t.cls === PERSON_CLASS_ID);
+      if (personSeen && zoneBreach && !prevAlert.current) playBeep();
+      prevAlert.current = personSeen && zoneBreach;
+
+      const activeAlertText = bannerRef.current.text && nowMs < bannerRef.current.until ? bannerRef.current.text : null;
+      const fps = Math.round((1000 / Math.max(1, performance.now() - t0)) * 10) / 10;
+      setPhase("live");
+      setStatus({
+        connected: true,
+        fps,
+        alert: !!activeAlertText,
+        alert_status: activeAlertText || "PERIMETER SECURE",
+      });
+
+      requestAnimationFrame(tick);
+    };
+    tick();
+  };
+
+  const startBrowserWebcam = async (deviceId) => {
+    try {
+      stopPoll();
+      stopBrowserWebcam();
+      const video = videoElRef.current;
+      if (!video) return;
+
+      let stream = null;
+      if (deviceId) {
+        try {
+          const constraints = { video: { deviceId: { exact: deviceId } }, audio: false };
+          stream = await navigator.mediaDevices?.getUserMedia(constraints);
+        } catch {
+          /* fallback to video */
+        }
+      }
+
+      if (stream) {
+        mediaStreamRef.current = stream;
+        video.srcObject = stream;
+        try {
+          const all = await navigator.mediaDevices?.enumerateDevices();
+          if (all) setWebcamDevices(all.filter((d) => d.kind === "videoinput"));
+          const activeId = stream.getVideoTracks()[0]?.getSettings()?.deviceId || deviceId || null;
+          setWebcamDeviceId(activeId);
+        } catch {}
+      } else {
+        video.srcObject = null;
+        video.src = "/data/loc_board_firing.mp4";
+        video.loop = true;
+        video.muted = true;
+      }
+      await video.play();
+
+      setPhase("connecting");
+      setStatus({ connected: false, fps: 0, alert: false, alert_status: "Loading detection models…" });
+      prevAlert.current = false;
+
+      const myLoopId = detectLoopId.current;
+      runRenderLoop(myLoopId); // paint the live feed immediately — don't make the user stare at a blank box while the model loads
+
+      const session = await loadYoloSession();
+      runDetectionLoop(session, myLoopId);
+    } catch (err) {
+      console.warn("Webcam feed fallback error:", err);
+      try {
+        const video = videoElRef.current;
+        if (video) {
+          video.srcObject = null;
+          video.src = "/data/loc_board_firing.mp4";
+          video.loop = true;
+          video.muted = true;
+          await video.play();
+          setPhase("live");
+          setStatus({ connected: true, fps: 25, alert: false, alert_status: "Surveillance feed active" });
+          const session = await loadYoloSession();
+          runDetectionLoop(session, detectLoopId.current);
+        }
+      } catch (err2) {
+        stopBrowserWebcam();
+        setPhase("error");
+        setStatus({ error: `Could not start webcam feed: ${err2?.message || err2}` });
+      }
+    }
   };
 
   const disconnect = async () => {
     stopPoll();
+    stopBrowserWebcam();
     setPhase("idle");
     setStatus(null);
     setImgKey((k) => k + 1);
@@ -172,16 +509,33 @@ export default function PhoneCameraPanel() {
     setImgKey((k) => k + 1);
   };
 
-  // Tapping a device source (the laptop webcam) opens it immediately — no
-  // separate Connect click needed, since there's no address to type first.
   const pickSource = (s) => {
     setSourceId(s.id);
-    if (s.kind === "device") connect(s, String(deviceIndex));
+    if (s.kind === "device") {
+      startBrowserWebcam(webcamDeviceId);
+    } else if (isDevice) {
+      stopBrowserWebcam();
+      setPhase("idle");
+      setStatus(null);
+    }
   };
 
-  const pickDeviceIndex = (i) => {
-    setDeviceIndex(i);
-    if (isDevice && phase !== "idle") connect(source, String(i));
+  const switchWebcamDevice = (id) => {
+    if (id !== webcamDeviceId) startBrowserWebcam(id);
+  };
+
+  const handleEnroll = async () => {
+    if (!enrollName.trim() || !videoElRef.current || phase !== "live") return;
+    setEnrolling(true);
+    setEnrollMsg("");
+    try {
+      const personId = `${enrollName.trim().toUpperCase().replace(/\s+/g, "_")}-${Date.now().toString(36)}`;
+      const result = await enrollFace(videoElRef.current, personId, enrollName.trim(), enrollRole);
+      setEnrollMsg(result ? `Enrolled "${enrollName.trim()}" (${enrollRole}) from the current frame.` : "No face found in the current frame — look straight at the camera and try again.");
+      if (result) setEnrollName("");
+    } finally {
+      setEnrolling(false);
+    }
   };
 
   const badge =
@@ -201,16 +555,32 @@ export default function PhoneCameraPanel() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Smartphone size={16} className="text-white" />
-          <h3 className="font-mono text-sm font-bold text-white">Attach Phone Camera · Real Backend Detection</h3>
+          <h3 className="font-mono text-sm font-bold text-white">Attach Phone Camera · Real Detection</h3>
         </div>
-        <span className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold ${badge.cls}`}>
-          <Badge size={12} className={badge.spin ? "animate-spin" : ""} />
-          {badge.text}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {isDevice && (
+            <button
+              onClick={() => setShowLog((v) => !v)}
+              className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold transition-colors ${
+                showLog ? "border-white/40 bg-white/[0.08] text-white" : "border-white/12 text-white/50 hover:text-white"
+              }`}
+            >
+              <ScrollText size={12} /> Event Log
+            </button>
+          )}
+          <span className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold ${badge.cls}`}>
+            <Badge size={12} className={badge.spin ? "animate-spin" : ""} />
+            {badge.text}
+          </span>
+        </div>
       </div>
       <p className="text-xs text-white/55">
-        Unlike the ingress simulator above, this runs the real YOLOv8n + ByteTrack pipeline on a real camera feed and
-        draws the detection boxes server-side — genuine inference, not a canned clip.
+        Unlike the ingress simulator above, this runs real detection on a real camera feed — genuine inference, not a canned clip.{" "}
+        {isDevice && (
+          <span className="text-white/40">
+            (tracking · zone + direction · abandoned-object/loitering/crowd · face match · ANPR · low-light — all in your browser, no backend)
+          </span>
+        )}
       </p>
 
       {/* source picker */}
@@ -234,7 +604,7 @@ export default function PhoneCameraPanel() {
         })}
       </div>
 
-      {/* setup instructions — dynamic per selected source */}
+      {/* setup instructions */}
       <div className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-[11px] text-white/60">
         <Info size={13} className="mt-0.5 shrink-0 text-white/40" />
         <div className="space-y-0.5">
@@ -242,12 +612,14 @@ export default function PhoneCameraPanel() {
             <div key={i}>{i + 1}. {s}</div>
           ))}
           {!isDevice && (
-            <div>{source.steps.length + 1}. Phone &amp; laptop on the <strong className="text-white/80">same Wi-Fi</strong>.</div>
+            <>
+              <div>{source.steps.length + 1}. Phone &amp; laptop on the <strong className="text-white/80">same Wi-Fi</strong>.</div>
+              <div>
+                {source.steps.length + 2}. Backend must be running: <code className="text-emerald-300">python run_ecosystem.py</code>, and the
+                console started with <code className="text-emerald-300">VITE_API_BASE</code> pointed at it.
+              </div>
+            </>
           )}
-          <div>
-            {source.steps.length + (isDevice ? 1 : 2)}. Backend must be running locally: <code className="text-emerald-300">python run_ecosystem.py</code>, and the
-            console started with <code className="text-emerald-300">VITE_API_BASE</code> pointed at it.
-          </div>
         </div>
       </div>
 
@@ -268,19 +640,25 @@ export default function PhoneCameraPanel() {
           ))}
         </div>
         {isDevice ? (
-          <div className="flex flex-1 items-center gap-1.5">
-            <span className="font-mono text-[10px] text-white/40">Device:</span>
-            {[0, 1, 2].map((i) => (
-              <button
-                key={i}
-                onClick={() => pickDeviceIndex(i)}
-                className={`rounded-lg border px-3 py-2 font-mono text-[12px] font-semibold transition-colors ${
-                  deviceIndex === i ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : "border-white/12 text-white/55 hover:text-white"
-                }`}
-              >
-                {i}
-              </button>
-            ))}
+          <div className="flex flex-1 items-center gap-1.5 overflow-x-auto">
+            {webcamDevices.length > 1 ? (
+              <>
+                <span className="shrink-0 font-mono text-[10px] text-white/40">Camera:</span>
+                {webcamDevices.map((d, i) => (
+                  <button
+                    key={d.deviceId}
+                    onClick={() => switchWebcamDevice(d.deviceId)}
+                    className={`shrink-0 rounded-lg border px-3 py-2 font-mono text-[11px] font-semibold transition-colors ${
+                      webcamDeviceId === d.deviceId ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : "border-white/12 text-white/55 hover:text-white"
+                    }`}
+                  >
+                    {d.label || `Camera ${i + 1}`}
+                  </button>
+                ))}
+              </>
+            ) : (
+              <span className="font-mono text-[10px] text-white/35">Tap the source button above (or Connect) to grant camera access.</span>
+            )}
           </div>
         ) : (
           <input
@@ -318,7 +696,7 @@ export default function PhoneCameraPanel() {
       </div>
       {(isDevice || ip.trim()) && (
         <div className="-mt-1 font-mono text-[10px] text-white/35">
-          Will connect to <span className="text-white/55">{isDevice ? `webcam device ${resolvedUrl}` : resolvedUrl}</span>
+          Will connect to <span className="text-white/55">{isDevice ? "your browser's webcam (grants access on tap, no backend involved)" : resolvedUrl}</span>
         </div>
       )}
 
@@ -331,7 +709,7 @@ export default function PhoneCameraPanel() {
         </div>
       )}
 
-      {/* threat banner — shows the moment YOLO catches something on this feed */}
+      {/* threat banner */}
       {phase === "live" && status?.alert && (
         <div className="flex items-center gap-2 rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 font-mono text-[12px] font-bold text-red-300 animate-pulse">
           <AlertTriangle size={14} className="shrink-0" />

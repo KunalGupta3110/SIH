@@ -97,6 +97,7 @@ class IncidentCorrelationEngine:
         loitering_sec: float = 0.0,
         predictive_handoff_confirmed: bool = False,
         thumbnail_path: Optional[str] = None,
+        is_night_time: bool = False,
     ) -> CorrelatedIncident:
         curr_time = datetime.now(timezone.utc).isoformat()
         
@@ -115,6 +116,7 @@ class IncidentCorrelationEngine:
                 loitering_sec=loitering_sec,
                 predictive_handoff_confirmed=predictive_handoff_confirmed,
                 target_class=target_class,
+                is_night_time=is_night_time,
             )
 
             inc = CorrelatedIncident(

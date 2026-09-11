@@ -421,6 +421,31 @@ def enroll_person(payload: EnrollPersonRequest):
     return {"status": "enrolled", **person}
 
 
+@app.post("/enrollment/people/{person_id}/photo")
+@app.post("/v1/enrollment/people/{person_id}/photo")
+async def enroll_person_photo(
+    person_id: str,
+    name: str = Form(...),
+    role: str = Form("authorized"),
+    notes: Optional[str] = Form(None),
+    photo: UploadFile = File(...),
+):
+    """Multipart variant of POST /enrollment/people — saves the uploaded
+    photo to disk and enrolls against it directly, so the live face-
+    recognition gallery (core/vision/face_recognition.py) has a real
+    photo to derive an embedding from instead of requiring the caller to
+    precompute one client-side."""
+    faces_dir = os.path.join(ROOT_DIR, "data", "enrolled_faces")
+    os.makedirs(faces_dir, exist_ok=True)
+    ext = os.path.splitext(photo.filename or "")[1] or ".jpg"
+    dest_path = os.path.join(faces_dir, f"{person_id}{ext}")
+    content = await photo.read()
+    with open(dest_path, "wb") as f:
+        f.write(content)
+    person = get_backend().enroll_person(person_id=person_id, name=name, role=role, photo_path=dest_path, notes=notes)
+    return {"status": "enrolled", **person}
+
+
 @app.post("/events/simulate-handoff")
 @app.post("/v1/events/simulate-handoff")
 async def simulate_handoff():
@@ -737,6 +762,22 @@ def get_camera_source(camera_id: str):
         "alert": is_alert,
         "alert_status": cam.alert_status_text if is_alert else ("PERIMETER SECURE" if cam.connected else "CONNECTING..."),
     }
+
+
+@app.post("/cameras/{camera_id}/push-frame")
+@app.post("/v1/cameras/{camera_id}/push-frame")
+async def push_camera_frame(camera_id: str, request: Request):
+    """Ingest one JPEG frame captured by a browser's own getUserMedia feed
+    (raw bytes as the request body). Used for the "browser" source mode —
+    set via POST .../set-source {"source": "browser"} first — where the
+    webcam is attached to the VIEWER's machine, not this backend, so the
+    server can't open it itself via cv2.VideoCapture."""
+    cam = _stream_manager().get_camera(camera_id)
+    if not cam:
+        raise HTTPException(status_code=404, detail="Unknown camera_id")
+    body = await request.body()
+    cam.ingest_pushed_frame(body)
+    return {"camera_id": camera_id, "connected": cam.is_connected, "fps": round(cam.fps, 1)}
 
 
 # ---------------------------------------------------------------------------

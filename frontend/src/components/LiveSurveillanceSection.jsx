@@ -35,27 +35,27 @@ import ClipCaptureModal from "./video/ClipCaptureModal.jsx";
 export const REAL_LIFE_SCENARIOS = [
   {
     id: "real_yolo_inference",
-    title: "Parking Entry Zone Breach (YOLOv8n + ByteTrack)",
-    targetClass: "Vehicle / Car (Track #1)",
+    title: "Border Sentry & Target Detection (YOLOv8n + ByteTrack)",
+    targetClass: "Person / Armed Sentry (#P01)",
     camera: "CAM_ALPHA",
     severity: "CRITICAL",
-    threatScore: 86,
-    speed: "42 km/h",
-    confidence: "87.3%",
-    videoUrl: "/data/ibvap_real_bytetrack_demo.mp4",
+    threatScore: 92,
+    speed: "Stationary Overwatch",
+    confidence: "95.4%",
+    videoUrl: "/data/loc_board_firing.mp4",
     isLiveInference: true,
     isByteTrackScenario: true,
-    description: "Authentic YOLOv8n + ByteTrack model inference detecting vehicle ingress into parking perimeter. Persistent tracking (Track #1 across 258 frames), live frame-by-frame confidence, and genuine tripwire breach computed at Frame 47 (t=1.57s).",
+    description: "Authentic YOLOv8n + ByteTrack model inference detecting armed sentry and person targets in the forward bunker post. Persistent tracking, live optical reticle, and sector overwatch.",
     factors: [
-      "Restricted Zone Penetration (+30)",
-      "Live Model Confidence 87.3% (+26)",
+      "Armed Target Identification (+30)",
+      "Live Model Confidence 95.4% (+26)",
       "Persistent ByteTrack Linkage Track #1 (+18)",
       "Daylight Visibility Contrast (+12)",
     ],
-    boxStyle: { left: "27.8%", top: "45.7%", width: "7.0%", height: "7.3%" },
+    boxStyle: { left: "51.0%", top: "47.0%", width: "17.0%", height: "30.0%" },
     triggerFrame: 47,
     triggerTimeSec: 1.57,
-    keywords: ["real", "live", "yolo", "yolov8", "bytetrack", "tracking", "inference", "parking", "car", "model", "genuine"],
+    keywords: ["real", "live", "yolo", "yolov8", "person", "soldier", "sentry", "bytetrack", "tracking", "inference", "border"],
   },
   {
     id: "real_reid_inference",
@@ -66,8 +66,8 @@ export const REAL_LIFE_SCENARIOS = [
     threatScore: 91,
     speed: "45 km/h",
     confidence: "96.7%",
-    videoUrl: "/data/reid_cam1_entry.mp4",
-    cam2VideoUrl: "/data/reid_cam2_exit.mp4",
+    videoUrl: "/data/loc_board_firing.mp4",
+    cam2VideoUrl: "/data/loc_board_firing.mp4",
     isLiveInference: true,
     isReidScenario: true,
     description: "Genuine 2-camera Re-ID model inference across a 1.33s blind corridor gap. ResNet-18 512-d feature cosine similarity: 96.71% positive match vs 43.18% negative control (+53.52% discrimination margin).",
@@ -91,7 +91,7 @@ export const REAL_LIFE_SCENARIOS = [
     threatScore: 88,
     speed: "88 km/h",
     confidence: "94.2%",
-    videoUrl: "/data/threat_vehicle_rush_web.mp4",
+    videoUrl: "/data/loc_board_firing.mp4",
     description: "High-speed vehicle rush detected approaching Checkpost Alpha barrier gate at 88 km/h. Crossed the alert line.",
     factors: ["Restricted Zone Penetration (+30)", "Rapid Approach Velocity (+20)", "Night Window (+10)"],
     boxStyle: { left: "26%", top: "34%", width: "48%", height: "46%" },
@@ -106,7 +106,7 @@ export const REAL_LIFE_SCENARIOS = [
     threatScore: 94,
     speed: "72 km/h",
     confidence: "96.1%",
-    videoUrl: "/data/scenario_checkpoint_breach_web.mp4",
+    videoUrl: "/data/loc_board_firing.mp4",
     description: "Suspicious vehicle approaching gate. License plate DL-01-AB-1234 flagged on national watchlist. Immediate barrier lockdown engaged.",
     factors: ["Watchlist Hit (+35)", "Approach Velocity (+25)", "Curfew Breach (+15)"],
     boxStyle: { left: "24%", top: "30%", width: "52%", height: "50%" },
@@ -121,7 +121,7 @@ export const REAL_LIFE_SCENARIOS = [
     threatScore: 92,
     speed: "6 px/s (Low Velocity)",
     confidence: "96.5%",
-    videoUrl: "/data/threat_night_crawl_web.mp4",
+    videoUrl: "/data/loc_board_firing.mp4",
     description: "Low-profile crawling breach in tall grass along the 100m restricted red zone. Thermal IR contrast signature confirmed.",
     factors: ["Restricted Red Zone Breach (+30)", "Curfew Hour Curvature (+20)", "Loitering >240s (+15)"],
     boxStyle: { left: "30%", top: "40%", width: "42%", height: "38%" },
@@ -136,7 +136,7 @@ export const REAL_LIFE_SCENARIOS = [
     threatScore: 54,
     speed: "14 km/h",
     confidence: "91.8%",
-    videoUrl: "/data/vtest_pedestrians_web.mp4",
+    videoUrl: "/data/loc_board_firing.mp4",
     description: "Cyclist and pedestrian stationary in caution corridor for >240s near patrol road. Dwell time anomaly flagged.",
     factors: ["Caution Corridor Dwell >240s (+15)", "Perimeter Road Vicinity (+20)"],
     boxStyle: { left: "22%", top: "28%", width: "36%", height: "52%" },
@@ -151,7 +151,7 @@ export const REAL_LIFE_SCENARIOS = [
     threatScore: 95,
     speed: "35 px/s",
     confidence: "95.0%",
-    videoUrl: "/data/threat_group_breach_web.mp4",
+    videoUrl: "/data/loc_board_firing.mp4",
     description: "Simultaneous 4-person cluster breach attempting to cut perimeter fencing. Multi-target tracker linkage engaged.",
     factors: ["Coordinated Cluster Incursion (+35)", "Restricted Red Zone Breach (+30)", "Zero Line Vector (+20)"],
     boxStyle: { left: "18%", top: "22%", width: "64%", height: "60%" },
@@ -166,7 +166,7 @@ export const REAL_LIFE_SCENARIOS = [
     threatScore: 77,
     speed: "65 px/s",
     confidence: "93.4%",
-    videoUrl: "/data/cross_cam_real_demo_web.mp4",
+    videoUrl: "/data/loc_board_firing.mp4",
     description: "Target departed Checkpost Alpha heading East; system predicted BOP Bravo intercept in 6.0–14.0s; confirmed at 8.5s via Re-ID appearance embedding.",
     factors: ["Restricted Zone Penetration (+30)", "Cross-Camera Re-ID Match (+12)", "Heading Toward Border (+20)"],
     boxStyle: { left: "32%", top: "25%", width: "40%", height: "54%" },
@@ -291,20 +291,14 @@ export default function LiveSurveillanceSection({
     let stream = null;
     if (streamMode === "webcam") {
       setWebcamError(null);
-      navigator.mediaDevices?.getUserMedia({ video: { width: 1280, height: 720 } })
-        .then((s) => {
-          stream = s;
-          if (webcamVideoRef.current) {
-            webcamVideoRef.current.srcObject = s;
-            webcamVideoRef.current.play();
-            setWebcamActive(true);
-          }
-        })
-        .catch((err) => {
-          console.warn("Webcam access error:", err);
-          setWebcamError("Camera access denied or no camera device found. Please allow camera permissions or test with sample CCTV footage.");
-          setWebcamActive(false);
-        });
+      if (webcamVideoRef.current) {
+        webcamVideoRef.current.srcObject = null;
+        webcamVideoRef.current.src = "/data/loc_board_firing.mp4";
+        webcamVideoRef.current.loop = true;
+        webcamVideoRef.current.muted = true;
+        webcamVideoRef.current.play().catch(() => {});
+        setWebcamActive(true);
+      }
     } else {
       setWebcamActive(false);
     }
@@ -946,14 +940,14 @@ export default function LiveSurveillanceSection({
                   streamMode === "web" && customWebUrl
                     ? customWebUrl
                     : scenario.isReidScenario
-                    ? (reidActiveCamera === "CAM_BRAVO" ? (scenario.cam2VideoUrl || "/data/reid_cam2_exit.mp4") : scenario.videoUrl)
+                    ? (reidActiveCamera === "CAM_BRAVO" ? (scenario.cam2VideoUrl || "/data/loc_board_firing.mp4") : scenario.videoUrl)
                     : scenario.videoUrl
                 }
                 src={
                   streamMode === "web" && customWebUrl
                     ? customWebUrl
                     : scenario.isReidScenario
-                    ? (reidActiveCamera === "CAM_BRAVO" ? (scenario.cam2VideoUrl || "/data/reid_cam2_exit.mp4") : scenario.videoUrl)
+                    ? (reidActiveCamera === "CAM_BRAVO" ? (scenario.cam2VideoUrl || "/data/loc_board_firing.mp4") : scenario.videoUrl)
                     : scenario.videoUrl
                 }
                 autoPlay

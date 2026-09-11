@@ -206,10 +206,10 @@ const LIVE_TRACKS = [
 
 // The four Re-ID hops — camera, wall-clock, match score against the previous hop.
 const REID_HOPS = [
-  { cam: "CAM_ALPHA", role: "Ingress approach", t: "20:14:07", match: null, src: "/data/ibvap_real_yolo_demo.mp4" },
-  { cam: "CAM_BRAVO", role: "Perimeter fence", t: "20:14:08", match: 91.4, src: "/data/cross_cam_real_demo_web.mp4" },
-  { cam: "CAM_CHARLIE", role: "River bend", t: "20:15:33", match: 88.1, src: "/data/people_surveillance_web.mp4" },
-  { cam: "CAM_DELTA", role: "East spur", t: "20:16:22", match: 85.7, src: "/data/people_surveillance_web.mp4" },
+  { cam: "CAM_ALPHA", role: "Ingress approach", t: "20:14:07", match: null, src: "/data/loc_board_firing.mp4" },
+  { cam: "CAM_BRAVO", role: "Perimeter fence", t: "20:14:08", match: 91.4, src: "/data/loc_board_firing.mp4" },
+  { cam: "CAM_CHARLIE", role: "River bend", t: "20:15:33", match: 88.1, src: "/data/loc_board_firing.mp4" },
+  { cam: "CAM_DELTA", role: "East spur", t: "20:16:22", match: 85.7, src: "/data/loc_board_firing.mp4" },
 ];
 
 // 2×2 anchor points (percent of the connector box) + the curved handoff paths.
@@ -662,7 +662,7 @@ export default function LandingPage() {
               {/* focus tile — enlarged active detection + live track readout */}
               <Reveal className="grid gap-0 border border-white/15 sm:grid-cols-[1.5fr_1fr]">
                 <div className="relative">
-                  <video src="/data/cross_cam_real_demo_web.mp4" autoPlay loop muted playsInline className="aspect-video w-full object-cover grayscale contrast-110 brightness-105" />
+                  <video src="/data/loc_board_firing.mp4" autoPlay loop muted playsInline className="aspect-video w-full object-cover grayscale contrast-110 brightness-105" />
                   <Corners />
                   <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2.5 font-mono text-[9px]">
                     <div className="flex items-start justify-between">
@@ -701,9 +701,9 @@ export default function LandingPage() {
               </Reveal>
 
               <div className="grid gap-4 sm:grid-cols-3">
-                <VideoTile src="/data/ibvap_real_yolo_demo.mp4" cam="CAM_ALPHA" note="Ingress approach" detected="PERSON 0.87" />
-                <VideoTile src="/data/detected_output_web.mp4" cam="CAM_CHARLIE" note="Ridge approach" />
-                <VideoTile src="/data/people_surveillance_web.mp4" cam="CAM_DELTA" note="Patrol road" />
+                <VideoTile src="/data/loc_board_firing.mp4" cam="CAM_ALPHA" note="Ingress approach" detected="PERSON 0.87" />
+                <VideoTile src="/data/loc_board_firing.mp4" cam="CAM_CHARLIE" note="Ridge approach" />
+                <VideoTile src="/data/loc_board_firing.mp4" cam="CAM_DELTA" note="Patrol road" />
               </div>
             </div>
 
