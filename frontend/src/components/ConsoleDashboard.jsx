@@ -161,6 +161,8 @@ function DynamicAiTrackingOverlay({ videoRef, isEnabled = true, tracksUrl = "/da
     if (!video) return;
 
     let rafId;
+    let lastValidBoxes = [];
+    let lastValidTime = 0;
 
     const findBoxes = (t) => {
       const timeline = tracksRef.current;
@@ -177,7 +179,15 @@ function DynamicAiTrackingOverlay({ videoRef, isEnabled = true, tracksUrl = "/da
       }
       const sample = timeline[idx];
       if (sample && Math.abs(sample.t - t) < 1.5) {
-        return sample.boxes || [];
+        if (sample.boxes && sample.boxes.length > 0) {
+          lastValidBoxes = sample.boxes;
+          lastValidTime = t;
+          return sample.boxes;
+        }
+      }
+      // Smooth 0.7s hold during fast turns or partial occlusion
+      if (t - lastValidTime < 0.7) {
+        return lastValidBoxes;
       }
       return [];
     };
