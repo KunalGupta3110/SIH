@@ -23,6 +23,7 @@ from core.database.incident_graph import correlate_border_event
 from core.rules.predictive_handoff import PredictiveHandoffEngine
 from core.rules.sound_alerts import play_alert
 from core.rules.zones import Zone, ZoneManager, ZoneType
+from core.vision.multi_stream_engine import normalize_camera_source
 from core.vision.reid import FeatureExtractor
 from core.vision.tracker import BorderTracker
 from services.hardware_bridge.serial_controller import trigger_physical_breach
@@ -38,12 +39,24 @@ def run_live_tester(cam1_src="0", cam2_src="data/vtest_pedestrians.avi", show=Tr
     print(" Connect Phone Cameras (RTSP/HTTP), Laptop Webcams, or Real CCTV Footage!")
     print("="*75 + "\n")
 
+    cam1_src = normalize_camera_source(cam1_src)
+    cam2_src = normalize_camera_source(cam2_src)
+
     # Resolve video capture arguments
-    src1 = int(cam1_src) if str(cam1_src).isdigit() else (os.path.join(ROOT_DIR, cam1_src) if not cam1_src.startswith("http") and not os.path.isabs(cam1_src) else cam1_src)
-    src2 = int(cam2_src) if str(cam2_src).isdigit() else (os.path.join(ROOT_DIR, cam2_src) if not cam2_src.startswith("http") and not os.path.isabs(cam2_src) else cam2_src)
+    src1 = int(cam1_src) if str(cam1_src).isdigit() else (os.path.join(ROOT_DIR, cam1_src) if not cam1_src.startswith("http") and not cam1_src.startswith("rtsp") and not os.path.isabs(cam1_src) else cam1_src)
+    src2 = int(cam2_src) if str(cam2_src).isdigit() else (os.path.join(ROOT_DIR, cam2_src) if not cam2_src.startswith("http") and not cam2_src.startswith("rtsp") and not os.path.isabs(cam2_src) else cam2_src)
 
     cap1 = cv2.VideoCapture(src1)
+    try:
+        cap1.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    except Exception:
+        pass
+
     cap2 = cv2.VideoCapture(src2)
+    try:
+        cap2.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    except Exception:
+        pass
 
     if not cap1.isOpened():
         print(f"[Warning] Could not open Cam 1: {cam1_src}. Fallback to sample video.")

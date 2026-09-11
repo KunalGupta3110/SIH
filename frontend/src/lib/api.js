@@ -1,7 +1,11 @@
 // IBVAP Sentinel — frontend/src/lib/api.js
 // Universal API Client with Authentic Web Crypto SHA-256 Verification & Topology Handoff Engine.
 
-const BASE = import.meta.env.VITE_API_BASE || window.location.origin;
+const BASE =
+  import.meta.env.VITE_API_BASE ||
+  (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "8000"
+    ? "http://localhost:8000"
+    : (typeof window !== "undefined" ? window.location.origin : "http://localhost:8000"));
 export const API_BASE = BASE;
 
 // Canonical Genesis Block Hash matching backend/evidence_ledger.py

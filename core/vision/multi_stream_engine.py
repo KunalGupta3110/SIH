@@ -30,6 +30,36 @@ from core.vision.reid import FeatureExtractor
 from core.vision.tracker import BorderTracker
 from services.hardware_bridge.serial_controller import trigger_physical_breach
 from services.notifications.telegram_bot import send_mobile_alert
+import re
+from urllib.parse import urlparse, urlunparse
+
+
+def normalize_camera_source(source: str) -> str:
+    """Normalizes camera sources: IP Webcam, DroidCam, RTSP, numeric indices, or file paths."""
+    if source is None:
+        return source
+    src = str(source).strip()
+    if src.isdigit() or src in ("demo", ""):
+        return src
+
+    # Auto-prefix http:// if bare IP:Port or IP is provided (e.g. 192.168.2.7:8080 or 192.168.2.7)
+    if not src.startswith("http://") and not src.startswith("https://") and not src.startswith("rtsp://"):
+        if re.match(r"^(\d{1,3}\.){3}\d{1,3}(:\d+)?(/.*)?$", src):
+            src = f"http://{src}"
+
+    # For HTTP/HTTPS streams (IP Webcam, DroidCam, etc.)
+    if src.startswith("http://") or src.startswith("https://"):
+        src = src.rstrip("/")
+        try:
+            parsed = urlparse(src)
+            # If path is empty, append /video (standard MJPEG endpoint for IP Webcam / DroidCam)
+            if not parsed.path or parsed.path == "":
+                src = urlunparse((parsed.scheme, parsed.netloc, "/video", parsed.params, parsed.query, parsed.fragment))
+        except Exception:
+            if not src.endswith("/video") and not src.endswith("/videofeed") and not src.endswith("/mjpegfeed"):
+                src = f"{src}/video"
+
+    return src
 
 
 class CameraStreamProcessor:
@@ -87,12 +117,16 @@ class CameraStreamProcessor:
 
     def _worker_loop(self):
         # Resolve source path
-        src = self.source
+        src = normalize_camera_source(self.source)
         if not str(src).isdigit() and not str(src).startswith("http") and not str(src).startswith("rtsp") and not os.path.isabs(src):
             src = os.path.join(ROOT_DIR, src)
 
         cap_arg = int(src) if str(src).isdigit() else src
         cap = cv2.VideoCapture(cap_arg)
+        try:
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        except Exception:
+            pass
         is_live_source = isinstance(cap_arg, str) and (cap_arg.startswith("http") or cap_arg.startswith("rtsp"))
 
         frame_idx = 0
@@ -302,6 +336,8 @@ class MultiCameraEcosystemManager:
         "demo" to revert a camera back to its original demo-file feed."""
         if source in ("demo", "", None):
             source = self.default_sources.get(camera_id, source)
+        else:
+            source = normalize_camera_source(source)
         name, zones = self.camera_meta.get(camera_id, (camera_id, []))
         self.add_camera(camera_id, source, name, zones)
         return self.get_camera(camera_id)

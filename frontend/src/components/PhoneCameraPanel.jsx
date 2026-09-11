@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { Smartphone, Wifi, WifiOff, Loader2, RotateCcw, Info } from "lucide-react";
+import { Smartphone, Laptop, Wifi, WifiOff, Loader2, RotateCcw, Info } from "lucide-react";
 import api from "../lib/api.js";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   PhoneCameraPanel — attach a real phone (Android/iOS "IP Webcam" or
-   "DroidCam") as a live camera source. The URL is sent to the FastAPI
-   backend, which points its existing YOLOv8 + ByteTrack worker (core/
-   vision/multi_stream_engine) at it and streams the ANNOTATED result back
-   as MJPEG — real detection boxes drawn server-side on your own camera
-   feed, not a canned demo clip.
+   PhoneCameraPanel — attach a real camera as a live source: a phone
+   (Android/iOS "IP Webcam" or "DroidCam") over Wi-Fi, or this laptop's own
+   built-in/USB webcam. The source is sent to the FastAPI backend, which
+   points its existing YOLOv8 + ByteTrack worker (core/vision/
+   multi_stream_engine) at it and streams the ANNOTATED result back as
+   MJPEG — real detection boxes drawn server-side, not a canned demo clip.
 
-   Requires the backend running locally (`python run_ecosystem.py`) on the
-   same Wi-Fi as the phone, with the console's VITE_API_BASE pointed at it.
+   Requires the backend running locally (`python run_ecosystem.py`), with
+   the console's VITE_API_BASE pointed at it — the phone must additionally
+   share the laptop's Wi-Fi (not needed for the laptop-webcam option, since
+   OpenCV opens the device directly on the same machine as the backend).
    Not reachable from the public Vercel deploy — that build has no backend
    to attach a camera to.
    ═══════════════════════════════════════════════════════════════════════ */
@@ -21,12 +23,13 @@ const SLOTS = [
   { id: "CAM_BRAVO", label: "CAM_BRAVO", sub: "BOP Bravo Perimeter" },
 ];
 
-// Each app's own web server has a different default port + stream path.
-// DroidCam works over the SAME plain-MJPEG mechanism as IP Webcam here —
-// no PC client / virtual-webcam driver needed, just its built-in http feed.
-const APPS = [
+// "network" sources are phone apps reached over Wi-Fi by URL. "device" is
+// a webcam OpenCV can open directly on the SAME machine as the backend —
+// no IP needed, just a device index.
+const SOURCES = [
   {
     id: "ipwebcam",
+    kind: "network",
     label: "IP Webcam",
     platform: "Android",
     port: 8080,
@@ -38,6 +41,7 @@ const APPS = [
   },
   {
     id: "droidcam",
+    kind: "network",
     label: "DroidCam",
     platform: "Android & iOS",
     port: 4747,
@@ -47,29 +51,72 @@ const APPS = [
       <>It shows a Wi-Fi IP and a 4-digit port (usually <code className="text-emerald-300">4747</code>) — no PC client / DroidCam OBS driver needed, this reads its plain video feed directly.</>,
     ],
   },
+  {
+    id: "webcam",
+    kind: "device",
+    label: "This Laptop's Webcam",
+    platform: "Built-in / USB",
+    steps: [
+      <>No app needed — the backend opens the webcam attached to <strong className="text-white/80">this machine</strong> directly.</>,
+      <>If it opens the wrong camera, try device <strong className="text-white/80">1</strong> or <strong className="text-white/80">2</strong> below.</>,
+    ],
+  },
 ];
 
 export default function PhoneCameraPanel() {
   const [slot, setSlot] = useState("CAM_ALPHA");
-  const [appId, setAppId] = useState("ipwebcam");
+  const [sourceId, setSourceId] = useState("ipwebcam");
   const [ip, setIp] = useState("");
+  const [deviceIndex, setDeviceIndex] = useState(0);
   const [phase, setPhase] = useState("idle"); // idle | connecting | live | error
   const [status, setStatus] = useState(null);
   const [imgKey, setImgKey] = useState(0); // bust the <img> MJPEG src on (re)connect
   const pollRef = useRef(null);
 
-  const app = APPS.find((a) => a.id === appId) || APPS[0];
+  const source = SOURCES.find((a) => a.id === sourceId) || SOURCES[0];
+  const isDevice = source.kind === "device";
 
-  // accepts a bare IP ("192.168.1.42"), IP:port, or a full pasted URL —
-  // only the bare-IP case gets the selected app's default port + path.
-  const buildUrl = (raw, selectedApp) => {
-    const val = raw.trim();
+  // Network sources accept a bare IP ("192.168.1.42"), IP:port, or a full
+  // pasted URL (e.g. "http://192.168.2.7:8080/") — auto-normalizes and appends
+  // the stream path (/video) so raw browser URLs stream correctly in OpenCV.
+  const buildUrl = (raw, selectedSource) => {
+    if (selectedSource.kind === "device") return String(deviceIndex);
+    let val = (raw || "").trim();
     if (!val) return "";
-    if (/^https?:\/\//i.test(val)) return val;
+
+    val = val.replace(/\/+$/, "");
+
+    if (/^https?:\/\//i.test(val)) {
+      try {
+        const parsed = new URL(val);
+        if (!parsed.pathname || parsed.pathname === "/" || parsed.pathname === "/index.html") {
+          parsed.pathname = selectedSource.path || "/video";
+        }
+        return parsed.toString();
+      } catch {
+        if (!val.includes("/video") && !val.includes("/videofeed") && !val.includes("/mjpegfeed")) {
+          return `${val}${selectedSource.path || "/video"}`;
+        }
+        return val;
+      }
+    }
+
+    if (/^rtsp:\/\//i.test(val)) return val;
+
+    if (val.includes("/")) {
+      const parts = val.split("/");
+      const hostPart = parts[0];
+      const restPath = "/" + parts.slice(1).join("/");
+      const hasPort = /:\d+$/.test(hostPart);
+      const hostWithPort = hasPort ? hostPart : `${hostPart}:${selectedSource.port || 8080}`;
+      return `http://${hostWithPort}${restPath}`;
+    }
+
     const hasPort = /:\d+$/.test(val);
-    return `http://${hasPort ? val : `${val}:${selectedApp.port}`}${selectedApp.path}`;
+    const hostWithPort = hasPort ? val : `${val}:${selectedSource.port || 8080}`;
+    return `http://${hostWithPort}${selectedSource.path || "/video"}`;
   };
-  const resolvedUrl = buildUrl(ip, app);
+  const resolvedUrl = buildUrl(ip, source);
 
   const stopPoll = () => {
     if (pollRef.current) clearInterval(pollRef.current);
@@ -136,43 +183,49 @@ export default function PhoneCameraPanel() {
         </span>
       </div>
       <p className="text-xs text-white/55">
-        Unlike the ingress simulator above, this runs the real YOLOv8n + ByteTrack pipeline on your own phone's live feed and
+        Unlike the ingress simulator above, this runs the real YOLOv8n + ByteTrack pipeline on a real camera feed and
         draws the detection boxes server-side — genuine inference, not a canned clip.
       </p>
 
-      {/* app picker */}
+      {/* source picker */}
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="font-mono text-[10px] text-white/40 mr-1">Phone app:</span>
-        {APPS.map((a) => (
-          <button
-            key={a.id}
-            onClick={() => setAppId(a.id)}
-            title={a.platform}
-            className={`rounded-lg border px-2.5 py-1.5 font-mono text-[11px] font-semibold transition-colors ${
-              appId === a.id ? "border-white/40 bg-white/[0.08] text-white" : "border-white/12 text-white/50 hover:text-white"
-            }`}
-          >
-            {a.label} <span className="text-white/35">· {a.platform}</span>
-          </button>
-        ))}
+        <span className="font-mono text-[10px] text-white/40 mr-1">Source:</span>
+        {SOURCES.map((s) => {
+          const Icon = s.kind === "device" ? Laptop : Smartphone;
+          return (
+            <button
+              key={s.id}
+              onClick={() => setSourceId(s.id)}
+              title={s.platform}
+              className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-mono text-[11px] font-semibold transition-colors ${
+                sourceId === s.id ? "border-white/40 bg-white/[0.08] text-white" : "border-white/12 text-white/50 hover:text-white"
+              }`}
+            >
+              <Icon size={11} />
+              {s.label} <span className="text-white/35">· {s.platform}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* setup instructions — dynamic per selected app */}
+      {/* setup instructions — dynamic per selected source */}
       <div className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-[11px] text-white/60">
         <Info size={13} className="mt-0.5 shrink-0 text-white/40" />
         <div className="space-y-0.5">
-          {app.steps.map((s, i) => (
+          {source.steps.map((s, i) => (
             <div key={i}>{i + 1}. {s}</div>
           ))}
-          <div>{app.steps.length + 1}. Phone &amp; laptop on the <strong className="text-white/80">same Wi-Fi</strong>.</div>
+          {!isDevice && (
+            <div>{source.steps.length + 1}. Phone &amp; laptop on the <strong className="text-white/80">same Wi-Fi</strong>.</div>
+          )}
           <div>
-            {app.steps.length + 2}. Backend must be running locally: <code className="text-emerald-300">python run_ecosystem.py</code>, and the
+            {source.steps.length + (isDevice ? 1 : 2)}. Backend must be running locally: <code className="text-emerald-300">python run_ecosystem.py</code>, and the
             console started with <code className="text-emerald-300">VITE_API_BASE</code> pointed at it.
           </div>
         </div>
       </div>
 
-      {/* slot + phone IP + controls */}
+      {/* slot + source input + controls */}
       <div className="flex flex-col gap-2.5 sm:flex-row">
         <div className="flex shrink-0 gap-1.5">
           {SLOTS.map((s) => (
@@ -188,12 +241,29 @@ export default function PhoneCameraPanel() {
             </button>
           ))}
         </div>
-        <input
-          value={ip}
-          onChange={(e) => setIp(e.target.value)}
-          placeholder={`192.168.1.42  (or paste a full URL)`}
-          className="flex-1 rounded-lg border border-white/12 bg-black px-3 py-2 font-mono text-[12px] text-white placeholder:text-white/25 focus:border-white/40 focus:outline-none"
-        />
+        {isDevice ? (
+          <div className="flex flex-1 items-center gap-1.5">
+            <span className="font-mono text-[10px] text-white/40">Device:</span>
+            {[0, 1, 2].map((i) => (
+              <button
+                key={i}
+                onClick={() => setDeviceIndex(i)}
+                className={`rounded-lg border px-3 py-2 font-mono text-[12px] font-semibold transition-colors ${
+                  deviceIndex === i ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : "border-white/12 text-white/55 hover:text-white"
+                }`}
+              >
+                {i}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <input
+            value={ip}
+            onChange={(e) => setIp(e.target.value)}
+            placeholder={`192.168.1.42  (or paste a full URL)`}
+            className="flex-1 rounded-lg border border-white/12 bg-black px-3 py-2 font-mono text-[12px] text-white placeholder:text-white/25 focus:border-white/40 focus:outline-none"
+          />
+        )}
         {phase === "idle" || phase === "error" ? (
           <button
             onClick={connect}
@@ -211,9 +281,9 @@ export default function PhoneCameraPanel() {
           </button>
         )}
       </div>
-      {ip.trim() && (
+      {(isDevice || ip.trim()) && (
         <div className="-mt-1 font-mono text-[10px] text-white/35">
-          Will connect to <span className="text-white/55">{resolvedUrl}</span>
+          Will connect to <span className="text-white/55">{isDevice ? `webcam device ${resolvedUrl}` : resolvedUrl}</span>
         </div>
       )}
 

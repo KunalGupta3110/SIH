@@ -35,7 +35,11 @@ node_modules/
 data/*.db-wal
 data/*.db-shm
 
-# Local dev env for the Vite frontend
+# Local dev env for the Vite frontend — .env (bare, no .local) is loaded by
+# Vite into PRODUCTION builds too, so a machine-specific VITE_API_BASE must
+# never get committed here (the dev-server proxy in vite.config.js covers
+# local dev instead; production talks to window.location.origin).
+frontend/.env
 frontend/.env.local
 frontend/.env.*.local
 data/events.db
