@@ -21,9 +21,9 @@ export function isLiveDetectionCam(camId) {
   return LIVE_DETECTION_CAMS.has(camId);
 }
 
-// short dual-tone "catch" chirp — deliberately NOT the breach klaxon
-// (BorderTerrainModal's playBreachKlaxon), this fires on every real
-// detection so it has to be brief and non-alarming.
+// dual-tone "catch" chirp — distinct from the breach klaxon (BorderTerrain
+// Modal's playBreachKlaxon) but loud/urgent on purpose: this is the sound
+// for a real detection catch, so it needs to actually get noticed.
 let _actx = null;
 export function playBeep() {
   try {
@@ -38,7 +38,7 @@ export function playBeep() {
       osc.type = "sine";
       osc.frequency.setValueAtTime(freq, t0);
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(0.45, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.9, t0 + 0.02);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       osc.connect(g);
       g.connect(ctx.destination);
@@ -46,8 +46,9 @@ export function playBeep() {
       osc.stop(t0 + dur + 0.02);
     };
     const now = ctx.currentTime;
-    tone(now, 1500, 0.16);
-    tone(now + 0.19, 1800, 0.14);
+    tone(now, 1500, 0.2);
+    tone(now + 0.22, 1800, 0.2);
+    tone(now + 0.44, 1800, 0.22);
   } catch {
     /* noop */
   }

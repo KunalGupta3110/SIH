@@ -24,8 +24,15 @@ ort.env.wasm.numThreads = 1; // no COOP/COEP headers on the static deploy -> no 
 ort.env.wasm.simd = true;
 
 const MODEL_URL = "/models/yolov8n.onnx";
-export const INPUT_SIZE = 320;
-const CONF_THRESHOLD = 0.4;
+// 640 (yolov8n's native export size) instead of the earlier 320 — the lower
+// resolution was missing most non-person/phone objects since a webcam frame
+// downsized to 320x320 loses too much detail for anything smaller or less
+// distinct than a person filling most of the frame. Costs inference speed
+// (roughly 4x the pixels), acceptable for this demo's frame rate.
+export const INPUT_SIZE = 640;
+// Lowered from 0.4 — most COCO classes other than person/cell phone were
+// scoring just under the old threshold on a compressed webcam frame.
+const CONF_THRESHOLD = 0.25;
 const IOU_THRESHOLD = 0.45;
 export const PERSON_CLASS_ID = 0;
 
