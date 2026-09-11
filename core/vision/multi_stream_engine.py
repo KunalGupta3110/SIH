@@ -63,6 +63,8 @@ class CameraStreamProcessor:
         self.latest_annotated_frame: Optional[np.ndarray] = None
         self.fps: float = 0.0
         self.is_running: bool = False
+        self.connected: bool = False  # True once a real frame has been read from `source`
+        self.last_error: Optional[str] = None
         self._thread: Optional[threading.Thread] = None
         self.lock = threading.Lock()
 
@@ -79,6 +81,7 @@ class CameraStreamProcessor:
 
     def stop(self):
         self.is_running = False
+        self.connected = False
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=1.0)
 
@@ -90,23 +93,38 @@ class CameraStreamProcessor:
 
         cap_arg = int(src) if str(src).isdigit() else src
         cap = cv2.VideoCapture(cap_arg)
+        is_live_source = isinstance(cap_arg, str) and (cap_arg.startswith("http") or cap_arg.startswith("rtsp"))
 
         frame_idx = 0
         t_prev = time.time()
+        reconnect_attempts = 0
 
         while self.is_running:
             if not cap.isOpened():
+                self.connected = False
+                self.last_error = f"Could not open source: {self.source}"
+                reconnect_attempts += 1
                 time.sleep(1.0)
                 cap = cv2.VideoCapture(cap_arg)
                 continue
 
             ret, frame = cap.read()
             if not ret:
-                # Loop video file for continuous live surveillance
-                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                time.sleep(0.03)
+                self.connected = False
+                if is_live_source:
+                    # phone/IP camera dropped — back off and retry the connection
+                    self.last_error = f"Lost connection to {self.source}"
+                    cap.release()
+                    time.sleep(1.0)
+                    cap = cv2.VideoCapture(cap_arg)
+                else:
+                    # Loop video file for continuous live surveillance
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    time.sleep(0.03)
                 continue
 
+            self.connected = True
+            self.last_error = None
             frame_idx += 1
             now = time.time()
             dt = now - t_prev
@@ -193,6 +211,8 @@ class MultiCameraEcosystemManager:
 
     def __init__(self):
         self.cameras: Dict[str, CameraStreamProcessor] = {}
+        self.default_sources: Dict[str, str] = {}
+        self.camera_meta: Dict[str, Tuple[str, List[Zone]]] = {}  # camera_id -> (name, zones)
         self.handoff_engine = PredictiveHandoffEngine()
         self.feat_extractor = FeatureExtractor()
         self.db = EventDatabase("data/events.db")
@@ -234,6 +254,13 @@ class MultiCameraEcosystemManager:
         if camera_id in self.cameras:
             self.cameras[camera_id].stop()
 
+        # remember the original (demo-file) source + config so a phone/IP
+        # camera attached later can be reverted cleanly
+        if camera_id not in self.default_sources:
+            self.default_sources[camera_id] = source
+        if camera_id not in self.camera_meta:
+            self.camera_meta[camera_id] = (name, zones or [])
+
         proc = CameraStreamProcessor(
             camera_id=camera_id,
             source=source,
@@ -246,8 +273,21 @@ class MultiCameraEcosystemManager:
         self.cameras[camera_id] = proc
         proc.start()
 
+    def set_source(self, camera_id: str, source: str) -> Optional[CameraStreamProcessor]:
+        """Point an existing (or new) camera at a new source — e.g. a phone's
+        IP-Webcam URL — without restarting the whole process. Pass source
+        "demo" to revert a camera back to its original demo-file feed."""
+        if source in ("demo", "", None):
+            source = self.default_sources.get(camera_id, source)
+        name, zones = self.camera_meta.get(camera_id, (camera_id, []))
+        self.add_camera(camera_id, source, name, zones)
+        return self.get_camera(camera_id)
+
     def get_camera(self, camera_id: str) -> Optional[CameraStreamProcessor]:
         return self.cameras.get(camera_id)
+
+    def list_camera_ids(self) -> List[str]:
+        return list(self.cameras.keys())
 
 
 # Global Multi-Stream Manager

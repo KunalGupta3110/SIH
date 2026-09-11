@@ -11,6 +11,7 @@ import { listPersonnel } from "../lib/personnel.js";
 import { getTheme, cycleTheme, THEME_LABEL } from "../lib/theme.js";
 import BrandMark from "./BrandMark.jsx";
 import AssistantPanel from "./AssistantPanel.jsx";
+import PhoneCameraPanel from "./PhoneCameraPanel.jsx";
 
 // 3D border-terrain map — code-split (pulls in three.js) so it only loads
 // when the operator opens the Border Map view.
@@ -1683,6 +1684,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       </div>
                     </div>
                   </div>
+
+                  <PhoneCameraPanel />
 
                   {/* Video Screen with Overlaid Dynamic AI Bounding Box & HUD */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">

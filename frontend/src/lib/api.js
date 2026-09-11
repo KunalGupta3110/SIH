@@ -2,6 +2,7 @@
 // Universal API Client with Authentic Web Crypto SHA-256 Verification & Topology Handoff Engine.
 
 const BASE = import.meta.env.VITE_API_BASE || window.location.origin;
+export const API_BASE = BASE;
 
 // Canonical Genesis Block Hash matching backend/evidence_ledger.py
 export const GENESIS_HASH = "sentinel::genesis::ssb-alpine-ridge::2026";
@@ -455,6 +456,16 @@ export const api = {
   getCameraHealth: () => request("/cameras/health"),
   simulateCameraFault: (cameraId) => request(`/cameras/${cameraId}/simulate-fault`, { method: "POST" }),
   clearCameraFault: (cameraId) => request(`/cameras/${cameraId}/clear-fault`, { method: "POST" }),
+
+  // Live phone / IP-camera ingress — points a backend camera worker at a
+  // real URL (e.g. the Android "IP Webcam" app) and streams the YOLOv8-
+  // annotated result back as MJPEG. Requires the FastAPI backend running
+  // locally (VITE_API_BASE) on the same network as the phone — not available
+  // on the static Vercel deploy.
+  setCameraSource: (cameraId, source) =>
+    request(`/cameras/${cameraId}/set-source`, { method: "POST", body: JSON.stringify({ source }) }),
+  getCameraSource: (cameraId) => request(`/cameras/${cameraId}/source`),
+  streamUrl: (cameraId) => `${BASE}/stream/${cameraId}`,
 
   getNetworkStatus: () => request("/network/status"),
   toggleNetwork: () => request("/network/toggle", { method: "POST" }),
