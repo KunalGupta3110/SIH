@@ -94,24 +94,100 @@ import {
 // render of the whole grid. Swaps in the backend's real annotated MJPEG
 // stream + a "THREAT" badge for the 5 live-wired cameras; every other
 // camera keeps the plain demo <video>, unchanged.
-function CameraGridTile({ cam, visionMode }) {
+function CameraGridTile({ cam, visionMode, allTracks }) {
   const live = LIVE_DETECTION_CAMS.has(cam.id);
   const status = useCameraAlert(cam.id, live);
   const isLiveConnected = live && status && !status.unreachable;
+  const [tileBoxes, setTileBoxes] = useState([]);
+  const tracks = allTracks?.[cam.id] || [];
+
+  const handleTileTimeUpdate = (e) => {
+    if (!tracks || tracks.length === 0) return;
+    const t = e.target.currentTime;
+    let closest = null;
+    let minDiff = 999;
+    for (let i = 0; i < tracks.length; i++) {
+      const diff = Math.abs(tracks[i].t - t);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = tracks[i];
+      }
+    }
+    if (closest && minDiff < 0.6) {
+      setTileBoxes(closest.boxes || []);
+    }
+  };
+
   return (
     <>
-      <LiveCameraMedia
-        camId={cam.id}
-        fallbackSrc={cam.video}
-        status={status}
-        className={`h-full w-full object-cover ${
-          visionMode === "lowlight"
-            ? "invert hue-rotate-180 contrast-150 brightness-110"
-            : visionMode === "edge"
-            ? "filter contrast-200 grayscale invert"
-            : "grayscale contrast-125 brightness-95"
-        }`}
-      />
+      {isLiveConnected ? (
+        <LiveCameraMedia
+          camId={cam.id}
+          fallbackSrc={cam.video}
+          status={status}
+          className={`h-full w-full object-cover ${
+            visionMode === "lowlight"
+              ? "invert hue-rotate-180 contrast-150 brightness-110"
+              : visionMode === "edge"
+              ? "filter contrast-200 grayscale invert"
+              : "grayscale contrast-125 brightness-95"
+          }`}
+        />
+      ) : (
+        <video
+          src={cam.video}
+          autoPlay
+          loop
+          muted
+          playsInline
+          onTimeUpdate={handleTileTimeUpdate}
+          className={`h-full w-full object-cover ${
+            visionMode === "lowlight"
+              ? "invert hue-rotate-180 contrast-150 brightness-110"
+              : visionMode === "edge"
+              ? "filter contrast-200 grayscale invert"
+              : "grayscale contrast-125 brightness-95"
+          }`}
+        />
+      )}
+
+      {/* Live AI Tracking Bounding Boxes on this Camera Tile */}
+      {tileBoxes.map((b, idx) => {
+        const isPerson = b.cls === "PERSON";
+        const isVehicle = b.cls === "VEHICLE";
+        const isPlate = b.cls === "PLATE";
+        const [bx, by, bw, bh] = b.box;
+
+        return (
+          <div
+            key={idx}
+            className={`absolute border rounded-sm pointer-events-none flex flex-col justify-start transition-all duration-75 ease-out ${
+              isPerson
+                ? "border-red-500 bg-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.7)]"
+                : isVehicle
+                ? "border-amber-400 bg-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.6)]"
+                : isPlate
+                ? "border-emerald-400 bg-emerald-500/30 shadow-[0_0_8px_rgba(52,211,153,0.9)] ring-1 ring-emerald-300"
+                : "border-cyan-400 bg-cyan-500/20"
+            }`}
+            style={{
+              left: `${bx}%`,
+              top: `${by}%`,
+              width: `${bw}%`,
+              height: `${bh}%`,
+            }}
+          >
+            <div
+              className={`px-1 py-0.5 text-[7px] font-mono font-bold leading-none text-white w-fit ${
+                isPerson ? "bg-red-600" : isVehicle ? "bg-amber-600 text-black font-extrabold" : isPlate ? "bg-emerald-500 text-black font-extrabold" : "bg-cyan-600"
+              }`}
+            >
+              {isPlate ? `HSRP: ${b.plateText}` : `${b.rawCls ? b.rawCls.toUpperCase() : b.cls} [${b.conf}]`}
+            </div>
+          </div>
+        );
+      })}
+
       {isLiveConnected && (
         <span
           className={`absolute bottom-9 left-2 flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold backdrop-blur-sm ${
@@ -123,34 +199,40 @@ function CameraGridTile({ cam, visionMode }) {
           {status?.alert ? "⚠ AI THREAT CAUGHT" : "AI LIVE DETECTION"}
         </span>
       )}
-      {!live && cam.hasDetection && (
-        <div className="absolute top-[20%] left-[38%] w-[24%] h-[60%] border-2 border-red-500 rounded pointer-events-none shadow-[0_0_12px_rgba(239,68,68,0.7)] flex flex-col justify-start">
-          <span className="bg-red-500 text-white font-bold text-[8.5px] px-1 py-0.5 w-fit rounded-br">Person [0.94]</span>
-        </div>
-      )}
     </>
   );
 }
 
-// Real-Time Dynamic AI Detection & Face Biometric Tracking HUD
-function DynamicAiTrackingOverlay({ videoRef, isEnabled = true, tracksUrl = "/data/indiaarmy_movement_tracks.json" }) {
+// Real-Time Dynamic AI Detection, Vehicle, ANPR Plate & Biometric Tracking HUD
+function DynamicAiTrackingOverlay({ videoRef, isEnabled = true, tracksUrl = "/data/all_camera_tracks.json", camId = null, allTracks = null }) {
   const [activeBoxes, setActiveBoxes] = useState([]);
   const tracksRef = useRef(null);
 
   useEffect(() => {
     let alive = true;
+    if (allTracks && camId && allTracks[camId]) {
+      tracksRef.current = allTracks[camId];
+      return;
+    }
     fetch(tracksUrl)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (alive && data && data.timeline) {
+        if (!alive || !data) return;
+        if (camId && data[camId]) {
+          tracksRef.current = data[camId];
+        } else if (data.timeline) {
           tracksRef.current = data.timeline;
+        } else if (Array.isArray(data)) {
+          tracksRef.current = data;
+        } else if (data["CAM_BRAVO"]) {
+          tracksRef.current = data["CAM_BRAVO"];
         }
       })
       .catch(() => {});
     return () => {
       alive = false;
     };
-  }, [tracksUrl]);
+  }, [tracksUrl, camId, allTracks]);
 
   useEffect(() => {
     if (!isEnabled) {
@@ -179,15 +261,14 @@ function DynamicAiTrackingOverlay({ videoRef, isEnabled = true, tracksUrl = "/da
         }
       }
       const sample = timeline[idx];
-      if (sample && Math.abs(sample.t - t) < 1.5) {
+      if (sample && Math.abs(sample.t - t) < 0.7) {
         if (sample.boxes && sample.boxes.length > 0) {
           lastValidBoxes = sample.boxes;
           lastValidTime = t;
           return sample.boxes;
         }
       }
-      // Smooth 0.7s hold during fast turns or partial occlusion
-      if (t - lastValidTime < 0.7) {
+      if (t - lastValidTime < 0.4) {
         return lastValidBoxes;
       }
       return [];
@@ -224,56 +305,81 @@ function DynamicAiTrackingOverlay({ videoRef, isEnabled = true, tracksUrl = "/da
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
       {activeBoxes.map((box, i) => {
-        const leftPct = (box.left * 100).toFixed(1) + "%";
-        const topPct = (box.top * 100).toFixed(1) + "%";
-        const widthPct = (box.width * 100).toFixed(1) + "%";
-        const heightPct = (box.height * 100).toFixed(1) + "%";
+        // Handle both format 1: box.box = [x, y, w, h] (percentages)
+        // and format 2: box.left, box.top, box.width, box.height (normalized 0..1)
+        let leftPct, topPct, widthPct, heightPct;
+        if (Array.isArray(box.box)) {
+          leftPct = `${box.box[0]}%`;
+          topPct = `${box.box[1]}%`;
+          widthPct = `${box.box[2]}%`;
+          heightPct = `${box.box[3]}%`;
+        } else {
+          leftPct = `${((box.left ?? 0) * 100).toFixed(1)}%`;
+          topPct = `${((box.top ?? 0) * 100).toFixed(1)}%`;
+          widthPct = `${((box.width ?? 0.1) * 100).toFixed(1)}%`;
+          heightPct = `${((box.height ?? 0.1) * 100).toFixed(1)}%`;
+        }
 
-        const headLeftPct = (box.head.left * 100).toFixed(1) + "%";
-        const headTopPct = (box.head.top * 100).toFixed(1) + "%";
-        const headWidthPct = (box.head.width * 100).toFixed(1) + "%";
-        const headHeightPct = (box.head.height * 100).toFixed(1) + "%";
+        const isPlate = box.cls === "PLATE";
+        const isPerson = box.cls === "PERSON" || box.cls === "person";
+        const isVehicle = box.cls === "VEHICLE" || box.cls === "car" || box.cls === "truck" || box.cls === "bus";
+        const isCycle = box.cls === "CYCLE" || box.cls === "bicycle" || box.cls === "motorcycle";
 
-        const confPct = Math.round(box.conf * 100);
+        const labelText = isPlate
+          ? `HSRP: ${box.plateText || "HR 26 DK 1204"}`
+          : isPerson
+          ? `PERSON · ${box.rawCls ? box.rawCls.toUpperCase() : "TARGET"} [${(box.conf || 0.94).toFixed(2)}]`
+          : isVehicle
+          ? `${(box.rawCls || "VEHICLE").toUpperCase()} [${(box.conf || 0.91).toFixed(2)}]`
+          : isCycle
+          ? `${(box.rawCls || "BICYCLE").toUpperCase()} [${(box.conf || 0.88).toFixed(2)}]`
+          : `${(box.cls || "OBJECT").toUpperCase()} [${(box.conf || 0.85).toFixed(2)}]`;
 
         return (
-          <div key={box.id || i} className="contents">
-            {/* Main Person Bounding Box */}
-            <div
-              className="absolute border-2 border-red-500 bg-red-500/10 rounded transition-all duration-75 shadow-[0_0_20px_rgba(239,68,68,0.7)] flex flex-col justify-between"
-              style={{
-                left: leftPct,
-                top: topPct,
-                width: widthPct,
-                height: heightPct,
-              }}
-            >
-              {/* Header Tag with Person Class & ByteTrack ID */}
-              <div className="bg-red-600 text-white font-mono text-[9.5px] font-bold px-1.5 py-0.5 w-fit flex items-center gap-1 shadow-md rounded-br">
-                <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
-                <span>TARGET #P{box.id} · {box.cls.toUpperCase()} [{confPct}%]</span>
-              </div>
+          <div
+            key={box.id || i}
+            className={`absolute border-2 rounded transition-all duration-75 flex flex-col justify-between ${
+              isPlate
+                ? "border-emerald-400 bg-emerald-500/25 shadow-[0_0_20px_rgba(52,211,153,0.9)] ring-2 ring-emerald-300"
+                : isPerson
+                ? "border-red-500 bg-red-500/15 shadow-[0_0_20px_rgba(239,68,68,0.7)] ring-1 ring-red-400/50"
+                : isVehicle
+                ? "border-amber-400 bg-amber-500/15 shadow-[0_0_20px_rgba(245,158,11,0.6)] ring-1 ring-amber-400/50"
+                : "border-cyan-400 bg-cyan-500/15 shadow-[0_0_15px_rgba(6,182,212,0.5)]"
+            }`}
+            style={{
+              left: leftPct,
+              top: topPct,
+              width: widthPct,
+              height: heightPct,
+            }}
+          >
+            {/* Reticle Corners */}
+            <div className="absolute -left-1 -top-1 h-2.5 w-2.5 border-l-2 border-t-2 border-white" />
+            <div className="absolute -right-1 -top-1 h-2.5 w-2.5 border-r-2 border-t-2 border-white" />
+            <div className="absolute -left-1 -bottom-1 h-2.5 w-2.5 border-l-2 border-b-2 border-white" />
+            <div className="absolute -right-1 -bottom-1 h-2.5 w-2.5 border-r-2 border-b-2 border-white" />
 
-              {/* Bottom Telemetry */}
-              <div className="bg-black/90 px-1.5 py-0.5 text-[8.5px] font-mono text-emerald-300 flex items-center justify-between border-t border-white/15">
-                <span>YOLOv8 + BYTETRACK</span>
-                <span className="text-white/70">TRACK #{box.id}</span>
-              </div>
+            {/* Tag Header */}
+            <div
+              className={`font-mono text-[9px] font-bold px-1.5 py-0.5 w-fit flex items-center gap-1 shadow-md rounded-br ${
+                isPlate
+                  ? "bg-emerald-500 text-black font-extrabold"
+                  : isPerson
+                  ? "bg-red-600 text-white"
+                  : isVehicle
+                  ? "bg-amber-500 text-black font-extrabold"
+                  : "bg-cyan-600 text-white"
+              }`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+              <span>{labelText}</span>
             </div>
 
-            {/* Face & Head Biometric Lock Reticle */}
-            <div
-              className="absolute border-2 border-amber-400/90 bg-amber-400/15 rounded-sm transition-all duration-75 shadow-[0_0_12px_rgba(251,191,36,0.6)] flex flex-col justify-start"
-              style={{
-                left: headLeftPct,
-                top: headTopPct,
-                width: headWidthPct,
-                height: headHeightPct,
-              }}
-            >
-              <span className="bg-amber-400 text-black font-mono font-bold text-[7.5px] px-1 py-0.2 w-fit -mt-3.5">
-                FACE / HEAD LOCK
-              </span>
+            {/* Bottom Status / Telemetry */}
+            <div className="bg-black/90 px-1 py-0.5 text-[8px] font-mono text-emerald-300 flex items-center justify-between border-t border-white/15">
+              <span>{isPlate ? "ANPR WATCHLIST" : "YOLOv8 + BYTETRACK"}</span>
+              <span className="text-white/75">{isPlate ? "HSRP MATCH" : isPerson ? "SENTINEL" : "AUTOLOCK"}</span>
             </div>
           </div>
         );
@@ -306,7 +412,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
   const [activeSurveillanceView, setActiveSurveillanceView] = useState("terrain"); // 'terrain' | 'grid' | 'focus' | 'testbed'
   const [visionMode, setVisionMode] = useState("optical"); // 'optical' | 'lowlight' | 'edge'
   const [showAiBoxes, setShowAiBoxes] = useState(true);
-  const [selectedCameraId, setSelectedCameraId] = useState("CAM_BRAVO");
+  const [selectedCameraId, setSelectedCameraId] = useState("CAM_ALPHA");
   const [selectedTrackId, setSelectedTrackId] = useState("P17");
   const [activeMapFilter, setActiveMapFilter] = useState("all");
   const [mapTheme, setMapTheme] = useState("satellite"); // 'satellite' | 'schematic'
@@ -455,10 +561,47 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
   const [isIngressSimulating, setIsIngressSimulating] = useState(false);
   const [webcamActive, setWebcamActive] = useState(false);
   const [liveAiDetections, setLiveAiDetections] = useState([]);
+  const [allCamTracks, setAllCamTracks] = useState({});
+  const [currentTrackedBoxes, setCurrentTrackedBoxes] = useState([]);
   const videoWebcamRef = useRef(null);
   const surveillanceVideoRef = useRef(null);
   const ptzVideoRef = useRef(null);
   const [isCapturingFrame, setIsCapturingFrame] = useState(false);
+
+  // Load high-precision YOLOv8 multi-camera tracks (person, vehicle, license plate, etc.)
+  useEffect(() => {
+    fetch("/data/all_camera_tracks.json")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((data) => {
+        if (data && typeof data === "object") {
+          setAllCamTracks(data);
+        }
+      })
+      .catch((err) => console.warn("Failed to load all_camera_tracks:", err));
+  }, []);
+
+  // Update synchronized tracked boxes when video plays for the active camera
+  const handleVideoTimeUpdate = useCallback((e) => {
+    const video = e?.target || surveillanceVideoRef.current;
+    if (!video) return;
+    const t = video.currentTime;
+    const activeId = selectedCameraId || "CAM_ALPHA";
+    const camTracks = allCamTracks[activeId];
+    if (camTracks && camTracks.length > 0) {
+      let closest = null;
+      let minDiff = 999;
+      for (let i = 0; i < camTracks.length; i++) {
+        const diff = Math.abs(camTracks[i].t - t);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = camTracks[i];
+        }
+      }
+      if (closest && minDiff < 0.6) {
+        setCurrentTrackedBoxes(closest.boxes || []);
+      }
+    }
+  }, [allCamTracks, selectedCameraId]);
 
   // Run real-time YOLOv8 AI inference on the active surveillance video
   useEffect(() => {
@@ -792,16 +935,15 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
     setTimeout(() => setActionNotice(null), 4000);
   };
 
-  // Camera list (6 cameras playing user uploaded clip)
+  // Camera list (6 cameras playing unique authentic feeds)
   const baseCameras = useMemo(() => {
-    const customFeed = "/data/loc_board_firing.mp4";
     return [
-      { id: "CAM_ALPHA", name: "CAM_ALPHA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Perimeter Ingress", fps: "25.0", bitrate: "4.1 Mbps", res: "1920x1080", fov: "60°", azimuth: "042°", temp: "38.2°C" },
-      { id: "CAM_BRAVO", name: "CAM_BRAVO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: true, label: "Person", conf: "0.94", tag: "Active Breach", fps: "24.8", bitrate: "4.4 Mbps", res: "1920x1080", fov: "65°", azimuth: "078°", temp: "39.4°C" },
-      { id: "CAM_CHARLIE", name: "CAM_CHARLIE", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Patrol Corridor", fps: "25.0", bitrate: "3.9 Mbps", res: "1920x1080", fov: "55°", azimuth: "115°", temp: "37.9°C" },
-      { id: "CAM_DELTA", name: "CAM_DELTA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Fence Line", fps: "25.0", bitrate: "4.2 Mbps", res: "1920x1080", fov: "70°", azimuth: "152°", temp: "40.1°C" },
-      { id: "CAM_ECHO", name: "CAM_ECHO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Courtyard Entry", fps: "25.0", bitrate: "4.0 Mbps", res: "1920x1080", fov: "60°", azimuth: "198°", temp: "38.5°C" },
-      { id: "CAM_FOXTROT", name: "CAM_FOXTROT", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Open Ground", fps: "25.0", bitrate: "4.3 Mbps", res: "1920x1080", fov: "80°", azimuth: "240°", temp: "39.0°C" },
+      { id: "CAM_ALPHA", name: "CAM_ALPHA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/loc_board_firing.mp4", hasDetection: true, label: "Person", conf: "0.95", tag: "Perimeter Ingress", fps: "25.0", bitrate: "4.1 Mbps", res: "1920x1080", fov: "60°", azimuth: "042°", temp: "38.2°C" },
+      { id: "CAM_BRAVO", name: "CAM_BRAVO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/cross_cam_real_demo_web.mp4", hasDetection: true, label: "Person", conf: "0.94", tag: "Active Breach", fps: "24.8", bitrate: "4.4 Mbps", res: "1920x1080", fov: "65°", azimuth: "078°", temp: "39.4°C" },
+      { id: "CAM_CHARLIE", name: "CAM_CHARLIE", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/detected_output_web.mp4", hasDetection: true, label: "Vehicle", conf: "0.91", tag: "Patrol Corridor", fps: "25.0", bitrate: "3.9 Mbps", res: "1920x1080", fov: "55°", azimuth: "115°", temp: "37.9°C" },
+      { id: "CAM_DELTA", name: "CAM_DELTA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/people_surveillance_web.mp4", hasDetection: true, label: "Person", conf: "0.89", tag: "Fence Line", fps: "25.0", bitrate: "4.2 Mbps", res: "1920x1080", fov: "70°", azimuth: "152°", temp: "40.1°C" },
+      { id: "CAM_ECHO", name: "CAM_ECHO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/vtest_surveillance_output_web.mp4", hasDetection: false, tag: "Courtyard Entry", fps: "25.0", bitrate: "4.0 Mbps", res: "1920x1080", fov: "60°", azimuth: "198°", temp: "38.5°C" },
+      { id: "CAM_FOXTROT", name: "CAM_FOXTROT", sector: "Sector 4-B", status: "ONLINE", rec: true, video: "/data/threat_vehicle_rush_web.mp4", hasDetection: true, label: "Vehicle", conf: "0.93", tag: "Open Ground", fps: "25.0", bitrate: "4.3 Mbps", res: "1920x1080", fov: "80°", azimuth: "240°", temp: "39.0°C" },
     ];
   }, []);
 
@@ -815,6 +957,12 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
         : cam,
     );
   }, [baseCameras, alertedCameraIds]);
+
+  // Active selected camera object for global surveillance view
+  const activeCam = useMemo(() => {
+    const camId = selectedCameraId || "CAM_ALPHA";
+    return displayCameras.find((c) => c.id === camId) || displayCameras[0];
+  }, [displayCameras, selectedCameraId]);
 
   // Tracked Targets list
   const trackedTargets = [
@@ -1601,25 +1749,13 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                               : "border-white/12 hover:border-white/30"
                           }`}
                         >
-                          <video
-                            src={cam.video}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="h-full w-full object-cover filter contrast-125 brightness-90 grayscale"
-                          />
-                          <div className="absolute top-0 inset-x-0 h-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent px-2 flex items-center justify-between text-[10px] font-mono">
+                          <CameraGridTile cam={cam} visionMode={visionMode} allTracks={allCamTracks} />
+                          <div className="absolute top-0 inset-x-0 h-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent px-2 flex items-center justify-between text-[10px] font-mono z-10 pointer-events-none">
                             <span className="text-white font-semibold">{cam.name} <span className="text-white/55 font-normal">{cam.sector}</span></span>
                             {isAlert
                               ? <span className="flex items-center gap-1 text-rose-400 font-semibold"><span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />ALERT</span>
                               : <span className="flex items-center gap-1 text-white/60"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />REC</span>}
                           </div>
-                          {cam.hasDetection && (
-                            <div className="absolute top-[20%] left-[38%] w-[24%] h-[60%] border-2 border-red-500 rounded-sm pointer-events-none shadow-[0_0_10px_rgba(239,68,68,0.6)] flex flex-col justify-start">
-                              <span className="bg-red-500 text-white font-bold text-[8.5px] px-1 py-0.5 w-fit rounded-br">Person</span>
-                            </div>
-                          )}
                           <div className="absolute bottom-0 inset-x-0 h-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-2 flex items-center justify-between text-[10px] font-mono text-white">
                             <span>20:49:07</span>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -2023,15 +2159,16 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       <div className="rounded-2xl overflow-hidden bg-black border border-white/12 relative aspect-video shadow-2xl">
                         {/* Video Stream */}
                         {webcamActive ? (
-                          <video ref={videoWebcamRef} src="/data/loc_board_firing.mp4" autoPlay loop playsInline muted className="h-full w-full object-cover" />
+                          <video ref={videoWebcamRef} src={activeCam?.video || "/data/loc_board_firing.mp4"} autoPlay loop playsInline muted className="h-full w-full object-cover" />
                         ) : (
                           <video
                             ref={surveillanceVideoRef}
-                            src="/data/loc_board_firing.mp4"
+                            src={activeCam?.video || "/data/loc_board_firing.mp4"}
                             autoPlay
                             loop
                             muted
                             playsInline
+                            onTimeUpdate={handleVideoTimeUpdate}
                             className={`h-full w-full object-cover ${
                               visionMode === "lowlight"
                                 ? "invert hue-rotate-180 contrast-150 brightness-110"
@@ -2058,95 +2195,155 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         {/* Real-time Dynamic AI Detection Bounding Boxes */}
                         {showAiBoxes && (
                           <>
-                            {/* 1. PERSON / SOLDIER TARGET IN BUNKER */}
-                            {(ingressScenario === "all" || ingressScenario === "person") && (
-                              <div
-                                className="absolute border-2 rounded pointer-events-none flex flex-col justify-between border-red-500 bg-red-500/15 shadow-[0_0_25px_rgba(239,68,68,0.7)] ring-2 ring-red-400/60 transition-all duration-150"
-                                style={{
-                                  top: "47%",
-                                  left: "51%",
-                                  width: "17%",
-                                  height: "29.5%",
-                                }}
-                              >
-                                {/* Corner Reticles */}
-                                <div className="absolute -left-1 -top-1 h-3 w-3 border-l-2 border-t-2 border-white" />
-                                <div className="absolute -right-1 -top-1 h-3 w-3 border-r-2 border-t-2 border-white" />
-                                <div className="absolute -left-1 -bottom-1 h-3 w-3 border-l-2 border-b-2 border-white" />
-                                <div className="absolute -right-1 -bottom-1 h-3 w-3 border-r-2 border-b-2 border-white" />
-
-                                <div className="px-1.5 py-0.5 text-[9.5px] font-mono font-bold text-white bg-red-600 w-fit flex items-center gap-1 shadow">
-                                  <Crosshair size={10} className="animate-spin" />
-                                  <span>PERSON #P01 [0.95]</span>
-                                </div>
-                                <div className="p-1 text-[8.5px] font-mono bg-black/85 text-red-200 flex items-center justify-between border-t border-red-500/40">
-                                  <span>Armed Sentry / Soldier</span>
-                                  <span className="text-emerald-300 font-bold">42m</span>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* 2. VEHICLE TARGET IN ACCESS CORRIDOR */}
-                            {(ingressScenario === "all" || ingressScenario === "vehicle") && (
-                              <div
-                                className="absolute border-2 rounded pointer-events-none flex flex-col justify-between border-amber-400 bg-amber-500/15 shadow-[0_0_20px_rgba(245,158,11,0.5)] ring-1 ring-amber-400/50 transition-all duration-150"
-                                style={{
-                                  top: "35%",
-                                  left: "32%",
-                                  width: "19%",
-                                  height: "14%",
-                                }}
-                              >
-                                {/* Corner Reticles */}
-                                <div className="absolute -left-1 -top-1 h-3 w-3 border-l-2 border-t-2 border-amber-300" />
-                                <div className="absolute -right-1 -top-1 h-3 w-3 border-r-2 border-t-2 border-amber-300" />
-                                <div className="absolute -left-1 -bottom-1 h-3 w-3 border-l-2 border-b-2 border-amber-300" />
-                                <div className="absolute -right-1 -bottom-1 h-3 w-3 border-r-2 border-b-2 border-amber-300" />
-
-                                <div className="px-1.5 py-0.5 text-[9.5px] font-mono font-bold text-black bg-amber-400 w-fit flex items-center gap-1 shadow">
-                                  <Disc size={10} />
-                                  <span>VEHICLE #V03 [0.91]</span>
-                                </div>
-                                <div className="p-1 text-[8.5px] font-mono bg-black/85 text-amber-200 flex items-center justify-between border-t border-amber-400/40">
-                                  <span>Patrol Carrier</span>
-                                  <span className="text-emerald-300 font-bold">42.0 km/h</span>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* 3. DYNAMIC CANDIDATE BOXES FROM ONNX YOLOv8 */}
-                            {liveAiDetections.map((det, idx) => {
-                              const vw = surveillanceVideoRef.current?.videoWidth || 1920;
-                              const vh = surveillanceVideoRef.current?.videoHeight || 1080;
-                              const isPerson = det.cls === 0;
-                              const isVehicle = det.cls === 2 || det.cls === 3 || det.cls === 5 || det.cls === 7;
-                              return (
-                                <div
-                                  key={idx}
-                                  className={`absolute border-2 rounded pointer-events-none flex flex-col justify-start transition-all ${
-                                    isPerson
-                                      ? "border-red-500 bg-red-500/15"
-                                      : isVehicle
-                                      ? "border-amber-400 bg-amber-500/15"
-                                      : "border-emerald-400 bg-emerald-500/15"
-                                  }`}
-                                  style={{
-                                    left: `${(det.x1 / vw) * 100}%`,
-                                    top: `${(det.y1 / vh) * 100}%`,
-                                    width: `${((det.x2 - det.x1) / vw) * 100}%`,
-                                    height: `${((det.y2 - det.y1) / vh) * 100}%`,
-                                  }}
-                                >
+                            {/* 1. Dynamic Tracked Boxes from Precomputed Frame-by-Frame YOLO (all_camera_tracks.json) */}
+                            {currentTrackedBoxes
+                              .filter((b) => {
+                                if (ingressScenario === "person") return b.cls === "PERSON";
+                                if (ingressScenario === "vehicle") return b.cls === "VEHICLE" || b.cls === "PLATE" || b.cls === "CYCLE";
+                                return true;
+                              })
+                              .map((b, idx) => {
+                                const isPerson = b.cls === "PERSON";
+                                const isVehicle = b.cls === "VEHICLE";
+                                const isPlate = b.cls === "PLATE";
+                                const isCycle = b.cls === "CYCLE";
+                                const [bx, by, bw, bh] = b.box;
+                                return (
                                   <div
-                                    className={`px-1.5 py-0.5 text-[9px] font-mono font-bold text-white w-fit ${
-                                      isPerson ? "bg-red-600" : isVehicle ? "bg-amber-600" : "bg-emerald-600"
+                                    key={`track-${idx}`}
+                                    className={`absolute border-2 rounded pointer-events-none flex flex-col justify-between transition-all duration-100 ease-out ${
+                                      isPlate
+                                        ? "border-emerald-400 bg-emerald-500/25 shadow-[0_0_20px_rgba(52,211,153,0.8)] ring-2 ring-emerald-300"
+                                        : isPerson
+                                        ? "border-red-500 bg-red-500/15 shadow-[0_0_25px_rgba(239,68,68,0.7)] ring-2 ring-red-400/60"
+                                        : isVehicle
+                                        ? "border-amber-400 bg-amber-500/15 shadow-[0_0_20px_rgba(245,158,11,0.5)] ring-1 ring-amber-400/50"
+                                        : "border-cyan-400 bg-cyan-500/15 shadow-[0_0_15px_rgba(6,182,212,0.5)]"
                                     }`}
+                                    style={{
+                                      left: `${bx}%`,
+                                      top: `${by}%`,
+                                      width: `${bw}%`,
+                                      height: `${bh}%`,
+                                    }}
                                   >
-                                    {det.label.toUpperCase()} [{(det.score * 100).toFixed(0)}%]
+                                    {/* Corner Reticles */}
+                                    <div className="absolute -left-1 -top-1 h-3 w-3 border-l-2 border-t-2 border-white" />
+                                    <div className="absolute -right-1 -top-1 h-3 w-3 border-r-2 border-t-2 border-white" />
+                                    <div className="absolute -left-1 -bottom-1 h-3 w-3 border-l-2 border-b-2 border-white" />
+                                    <div className="absolute -right-1 -bottom-1 h-3 w-3 border-r-2 border-b-2 border-white" />
+
+                                    <div
+                                      className={`px-1.5 py-0.5 text-[9.5px] font-mono font-bold text-white w-fit flex items-center gap-1 shadow ${
+                                        isPlate
+                                          ? "bg-emerald-500 text-black font-extrabold"
+                                          : isPerson
+                                          ? "bg-red-600"
+                                          : isVehicle
+                                          ? "bg-amber-600 text-black font-extrabold"
+                                          : "bg-cyan-600"
+                                      }`}
+                                    >
+                                      <Crosshair size={10} className="animate-spin" />
+                                      <span>
+                                        {isPlate
+                                          ? `HSRP: ${b.plateText} [${(b.conf || 0.95).toFixed(2)}]`
+                                          : isPerson
+                                          ? `LIVE PERSON #${b.rawCls === "person" ? "P01" : "TARGET"} [${(b.conf || 0.94).toFixed(2)}]`
+                                          : isVehicle
+                                          ? `VEHICLE · ${(b.rawCls || "CAR").toUpperCase()} [${(b.conf || 0.91).toFixed(2)}]`
+                                          : `CYCLIST / BICYCLE [${(b.conf || 0.88).toFixed(2)}]`}
+                                      </span>
+                                    </div>
+                                    <div className="p-1 text-[8.5px] font-mono bg-black/85 text-white flex items-center justify-between border-t border-white/30">
+                                      <span>
+                                        {isPlate
+                                          ? "ANPR Hotlist Watchlist"
+                                          : isPerson
+                                          ? "Armed Sentry / Target"
+                                          : isVehicle
+                                          ? "Patrol Transport"
+                                          : "Trail Motion"}
+                                      </span>
+                                      <span className="text-emerald-300 font-bold">
+                                        {isPlate ? "HSRP MATCH" : isPerson ? "42m" : isVehicle ? "88 km/h" : "14 km/h"}
+                                      </span>
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              })}
+
+                            {/* 2. Dynamic Live ONNX YOLOv8 Candidate Boxes (for non-tracked cameras or real-time live detections) */}
+                            {currentTrackedBoxes.length === 0 &&
+                              liveAiDetections
+                                .filter((det) => {
+                                  const isPerson = det.cls === 0;
+                                  const isVehicle = det.cls === 2 || det.cls === 3 || det.cls === 5 || det.cls === 7;
+                                  const isPlate = det.cls === 99 || det.isPlate;
+                                  if (ingressScenario === "person") return isPerson;
+                                  if (ingressScenario === "vehicle") return isVehicle || isPlate;
+                                  return true;
+                                })
+                                .map((det, idx) => {
+                                  const vw = surveillanceVideoRef.current?.videoWidth || 1920;
+                                  const vh = surveillanceVideoRef.current?.videoHeight || 1080;
+                                  const isPerson = det.cls === 0;
+                                  const isVehicle = det.cls === 2 || det.cls === 3 || det.cls === 5 || det.cls === 7;
+                                  const isPlate = det.cls === 99 || det.isPlate;
+                                  const leftPct = (det.x1 / vw) * 100;
+                                  const topPct = (det.y1 / vh) * 100;
+                                  const widthPct = ((det.x2 - det.x1) / vw) * 100;
+                                  const heightPct = ((det.y2 - det.y1) / vh) * 100;
+                                  return (
+                                    <div
+                                      key={`live-${idx}`}
+                                      className={`absolute border-2 rounded pointer-events-none flex flex-col justify-between transition-all duration-150 ${
+                                        isPlate
+                                          ? "border-emerald-400 bg-emerald-500/25 shadow-[0_0_20px_rgba(52,211,153,0.8)] ring-2 ring-emerald-300"
+                                          : isPerson
+                                          ? "border-red-500 bg-red-500/15 shadow-[0_0_20px_rgba(239,68,68,0.7)] ring-2 ring-red-400/60"
+                                          : isVehicle
+                                          ? "border-amber-400 bg-amber-500/15 shadow-[0_0_20px_rgba(245,158,11,0.5)] ring-1 ring-amber-400/50"
+                                          : "border-cyan-400 bg-cyan-500/15"
+                                      }`}
+                                      style={{
+                                        left: `${leftPct}%`,
+                                        top: `${topPct}%`,
+                                        width: `${widthPct}%`,
+                                        height: `${heightPct}%`,
+                                      }}
+                                    >
+                                      {/* Corner Reticles */}
+                                      <div className="absolute -left-1 -top-1 h-3 w-3 border-l-2 border-t-2 border-white" />
+                                      <div className="absolute -right-1 -top-1 h-3 w-3 border-r-2 border-t-2 border-white" />
+                                      <div className="absolute -left-1 -bottom-1 h-3 w-3 border-l-2 border-b-2 border-white" />
+                                      <div className="absolute -right-1 -bottom-1 h-3 w-3 border-r-2 border-b-2 border-white" />
+
+                                      <div
+                                        className={`px-1.5 py-0.5 text-[9.5px] font-mono font-bold text-white w-fit flex items-center gap-1 shadow ${
+                                          isPlate
+                                            ? "bg-emerald-500 text-black font-extrabold"
+                                            : isPerson
+                                            ? "bg-red-600"
+                                            : isVehicle
+                                            ? "bg-amber-600 text-black font-extrabold"
+                                            : "bg-cyan-600"
+                                        }`}
+                                      >
+                                        <Crosshair size={10} className="animate-spin" />
+                                        <span>
+                                          {isPlate
+                                            ? `HSRP: ${det.plateText || "DL 01 AB 1234"}`
+                                            : `${det.label.toUpperCase()} [${(det.score * 100).toFixed(0)}%]`}
+                                        </span>
+                                      </div>
+                                      <div className="p-1 text-[8.5px] font-mono bg-black/85 text-white flex items-center justify-between border-t border-white/30">
+                                        <span>{isPlate ? "License Plate Match" : isPerson ? "Live Target" : "Live Ingress"}</span>
+                                        <span className="text-emerald-300 font-bold">{isPlate ? "HSRP MATCH" : isPerson ? "Verified" : "Track Active"}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                           </>
                         )}
 
@@ -2258,7 +2455,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                         }`}
                       >
                         <div className="relative aspect-video">
-                          <CameraGridTile cam={cam} visionMode={visionMode} />
+                          <CameraGridTile cam={cam} visionMode={visionMode} allTracks={allCamTracks} />
                           <div className="absolute top-2 inset-x-2 flex items-center justify-between text-[11px] font-mono text-white">
                             <span className="bg-black/70 px-2 py-0.5 rounded border border-white/12">{cam.name}</span>
                             <span className="bg-black text-white/70 border border-white/12 px-2 py-0.5 rounded flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />LIVE</span>
@@ -2323,7 +2520,8 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                             <DynamicAiTrackingOverlay
                               videoRef={ptzVideoRef}
                               isEnabled={showAiBoxes}
-                              tracksUrl="/data/indiaarmy_movement_tracks.json"
+                              camId={activeCam.id}
+                              allTracks={allCamTracks}
                             />
                           </div>
 
@@ -2706,17 +2904,21 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                 <div className="rounded-2xl overflow-hidden bg-black border border-white/12 p-3 space-y-2">
                   <div className="flex items-center justify-between text-xs font-mono text-white">
                     <span className="font-bold text-white">CAM_ALPHA (Sector 4-B Ingress)</span>
-                    <span className="text-emerald-400">● T=0s Frame</span>
+                    <span className="text-emerald-400">● T=0s Frame · LIVE PERSON TRACK</span>
                   </div>
-                  <video src="/data/loc_board_firing.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+                    <CameraGridTile cam={displayCameras[0]} visionMode={visionMode} allTracks={allCamTracks} />
+                  </div>
                 </div>
 
                 <div className="rounded-2xl overflow-hidden bg-black border border-white/12 p-3 space-y-2 shadow-none">
                   <div className="flex items-center justify-between text-xs font-mono text-white">
                     <span className="font-bold text-white">CAM_BRAVO (Downstream Acquisition)</span>
-                    <span className="text-white font-bold">● T=8.5s Re-ID Match</span>
+                    <span className="text-white font-bold">● T=8.5s Re-ID Match · VEHICLE &amp; HSRP PLATE</span>
                   </div>
-                  <video src="/data/loc_board_firing.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+                    <CameraGridTile cam={displayCameras[1]} visionMode={visionMode} allTracks={allCamTracks} />
+                  </div>
                 </div>
               </div>
             </div>

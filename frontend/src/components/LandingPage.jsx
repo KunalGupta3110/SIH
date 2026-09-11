@@ -153,7 +153,26 @@ function Spark({ label, value, data }) {
   );
 }
 
-function VideoTile({ src, cam, note, detected, className = "" }) {
+function VideoTile({ src, cam, note, detected, className = "", tracks = [] }) {
+  const [boxes, setBoxes] = useState([]);
+
+  const handleTimeUpdate = (e) => {
+    if (!tracks || tracks.length === 0) return;
+    const t = e.target.currentTime;
+    let closest = null;
+    let minDiff = 999;
+    for (let i = 0; i < tracks.length; i++) {
+      const diff = Math.abs(tracks[i].t - t);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = tracks[i];
+      }
+    }
+    if (closest && minDiff < 0.6) {
+      setBoxes(closest.boxes || []);
+    }
+  };
+
   return (
     <div className={`scanline relative overflow-hidden border border-white/12 bg-black ${className}`}>
       <video
@@ -162,9 +181,54 @@ function VideoTile({ src, cam, note, detected, className = "" }) {
         loop
         muted
         playsInline
+        onTimeUpdate={handleTimeUpdate}
         className="aspect-video w-full object-cover grayscale contrast-110 brightness-105"
       />
-      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2 font-mono text-[9px]">
+
+      {/* Live AI Tracking Bounding Boxes on this Tile */}
+      {boxes.map((b, idx) => {
+        const isPerson = b.cls === "PERSON" || b.cls === "person";
+        const isVehicle = b.cls === "VEHICLE" || b.cls === "car" || b.cls === "truck";
+        const isPlate = b.cls === "PLATE";
+        const [bx, by, bw, bh] = b.box;
+
+        return (
+          <div
+            key={idx}
+            className={`absolute border-2 rounded-sm pointer-events-none flex flex-col justify-start transition-all duration-75 ease-out ${
+              isPerson
+                ? "border-red-500 bg-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.7)]"
+                : isVehicle
+                ? "border-amber-400 bg-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.6)]"
+                : isPlate
+                ? "border-emerald-400 bg-emerald-500/30 shadow-[0_0_8px_rgba(52,211,153,0.9)] ring-1 ring-emerald-300"
+                : "border-cyan-400 bg-cyan-500/20"
+            }`}
+            style={{
+              left: `${bx}%`,
+              top: `${by}%`,
+              width: `${bw}%`,
+              height: `${bh}%`,
+            }}
+          >
+            <div
+              className={`px-1 py-0.5 text-[7px] font-mono font-bold leading-none text-white w-fit ${
+                isPerson
+                  ? "bg-red-600"
+                  : isVehicle
+                  ? "bg-amber-600 text-black font-extrabold"
+                  : isPlate
+                  ? "bg-emerald-500 text-black font-extrabold"
+                  : "bg-cyan-600"
+              }`}
+            >
+              {isPlate ? `HSRP: ${b.plateText}` : `${b.rawCls ? b.rawCls.toUpperCase() : b.cls} [${(b.conf || 0.9).toFixed(2)}]`}
+            </div>
+          </div>
+        );
+      })}
+
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2 font-mono text-[9px] z-10">
         <div className="flex items-start justify-between">
           <span className="flex items-center gap-1 bg-black/70 px-1.5 py-0.5 text-white/70">
             <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> SIM
@@ -207,9 +271,9 @@ const LIVE_TRACKS = [
 // The four Re-ID hops — camera, wall-clock, match score against the previous hop.
 const REID_HOPS = [
   { cam: "CAM_ALPHA", role: "Ingress approach", t: "20:14:07", match: null, src: "/data/loc_board_firing.mp4" },
-  { cam: "CAM_BRAVO", role: "Perimeter fence", t: "20:14:08", match: 91.4, src: "/data/loc_board_firing.mp4" },
-  { cam: "CAM_CHARLIE", role: "River bend", t: "20:15:33", match: 88.1, src: "/data/loc_board_firing.mp4" },
-  { cam: "CAM_DELTA", role: "East spur", t: "20:16:22", match: 85.7, src: "/data/loc_board_firing.mp4" },
+  { cam: "CAM_BRAVO", role: "Perimeter fence", t: "20:14:08", match: 91.4, src: "/data/cross_cam_real_demo_web.mp4" },
+  { cam: "CAM_CHARLIE", role: "River bend", t: "20:15:33", match: 88.1, src: "/data/detected_output_web.mp4" },
+  { cam: "CAM_DELTA", role: "East spur", t: "20:16:22", match: 85.7, src: "/data/people_surveillance_web.mp4" },
 ];
 
 // 2×2 anchor points (percent of the connector box) + the curved handoff paths.
@@ -260,6 +324,107 @@ function ReidHandoff({ playing, step }) {
   );
 }
 
+function ReidHopTile({ hop, i, reached, isHere, tracks = [] }) {
+  const [boxes, setBoxes] = useState([]);
+
+  const handleTimeUpdate = (e) => {
+    if (!tracks || tracks.length === 0) return;
+    const t = e.target.currentTime;
+    let closest = null;
+    let minDiff = 999;
+    for (let idx = 0; idx < tracks.length; idx++) {
+      const diff = Math.abs(tracks[idx].t - t);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = tracks[idx];
+      }
+    }
+    if (closest && minDiff < 0.6) {
+      setBoxes(closest.boxes || []);
+    }
+  };
+
+  return (
+    <div
+      className={`relative border bg-black transition-all duration-500 ${
+        isHere ? "border-white shadow-[0_0_0_2px_rgba(255,255,255,0.25)]" : reached ? "border-white/40" : "border-white/12 opacity-45"
+      }`}
+    >
+      <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] text-white/50">
+        <span>{hop.cam} · {hop.role}</span>
+        <span>t = {hop.t}</span>
+      </div>
+      <div className="relative">
+        <video
+          src={hop.src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          onTimeUpdate={handleTimeUpdate}
+          className="aspect-video w-full object-cover grayscale contrast-110 brightness-125"
+        />
+        {isHere && <Corners />}
+
+        {/* Live AI Tracking Bounding Boxes on this Re-ID Feed */}
+        {boxes.map((b, bIdx) => {
+          const isPerson = b.cls === "PERSON" || b.cls === "person";
+          const isVehicle = b.cls === "VEHICLE" || b.cls === "car" || b.cls === "truck";
+          const isPlate = b.cls === "PLATE";
+          const [bx, by, bw, bh] = b.box;
+
+          return (
+            <div
+              key={bIdx}
+              className={`absolute border-2 rounded-sm pointer-events-none flex flex-col justify-start transition-all duration-75 ease-out ${
+                isPerson
+                  ? "border-red-500 bg-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.7)]"
+                  : isVehicle
+                  ? "border-amber-400 bg-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.6)]"
+                  : isPlate
+                  ? "border-emerald-400 bg-emerald-500/30 shadow-[0_0_8px_rgba(52,211,153,0.9)] ring-1 ring-emerald-300"
+                  : "border-cyan-400 bg-cyan-500/20"
+              }`}
+              style={{
+                left: `${bx}%`,
+                top: `${by}%`,
+                width: `${bw}%`,
+                height: `${bh}%`,
+              }}
+            >
+              <div
+                className={`px-1 py-0.5 text-[7px] font-mono font-bold leading-none text-white w-fit ${
+                  isPerson
+                    ? "bg-red-600"
+                    : isVehicle
+                    ? "bg-amber-600 text-black font-extrabold"
+                    : isPlate
+                    ? "bg-emerald-500 text-black font-extrabold"
+                    : "bg-cyan-600"
+                }`}
+              >
+                {isPlate ? `HSRP: ${b.plateText}` : `${b.rawCls ? b.rawCls.toUpperCase() : b.cls} [${(b.conf || 0.9).toFixed(2)}]`}
+              </div>
+            </div>
+          );
+        })}
+
+        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2 font-mono text-[9px] z-10">
+          <div className="flex justify-end">
+            {hop.match != null && reached && (
+              <span className="bg-black/75 px-1.5 py-0.5 text-white/80">match {hop.match}%</span>
+            )}
+          </div>
+          <span className={`w-fit px-1.5 py-0.5 ${reached ? "border border-white bg-white text-black" : "border border-white/40 bg-black/70 text-white/60"}`}>
+            <Crosshair size={9} className="mr-1 inline" />
+            {i === 0 ? "TARGET ALPHA-7 · acquired" : reached ? "TARGET ALPHA-7 · re-identified" : "awaiting arrival"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    Page
    ═══════════════════════════════════════════════════════════════════ */
@@ -289,7 +454,36 @@ export default function LandingPage() {
   const [reidPlaying, setReidPlaying] = useState(false);
   const [reidStep, setReidStep] = useState(0);
   const [globeOpen, setGlobeOpen] = useState(false);
+  const [allTracks, setAllTracks] = useState(null);
+  const [focusBoxes, setFocusBoxes] = useState([]);
   const click = useCallback(() => { if (!muted) siren.playClick(); }, [muted]);
+
+  useEffect(() => {
+    fetch("/data/all_camera_tracks.json")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setAllTracks(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleFocusTimeUpdate = (e) => {
+    const tracks = allTracks?.["CAM_BRAVO"];
+    if (!tracks || tracks.length === 0) return;
+    const t = e.target.currentTime;
+    let closest = null;
+    let minDiff = 999;
+    for (let i = 0; i < tracks.length; i++) {
+      const diff = Math.abs(tracks[i].t - t);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = tracks[i];
+      }
+    }
+    if (closest && minDiff < 0.6) {
+      setFocusBoxes(closest.boxes || []);
+    }
+  };
 
   useEffect(() => {
     const t = () => setClock(new Date().toLocaleTimeString("en-GB", { hour12: false }) + " IST");
@@ -662,9 +856,61 @@ export default function LandingPage() {
               {/* focus tile — enlarged active detection + live track readout */}
               <Reveal className="grid gap-0 border border-white/15 sm:grid-cols-[1.5fr_1fr]">
                 <div className="relative">
-                  <video src="/data/loc_board_firing.mp4" autoPlay loop muted playsInline className="aspect-video w-full object-cover grayscale contrast-110 brightness-105" />
+                  <video
+                    src="/data/cross_cam_real_demo_web.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    onTimeUpdate={handleFocusTimeUpdate}
+                    className="aspect-video w-full object-cover grayscale contrast-110 brightness-105"
+                  />
                   <Corners />
-                  <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2.5 font-mono text-[9px]">
+
+                  {/* Live AI Tracking Bounding Boxes on Focus Feed */}
+                  {focusBoxes.map((b, idx) => {
+                    const isPerson = b.cls === "PERSON" || b.cls === "person";
+                    const isVehicle = b.cls === "VEHICLE" || b.cls === "car" || b.cls === "truck";
+                    const isPlate = b.cls === "PLATE";
+                    const [bx, by, bw, bh] = b.box;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`absolute border-2 rounded-sm pointer-events-none flex flex-col justify-start transition-all duration-75 ease-out ${
+                          isPerson
+                            ? "border-red-500 bg-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.7)] ring-1 ring-red-400"
+                            : isVehicle
+                            ? "border-amber-400 bg-amber-500/20 shadow-[0_0_12px_rgba(245,158,11,0.6)] ring-1 ring-amber-300"
+                            : isPlate
+                            ? "border-emerald-400 bg-emerald-500/30 shadow-[0_0_10px_rgba(52,211,153,0.9)] ring-2 ring-emerald-300"
+                            : "border-cyan-400 bg-cyan-500/20"
+                        }`}
+                        style={{
+                          left: `${bx}%`,
+                          top: `${by}%`,
+                          width: `${bw}%`,
+                          height: `${bh}%`,
+                        }}
+                      >
+                        <div
+                          className={`px-1.5 py-0.5 text-[8px] font-mono font-bold leading-none text-white w-fit ${
+                            isPerson
+                              ? "bg-red-600"
+                              : isVehicle
+                              ? "bg-amber-600 text-black font-extrabold"
+                              : isPlate
+                              ? "bg-emerald-500 text-black font-extrabold"
+                              : "bg-cyan-600"
+                          }`}
+                        >
+                          {isPlate ? `HSRP: ${b.plateText}` : `${b.rawCls ? b.rawCls.toUpperCase() : b.cls} [${(b.conf || 0.9).toFixed(2)}]`}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2.5 font-mono text-[9px] z-10">
                     <div className="flex items-start justify-between">
                       <span className="flex items-center gap-1 bg-black/70 px-1.5 py-0.5 text-white/70"><span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> SIM · FOCUS</span>
                       <span className="bg-black/70 px-1.5 py-0.5 text-white/60">CAM_BRAVO · Perimeter fence</span>
@@ -701,9 +947,9 @@ export default function LandingPage() {
               </Reveal>
 
               <div className="grid gap-4 sm:grid-cols-3">
-                <VideoTile src="/data/loc_board_firing.mp4" cam="CAM_ALPHA" note="Ingress approach" detected="PERSON 0.87" />
-                <VideoTile src="/data/loc_board_firing.mp4" cam="CAM_CHARLIE" note="Ridge approach" />
-                <VideoTile src="/data/loc_board_firing.mp4" cam="CAM_DELTA" note="Patrol road" />
+                <VideoTile src="/data/loc_board_firing.mp4" cam="CAM_ALPHA" note="Ingress approach" detected="PERSON 0.95" tracks={allTracks?.["CAM_ALPHA"]} />
+                <VideoTile src="/data/detected_output_web.mp4" cam="CAM_CHARLIE" note="Ridge approach" detected="VEHICLE 0.91" tracks={allTracks?.["CAM_CHARLIE"]} />
+                <VideoTile src="/data/people_surveillance_web.mp4" cam="CAM_DELTA" note="Patrol road" detected="PERSON 0.89" tracks={allTracks?.["CAM_DELTA"]} />
               </div>
             </div>
 
@@ -774,32 +1020,14 @@ export default function LandingPage() {
                 const reached = reidPlaying ? reidStep >= i : true;
                 const isHere = reidPlaying && reidStep === i;
                 return (
-                  <div
+                  <ReidHopTile
                     key={hop.cam}
-                    className={`relative border bg-black transition-all duration-500 ${
-                      isHere ? "border-white shadow-[0_0_0_2px_rgba(255,255,255,0.25)]" : reached ? "border-white/40" : "border-white/12 opacity-45"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between border-b border-white/12 px-3 py-2 font-mono text-[10px] text-white/50">
-                      <span>{hop.cam} · {hop.role}</span>
-                      <span>t = {hop.t}</span>
-                    </div>
-                    <div className="relative">
-                      <video src={hop.src} autoPlay loop muted playsInline className="aspect-video w-full object-cover grayscale contrast-110 brightness-125" />
-                      {isHere && <Corners />}
-                      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-2 font-mono text-[9px]">
-                        <div className="flex justify-end">
-                          {hop.match != null && reached && (
-                            <span className="bg-black/75 px-1.5 py-0.5 text-white/80">match {hop.match}%</span>
-                          )}
-                        </div>
-                        <span className={`w-fit px-1.5 py-0.5 ${reached ? "border border-white bg-white text-black" : "border border-white/40 bg-black/70 text-white/60"}`}>
-                          <Crosshair size={9} className="mr-1 inline" />
-                          {i === 0 ? "TARGET ALPHA-7 · acquired" : reached ? "TARGET ALPHA-7 · re-identified" : "awaiting arrival"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                    hop={hop}
+                    i={i}
+                    reached={reached}
+                    isHere={isHere}
+                    tracks={allTracks?.[hop.cam]}
+                  />
                 );
               })}
             </div>

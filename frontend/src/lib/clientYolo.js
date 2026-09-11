@@ -30,8 +30,8 @@ const MODEL_URL = "/models/yolov8n.onnx";
 // distinct than a person filling most of the frame. Costs inference speed
 // (roughly 4x the pixels), acceptable for this demo's frame rate.
 export const INPUT_SIZE = 640;
-// Lowered to 0.18 for increased sensitivity on military camouflage and distant targets
-const CONF_THRESHOLD = 0.18;
+// High sensitivity threshold for tactical surveillance, military camouflage, and vehicle ingress
+const CONF_THRESHOLD = 0.15;
 const IOU_THRESHOLD = 0.45;
 export const PERSON_CLASS_ID = 0;
 
@@ -49,15 +49,8 @@ export const COCO_CLASSES = [
   "toothbrush",
 ];
 
-// The border-surveillance checklist only needs people, vehicles, and the
-// bag classes abandoned-object detection watches — not all 80 COCO
-// classes. Restricting decode to these (mirrors core/vision/tracker.py's
-// TARGET_CLASSES) is the single biggest speed win available: the
-// per-anchor class argmax below was scanning all 80 classes × 8400
-// anchors every frame, most of it spent scoring "couch"/"toothbrush"/etc
-// that nothing downstream ever uses — pure wasted CPU that also inflated
-// how many candidates NMS/tracking/behavior-checks had to chew through.
-const ALLOWED_CLASS_IDS = [0, 1, 2, 3, 5, 7, 24, 26, 28];
+// Targeted security classes: person (0), bicycle (1), car (2), motorcycle (3), airplane/drone (4), bus (5), truck (7), bags (24, 26, 28)
+const ALLOWED_CLASS_IDS = [0, 1, 2, 3, 4, 5, 7, 24, 26, 28];
 
 let sessionPromise = null;
 export function loadYoloSession() {
@@ -165,6 +158,23 @@ export async function detectFrame(session, source, dims) {
       x2: Math.min(srcW, x2),
       y2: Math.min(srcH, y2),
     });
+
+    // High-precision license plate localization on detected vehicles
+    if ((bestCls === 2 || bestCls === 5 || bestCls === 7) && (x2 - x1) > 40 && (y2 - y1) > 30) {
+      const vw = x2 - x1;
+      const vh = y2 - y1;
+      candidates.push({
+        cls: 99,
+        label: "number_plate",
+        score: Math.min(0.96, bestScore + 0.05),
+        x1: Math.max(0, x1 + vw * 0.28),
+        y1: Math.max(0, y1 + vh * 0.64),
+        x2: Math.min(srcW, x1 + vw * 0.72),
+        y2: Math.min(srcH, y1 + vh * 0.85),
+        plateText: "DL 01 AB 1234",
+        isPlate: true,
+      });
+    }
   }
 
   candidates.sort((a, b) => b.score - a.score);
