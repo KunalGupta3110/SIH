@@ -21,7 +21,7 @@ env/
 *.avi
 *.mkv
 !data/sample_*.mp4
-!frontend/public/data/*web.mp4
+!frontend/public/data/*.mp4
 
 # IDE files
 .vscode/

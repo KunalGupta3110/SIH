@@ -756,7 +756,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
 
   // Camera list (6 cameras playing user uploaded clip)
   const baseCameras = useMemo(() => {
-    const customFeed = "/data/indiaarmy_movement.mp4";
+    const customFeed = "/data/loc_board_firing.mp4";
     return [
       { id: "CAM_ALPHA", name: "CAM_ALPHA", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: false, tag: "Perimeter Ingress", fps: "25.0", bitrate: "4.1 Mbps", res: "1920x1080", fov: "60°", azimuth: "042°", temp: "38.2°C" },
       { id: "CAM_BRAVO", name: "CAM_BRAVO", sector: "Sector 4-B", status: "ONLINE", rec: true, video: customFeed, hasDetection: true, label: "Person", conf: "0.94", tag: "Active Breach", fps: "24.8", bitrate: "4.4 Mbps", res: "1920x1080", fov: "65°", azimuth: "078°", temp: "39.4°C" },
@@ -1944,15 +1944,11 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                       <div className="rounded-2xl overflow-hidden bg-black border border-white/12 relative aspect-video shadow-2xl">
                         {/* Video Stream */}
                         {webcamActive ? (
-                          <video ref={videoWebcamRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+                          <video ref={videoWebcamRef} src="/data/loc_board_firing.mp4" autoPlay loop playsInline muted className="h-full w-full object-cover" />
                         ) : (
                           <video
                             ref={surveillanceVideoRef}
-                            src={
-                              ingressScenario === "vehicle"
-                                ? "/data/threat_vehicle_rush_web.mp4"
-                                : "/data/threat_night_crawl_web.mp4"
-                            }
+                            src="/data/loc_board_firing.mp4"
                             autoPlay
                             loop
                             muted
@@ -2550,7 +2546,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <span className="font-bold text-white">CAM_ALPHA (Sector 4-B Ingress)</span>
                     <span className="text-emerald-400">● T=0s Frame</span>
                   </div>
-                  <video src="/data/reid_cam1_entry.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
+                  <video src="/data/loc_board_firing.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
                 </div>
 
                 <div className="rounded-2xl overflow-hidden bg-black border border-white/12 p-3 space-y-2 shadow-none">
@@ -2558,7 +2554,7 @@ export default function ConsoleDashboard({ initialNav = "dashboard" }) {
                     <span className="font-bold text-white">CAM_BRAVO (Downstream Acquisition)</span>
                     <span className="text-white font-bold">● T=8.5s Re-ID Match</span>
                   </div>
-                  <video src="/data/reid_cam2_exit.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
+                  <video src="/data/loc_board_firing.mp4" autoPlay loop muted playsInline className="w-full aspect-video rounded-xl object-cover grayscale contrast-125" />
                 </div>
               </div>
             </div>

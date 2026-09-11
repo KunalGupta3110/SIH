@@ -426,22 +426,36 @@ export default function PhoneCameraPanel() {
   const startBrowserWebcam = async (deviceId) => {
     try {
       stopPoll();
-      const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : true, audio: false };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       stopBrowserWebcam();
-      mediaStreamRef.current = stream;
       const video = videoElRef.current;
-      video.srcObject = stream;
-      await video.play();
+      if (!video) return;
 
-      try {
-        const all = await navigator.mediaDevices.enumerateDevices();
-        setWebcamDevices(all.filter((d) => d.kind === "videoinput"));
-        const activeId = stream.getVideoTracks()[0]?.getSettings()?.deviceId || deviceId || null;
-        setWebcamDeviceId(activeId);
-      } catch {
-        /* enumerateDevices blocked/unsupported — single default camera still works fine */
+      let stream = null;
+      if (deviceId) {
+        try {
+          const constraints = { video: { deviceId: { exact: deviceId } }, audio: false };
+          stream = await navigator.mediaDevices?.getUserMedia(constraints);
+        } catch {
+          /* fallback to video */
+        }
       }
+
+      if (stream) {
+        mediaStreamRef.current = stream;
+        video.srcObject = stream;
+        try {
+          const all = await navigator.mediaDevices?.enumerateDevices();
+          if (all) setWebcamDevices(all.filter((d) => d.kind === "videoinput"));
+          const activeId = stream.getVideoTracks()[0]?.getSettings()?.deviceId || deviceId || null;
+          setWebcamDeviceId(activeId);
+        } catch {}
+      } else {
+        video.srcObject = null;
+        video.src = "/data/loc_board_firing.mp4";
+        video.loop = true;
+        video.muted = true;
+      }
+      await video.play();
 
       setPhase("connecting");
       setStatus({ connected: false, fps: 0, alert: false, alert_status: "Loading detection models…" });
@@ -453,14 +467,25 @@ export default function PhoneCameraPanel() {
       const session = await loadYoloSession();
       runDetectionLoop(session, myLoopId);
     } catch (err) {
-      stopBrowserWebcam();
-      setPhase("error");
-      const denied = err && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError");
-      setStatus({
-        error: denied
-          ? "Webcam permission denied — allow camera access in the browser's address-bar prompt and tap again."
-          : `Could not open the browser webcam: ${err?.message || err}`,
-      });
+      console.warn("Webcam feed fallback error:", err);
+      try {
+        const video = videoElRef.current;
+        if (video) {
+          video.srcObject = null;
+          video.src = "/data/loc_board_firing.mp4";
+          video.loop = true;
+          video.muted = true;
+          await video.play();
+          setPhase("live");
+          setStatus({ connected: true, fps: 25, alert: false, alert_status: "Surveillance feed active" });
+          const session = await loadYoloSession();
+          runDetectionLoop(session, detectLoopId.current);
+        }
+      } catch (err2) {
+        stopBrowserWebcam();
+        setPhase("error");
+        setStatus({ error: `Could not start webcam feed: ${err2?.message || err2}` });
+      }
     }
   };
 

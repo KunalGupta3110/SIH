@@ -32,9 +32,9 @@ const HOTSPOTS = [
 ];
 
 const TRAIL = [
-  { sector: "Sector 1", time: "14:32:01 UTC", cam: "CAM_ALPHA", note: "Detected moving south", conf: 98.4, clip: "/data/ibvap_real_yolo_demo.mp4" },
-  { sector: "Sector 4", time: "14:34:18 UTC", cam: "CAM_BRAVO", note: "Geofence fence approach", conf: 96.1, clip: "/data/people_surveillance_web.mp4" },
-  { sector: "Sector 4", time: "14:35:42 UTC", cam: "CAM_CHARLIE", note: "Active perimeter breach", conf: 99.2, clip: "/data/cross_cam_real_demo_web.mp4" },
+  { sector: "Sector 1", time: "14:32:01 UTC", cam: "CAM_ALPHA", note: "Detected moving south", conf: 98.4, clip: "/data/loc_board_firing.mp4" },
+  { sector: "Sector 4", time: "14:34:18 UTC", cam: "CAM_BRAVO", note: "Geofence fence approach", conf: 96.1, clip: "/data/loc_board_firing.mp4" },
+  { sector: "Sector 4", time: "14:35:42 UTC", cam: "CAM_CHARLIE", note: "Active perimeter breach", conf: 99.2, clip: "/data/loc_board_firing.mp4" },
 ];
 
 /* ── 3D: holographic subject ──────────────────────────────────────────── */
