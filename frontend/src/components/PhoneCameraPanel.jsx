@@ -105,12 +105,19 @@ export default function PhoneCameraPanel() {
   const pollRef = useRef(null);
   const prevAlert = useRef(false);
   const videoElRef = useRef(null);
-  const canvasRef = useRef(null); // now the VISIBLE canvas: draws the (possibly enhanced) frame + every overlay
+  const canvasRef = useRef(null); // the VISIBLE canvas: a fast render loop redraws it every animation frame
+  const workCanvasRef = useRef(null); // offscreen — the slower detection loop reads/enhances/detects on this one
   const mediaStreamRef = useRef(null);
   const detectLoopId = useRef(0);
   const lastOcrAtRef = useRef(0);
   const lastFaceAtRef = useRef(0);
   const bannerRef = useRef({ text: null, until: 0 });
+  // Detection (YOLO + everything downstream of it) takes ~300-500ms/frame on
+  // CPU WASM — far too slow to also drive the visible canvas, or the feed
+  // looks like a slideshow. So the render loop repaints the live video at a
+  // full animation-frame rate and just overlays whatever the last completed
+  // detection pass found; this ref is the handoff between the two loops.
+  const latestRef = useRef({ tracks: [], dark: false });
 
   const source = SOURCES.find((a) => a.id === sourceId) || SOURCES[0];
   const isDevice = source.kind === "device";
@@ -309,29 +316,55 @@ export default function PhoneCameraPanel() {
     }
   };
 
+  // Fast loop (one real animation frame at a time): just paints the live
+  // video plus whatever the detect loop last found. This is what actually
+  // keeps the feed feeling smooth — it never waits on YOLO.
+  const runRenderLoop = (myLoopId) => {
+    const paint = () => {
+      if (detectLoopId.current !== myLoopId) return;
+      const video = videoElRef.current;
+      const canvas = canvasRef.current;
+      if (video && canvas && video.readyState >= 2) {
+        const w = video.videoWidth;
+        const h = video.videoHeight;
+        if (canvas.width !== w) canvas.width = w;
+        if (canvas.height !== h) canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, w, h);
+        if (latestRef.current.dark) enhanceLowLight(ctx, w, h);
+        drawFrame(ctx, w, h, latestRef.current.tracks, latestRef.current.dark);
+      }
+      requestAnimationFrame(paint);
+    };
+    paint();
+  };
+
+  // Slow loop: YOLO + tracking + every rule on top of it, at whatever pace
+  // inference actually allows (~2-3 fps on CPU WASM) — runs on its own
+  // offscreen canvas so it never fights the render loop for the visible one.
   const runDetectionLoop = (session, myLoopId) => {
     const tick = async () => {
       if (detectLoopId.current !== myLoopId) return;
       const video = videoElRef.current;
-      const canvas = canvasRef.current;
-      if (!video || !canvas || video.readyState < 2) {
+      if (!video || video.readyState < 2) {
         requestAnimationFrame(tick);
         return;
       }
       const t0 = performance.now();
       const w = video.videoWidth;
       const h = video.videoHeight;
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      ctx.drawImage(video, 0, 0, w, h);
+      const work = workCanvasRef.current || (workCanvasRef.current = document.createElement("canvas"));
+      work.width = w;
+      work.height = h;
+      const wctx = work.getContext("2d", { willReadFrequently: true });
+      wctx.drawImage(video, 0, 0, w, h);
 
-      const dark = isLowLight(ctx, w, h);
-      if (dark) enhanceLowLight(ctx, w, h);
+      const dark = isLowLight(wctx, w, h);
+      if (dark) enhanceLowLight(wctx, w, h);
 
       let dets = [];
       try {
-        dets = await detectFrame(session, canvas, { width: w, height: h });
+        dets = await detectFrame(session, work, { width: w, height: h });
       } catch {
         /* transient inference hiccup — keep the loop alive */
       }
@@ -339,11 +372,7 @@ export default function PhoneCameraPanel() {
 
       const nowMs = performance.now();
       const tracks = updateTracks(dets, nowMs);
-
-      // re-draw the frame fresh (detectFrame doesn't mutate `canvas`, but
-      // tracker/overlay drawing below does) then layer every overlay on top
-      ctx.drawImage(video, 0, 0, w, h);
-      if (dark) enhanceLowLight(ctx, w, h);
+      latestRef.current = { tracks, dark };
 
       let zoneBreach = false;
       for (const t of tracks) {
@@ -368,10 +397,8 @@ export default function PhoneCameraPanel() {
       const crowd = checkCrowdFormation(tracks);
       if (crowd) raiseAlert(`CROWD FORMATION (${crowd.count})`, "GROUP_CLUSTER", `${crowd.count} people clustered`, nowMs);
 
-      maybeRunAnpr(tracks, canvas, nowMs);
+      maybeRunAnpr(tracks, work, nowMs);
       maybeRunFace(video, nowMs);
-
-      drawFrame(ctx, w, h, tracks, dark);
 
       const personSeen = tracks.some((t) => t.cls === PERSON_CLASS_ID);
       if (personSeen && zoneBreach && !prevAlert.current) playBeep();
@@ -416,8 +443,10 @@ export default function PhoneCameraPanel() {
       setStatus({ connected: false, fps: 0, alert: false, alert_status: "Loading detection models…" });
       prevAlert.current = false;
 
-      const session = await loadYoloSession();
       const myLoopId = detectLoopId.current;
+      runRenderLoop(myLoopId); // paint the live feed immediately — don't make the user stare at a blank box while the model loads
+
+      const session = await loadYoloSession();
       runDetectionLoop(session, myLoopId);
     } catch (err) {
       stopBrowserWebcam();
