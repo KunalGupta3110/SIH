@@ -405,10 +405,12 @@ export default function PhoneCameraPanel() {
       latestRef.current = { tracks, dark, lut };
 
       let zoneBreach = false;
+      let crossedLine = false; // a track actually crossed the zone's danger line THIS tick — a discrete moment, not "is still standing in the zone"
       for (const t of tracks) {
         if (centroidInZone(t.centroid, DEFAULT_ZONE, w, h)) {
           zoneBreach = true;
           const dir = crossingDirection(t, DEFAULT_ZONE, h);
+          if (dir) crossedLine = true;
           if (dir === "OUTBOUND") {
             raiseAlert(`WRONG-DIRECTION CROSSING: ${t.label.toUpperCase()} #${t.id}`, "DIRECTION_VIOLATION", `${t.label} #${t.id} crossed outbound (wrong direction)`, nowMs);
           }
@@ -430,9 +432,12 @@ export default function PhoneCameraPanel() {
       maybeRunAnpr(tracks, work, nowMs);
       maybeRunFace(video, nowMs);
 
-      const personSeen = tracks.some((t) => t.cls === PERSON_CLASS_ID);
-      if (personSeen && zoneBreach && !prevAlert.current) playBeep();
-      prevAlert.current = personSeen && zoneBreach;
+      // Beep on the actual crossing moment, not "a person is currently
+      // standing somewhere in the zone" — that was true continuously for
+      // as long as anyone stayed in frame (the zone covers ~90% of it), so
+      // it fired repeatedly / felt like nonstop beeping. playBeep() itself
+      // also has a 4s global cooldown as a backstop against noisy re-fires.
+      if (crossedLine) playBeep();
 
       const activeAlertText = bannerRef.current.text && nowMs < bannerRef.current.until ? bannerRef.current.text : null;
       const fps = Math.round((1000 / Math.max(1, performance.now() - t0)) * 10) / 10;
