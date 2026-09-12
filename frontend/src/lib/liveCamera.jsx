@@ -69,8 +69,19 @@ export function playBeep() {
  * Polls a live camera's detection status. Fires playBeep() the moment
  * `alert` transitions false -> true (a fresh catch), not on every poll
  * while it stays true.
+ *
+ * `enableSound` (default true) exists because this hook is mounted once
+ * PER CAMERA TILE — the 6-cam grid view mounts it 5 times simultaneously,
+ * and every one of those loops a short demo clip whose near-full-frame
+ * zone re-triggers a "breach" near the start of every loop (~every
+ * 10-20s). That's 5 independent alarms staggered across time, which reads
+ * as the whole site beeping nonstop even with a cooldown in playBeep()
+ * itself. Pass `enableSound={false}` from any view that mounts several of
+ * these at once in the background; leave it true for a single focused
+ * camera view (DetailPanel/BorderTerrainModal show one at a time) where a
+ * catch sound is actually a deliberate, expected signal.
  */
-export function useCameraAlert(camId, enabled) {
+export function useCameraAlert(camId, enabled, enableSound = true) {
   const [status, setStatus] = useState(null);
   const prevAlert = useRef(false);
   useEffect(() => {
@@ -88,7 +99,7 @@ export function useCameraAlert(camId, enabled) {
         return;
       }
       const isAlert = !!(res.connected && res.alert);
-      if (isAlert && !prevAlert.current) playBeep();
+      if (isAlert && !prevAlert.current && enableSound) playBeep();
       prevAlert.current = isAlert;
     };
     poll();

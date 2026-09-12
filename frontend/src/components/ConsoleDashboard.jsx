@@ -96,7 +96,10 @@ import {
 // camera keeps the plain demo <video>, unchanged.
 function CameraGridTile({ cam, visionMode, allTracks }) {
   const live = LIVE_DETECTION_CAMS.has(cam.id);
-  const status = useCameraAlert(cam.id, live);
+  // sound off here: the grid mounts this per tile, so up to 5 demo cameras
+  // would each fire their own catch beep independently in the background —
+  // see useCameraAlert's doc comment. Visual "THREAT" badge still works.
+  const status = useCameraAlert(cam.id, live, false);
   const isLiveConnected = live && status && !status.unreachable;
   const [tileBoxes, setTileBoxes] = useState([]);
   const tracks = allTracks?.[cam.id] || [];
