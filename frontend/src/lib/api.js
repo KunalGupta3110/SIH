@@ -1,9 +1,19 @@
 // IBVAP Sentinel — frontend/src/lib/api.js
 // Universal API Client with Authentic Web Crypto SHA-256 Verification & Topology Handoff Engine.
 
+// Default to a locally-run backend regardless of where the FRONTEND itself
+// is served from (local dev, or the deployed Vercel console) — a browser on
+// an https:// page is still allowed to fetch http://localhost (it's exempt
+// from mixed-content blocking), so this lets someone browsing the live
+// deployed console attach their own local backend (IP Webcam/DroidCam/
+// desktop-webcam sources, or real data instead of the mock fallback) just
+// by running it, with no separate "local mode" URL needed. Previously this
+// only defaulted to localhost:8000 when the PAGE ITSELF was on localhost,
+// so the deployed site's calls went to itself (which has no backend) even
+// when the visitor had a local backend running right there.
 const BASE =
   import.meta.env.VITE_API_BASE ||
-  (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "8000"
+  (typeof window !== "undefined" && window.location.port !== "8000"
     ? "http://localhost:8000"
     : (typeof window !== "undefined" ? window.location.origin : "http://localhost:8000"));
 export const API_BASE = BASE;
