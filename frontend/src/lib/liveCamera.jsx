@@ -21,19 +21,19 @@ export function isLiveDetectionCam(camId) {
   return LIVE_DETECTION_CAMS.has(camId);
 }
 
-// dual-tone "catch" chirp — distinct from the breach klaxon (BorderTerrain
-// Modal's playBreachKlaxon) but loud/urgent on purpose: this is the sound
-// for a real detection catch, so it needs to actually get noticed.
+// Catch-sound playback disabled entirely, per explicit request — despite
+// several rounds of narrowing when it fires (cooldown, then muting the
+// multi-tile grid, then tying it to the actual line-crossing moment
+// instead of continuous zone presence), it kept reading as unwanted
+// beeping. Every caller (grid tiles, BorderTerrainModal, the client-side
+// webcam pipeline) still calls this the same way — it's just silent now.
+// Visual alerts (THREAT badges, banners) are untouched, only the audio is off.
 let _actx = null;
 let _lastBeepAt = 0;
-// Every one of the 5 demo-camera tiles polls and calls this independently,
-// and each looping demo clip re-triggers its own zone breach near the start
-// of every loop (~every 10-20s) — with the grid open that's up to 5
-// overlapping false->true edges scattered continuously, which sounded like
-// nonstop beeping. This is a single global cooldown (not per-camera) so the
-// total rate is capped regardless of how many callers fire at once.
 const BEEP_COOLDOWN_MS = 4000;
+const BEEP_SOUND_ENABLED = false;
 export function playBeep() {
+  if (!BEEP_SOUND_ENABLED) return;
   const now = performance.now();
   if (now - _lastBeepAt < BEEP_COOLDOWN_MS) return;
   _lastBeepAt = now;
