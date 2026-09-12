@@ -336,7 +336,7 @@ export default function VideoDvrController({
             }`}
             title={isPlaying ? "Pause footage (Space)" : "Play footage (Space)"}
           >
-            {isPlaying ? <Pause size={15} /> : <Play size={15} className="ml-0.5" />}
+            {isPlaying ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" className="ml-0.5" />}
           </button>
 
           {/* Step Frame Forward */}

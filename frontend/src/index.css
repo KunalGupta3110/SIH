@@ -427,26 +427,48 @@ body::before {
   font-family: "Fraunces", "Times New Roman", Georgia, serif;
   letter-spacing: -0.01em;
 }
-.sentinel-console [class*="bg-slate-"],
-.sentinel-console [class*="bg-cyan-"],
-.sentinel-console [class*="bg-teal-"],
-.sentinel-console [class*="bg-sky-"] {
+/* `[class*="bg-sky-"]` etc. also false-matches a variant-prefixed class
+   like `hover:bg-sky-400` (the substring "bg-sky-" is right there in the
+   string), forcing a black background on the button EVEN WHEN NOT
+   HOVERED and clobbering its real `bg-white` — that's what made
+   VideoDvrController's play/pause icon (black-on-black) invisible.
+   `^=` catches the utility when it's the first class in the attribute,
+   `*=" ..."` (space-guarded) catches it anywhere after — neither matches
+   a colon-prefixed variant since there's no space before "bg-sky-" there. */
+.sentinel-console [class^="bg-slate-"],
+.sentinel-console [class*=" bg-slate-"],
+.sentinel-console [class^="bg-cyan-"],
+.sentinel-console [class*=" bg-cyan-"],
+.sentinel-console [class^="bg-teal-"],
+.sentinel-console [class*=" bg-teal-"],
+.sentinel-console [class^="bg-sky-"],
+.sentinel-console [class*=" bg-sky-"] {
   background-color: #000 !important;
 }
-.sentinel-console [class*="text-slate-"],
-.sentinel-console [class*="text-cyan-"],
-.sentinel-console [class*="text-teal-"] {
+.sentinel-console [class^="text-slate-"],
+.sentinel-console [class*=" text-slate-"],
+.sentinel-console [class^="text-cyan-"],
+.sentinel-console [class*=" text-cyan-"],
+.sentinel-console [class^="text-teal-"],
+.sentinel-console [class*=" text-teal-"] {
   color: #ffffff !important;
 }
-.sentinel-console [class*="border-slate-"],
-.sentinel-console [class*="border-cyan-"],
-.sentinel-console [class*="border-teal-"] {
+.sentinel-console [class^="border-slate-"],
+.sentinel-console [class*=" border-slate-"],
+.sentinel-console [class^="border-cyan-"],
+.sentinel-console [class*=" border-cyan-"],
+.sentinel-console [class^="border-teal-"],
+.sentinel-console [class*=" border-teal-"] {
   border-color: rgba(255, 255, 255, 0.14) !important;
 }
-.sentinel-console [class*="from-cyan"],
-.sentinel-console [class*="to-cyan"],
-.sentinel-console [class*="to-teal"],
-.sentinel-console [class*="via-cyan"] {
+.sentinel-console [class^="from-cyan"],
+.sentinel-console [class*=" from-cyan"],
+.sentinel-console [class^="to-cyan"],
+.sentinel-console [class*=" to-cyan"],
+.sentinel-console [class^="to-teal"],
+.sentinel-console [class*=" to-teal"],
+.sentinel-console [class^="via-cyan"],
+.sentinel-console [class*=" via-cyan"] {
   background-image: none !important;
 }
 
