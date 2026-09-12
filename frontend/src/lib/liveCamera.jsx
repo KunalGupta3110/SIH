@@ -25,7 +25,18 @@ export function isLiveDetectionCam(camId) {
 // Modal's playBreachKlaxon) but loud/urgent on purpose: this is the sound
 // for a real detection catch, so it needs to actually get noticed.
 let _actx = null;
+let _lastBeepAt = 0;
+// Every one of the 5 demo-camera tiles polls and calls this independently,
+// and each looping demo clip re-triggers its own zone breach near the start
+// of every loop (~every 10-20s) — with the grid open that's up to 5
+// overlapping false->true edges scattered continuously, which sounded like
+// nonstop beeping. This is a single global cooldown (not per-camera) so the
+// total rate is capped regardless of how many callers fire at once.
+const BEEP_COOLDOWN_MS = 4000;
 export function playBeep() {
+  const now = performance.now();
+  if (now - _lastBeepAt < BEEP_COOLDOWN_MS) return;
+  _lastBeepAt = now;
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
