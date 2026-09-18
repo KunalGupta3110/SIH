@@ -46,7 +46,7 @@ export default function TopBar({
         </div>
         <div>
           <div className="text-[13px] font-semibold text-white tracking-wide">SENTINEL</div>
-          <div className="font-mono text-[9.5px] text-slate-500">SIH-26187 · SECTOR 4B · COP</div>
+          <div className="font-mono text-[9.5px] text-slate-500">SECTOR 4B · COP</div>
         </div>
       </div>
 

@@ -7,8 +7,8 @@ import { getRecentPlateReads, getVehicleHotlist, addVehicleHotlist } from "../li
    - StreamDiagnostics: per-feed stream health + cloud inference metrics
      (SaaS framing — a hosted inference pool, not on-prem edge boxes).
    - RoadmapOverlays: a clearly-badged design preview of ANPR + face
-     recognition. These are Phase-2 scope for PS-26187, not the MVP;
-     nothing here is a live detection.
+     recognition. These are Phase-2 scope, not the MVP; nothing here is
+     a live detection.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const h = (a, b) => {

@@ -605,7 +605,7 @@ export default function LandingPage() {
           <div>
             <Reveal className="hero-eyebrow inline-flex items-center gap-2.5 border border-white/25 px-3 py-1 font-mono text-[10.5px] text-white/55">
               <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-              SIH 2026 · PS-26187 · SSB Alpine Ridge Frontier
+              SSB Alpine Ridge Frontier
             </Reveal>
 
             <Reveal as="h1" delay={70} className="font-display mt-6 text-[2.7rem] font-light leading-[1.04] tracking-tight text-white sm:text-6xl [text-wrap:balance]">
@@ -740,7 +740,7 @@ export default function LandingPage() {
       <section className="border-t border-white/10 bg-black py-24 sm:py-28">
         <div className="mx-auto max-w-6xl px-6">
           <Reveal>
-            <Eyebrow>Platform capabilities · PS-26187</Eyebrow>
+            <Eyebrow>Platform capabilities</Eyebrow>
             <h2 className="font-display mt-4 max-w-2xl text-3xl font-light leading-tight tracking-tight sm:text-[2.75rem]">
               Eight analytics capabilities on the CCTV a sector already has.
             </h2>
@@ -1359,7 +1359,6 @@ export default function LandingPage() {
             <span>Ministry of Home Affairs · SSB</span>
           </div>
           <div className="flex items-center gap-5">
-            <span>SIH 2026 · PS-26187</span>
             <Link to="/console" onClick={click} className="press border border-white bg-white px-3 py-1.5 font-bold text-black hover:bg-black hover:text-white">
               Console →
             </Link>
