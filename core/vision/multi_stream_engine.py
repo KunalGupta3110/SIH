@@ -768,7 +768,7 @@ class CameraStreamProcessor:
 
                 # Top tactical banner
                 cv2.rectangle(placeholder, (0, 0), (854, 38), (12, 18, 30), -1)
-                cv2.putText(placeholder, f"IBVAP SENTINEL CCTV NODE // {self.camera_id} [{self.name.upper()}]", (20, 25),
+                cv2.putText(placeholder, f"SENTINEL CCTV NODE // {self.camera_id} [{self.name.upper()}]", (20, 25),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 220, 255), 2, cv2.LINE_AA)
                 time_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
                 cv2.putText(placeholder, time_str, (620, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (148, 163, 184), 1, cv2.LINE_AA)
