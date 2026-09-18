@@ -45,7 +45,7 @@ export default function TopBar({
           <Shield size={15} className="text-sky-400" />
         </div>
         <div>
-          <div className="text-[13px] font-semibold text-white tracking-wide">IBVAP SENTINEL</div>
+          <div className="text-[13px] font-semibold text-white tracking-wide">SENTINEL</div>
           <div className="font-mono text-[9.5px] text-slate-500">SIH-26187 · SECTOR 4B · COP</div>
         </div>
       </div>

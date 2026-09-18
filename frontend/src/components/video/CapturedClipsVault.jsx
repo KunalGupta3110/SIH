@@ -1,4 +1,4 @@
-// IBVAP Sentinel — frontend/src/components/video/CapturedClipsVault.jsx
+// Sentinel — frontend/src/components/video/CapturedClipsVault.jsx
 // Dedicated Vault for Inspecting Saved Video Clips, Verifying SHA-256 Hashes, and Offline Tamper Audits.
 
 import React, { useState, useEffect } from "react";

@@ -22,7 +22,7 @@ const MODEL_SPECS = [
     target: "Cloud CPU · ONNX Runtime",
   },
   {
-    name: "OSNet-IBVAP Re-ID",
+    name: "OSNet-Sentinel Re-ID",
     role: "Cross-Camera Appearance Embedding",
     arch: "Multi-Scale Residual Bottleneck 512-d",
     params: "2.2M FP16",

@@ -1,5 +1,5 @@
 /**
- * IBVAP SENTINEL - Tactical Defense Acoustic Siren Engine
+ * SENTINEL - Tactical Defense Acoustic Siren Engine
  * Native Web Audio API synthesizer for perimeter breach alarm.
  * Zero external audio files required. Real-time dual-tone emergency wail.
  */

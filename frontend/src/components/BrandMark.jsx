@@ -1,4 +1,4 @@
-/* IBVAP Sentinel brand mark — a sentinel shield carrying the national
+/* Sentinel brand mark — a sentinel shield carrying the national
    tricolour with an Ashoka-style chakra ring at its heart. Used in every
    header so the identity is consistent. The wordmark uses text-white so
    it flips automatically under the light-mode palette remap. */
@@ -9,7 +9,7 @@ export function BrandLogo({ size = 32, className = "" }) {
   const spokes = Array.from({ length: 12 }, (_, i) => (i * 360) / 12);
   const SHIELD = "M16 1.5 L28 5.5 V16 C28 24 22 28.5 16 30.5 C10 28.5 4 24 4 16 V5.5 Z";
   return (
-    <svg viewBox="0 0 32 32" width={size} height={size} className={`brand-logo ${className}`} role="img" aria-label="IBVAP Sentinel">
+    <svg viewBox="0 0 32 32" width={size} height={size} className={`brand-logo ${className}`} role="img" aria-label="Sentinel">
       <defs>
         <clipPath id="ibvap-shield">
           <path d={SHIELD} />
@@ -50,7 +50,7 @@ export default function BrandMark({
     <span className={`flex items-center gap-2.5 ${className}`}>
       <BrandLogo size={size} className="shrink-0" />
       <span className="leading-none">
-        <span className={`block ${wordClass}`}>IBVAP Sentinel</span>
+        <span className={`block ${wordClass}`}>Sentinel</span>
         {subtitle && <span className={`mt-1 block ${subClass}`}>{subtitle}</span>}
         <span className="mt-1 flex h-[2px] w-14 overflow-hidden rounded-full">
           <span className="flex-1" style={{ background: TRI.saffron }} />

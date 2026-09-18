@@ -65,7 +65,7 @@ export default function StickyTopBar({
           <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-sky-500/40 bg-sky-500/10 shadow-[0_0_12px_rgba(56,189,248,0.2)]">
             <Shield size={16} className="text-sky-400" />
           </div>
-          <span className="text-[14px] font-bold tracking-tight text-white">IBVAP SENTINEL</span>
+          <span className="text-[14px] font-bold tracking-tight text-white">SENTINEL</span>
         </div>
 
         {/* 2. Section Navigation */}

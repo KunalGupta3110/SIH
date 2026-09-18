@@ -1,4 +1,4 @@
-// IBVAP Sentinel — frontend/src/lib/useIncidentStream.js
+// Sentinel — frontend/src/lib/useIncidentStream.js
 // Real-time incident feed over the gateway WebSocket (/ws/incidents).
 //
 // Event-driven, not polling: the backend pushes a correlated incident the

@@ -1,4 +1,4 @@
-// IBVAP Sentinel — isometric border-sector terrain, rendered as a black &
+// Sentinel — isometric border-sector terrain, rendered as a black &
 // white digital-elevation model. Pure SVG, no raster assets.
 //   mode="hero"      → camera network, FOV coverage wedges, animated sightlines
 //   mode="perimeter" → adds a pulsing restricted geofence + a breach marker

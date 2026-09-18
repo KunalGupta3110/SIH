@@ -745,7 +745,7 @@ export default function LandingPage() {
               Eight analytics capabilities on the CCTV a sector already has.
             </h2>
             <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-white/50">
-              IBVAP is software-defined — no dedicated surveillance hardware, no new
+              Sentinel is software-defined — no dedicated surveillance hardware, no new
               cameras. Eight analytics capabilities run on the feeds a sector
               already has.
             </p>
@@ -1253,7 +1253,7 @@ export default function LandingPage() {
           <Reveal>
             <Eyebrow>Engineering specification</Eyebrow>
             <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-white/50">
-              Architectural facts, not measured field metrics. IBVAP is a software
+              Architectural facts, not measured field metrics. Sentinel is a software
               layer over standard CCTV — the MVP is validated on public datasets
               (MOT17, VisDrone) and recorded synchronized two-angle feeds, not on
               live tactical cameras.
@@ -1354,7 +1354,7 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 font-mono text-[11px] text-white/50 sm:flex-row">
           <div className="flex items-center gap-3">
             <BrandLogo size={22} className="shrink-0" />
-            <span className="font-heading font-bold tracking-tight text-white">IBVAP Sentinel</span>
+            <span className="font-heading font-bold tracking-tight text-white">Sentinel</span>
             <span className="text-white/25">·</span>
             <span>Ministry of Home Affairs · SSB</span>
           </div>

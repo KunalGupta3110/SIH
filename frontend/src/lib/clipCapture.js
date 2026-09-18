@@ -1,4 +1,4 @@
-// IBVAP Sentinel — frontend/src/lib/clipCapture.js
+// Sentinel — frontend/src/lib/clipCapture.js
 // Video DVR Clip Capturing, Object-Coded Naming, and Companion SHA-256 Tamper Protection.
 
 /**
@@ -126,7 +126,7 @@ export function generateSha256FileContent(hash, videoFileName) {
 export function generateManifestJson(data = {}) {
   return JSON.stringify(
     {
-      evidence_protocol: "IBVAP-SENTINEL-EVIDENCE-CHAIN-v1",
+      evidence_protocol: "SENTINEL-EVIDENCE-CHAIN-v1",
       section_65b_compliance: {
         legal_framework: "Section 65B(4) Indian Evidence Act / BSA 2023",
         admissibility_certified: true,

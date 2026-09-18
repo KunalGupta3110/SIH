@@ -1,4 +1,4 @@
-// IBVAP Sentinel — frontend/src/components/video/ClipCaptureModal.jsx
+// Sentinel — frontend/src/components/video/ClipCaptureModal.jsx
 // Modal for Reviewing Captured Clip, Selecting Object Code (Person = 1), and Saving to PC with Companion .sha256 Hash File.
 
 import React, { useState, useEffect, useMemo } from "react";

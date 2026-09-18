@@ -55,7 +55,7 @@ export default function ConsoleEntry({ onComplete }) {
         <div className="flex h-9 w-9 items-center justify-center rounded border border-sky-500/40 bg-sky-500/10">
           <Shield size={17} className="text-sky-400" />
         </div>
-        <div className="text-sm font-semibold text-white">IBVAP SENTINEL</div>
+        <div className="text-sm font-semibold text-white">SENTINEL</div>
       </div>
 
       <div className="w-[300px] space-y-1.5 text-[11px]">

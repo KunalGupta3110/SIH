@@ -1,4 +1,4 @@
-// IBVAP Sentinel — frontend/src/components/video/VideoDvrController.jsx
+// Sentinel — frontend/src/components/video/VideoDvrController.jsx
 // Tactical Video DVR Scrub, Rewind, Fast-Forward, Playback Speed & Real-Time Clip Recording.
 
 import React, { useState, useEffect, useRef, useCallback } from "react";

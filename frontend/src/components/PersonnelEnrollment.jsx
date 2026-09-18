@@ -215,7 +215,7 @@ export default function PersonnelEnrollment() {
             <BrandLogo size={38} className="shrink-0" />
             <div>
               <div className="font-heading text-[16px] font-bold text-white">Authorized Personnel Enrolment</div>
-              <div className="text-[12px] text-white/55">Friend-force allowlist · IBVAP Sentinel</div>
+              <div className="text-[12px] text-white/55">Friend-force allowlist · Sentinel</div>
             </div>
           </div>
 

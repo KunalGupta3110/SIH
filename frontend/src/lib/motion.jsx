@@ -1,4 +1,4 @@
-// IBVAP Sentinel — motion primitives.
+// Sentinel — motion primitives.
 // Small, dependency-free helpers for scroll-reveal and count-up animation.
 // All of them no-op cleanly when prefers-reduced-motion is set.
 

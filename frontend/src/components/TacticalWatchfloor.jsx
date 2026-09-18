@@ -19,7 +19,7 @@ import {
 const TacticalGISCanvas = lazy(() => import("./gis/TacticalGISCanvas.jsx"));
 
 /* ═══════════════════════════════════════════════════════════════════════
-   IBVAP SENTINEL — COMMAND WATCHFLOOR
+   SENTINEL — COMMAND WATCHFLOOR
    Layer 0 : pseudo-3D tactical scene, pure 2D canvas (no WebGL, no deps)
    Layer 1 : glassmorphic tactical HUD overlay
    Palette : pitch black + stark white telemetry. Red only for breach.
@@ -560,7 +560,7 @@ export default function TacticalWatchfloor({ onFocusIncident }) {
               <BrandLogo size={26} />
               <div className="leading-tight">
                 <div className="font-heading text-sm font-bold tracking-wide text-white">
-                  IBVAP Sentinel <span className="text-white/40">// AI watchfloor</span>
+                  Sentinel <span className="text-white/40">// AI watchfloor</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-mono text-[10px] text-white/50">
                   <span

@@ -1,4 +1,4 @@
-// IBVAP Sentinel — frontend/src/lib/api.js
+// Sentinel — frontend/src/lib/api.js
 // Universal API Client with Authentic Web Crypto SHA-256 Verification & Topology Handoff Engine.
 
 // Default to a locally-run backend regardless of where the FRONTEND itself

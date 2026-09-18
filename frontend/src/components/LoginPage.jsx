@@ -15,7 +15,7 @@ import BrandMark from "./BrandMark.jsx";
 import ThemeToggle from "./ThemeToggle.jsx";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   LoginPage — operator sign-in for the IBVAP Sentinel command console.
+   LoginPage — operator sign-in for the Sentinel command console.
    Same pure-B&W tactical language as the landing page (sharp corners,
    mono labels, corner brackets). This is a front-end shell: there is no
    live directory in this build, so any non-empty credentials continue to

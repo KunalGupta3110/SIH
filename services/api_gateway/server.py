@@ -55,8 +55,8 @@ async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title="IBVAP Sentinel Backend API",
-    description="Reliable SQLite-backed gateway for the IBVAP Sentinel command center and mobile app.",
+    title="Sentinel Backend API",
+    description="Reliable SQLite-backed gateway for the Sentinel command center and mobile app.",
     version="1.0.0",
     lifespan=_lifespan,
 )
