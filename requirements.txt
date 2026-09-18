@@ -3,7 +3,7 @@
 
 # Core Computer Vision & Deep Learning
 ultralytics>=8.1.0
-opencv-python>=4.8.0
+opencv-python>=4.8.0,<5  # 5.x dropped cv2.CascadeClassifier / cv2.data from the classic namespace that core/vision/face_recognition.py relies on
 numpy>=1.24.0
 torch>=2.0.0
 torchvision>=0.15.0
