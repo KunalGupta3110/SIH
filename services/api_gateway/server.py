@@ -67,6 +67,15 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # The deployed console (https://ibvap-sentinel.vercel.app) talks to a
+    # backend the visitor runs on their own machine (see frontend/src/lib/
+    # api.js BASE) — a public https origin fetching http://localhost is a
+    # "private network request" under Chrome's Private Network Access
+    # policy and gets preflighted with Access-Control-Request-Private-Network;
+    # without this, Starlette answers that preflight with 400 "Disallowed
+    # CORS private-network" and every request from the live site silently
+    # fails as "Backend unreachable".
+    allow_private_network=True,
 )
 
 THUMBNAIL_DIR = ROOT_DIR / "data" / "thumbnails"
