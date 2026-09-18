@@ -403,12 +403,14 @@ def register_device_token(payload: RegisterTokenRequest):
 
 @app.get("/enrollment/people")
 @app.get("/v1/enrollment/people")
+@app.get("/api/v1/enrollment/people")
 def list_enrolled_people():
     return {"people": get_backend().list_enrolled_people()}
 
 
 @app.post("/enrollment/people")
 @app.post("/v1/enrollment/people")
+@app.post("/api/v1/enrollment/people")
 def enroll_person(payload: EnrollPersonRequest):
     person = get_backend().enroll_person(
         person_id=payload.person_id,
@@ -423,6 +425,7 @@ def enroll_person(payload: EnrollPersonRequest):
 
 @app.post("/enrollment/people/{person_id}/photo")
 @app.post("/v1/enrollment/people/{person_id}/photo")
+@app.post("/api/v1/enrollment/people/{person_id}/photo")
 async def enroll_person_photo(
     person_id: str,
     name: str = Form(...),
@@ -448,6 +451,7 @@ async def enroll_person_photo(
 
 @app.delete("/enrollment/people/{person_id}")
 @app.delete("/v1/enrollment/people/{person_id}")
+@app.delete("/api/v1/enrollment/people/{person_id}")
 def delete_enrolled_person(person_id: str):
     removed = get_backend().delete_person(person_id)
     if not removed:
