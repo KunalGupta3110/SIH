@@ -250,9 +250,14 @@ export default function PersonnelEnrollment() {
             not escalated</span> — routine patrols no longer trip a threat alert.
           </p>
 
-          {saved && (
+          {saved && !saved.syncError && (
             <div className="mt-4 flex items-center gap-2 border border-[#3ff09a]/40 bg-[#3ff09a]/10 px-3 py-2 text-[12px] text-[#3ff09a]">
               <BadgeCheck size={14} /> Enrolled {saved.name} as {saved.id} — added to the allowlist.
+            </div>
+          )}
+          {saved && saved.syncError && (
+            <div className="mt-4 flex items-center gap-2 border border-red-500/40 bg-red-500/10 px-3 py-2 text-[12px] text-red-400">
+              <BadgeCheck size={14} /> Could not enroll {saved.name}: {saved.syncError}. Nothing was saved — confirm the backend is running and try again.
             </div>
           )}
 
