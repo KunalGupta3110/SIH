@@ -217,6 +217,38 @@ async function request(path, options = {}) {
   }
 }
 
+export async function enrollAuthorizedPerson(payload) {
+  if (payload.face?.startsWith("data:image/")) {
+    const response = await fetch(payload.face);
+    const imageBlob = await response.blob();
+    const form = new FormData();
+    form.append("name", payload.name);
+    form.append("role", "authorized");
+    form.append("notes", payload.notes || "");
+    form.append("photo", imageBlob, `${payload.personId}.jpg`);
+    const upload = await fetch(`${BASE}/api/v1/enrollment/people/${encodeURIComponent(payload.personId)}/photo`, {
+      method: "POST",
+      body: form,
+    });
+    if (!upload.ok) throw new Error(`HTTP ${upload.status}`);
+    return upload.json();
+  }
+
+  return request("/api/v1/enrollment/people", {
+    method: "POST",
+    body: JSON.stringify({ person_id: payload.personId, name: payload.name, role: "authorized", notes: payload.notes }),
+  });
+}
+
+export async function deleteAuthorizedPerson(personId) {
+  // Deliberately bypasses request()'s mock-data fallback: a delete must
+  // fail loudly if the backend is unreachable, not silently "succeed" while
+  // the person's face still matches the live recognition gallery.
+  const res = await fetch(`${BASE}/api/v1/enrollment/people/${encodeURIComponent(personId)}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
 let mockSilencedIncidentIds = new Set();
 
 async function handleMockFallback(path, options) {

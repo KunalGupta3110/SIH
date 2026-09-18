@@ -24,6 +24,8 @@ unsigned long servoFrameStartedMicros = 0;
 unsigned long sirenChangedAtMillis = 0;
 unsigned long ledChangedAtMillis = 0;
 unsigned int servoPulseWidthMicros = 1000;
+char serialCommand[32];
+byte serialCommandLength = 0;
 
 // Generate a servo pulse without requiring the external Servo library.
 void setBarrierAngle(int angle) {
@@ -99,6 +101,37 @@ void updateBreachIndicator() {
   }
 }
 
+void handleCommand(const char *command) {
+  if (strcmp(command, "B") == 0 || strcmp(command, "BOOM_LOCK_1") == 0 || strcmp(command, "BARRIER_DOWN") == 0 || strcmp(command, "RELAY_ON_1") == 0) {
+    isBreached = true;
+    setBarrierAngle(BARRIER_LOCKED_ANGLE);
+    ledChangedAtMillis = millis();
+    digitalWrite(LED_PIN, HIGH);
+    startSiren();
+    Serial.println("STATUS:BARRIER_INTERLOCKED");
+  } else if (strcmp(command, "R") == 0 || strcmp(command, "BARRIER_UP") == 0) {
+    isBreached = false;
+    setBarrierAngle(BARRIER_OPEN_ANGLE);
+    stopSiren();
+    digitalWrite(LED_PIN, LOW);
+    Serial.println("STATUS:BARRIER_RESET_OPEN");
+  } else if (strcmp(command, "SIREN_OFF") == 0 || strcmp(command, "STROBE_OFF") == 0) {
+    stopSiren();
+    if (strcmp(command, "STROBE_OFF") == 0) {
+      isBreached = false;
+      digitalWrite(LED_PIN, LOW);
+    }
+    Serial.println("STATUS:SIREN_OFF");
+  } else if (strcmp(command, "SIREN_ON") == 0 || strcmp(command, "STROBE_ON") == 0) {
+    startSiren();
+    if (strcmp(command, "STROBE_ON") == 0) {
+      isBreached = true;
+      digitalWrite(LED_PIN, HIGH);
+    }
+    Serial.println("STATUS:SIREN_ON");
+  }
+}
+
 void setup() {
   Serial.begin(9600);
   
@@ -117,26 +150,18 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() > 0) {
-    char cmd = Serial.read();
-
-    // 'B' = Critical Breach Detected by Edge AI
-    if (cmd == 'B' || cmd == 'b') {
-      isBreached = true;
-      setBarrierAngle(BARRIER_LOCKED_ANGLE);
-      ledChangedAtMillis = millis();
-      digitalWrite(LED_PIN, HIGH);
-      startSiren();
-      Serial.println("STATUS:BARRIER_INTERLOCKED");
-    }
-    
-    // 'R' = Operator Reset / Cleared
-    else if (cmd == 'R' || cmd == 'r') {
-      isBreached = false;
-      setBarrierAngle(BARRIER_OPEN_ANGLE);
-      stopSiren();
-      digitalWrite(LED_PIN, LOW);
-      Serial.println("STATUS:BARRIER_RESET_OPEN");
+  while (Serial.available() > 0) {
+    char incoming = Serial.read();
+    if (incoming == '\n' || incoming == '\r') {
+      if (serialCommandLength > 0) {
+        serialCommand[serialCommandLength] = '\0';
+        handleCommand(serialCommand);
+        serialCommandLength = 0;
+      }
+    } else if (serialCommandLength < sizeof(serialCommand) - 1) {
+      serialCommand[serialCommandLength++] = incoming;
+    } else {
+      serialCommandLength = 0;
     }
   }
 

@@ -21,6 +21,7 @@ import {
   CLEARANCE,
   CATEGORIES,
 } from "../lib/personnel.js";
+import { deleteAuthorizedPerson, enrollAuthorizedPerson } from "../lib/api.js";
 import ThemeToggle from "./ThemeToggle.jsx";
 import { BrandLogo } from "./BrandMark.jsx";
 
@@ -152,18 +153,41 @@ export default function PersonnelEnrollment() {
 
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.serviceId.trim()) return;
-    const entry = enrollPersonnel({ ...form, face, enrolledBy: operator?.id || "operator" });
-    setRoster(listPersonnel());
-    setSaved(entry);
-    setForm({ name: "", serviceId: "", category: CATEGORIES[0], unit: "", clearance: CLEARANCE[1], phone: "", vehiclePlate: "" });
-    setFace("");
-    setTimeout(() => setSaved(null), 4000);
+    const personId = `AUTH-${Date.now()}`;
+    try {
+      const backendEntry = await enrollAuthorizedPerson({
+        personId,
+        name: form.name.trim(),
+        face,
+        notes: `${form.serviceId} | ${form.category} | ${form.unit} | clearance: ${form.clearance}${form.vehiclePlate ? ` | plate: ${form.vehiclePlate}` : ""}`,
+      });
+      const entry = enrollPersonnel({ ...form, face, enrolledBy: operator?.id || "operator", id: backendEntry.person_id });
+      setRoster(listPersonnel());
+      setSaved(entry);
+      setForm({ name: "", serviceId: "", category: CATEGORIES[0], unit: "", clearance: CLEARANCE[1], phone: "", vehiclePlate: "" });
+      setFace("");
+      setTimeout(() => setSaved(null), 4000);
+    } catch (err) {
+      setSaved({ name: form.name, id: "", syncError: err.message || "backend unavailable" });
+    }
   };
 
-  const drop = (id) => setRoster(removePersonnel(id));
+  const drop = async (id) => {
+    try {
+      await deleteAuthorizedPerson(id);
+    } catch (err) {
+      // 404 just means this entry was never synced to the backend gallery
+      // (e.g. a legacy local-only record) — nothing there to leak, safe to drop locally.
+      if (!String(err.message || "").includes("404")) {
+        window.alert(`Could not revoke this enrollment on the backend (${err.message || "backend unavailable"}). They may still be recognized by live cameras — try again once the backend is reachable.`);
+        return;
+      }
+    }
+    setRoster(removePersonnel(id));
+  };
 
   if (!checked) return null;
 

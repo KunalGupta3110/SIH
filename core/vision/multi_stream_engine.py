@@ -263,6 +263,7 @@ class CameraStreamProcessor:
         self.face_engine = face_engine or FaceRecognitionEngine(feat_extractor=self.feat_extractor)
         self.abandoned_detector = AbandonedObjectDetector()
         self._face_check_counter: Dict[int, int] = {}  # track_id -> frames since last face check
+        self._track_face_match: Dict[int, dict] = {}  # track_id -> last {person_id,name,role,similarity}
 
         self.zone_manager = ZoneManager()
         for z in self.zones:
@@ -431,6 +432,7 @@ class CameraStreamProcessor:
             match = self.face_engine.match_person_crop(crop)
             if not match:
                 continue
+            self._track_face_match[t.track_id] = match
 
             label = f"{match['name'].upper()} ({match['role']})"
             cv2.putText(annotated, label, (x1, min(annotated.shape[0] - 6, y2 + 18)), cv2.FONT_HERSHEY_SIMPLEX, 0.55,
@@ -652,6 +654,7 @@ class CameraStreamProcessor:
 
             # ── 4. Evaluate Zone Incursions & Person Threat Triggers ──
             has_breach = False
+            has_authorized_presence = False
             for t in tracks:
                 # Require genuine persistent track (not 1-frame jitter)
                 if getattr(t, "confidence", 0.0) < 0.52 or len(getattr(t, "trajectory", [])) < 2:
@@ -670,6 +673,57 @@ class CameraStreamProcessor:
                             break
 
                 if in_breach:
+                    face_match = self._track_face_match.get(t.track_id) if t.class_name == "person" else None
+                    is_authorized = bool(face_match) and face_match.get("role") == "authorized"
+
+                    if is_authorized:
+                        # Recognized, enrolled personnel: still tracked, logged, and
+                        # visible on the feed/dashboard, but excluded from the
+                        # alert/siren path — an authorized presence is not a breach.
+                        has_authorized_presence = True
+                        self.alert_status_text = f"AUTHORIZED: {face_match['name'].upper()} #{t.track_id} IN {matched_zone_name}"
+                        self.alert_banner_timer = 35
+
+                        if frame_idx % 30 == 0:
+                            x1, y1, x2, y2 = [int(v) for v in t.bbox]
+                            crop = frame[max(0, y1):min(frame.shape[0], y2), max(0, x1):min(frame.shape[1], x2)]
+                            thumb_path = os.path.join(ROOT_DIR, "data", "thumbnails", f"evt_live_{self.camera_id}_{t.track_id}_{int(timestamp_ms)}.jpg")
+                            if crop.size > 0:
+                                cv2.imwrite(thumb_path, crop)
+
+                            ev = SecurityEvent(
+                                event_id=f"evt_live_{self.camera_id}_{t.track_id}_{int(timestamp_ms)}",
+                                timestamp_iso=datetime.now(timezone.utc).isoformat(),
+                                timestamp_ms=timestamp_ms,
+                                camera_id=self.camera_id,
+                                track_id=t.track_id,
+                                class_name=t.class_name,
+                                alert_type=AlertType.ZONE_INTRUSION,
+                                severity=AlertSeverity.INFO,
+                                zone_id="LIVE_INGRESS_ZONE",
+                                zone_name=matched_zone_name,
+                                details=f"Authorized personnel {face_match['name']} (similarity {face_match['similarity']}) recognized in {matched_zone_name} — no alert raised.",
+                                bbox=t.bbox,
+                                centroid=t.centroid,
+                                rule_name="Authorized Personnel Recognition",
+                                confidence=t.confidence,
+                            )
+                            self.db.insert_event(ev)
+
+                            correlate_border_event(
+                                camera_id=self.camera_id,
+                                global_target_id=f"TRG-{t.track_id:04d}",
+                                target_class=t.class_name,
+                                event_type="AUTHORIZED_PRESENCE",
+                                rule_detail=f"Authorized personnel {face_match['name']} recognized in {matched_zone_name} at {self.camera_id}.",
+                                in_restricted_zone=False,
+                                tripwire_crossed=False,
+                                velocity_px_s=0.0,
+                                loitering_sec=0.0,
+                                thumbnail_path=thumb_path if os.path.exists(thumb_path) else None,
+                            )
+                        continue
+
                     has_breach = True
                     self.alert_status_text = f"BREACH: {t.class_name.upper()} #{t.track_id} IN {matched_zone_name}"
                     self.alert_banner_timer = 35
@@ -718,7 +772,7 @@ class CameraStreamProcessor:
 
             # If nothing is in breach, no drones, and no plates: reset status immediately
             has_plate = any(bool(p and p.plate_text and len(p.plate_text.strip()) >= 3) for p in cached_plate_results)
-            if not has_breach and not cached_drone_boxes and not has_plate:
+            if not has_breach and not has_authorized_presence and not cached_drone_boxes and not has_plate:
                 self.alert_banner_timer = 0
                 self.alert_status_text = "PERIMETER SECURE"
 

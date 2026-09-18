@@ -26,7 +26,25 @@ def _has_table(name: str) -> bool:
     return inspect(bind).has_table(name)
 
 
+def _has_column(table: str, column: str) -> bool:
+    bind = op.get_bind()
+    return column in {c["name"] for c in inspect(bind).get_columns(table)}
+
+
 def upgrade() -> None:
+    if _has_table("security_events"):
+        with op.batch_alter_table("security_events") as batch:
+            for column_name, column_def in (
+                ("operator_updated_at", sa.Column("operator_updated_at", sa.String, nullable=True)),
+                ("thumbnail_path", sa.Column("thumbnail_path", sa.String, nullable=True)),
+                ("plate_text", sa.Column("plate_text", sa.String, nullable=True)),
+                ("plate_confidence", sa.Column("plate_confidence", sa.Float, nullable=True)),
+                ("is_hotlist", sa.Column("is_hotlist", sa.Integer, server_default="0")),
+                ("hotlist_reason", sa.Column("hotlist_reason", sa.String, nullable=True)),
+            ):
+                if not _has_column("security_events", column_name):
+                    batch.add_column(column_def)
+
     if not _has_table("security_events"):
         op.create_table(
             "security_events",
@@ -50,6 +68,10 @@ def upgrade() -> None:
             sa.Column("operator_notes", sa.Text, nullable=True),
             sa.Column("operator_updated_at", sa.String, nullable=True),
             sa.Column("thumbnail_path", sa.String, nullable=True),
+            sa.Column("plate_text", sa.String, nullable=True),
+            sa.Column("plate_confidence", sa.Float, nullable=True),
+            sa.Column("is_hotlist", sa.Integer, server_default="0"),
+            sa.Column("hotlist_reason", sa.String, nullable=True),
         )
         op.create_index("idx_security_events_cam_time", "security_events", ["camera_id", "timestamp_iso"])
         op.create_index("idx_security_events_status", "security_events", ["operator_status"])

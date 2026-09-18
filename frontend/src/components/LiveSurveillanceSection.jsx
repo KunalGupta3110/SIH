@@ -276,9 +276,7 @@ export default function LiveSurveillanceSection({
   // Handle Automated Proximity & Siren Triggering
   useEffect(() => {
     if (simulatedDistance <= sirenDistanceThreshold) {
-      if (!siren.isActive()) {
-        siren.start(`SUSPICIOUS VEHICLE BREACH: PROXIMITY ${simulatedDistance.toFixed(1)}m < ${sirenDistanceThreshold}m THRESHOLD!`);
-      }
+      // Distance remains a visual simulation signal; audio is operator-triggered.
     } else {
       // If user moved vehicle back beyond 14m, auto-silence
       if (simulatedDistance > sirenDistanceThreshold + 4 && siren.isActive()) {
@@ -405,9 +403,6 @@ export default function LiveSurveillanceSection({
         if (current >= 1.33) {
           const insideDist = Math.max(3.0, 9.5 - (current - 1.33) * 2.5);
           setSimulatedDistance(parseFloat(insideDist.toFixed(1)));
-          if (!siren.isActive()) {
-            siren.start("LIVE RE-ID INGRESS: Track #1 vehicle crossed restricted perimeter at Checkpost Alpha. Entering transit corridor.");
-          }
         } else {
           const approachDist = Math.max(10.5, 40 - (current / 1.33) * 29.5);
           setSimulatedDistance(parseFloat(approachDist.toFixed(1)));
@@ -417,9 +412,6 @@ export default function LiveSurveillanceSection({
         setCurrentFrameNum(frame);
         const insideDist = Math.max(2.0, 6.0 - progress * 4.0);
         setSimulatedDistance(parseFloat(insideDist.toFixed(1)));
-        if (!siren.isActive()) {
-          siren.start("LIVE RESNET-18 RE-ID: Target vehicle re-acquired downstream on CAM 02 with 96.71% deterministic cosine similarity!");
-        }
       }
       return;
     }
@@ -442,11 +434,6 @@ export default function LiveSurveillanceSection({
       if (current >= 1.57) {
         const insideDist = Math.max(2.5, 9.2 - (current - 1.57) * 1.8);
         setSimulatedDistance(parseFloat(insideDist.toFixed(1)));
-        if (!siren.isActive()) {
-          siren.start(
-            `LIVE YOLOv8n INFERENCE: Vehicle centroid crossed restricted zone boundary at Frame 47 (t=1.57s) with 81.5% model confidence!`
-          );
-        }
       } else {
         const approachDist = Math.max(10.5, 42 - (current / 1.57) * 31.5);
         setSimulatedDistance(parseFloat(approachDist.toFixed(1)));

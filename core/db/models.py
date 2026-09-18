@@ -136,6 +136,7 @@ class SecurityEvent(Base):
     confidence: Mapped[float] = mapped_column(Float, default=0.85)
     operator_status: Mapped[str] = mapped_column(String, default="UNREVIEWED")
     operator_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    operator_updated_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     thumbnail_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     plate_text: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     plate_confidence: Mapped[Optional[float]] = mapped_column(Float, nullable=True)

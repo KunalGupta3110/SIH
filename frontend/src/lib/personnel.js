@@ -73,7 +73,7 @@ export function enrollPersonnel(record) {
   const list = read();
   const n = list.reduce((m, p) => Math.max(m, parseInt(String(p.id).replace(/\D/g, ""), 10) || 0), 0);
   const entry = {
-    id: `AUTH-${String(n + 1).padStart(3, "0")}`,
+    id: record.id || `AUTH-${String(n + 1).padStart(3, "0")}`,
     name: record.name?.trim() || "Unnamed",
     serviceId: record.serviceId?.trim() || "",
     category: record.category || CATEGORIES[0],

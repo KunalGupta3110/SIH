@@ -777,6 +777,18 @@ class SentinelBackend:
             session.flush()
             return self._enrolled_person_to_dict(row)
 
+    def delete_person(self, person_id: str) -> bool:
+        """Revoke an enrollment. The live face-recognition gallery
+        (core/vision/face_recognition.py) re-pulls from this table every
+        GALLERY_REFRESH_SEC, so a removed person stops matching within
+        that window — otherwise they'd keep authorizing forever."""
+        with self._session() as session:
+            row = session.execute(select(EnrolledPerson).where(EnrolledPerson.person_id == person_id)).scalars().first()
+            if not row:
+                return False
+            session.delete(row)
+            return True
+
     def list_enrolled_people(self) -> List[Dict[str, Any]]:
         with self._session() as session:
             rows = session.execute(select(EnrolledPerson).order_by(desc(EnrolledPerson.created_at))).scalars().all()

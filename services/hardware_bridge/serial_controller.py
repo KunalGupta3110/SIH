@@ -92,7 +92,8 @@ class PhysicalBarrierController:
         return self.send_command("BOOM_LOCK_1")
 
     def reset_barrier(self) -> Dict[str, str]:
-        return self.send_command("SIREN_OFF")
+        self.send_command("SIREN_OFF")
+        return self.send_command("BARRIER_UP")
 
 
 _controller = PhysicalBarrierController()

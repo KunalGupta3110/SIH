@@ -446,6 +446,15 @@ async def enroll_person_photo(
     return {"status": "enrolled", **person}
 
 
+@app.delete("/enrollment/people/{person_id}")
+@app.delete("/v1/enrollment/people/{person_id}")
+def delete_enrolled_person(person_id: str):
+    removed = get_backend().delete_person(person_id)
+    if not removed:
+        raise HTTPException(status_code=404, detail="person not found")
+    return {"status": "removed", "person_id": person_id}
+
+
 @app.post("/events/simulate-handoff")
 @app.post("/v1/events/simulate-handoff")
 async def simulate_handoff():
