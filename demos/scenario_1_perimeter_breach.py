@@ -21,7 +21,7 @@ from core.rules.sound_alerts import play_alert
 from core.rules.threat_analyzer import BorderThreatAnalyzer
 from core.rules.zones import Zone, ZoneManager, ZoneType
 from core.vision.tracker import BorderTracker
-from services.notifications.telegram_bot import send_mobile_alert
+from services.notifications.mobile_alerts import send_mobile_alert
 from services.hardware_bridge.serial_controller import trigger_physical_breach
 
 

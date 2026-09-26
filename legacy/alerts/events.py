@@ -452,7 +452,7 @@ class AlertEngine:
             else:
                 play_alert("INFO")
 
-            # Dispatch Instant Mobile & Telegram Notification (Non-blocking async)
+            # Dispatch Instant Mobile Notification (Non-blocking async)
             for ev in events:
                 if ev.severity in (AlertSeverity.CRITICAL, AlertSeverity.WARNING):
                     send_mobile_alert(ev)

@@ -27,7 +27,7 @@ from core.vision.multi_stream_engine import normalize_camera_source
 from core.vision.reid import FeatureExtractor
 from core.vision.tracker import BorderTracker
 from services.hardware_bridge.serial_controller import trigger_physical_breach
-from services.notifications.telegram_bot import send_mobile_alert
+from services.notifications.mobile_alerts import send_mobile_alert
 
 # Performance: only run YOLO inference every N frames
 INFER_EVERY_N_FRAMES = 2

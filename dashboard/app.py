@@ -27,7 +27,7 @@ import streamlit as st
 
 from alerts.events import EventDatabase
 from alerts.incident_engine import get_incident_engine
-from alerts.notify import load_notification_config, save_notification_config, test_mobile_alert
+from alerts.notify import load_notification_config, test_mobile_alert
 from alerts.schema import AlertSeverity, AlertType, OperatorStatus
 from core.evidence_chain import get_evidence_chain
 
@@ -108,13 +108,10 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### 📱 Mobile Alert Dispatcher")
-    st.text(f"Telegram Bot: {notify_cfg.get('bot_username', '@Ibvap_border_alert_bot')}")
+    st.text(f"Status: {'Enabled' if notify_cfg.get('enabled', True) else 'Disabled'} (local console simulator)")
     if st.button("🔔 Test Mobile Alert Dispatch"):
-        res = test_mobile_alert(db.db_path)
-        if res.get("status") == "sent":
-            st.success("Mobile alert sent to Telegram!")
-        else:
-            st.info("Simulation mode: Alert recorded.")
+        test_mobile_alert()
+        st.info("Simulation mode: Alert recorded.")
 
 
 # ============================================================================

@@ -3,7 +3,7 @@ IBVAP Sentinel
 Demo: demos/scenario_4_tabletop_webcam.py
 Description: Scenario 4 — Live Tabletop Webcam Surveillance & Physical Hardware Boom Barrier Trigger.
              Detects: Persons/Vehicles (YOLOv8), Drones (Tuzelkhan/drone-yolov8), Number Plates (ANPR+OCR).
-             Sends Telegram alerts and triggers physical hardware on any threat.
+             Sends mobile alerts and triggers physical hardware on any threat.
 """
 
 import argparse
@@ -23,7 +23,7 @@ from core.database.schema import AlertSeverity, AlertType, SecurityEvent
 from core.rules.sound_alerts import play_alert
 from core.rules.zones import Zone, ZoneManager, ZoneType
 from core.vision.tracker import BorderTracker
-from services.notifications.telegram_bot import send_mobile_alert
+from services.notifications.mobile_alerts import send_mobile_alert
 from services.hardware_bridge.serial_controller import trigger_physical_breach
 
 # Performance: only run full YOLO inference every N frames

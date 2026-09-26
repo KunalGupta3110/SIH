@@ -23,7 +23,7 @@ from core.rules.sound_alerts import play_alert
 from core.rules.zones import Zone, ZoneManager, ZoneType
 from core.vision.reid import CrossCameraReIDEngine, FeatureExtractor
 from core.vision.tracker import BorderTracker
-from services.notifications.telegram_bot import send_mobile_alert
+from services.notifications.mobile_alerts import send_mobile_alert
 
 
 def run_reid_demo(cam1_src="data/sample_border.mp4", cam2_src="data/sample_border.mp4", similarity_thresh=0.70, show=True):

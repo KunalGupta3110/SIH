@@ -1,9 +1,9 @@
 """
 IBVAP - Intelligent Border Video Analytics Platform
 Module: alerts/notify.py
-Description: Asynchronous Mobile & Telegram Alert Dispatcher.
+Description: Asynchronous Mobile Alert Dispatcher.
              Immediately dispatches real-time security breach alerts, explainable rule telemetry,
-             and cropped high-resolution photographic snapshot evidence directly to field officers' phones.
+             and cropped high-resolution photographic snapshot evidence to the operator console.
 """
 
 from datetime import datetime, timezone
@@ -14,7 +14,6 @@ import sys
 import threading
 import time
 from typing import Dict, List, Optional
-import requests
 
 # Ensure project root in sys.path
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -27,13 +26,10 @@ from alerts.schema import AlertSeverity, AlertType, SecurityEvent
 CONFIG_PATH = os.path.join(ROOT_DIR, "data", "notification_config.json")
 
 
-def load_notification_config() -> Dict[str, str]:
+def load_notification_config() -> Dict[str, bool]:
     """Loads notification settings or defaults."""
     default_cfg = {
         "enabled": True,
-        "telegram_bot_token": os.environ.get("IBVAP_BOT_TOKEN", ""),
-        "telegram_chat_id": os.environ.get("IBVAP_CHAT_ID", ""),
-        "mock_mode": True,  # When True, logs formatted mobile message locally if token not set
     }
     if os.path.exists(CONFIG_PATH):
         try:
@@ -45,14 +41,11 @@ def load_notification_config() -> Dict[str, str]:
     return default_cfg
 
 
-def save_notification_config(bot_token: str, chat_id: str, enabled: bool = True):
-    """Saves Telegram bot token and chat ID to data/notification_config.json."""
+def save_notification_config(enabled: bool = True):
+    """Saves mobile alert dispatcher settings to data/notification_config.json."""
     os.makedirs(os.path.dirname(CONFIG_PATH) or ".", exist_ok=True)
     cfg = {
         "enabled": enabled,
-        "telegram_bot_token": bot_token.strip(),
-        "telegram_chat_id": chat_id.strip(),
-        "mock_mode": not bool(bot_token.strip() and chat_id.strip()),
     }
     with open(CONFIG_PATH, "w") as f:
         json.dump(cfg, f, indent=2)
@@ -79,13 +72,10 @@ class MobileAlertDispatcher:
         thread.start()
 
     def _send_payload(self, event: SecurityEvent):
-        """Constructs mobile card and sends to Telegram or mock mobile feed."""
-        bot_token = self.config.get("telegram_bot_token", "").strip()
-        chat_id = self.config.get("telegram_chat_id", "").strip()
-
+        """Constructs and logs a mobile alert card to the operator console."""
         severity_icon = "🚨" if event.severity == AlertSeverity.CRITICAL else ("⚠️" if event.severity == AlertSeverity.WARNING else "ℹ️")
-        
-        # Professional Tactical Telegram Message Card
+
+        # Professional Tactical Mobile Alert Card
         caption_text = (
             f"{severity_icon} *IBVAP BORDER ALERT [{event.severity.value}]*\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
@@ -99,38 +89,11 @@ class MobileAlertDispatcher:
             f"🛡️ _Advisory alert for operator verification_"
         )
 
-        # 1. Real Telegram Dispatch if configured
-        if bot_token and chat_id:
-            try:
-                # Send Photo with Caption if thumbnail exists
-                if event.thumbnail_path and os.path.exists(event.thumbnail_path):
-                    url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
-                    with open(event.thumbnail_path, "rb") as photo_file:
-                        files = {"photo": photo_file}
-                        data = {"chat_id": chat_id, "caption": caption_text, "parse_mode": "Markdown"}
-                        res = requests.post(url, data=data, files=files, timeout=4)
-                        if res.status_code == 200:
-                            print(f"[Mobile Notify] [OK] Telegram photo alert sent to {chat_id} for {event.event_id}")
-                            return
-                        else:
-                            print(f"[Mobile Notify] [API WARN] Telegram API returned {res.status_code}: {res.text}")
-
-                # Text fallback
-                url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                data = {"chat_id": chat_id, "text": caption_text, "parse_mode": "Markdown"}
-                requests.post(url, json=data, timeout=4)
-                print(f"[Mobile Notify] [OK] Telegram text alert sent to {chat_id}")
-
-            except Exception as e:
-                print(f"[Mobile Notify] [ERROR] Telegram dispatch error: {e}")
-
-        # 2. Mock Mobile Logging (for live demo when token not yet inserted)
-        else:
-            print(f"\n[MOBILE PUSH NOTIFICATION SIMULATOR]")
-            print(caption_text)
-            if event.thumbnail_path:
-                print(f"[Attached Snapshot] {event.thumbnail_path}")
-            print(f"====================================\n")
+        print(f"\n[MOBILE PUSH NOTIFICATION SIMULATOR]")
+        print(caption_text)
+        if event.thumbnail_path:
+            print(f"[Attached Snapshot] {event.thumbnail_path}")
+        print(f"====================================\n")
 
 
 # Global Singleton Dispatcher
@@ -142,12 +105,8 @@ def send_mobile_alert(event: SecurityEvent):
     _dispatcher.dispatch_alert_async(event)
 
 
-def test_mobile_alert(bot_token: Optional[str] = None, chat_id: Optional[str] = None):
+def test_mobile_alert():
     """Sends a sample test alert to verify mobile dispatch."""
-    if bot_token and chat_id:
-        save_notification_config(bot_token, chat_id)
-        _dispatcher.reload_config()
-
     test_ev = SecurityEvent(
         event_id=f"evt_test_{int(time.time()*1000)}",
         timestamp_iso=datetime.now(timezone.utc).isoformat(),

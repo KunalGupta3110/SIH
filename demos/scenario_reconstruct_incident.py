@@ -24,7 +24,7 @@ from core.rules.explainable_scoring import ExplainableThreatScorer
 from core.rules.predictive_handoff import PredictiveHandoffEngine
 from core.rules.sound_alerts import play_alert
 from core.vision.reid import FeatureExtractor
-from services.notifications.telegram_bot import send_mobile_alert
+from services.notifications.mobile_alerts import send_mobile_alert
 from services.hardware_bridge.serial_controller import trigger_physical_breach
 
 

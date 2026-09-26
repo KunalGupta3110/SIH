@@ -32,7 +32,7 @@ from core.vision.low_light import enhance_low_light, is_low_light
 from core.vision.reid import FeatureExtractor
 from core.vision.tracker import BorderTracker
 from services.hardware_bridge.serial_controller import trigger_physical_breach
-from services.notifications.telegram_bot import send_mobile_alert
+from services.notifications.mobile_alerts import send_mobile_alert
 import re
 from urllib.parse import urlparse, urlunparse
 

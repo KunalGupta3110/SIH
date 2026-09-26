@@ -1,7 +1,7 @@
 """
 IBVAP Sentinel
-Module: services/notifications/telegram_bot.py
-Description: Asynchronous Telegram & Mobile Alert Dispatcher.
+Module: services/notifications/mobile_alerts.py
+Description: Asynchronous Mobile Alert Dispatcher.
 """
 
 from datetime import datetime, timezone
@@ -12,7 +12,6 @@ import sys
 import threading
 import time
 from typing import Dict, List, Optional
-import requests
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 if str(ROOT_DIR) not in sys.path:
@@ -23,11 +22,9 @@ from core.database.schema import AlertSeverity, AlertType, SecurityEvent
 CONFIG_PATH = os.path.join(ROOT_DIR, "data", "notification_config.json")
 
 
-def load_notification_config() -> Dict[str, str]:
+def load_notification_config() -> Dict[str, bool]:
     default_cfg = {
         "enabled": True,
-        "telegram_bot_token": os.environ.get("IBVAP_BOT_TOKEN", ""),
-        "telegram_chat_id": os.environ.get("IBVAP_CHAT_ID", ""),
     }
     if os.path.exists(CONFIG_PATH):
         try:
@@ -39,12 +36,10 @@ def load_notification_config() -> Dict[str, str]:
     return default_cfg
 
 
-def save_notification_config(bot_token: str, chat_id: str, enabled: bool = True):
+def save_notification_config(enabled: bool = True):
     os.makedirs(os.path.dirname(CONFIG_PATH) or ".", exist_ok=True)
     cfg = {
         "enabled": enabled,
-        "telegram_bot_token": bot_token.strip(),
-        "telegram_chat_id": chat_id.strip(),
     }
     with open(CONFIG_PATH, "w") as f:
         json.dump(cfg, f, indent=2)
@@ -64,11 +59,8 @@ class MobileAlertDispatcher:
         threading.Thread(target=self._send_payload, args=(event,), daemon=True).start()
 
     def _send_payload(self, event: SecurityEvent):
-        bot_token = self.config.get("telegram_bot_token", "").strip()
-        chat_id = self.config.get("telegram_chat_id", "").strip()
-
         severity_icon = "🚨" if event.severity == AlertSeverity.CRITICAL else ("⚠️" if event.severity == AlertSeverity.WARNING else "ℹ️")
-        
+
         caption_text = (
             f"{severity_icon} *IBVAP SENTINEL ALERT [{event.severity.value}]*\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
@@ -82,30 +74,11 @@ class MobileAlertDispatcher:
             f"🛡️ _Advisory alert for operator verification_"
         )
 
-        if bot_token and chat_id:
-            try:
-                if event.thumbnail_path and os.path.exists(event.thumbnail_path):
-                    url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
-                    with open(event.thumbnail_path, "rb") as photo_file:
-                        files = {"photo": photo_file}
-                        data = {"chat_id": chat_id, "caption": caption_text, "parse_mode": "Markdown"}
-                        res = requests.post(url, data=data, files=files, timeout=4)
-                        if res.status_code == 200:
-                            print(f"[Mobile Notify] [OK] Telegram photo alert sent to {chat_id} for {event.event_id}")
-                            return
-
-                url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                data = {"chat_id": chat_id, "text": caption_text, "parse_mode": "Markdown"}
-                requests.post(url, json=data, timeout=4)
-                print(f"[Mobile Notify] [OK] Telegram text alert sent to {chat_id}")
-            except Exception as e:
-                print(f"[Mobile Notify] [ERROR] Telegram dispatch error: {e}")
-        else:
-            print(f"\n[MOBILE PUSH NOTIFICATION SIMULATOR]")
-            print(caption_text)
-            if event.thumbnail_path:
-                print(f"[Attached Snapshot] {event.thumbnail_path}")
-            print(f"====================================\n")
+        print(f"\n[MOBILE PUSH NOTIFICATION SIMULATOR]")
+        print(caption_text)
+        if event.thumbnail_path:
+            print(f"[Attached Snapshot] {event.thumbnail_path}")
+        print(f"====================================\n")
 
 
 _dispatcher = MobileAlertDispatcher()
@@ -115,11 +88,7 @@ def send_mobile_alert(event: SecurityEvent):
     _dispatcher.dispatch_alert_async(event)
 
 
-def test_mobile_alert(bot_token: Optional[str] = None, chat_id: Optional[str] = None):
-    if bot_token and chat_id:
-        save_notification_config(bot_token, chat_id)
-        _dispatcher.reload_config()
-
+def test_mobile_alert():
     test_ev = SecurityEvent(
         event_id=f"evt_test_{int(time.time()*1000)}",
         timestamp_iso=datetime.now(timezone.utc).isoformat(),
