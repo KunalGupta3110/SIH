@@ -54,7 +54,7 @@ IBVAP Sentinel provides:
 ✅ Cross-camera person/vehicle identification (512-dim embeddings)  
 ✅ Spatial geofencing with directional detection  
 ✅ Tamper-evident event logging with cryptographic hash chains  
-✅ Real-time push notifications (Telegram, FCM)  
+✅ Real-time push notifications (FCM)  
 ✅ Cross-platform mobile app (Flutter: Android, iOS, Windows, Web)  
 ✅ CPU-optimized (no GPU required for edge deployment)  
 ✅ Operator-friendly false-positive triage workflow  
@@ -204,7 +204,6 @@ Create a scalable, intelligent surveillance network that transforms passive CCTV
 │  ┌─────────────────────────────────────────────────────────────────┐   │
 │  │ 11. ASYNC NOTIFICATION DISPATCH                                 │   │
 │  │     • If severity >= HIGH:                                      │   │
-│  │       - Queue async task to send Telegram alert                 │   │
 │  │       - Queue async task to send FCM push notification          │   │
 │  │       - Include incident ID, threat type, timestamp, image URL  │   │
 │  │     • Non-blocking to inference pipeline                        │   │
@@ -361,7 +360,7 @@ IBVAP Sentinel Ecosystem
 | **Image Processing** | OpenCV | 4.8.0+ | Frame decoding, annotation, ROI extraction |
 | **Scientific Computing** | SciPy, NumPy | 1.10.0+, 1.24.0+ | Linear algebra, geometry operations |
 | **Progress Bars** | tqdm | 4.65.0+ | Real-time progress tracking |
-| **HTTP Requests** | requests | 2.31.0+ | External API calls (Telegram, FCM) |
+| **HTTP Requests** | requests | 2.31.0+ | External API calls (FCM) |
 | **Video I/O** | imageio-ffmpeg | 0.4.9+ | H.264 codec support for video writing |
 
 ### Hardware Requirements
@@ -604,14 +603,11 @@ Define spatial rules (geofences) and detect rule violations.
 **`notify.py` - Alert Dispatcher**
 - **Responsibility:** Async notification delivery (non-blocking to inference)
 - **Channels:**
-  - Telegram Bot API (for field officers)
   - Firebase Cloud Messaging (FCM) for mobile push
   - Email (optional)
 - **Configuration:** `data/notification_config.json`
   ```json
   {
-    "telegram_bot_token": "YOUR_TOKEN",
-    "telegram_chat_id": "12345",
     "fcm_server_key": "YOUR_KEY"
   }
   ```
@@ -912,7 +908,6 @@ Interactive Streamlit-based command center for operators.
 - **Approve/Reject:** Operator confirms or rejects matches
 
 **7. Notifications Config**
-- **Telegram Setup:** Enter bot token, chat ID, test send
 - **FCM Config:** Upload service account JSON, test push
 - **Alert Thresholds:** Customize which severity levels trigger notifications
 - **Do Not Disturb Hours:** Set quiet times
@@ -1614,8 +1609,6 @@ API_WORKERS=4
 DATABASE_PATH=data/events.db
 
 # Notifications
-TELEGRAM_BOT_TOKEN=YOUR_TOKEN
-TELEGRAM_CHAT_ID=YOUR_CHAT_ID
 FCM_SERVER_KEY=YOUR_FCM_KEY
 
 # Logging
@@ -1658,8 +1651,6 @@ LOG_FILE=logs/surveillance.log
 
 ```json
 {
-  "telegram_bot_token": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
-  "telegram_chat_id": "-1001234567890",
   "fcm_server_key": "AAAAxxxxxxxxxxx:APAxxxxxxxxxxxxx",
   "alert_thresholds": {
     "CRITICAL": true,
@@ -1684,7 +1675,6 @@ LOG_FILE=logs/surveillance.log
 - pip package manager
 - Git for cloning repository
 - RTSP camera URLs (IP cameras)
-- Telegram bot token (optional, for alerts)
 - Firebase account (optional, for FCM)
 
 ### Step 1: Clone Repository
@@ -1714,7 +1704,7 @@ nano .env  # Edit camera URLs, tokens, etc.
 # Update zones_config.json with your camera polygon zones
 nano data/zones_config.json
 
-# Update notification_config.json with Telegram/FCM details
+# Update notification_config.json with FCM details
 nano data/notification_config.json
 ```
 
